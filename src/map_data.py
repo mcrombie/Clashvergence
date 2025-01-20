@@ -1,4 +1,4 @@
-simplified_territory_map = {
+old_simplified_territory_map = {
     "Northern Virginia": {"neighbors": ["Shenandoah Valley", "Central Virginia", "Washington, D.C."], "owner": None, "armies": 1},
     "Shenandoah Valley": {"neighbors": ["Northern Virginia", "Central Virginia", "Southwestern Virginia", "West Virginia"], "owner": None, "armies": 2},
     "Tidewater": {"neighbors": ["Central Virginia", "Southside"], "owner": None, "armies": 3},
@@ -8,6 +8,12 @@ simplified_territory_map = {
     "Washington, D.C.": {"neighbors": ["Northern Virginia"], "owner": None, "armies": 100},
     "West Virginia": {"neighbors": ["Shenandoah Valley", "Southwestern Virginia"], "owner": None, "armies": 3},
 
+}
+
+simplified_territory_map = {
+    "Northern Virginia": {"neighbors": ["Shenandoah Valley", "Central Virginia"], "owner": "Player 1", "armies": 5, "coords": (-77.5, 38.8)},
+    "Shenandoah Valley": {"neighbors": ["Northern Virginia", "Central Virginia"], "owner": "Player 2", "armies": 3, "coords": (-78.7, 38.2)},
+    "Central Virginia": {"neighbors": ["Northern Virginia", "Shenandoah Valley"], "owner": None, "armies": 0, "coords": (-78.0, 37.5)},
 }
 
 #"Greater Virginia Map"

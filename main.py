@@ -1,11 +1,11 @@
 from src.rules import game_rules
 from src.map_data import greater_virginia_territory_map, simplified_territory_map
-import random
 import networkx as nx
 import matplotlib.pyplot as plt
 from src.utils import resolve_combat
 
 from mpl_toolkits.basemap import Basemap
+
 
 positions = {
     "Northern Virginia": (1, 5),
@@ -14,135 +14,148 @@ positions = {
     # Add more...
 }
 
-# Create a basemap instance
-m = Basemap(projection="merc", llcrnrlat=35, urcrnrlat=41, llcrnrlon=-85, urcrnrlon=-75, resolution="i")
-
-# Draw map features
-m.drawcoastlines()
-m.drawcountries()
-m.drawstates()
-
-# Convert latitude/longitude to x/y and draw graph nodes/edges
-for node, (lon, lat) in positions.items():
-    x, y = m(lon, lat)
-    plt.plot(x, y, 'o', markersize=10, label=node)
-
-plt.legend()
-plt.show()
-
-
-def calculate_reinforcements(player_territories):
-    base_rate = game_rules["reinforcements"]["base_rate"]
-    territory_bonus = player_territories // game_rules["reinforcements"]["territory_bonus_rate"]
-    return base_rate + territory_bonus
-
-# Test reinforcement calculation
-player_territories = 12
-# print(f"Reinforcements: {calculate_reinforcements(player_territories)}")  # Output: Reinforcements: 7
-
-def resolve_battle(attacker_armies, defender_armies):
-    max_attacker_dice = min(attacker_armies, game_rules["combat"]["max_attacker_dice"])
-    max_defender_dice = min(defender_armies, game_rules["combat"]["max_defender_dice"])
-    
-    attacker_rolls = sorted([random.randint(1, 6) for _ in range(max_attacker_dice)], reverse=True)
-    defender_rolls = sorted([random.randint(1, 6) for _ in range(max_defender_dice)], reverse=True)
-    
-    losses = {"attacker": 0, "defender": 0}
-    for a, d in zip(attacker_rolls, defender_rolls):
-        if a > d:
-            losses["defender"] += 1
-        else:
-            losses["attacker"] += 1
-    return losses
-
-# Test combat resolution
-# print(resolve_battle(5, 3))  # Output: Example: {'attacker': 1, 'defender': 2}
-
-def check_victory(player_territories, total_territories, opponents_remaining):
-    if game_rules["victory_conditions"]["control_all_territories"]:
-        if player_territories == total_territories:
-            return "Victory by controlling all territories"
-    
-    if game_rules["victory_conditions"]["eliminate_opponents"]:
-        if opponents_remaining == 0:
-            return "Victory by eliminating all opponents"
-    
-    if game_rules["victory_conditions"]["optional_score_threshold"]:
-        threshold = game_rules["victory_conditions"]["optional_score_threshold"]
-        if (player_territories / total_territories) * 100 >= threshold:
-            return f"Victory by controlling {threshold}% of the map"
-    
-    return "No victory yet"
-
-# Test victory check
-# print(check_victory(50, 100, 0))  # Output: Victory by eliminating all opponents
-
 def create_graph(map_data):
     G = nx.Graph()
-
-    # Add nodes and edges
     for territory, details in map_data.items():
-        G.add_node(territory)
+        G.add_node(territory, coords=details["coords"])
         for neighbor in details["neighbors"]:
             G.add_edge(territory, neighbor)
-
     return G
 
+graph = create_graph(simplified_territory_map)
 
-active_map = simplified_territory_map
-
-# Create the graph
-graph = create_graph(active_map)
-
-def plot_graph(G):
- # Determine node colors based on ownership
-    def get_node_colors():
-        color_map = []
-        for territory, details in active_map.items():
-            if details["owner"] == "Player 1":
-                color_map.append("blue")
-            elif details["owner"] == "Player 2":
-                color_map.append("red")
-            else:
-                color_map.append("gray")  # Neutral territory
-        return color_map
-
-    # Determine node sizes based on armies
-    def get_node_sizes():
-        return [
-            active_map[node]["armies"] * 100 + 500 if node in active_map else 500
-            for node in graph.nodes
-        ]
-    
-    # Add edge labels (optional)
-    edge_labels = {edge: "1" for edge in G.edges}  # Example: Terrain difficulty of 1
-
-    # Generate positions for nodes
-    pos = nx.spring_layout(G)  # Layout algorithm for graph visualization
-
-    # Draw the graph
-    nx.draw(
-        G,
-        pos,
-        with_labels=True,
-        node_color=get_node_colors(),
-        node_size=get_node_sizes(),
-        font_size=10,
-        font_color="black",
-        edge_color="black",
+def setup_basemap():
+    # Define map boundaries (approximate for Greater Virginia)
+    m = Basemap(
+        projection="merc",  # Mercator projection
+        llcrnrlat=35,       # Lower-left corner latitude
+        urcrnrlat=40,       # Upper-right corner latitude
+        llcrnrlon=-85,      # Lower-left corner longitude
+        urcrnrlon=-75,      # Upper-right corner longitude
+        resolution="i",     # Intermediate resolution
     )
     
-    # Draw edge labels (optional)
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=8)
+    # Add map features
+    m.drawcoastlines()
+    m.drawcountries()
+    m.drawstates()
+    m.fillcontinents(color="lightgray", lake_color="aqua")
+    m.drawmapboundary(fill_color="aqua")
+    
+    return m
 
-    # Display the graph
+def plot_graph_on_map(G, map_data):
+    # Set up the Basemap
+    m = setup_basemap()
+
+    # Extract node positions from territory data
+    node_positions = {node: m(*map_data[node]["coords"]) for node in G.nodes}
+
+    # Define node colors and sizes
+    node_colors = [
+        "blue" if map_data[node]["owner"] == "Player 1" else
+        "red" if map_data[node]["owner"] == "Player 2" else
+        "gray"
+        for node in G.nodes
+    ]
+    node_sizes = [map_data[node]["armies"] * 100 + 500 for node in G.nodes]
+
+    # Draw nodes and edges on the map
+    nx.draw(
+        G,
+        pos=node_positions,
+        with_labels=False,
+        node_color=node_colors,
+        node_size=node_sizes,
+        edge_color="black",
+        connectionstyle="arc3,rad=0.2",  # Curved edges for clarity
+    )
+
+    # Add labels for nodes (territory names and armies)
+    labels = {
+        node: f"{node}\n({map_data[node]['armies']} armies)"
+        for node in G.nodes
+    }
+    nx.draw_networkx_labels(G, pos=node_positions, labels=labels, font_size=10)
+
+    # Show the map
     plt.show()
 
-# Plot the graph
-plot_graph(graph)
+# Example usage
+plot_graph_on_map(graph, simplified_territory_map)
 
 
-# Example usage:
-result = resolve_combat(attacker_armies=5, defender_armies=3)
-print(result)  # {'attacker_remaining': 4, 'defender_remaining': 0}
+# # Convert latitude/longitude to x/y and draw graph nodes/edges
+# for node, (lon, lat) in positions.items():
+#     x, y = m(lon, lat)
+#     plt.plot(x, y, 'o', markersize=10, label=node)
+
+# plt.legend()
+# plt.show()
+
+
+# def create_graph(map_data):
+#     G = nx.Graph()
+
+#     # Add nodes and edges
+#     for territory, details in map_data.items():
+#         G.add_node(territory)
+#         for neighbor in details["neighbors"]:
+#             G.add_edge(territory, neighbor)
+
+#     return G
+
+
+# active_map = simplified_territory_map
+
+# # Create the graph
+# graph = create_graph(active_map)
+
+# def plot_graph(G):
+#  # Determine node colors based on ownership
+#     def get_node_colors():
+#         color_map = []
+#         for territory, details in active_map.items():
+#             if details["owner"] == "Player 1":
+#                 color_map.append("blue")
+#             elif details["owner"] == "Player 2":
+#                 color_map.append("red")
+#             else:
+#                 color_map.append("gray")  # Neutral territory
+#         return color_map
+
+#     # Determine node sizes based on armies
+#     def get_node_sizes():
+#         return [
+#             active_map[node]["armies"] * 100 + 500 if node in active_map else 500
+#             for node in graph.nodes
+#         ]
+    
+#     # Add edge labels (optional)
+#     edge_labels = {edge: "1" for edge in G.edges}  # Example: Terrain difficulty of 1
+
+#     # Generate positions for nodes
+#     pos = nx.spring_layout(G)  # Layout algorithm for graph visualization
+
+#     # Draw the graph
+#     nx.draw(
+#         G,
+#         pos,
+#         with_labels=True,
+#         node_color=get_node_colors(),
+#         node_size=get_node_sizes(),
+#         font_size=10,
+#         font_color="black",
+#         edge_color="black",
+#     )
+    
+#     # Draw edge labels (optional)
+#     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=8)
+
+#     # Display the graph
+#     plt.show()
+
+# # Plot the graph
+# plot_graph(graph)
+
 
