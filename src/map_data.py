@@ -55,6 +55,56 @@ simplified_territory_map = {
         "armies": 0,
         "coords": (-77.0, 38.9),
     },
+    # West Virginia
+    "Northern Panhandle": {
+        "neighbors": ["Eastern Panhandle", "Kanawha Valley"],
+        "owner": None,
+        "armies": 0,
+        "coords": (-80.6, 39.6),
+    },
+    "Eastern Panhandle": {
+        "neighbors": ["Northern Panhandle", "Shenandoah Valley", "Western Maryland"],
+        "owner": None,
+        "armies": 0,
+        "coords": (-78.2, 39.3),
+    },
+    "Kanawha Valley": {
+        "neighbors": ["Northern Panhandle", "Southern Coalfields", "Southwestern Virginia"],
+        "owner": None,
+        "armies": 0,
+        "coords": (-81.6, 38.3),
+    },
+    "Southern Coalfields": {
+        "neighbors": ["Kanawha Valley", "Southwestern Virginia"],
+        "owner": None,
+        "armies": 0,
+        "coords": (-82.2, 37.4),
+    },
+    # Maryland
+    "Western Maryland": {
+        "neighbors": ["Eastern Panhandle", "Baltimore Metro"],
+        "owner": None,
+        "armies": 0,
+        "coords": (-78.6, 39.6),
+    },
+    "Baltimore Metro": {
+        "neighbors": ["Southern Maryland", "Eastern Shore", "Western Maryland"],
+        "owner": None,
+        "armies": 0,
+        "coords": (-76.6, 39.3),
+    },
+    "Eastern Shore": {
+        "neighbors": ["Baltimore Metro"],
+        "owner": None,
+        "armies": 0,
+        "coords": (-75.8, 38.3),
+    },
+    "Southern Maryland": {
+        "neighbors": ["Baltimore Metro", "Washington, D.C.", "Northern Virginia"],
+        "owner": None,
+        "armies": 0,
+        "coords": (-76.7, 38.3),
+    },
 }
 
 #"Greater Virginia Map"
