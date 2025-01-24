@@ -6,6 +6,13 @@ from src.utils import resolve_combat
 
 from mpl_toolkits.basemap import Basemap
 
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
+# Load shapefile for U.S. states
+# us_states = gpd.read_file("path/to/shapefile.shp")
+# TO DO: Figure out how these shapefiles to make accurate terriroties based on county and state maps.
+
 def create_graph(map_data):
     G = nx.Graph()
     for territory, details in map_data.items():
