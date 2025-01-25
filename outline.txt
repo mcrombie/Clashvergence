@@ -1,0 +1,35 @@
+Objective:
+Create a geographically accurate map of the Greater Virginia region for a Risk-like strategy game.
+
+Map Design:
+Regions Included: Virginia, West Virginia, Maryland, Delaware, Ohio, Kentucky, Tennessee, North Carolina, Pennsylvania, and New Jersey.
+
+Territory Boundaries:
+Use county-level data to define territories or group counties into regions for simplification.
+
+Geographic Accuracy:
+Use shapefiles or GeoJSON data for state/county boundaries.
+Assign real-world latitude/longitude coordinates for nodes (territories).
+
+Data Sources:
+Shapefiles: Download state/county boundaries from Census TIGER/Line.
+
+Territory Data:
+Define connections (neighbors) and metadata (e.g., ownership, armies) for each territory.
+
+Visualization:
+Background Map:
+Use geopandas and matplotlib to plot state/county boundaries.
+
+Territories:
+Overlay territories as polygons or points with labels.
+Show connections (e.g., lines between adjacent territories).
+
+Game Data:
+Use colors for ownership, sizes for armies, and labels for names.
+Next Steps:
+Step 1: Download state/county shapefiles.
+Step 2: Process shapefiles to filter Greater Virginia regions.
+Step 3: Define territories by grouping counties.
+Step 4: Visualize the map with territories and game data.
+Step 5: Integrate game mechanics (e.g., combat, reinforcements) with the map
