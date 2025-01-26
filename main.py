@@ -2,16 +2,23 @@ from src.rules import game_rules
 from src.map_data import greater_virginia_territory_map, simplified_territory_map
 import networkx as nx
 import matplotlib.pyplot as plt
-from src.utils import resolve_combat
-
 from mpl_toolkits.basemap import Basemap
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
 
-# Load shapefile for U.S. states
-# us_states = gpd.read_file("path/to/shapefile.shp")
-# TO DO: Figure out how these shapefiles to make accurate terriroties based on county and state maps.
+# # Load shapefile for U.S. states
+shapefile_path = r"C:\Users\Michael\Downloads\shapefiles\tl_2024_us_states.shp"
+us_states = gpd.read_file(shapefile_path)
+
+# Inspect the data
+print(us_states.head())
+
+
+# import os
+# print(os.path.exists("data/shapefiles/tl_2024_us_state.shp"))
+# print(os.access(shapefile_path, os.R_OK))
+
 
 def create_graph(map_data):
     G = nx.Graph()

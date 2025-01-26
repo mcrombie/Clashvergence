@@ -24,9 +24,7 @@ game_rules = {
 
     # Combat rules
     "combat": {
-        "max_attacker_dice": 3,  # Maximum dice the attacker can roll
-        "max_defender_dice": 2,  # Maximum dice the defender can roll
-        "combat_mechanics": "highest_roll",  # How battles are resolved
+        "combat_mechanics": "winner-take-all",  # How battles are resolved
     },
 
     # Movement rules
