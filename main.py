@@ -8,7 +8,8 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 
 # # Load shapefile for U.S. states
-shapefile_path = r"C:\Users\Michael\Downloads\shapefiles\tl_2024_us_states.shp"
+shapefile_path = r"C:\Users\Michael\Downloads\shapefiles\tl_2024_us_state.shp"
+print(shapefile_path)
 us_states = gpd.read_file(shapefile_path)
 
 # Inspect the data
