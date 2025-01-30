@@ -1,8 +1,4 @@
-from src.rules import game_rules
-from src.map_data import greater_virginia_territory_map, simplified_territory_map
-import networkx as nx
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
