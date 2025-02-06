@@ -1,5 +1,5 @@
 old_simplified_territory_map = {
-    "Northern Virginia": {"neighbors": ["Shenandoah Valley", "Central Virginia", "Washington, D.C."], "owner": None, "armies": 1},
+    "Northern Virginia": {"neighbors": ["Shenandoah Valley", "Central Virginia", "Washington, D.C."], "owner": None, "armies": 5},
     "Shenandoah Valley": {"neighbors": ["Northern Virginia", "Central Virginia", "Southwestern Virginia", "West Virginia"], "owner": None, "armies": 2},
     "Tidewater": {"neighbors": ["Central Virginia", "Southside"], "owner": None, "armies": 3},
     "Southside": {"neighbors": ["Central Virginia", "Tidewater", "Southwestern Virginia"], "owner": None, "armies": 4},
@@ -15,7 +15,7 @@ simplified_territory_map = {
     "Northern Virginia": {
         "neighbors": ["Shenandoah Valley", "Central Virginia", "Washington, D.C."],
         "owner": None,
-        "armies": 1,
+        "armies": 4,
         "coords": (-77.5, 38.8),
     },
     "Shenandoah Valley": {
