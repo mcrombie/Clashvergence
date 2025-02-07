@@ -67,5 +67,7 @@ def plot_graph_on_map(G, map_data):
     nx.draw_networkx_labels(G, pos=node_positions, labels=labels, font_size=10)
     # Show the map
     plt.show()
-# plot_graph_on_map(graph, simplified_territory_map)
 battle("Northern Virginia", "Shenandoah Valley", simplified_territory_map)
+plot_graph_on_map(graph, simplified_territory_map)
+battle("Northern Virginia", "Shenandoah Valley", simplified_territory_map)
+

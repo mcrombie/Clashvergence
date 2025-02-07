@@ -7,49 +7,47 @@ def roll_dice(num_dice):
 def battle(attacker, defender, map_data):
     """
     Simulates a battle between two territories.
-    - attacker: Attacking territory name (string)
-    - defender: Defending territory name (string)
-    - map_data: Dictionary containing territory information
+    - `attacker`: Attacking territory name (string)
+    - `defender`: Defending territory name (string)
+    - `map_data`: Dictionary containing territory information
     """
     
     # Get army counts
     attacker_armies = map_data[attacker]["armies"]
     defender_armies = map_data[defender]["armies"]
 
-    print(attacker_armies)
-
     if attacker_armies < 2:
         print("Not enough armies to attack!")
         return
-    
-    # Attacker rolls up to 3 dice (cannot roll more dice than they have armies - 1)
+
+    # Determine dice rolls
     attacker_dice = min(attacker_armies - 1, 3)
     defender_dice = min(defender_armies, 2)
 
     attacker_rolls = roll_dice(attacker_dice)
     defender_rolls = roll_dice(defender_dice)
 
-    print(f"{attacker} attacks {defender}!")
+    print(f"\n{attacker} attacks {defender}!")
     print(f"Attacker rolls: {attacker_rolls}")
     print(f"Defender rolls: {defender_rolls}")
 
-    # Compare dice rolls
+    # Resolve battle
     for attack, defend in zip(attacker_rolls, defender_rolls):
         if attack > defend:
             defender_armies -= 1  # Defender loses an army
         else:
             attacker_armies -= 1  # Attacker loses an army
 
-    # Update the map data
+    # Update army counts in map data
     map_data[attacker]["armies"] = attacker_armies
     map_data[defender]["armies"] = defender_armies
 
     print(f"Result: {attacker} now has {attacker_armies} armies, {defender} has {defender_armies}")
 
-    # If defender is wiped out, attacker captures the territory
+    # Check if defender is defeated
     if defender_armies == 0:
         print(f"{attacker} has captured {defender}!")
         map_data[defender]["owner"] = map_data[attacker]["owner"]
-        map_data[defender]["armies"] = attacker_armies - 1  # Move at least one army
-        map_data[attacker]["armies"] = 1  # Leave one behind
+        map_data[defender]["armies"] = attacker_armies - 1  # Move armies to new territory
+        map_data[attacker]["armies"] = 1  # Leave one army behind
 
