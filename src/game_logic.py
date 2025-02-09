@@ -54,37 +54,46 @@ def battle(attacker, defender, map_data):
 
 
 def take_turn(player, map_data):
-    """
-    Handles a single turn for a player.
-    - `player`: The player taking the turn (e.g., "Player 1").
-    - `map_data`: The game state dictionary.
-    """
     print(f"\n{player}'s turn!")
 
-    # 1. Reinforcement Phase (Basic: Add 3 armies to a random territory)
-    owned_territories = [t for t, v in map_data.items() if v["owner"] == player]
-    if owned_territories:
-        chosen_territory = random.choice(owned_territories)
-        map_data[chosen_territory]["armies"] += 3
-        print(f"{player} reinforced {chosen_territory} with 3 armies.")
+    # Reinforce strategically
+    reinforce(player, map_data)
 
-    # 2. Attack Phase (Basic: Pick a random valid attack)
+    # Choose and execute an attack
+    attacker, defender = choose_attack(player, map_data)
+    if attacker and defender:
+        battle(attacker, defender, map_data)
+
+
+
+def reinforce(player, map_data):
+    """AI selects the weakest owned territory and reinforces it."""
+    owned_territories = [t for t, v in map_data.items() if v["owner"] == player]
+    
+    if not owned_territories:
+        return
+    
+    # Find the territory with the fewest armies
+    weakest_territory = min(owned_territories, key=lambda t: map_data[t]["armies"])
+    
+    # Add 3 armies
+    map_data[weakest_territory]["armies"] += 3
+    print(f"{player} reinforced {weakest_territory} with 3 armies.")
+
+
+def choose_attack(player, map_data):
+    """AI selects the best attack: prioritize weak enemy territories."""
     possible_attacks = [
         (t, n)
-        for t in owned_territories
+        for t in map_data
+        if map_data[t]["owner"] == player and map_data[t]["armies"] > 1
         for n in map_data[t]["neighbors"]
-        if map_data[n]["owner"] != player and map_data[t]["armies"] > 1
+        if map_data[n]["owner"] != player
     ]
-    if possible_attacks:
-        attack_from, attack_to = random.choice(possible_attacks)
-        battle(attack_from, attack_to, map_data)
-
-    # 3. Fortify Phase (Basic: Move 2 armies from one owned territory to another)
-    if len(owned_territories) > 1:
-        from_territory, to_territory = random.sample(owned_territories, 2)
-        if map_data[from_territory]["armies"] > 1:
-            map_data[from_territory]["armies"] -= 2
-            map_data[to_territory]["armies"] += 2
-            print(f"{player} fortified {to_territory} from {from_territory}.")
-
-
+    
+    if not possible_attacks:
+        return None, None
+    
+    # Prioritize attacking the enemy territory with the least armies
+    best_attack = min(possible_attacks, key=lambda x: map_data[x[1]]["armies"])
+    return best_attack
