@@ -56,14 +56,16 @@ def battle(attacker, defender, map_data):
 def take_turn(player, map_data):
     print(f"\n{player}'s turn!")
 
-    # Reinforce strategically
+    # Reinforce
     reinforce(player, map_data)
 
-    # Choose and execute an attack
+    # Attack
     attacker, defender = choose_attack(player, map_data)
     if attacker and defender:
         battle(attacker, defender, map_data)
 
+    # Fortify
+    fortify(player, map_data)
 
 
 def reinforce(player, map_data):
@@ -97,3 +99,38 @@ def choose_attack(player, map_data):
     # Prioritize attacking the enemy territory with the least armies
     best_attack = min(possible_attacks, key=lambda x: map_data[x[1]]["armies"])
     return best_attack
+
+
+def fortify(player, map_data):
+    """AI moves armies from safe territories to frontlines."""
+    owned_territories = [t for t, v in map_data.items() if v["owner"] == player]
+    
+    if len(owned_territories) < 2:
+        return  # No fortification needed if only one territory
+
+    # Identify frontline territories (those bordering enemy-controlled regions)
+    frontline_territories = [
+        t for t in owned_territories 
+        if any(map_data[n]["owner"] != player for n in map_data[t]["neighbors"])
+    ]
+
+    # Identify safe territories (those surrounded by friendly territories)
+    safe_territories = [
+        t for t in owned_territories 
+        if all(map_data[n]["owner"] == player for n in map_data[t]["neighbors"])
+    ]
+
+    if not frontline_territories or not safe_territories:
+        return  # No valid fortifications
+
+    # Pick a safe territory with extra armies
+    from_territory = max(safe_territories, key=lambda t: map_data[t]["armies"], default=None)
+    
+    # Pick a frontline territory to reinforce
+    to_territory = min(frontline_territories, key=lambda t: map_data[t]["armies"], default=None)
+
+    if from_territory and to_territory and map_data[from_territory]["armies"] > 1:
+        # Move 2 armies to the frontline
+        map_data[from_territory]["armies"] -= 2
+        map_data[to_territory]["armies"] += 2
+        print(f"{player} fortified {to_territory} from {from_territory}.")
