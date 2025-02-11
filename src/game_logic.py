@@ -53,19 +53,60 @@ def battle(attacker, defender, map_data):
         map_data[attacker]["armies"] = 1  # Leave one army behind
 
 
-def take_turn(player, map_data):
+def take_turn(player, map_data, is_human=False):
+    """Handles a turn for either a human player or AI."""
     print(f"\n{player}'s turn!")
 
-    # Reinforce
-    reinforce(player, map_data)
+    if is_human:
+        # Human-controlled reinforcement
+        print("Your territories:", [t for t, v in map_data.items() if v["owner"] == player])
+        chosen_territory = input("Choose a territory to reinforce: ")
+        if chosen_territory in map_data and map_data[chosen_territory]["owner"] == player:
+            map_data[chosen_territory]["armies"] += 3
+            print(f"You reinforced {chosen_territory} with 3 armies.")
+        else:
+            print("Invalid choice. Skipping reinforcement.")
 
-    # Attack
-    attacker, defender = choose_attack(player, map_data)
-    if attacker and defender:
-        battle(attacker, defender, map_data)
+        # Human-controlled attack
+        attack_choice = input("Do you want to attack? (yes/no): ").lower()
+        if attack_choice == "yes":
+            attacker = input("Choose your attacking territory: ")
+            defender = input("Choose the enemy territory to attack: ")
+            if (
+                attacker in map_data and defender in map_data and
+                map_data[attacker]["owner"] == player and
+                map_data[defender]["owner"] != player and
+                map_data[attacker]["armies"] > 1
+            ):
+                battle(attacker, defender, map_data)
+            else:
+                print("Invalid attack. Skipping.")
 
-    # Fortify
-    fortify(player, map_data)
+        # Human-controlled fortify
+        fortify_choice = input("Do you want to fortify? (yes/no): ").lower()
+        if fortify_choice == "yes":
+            from_territory = input("Choose the territory to move armies from: ")
+            to_territory = input("Choose the territory to move armies to: ")
+            if (
+                from_territory in map_data and to_territory in map_data and
+                map_data[from_territory]["owner"] == player and
+                map_data[to_territory]["owner"] == player and
+                map_data[from_territory]["armies"] > 1
+            ):
+                map_data[from_territory]["armies"] -= 2
+                map_data[to_territory]["armies"] += 2
+                print(f"You fortified {to_territory} from {from_territory}.")
+            else:
+                print("Invalid fortification. Skipping.")
+
+    else:
+        # AI plays automatically
+        reinforce(player, map_data)
+        attacker, defender = choose_attack(player, map_data)
+        if attacker and defender:
+            battle(attacker, defender, map_data)
+        fortify(player, map_data)
+
 
 
 def reinforce(player, map_data):

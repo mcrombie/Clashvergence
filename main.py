@@ -72,12 +72,11 @@
 from src.game_logic import take_turn
 from src.map_data import simplified_territory_map
 
-players = ["Player 1", "Player 2"]
-turns = 10  # Number of turns to simulate
+players = [("Player 1", True), ("Player 2", False)]  # Player 1 is human, Player 2 is AI
+turns = 10
 
 for turn in range(turns):
     print(f"\n===== Turn {turn + 1} =====")
-    for player in players:
-        take_turn(player, simplified_territory_map)
-
+    for player, is_human in players:
+        take_turn(player, simplified_territory_map, is_human)
 
