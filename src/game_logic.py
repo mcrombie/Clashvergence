@@ -175,3 +175,14 @@ def fortify(player, map_data):
         map_data[from_territory]["armies"] -= 2
         map_data[to_territory]["armies"] += 2
         print(f"{player} fortified {to_territory} from {from_territory}.")
+
+def check_victory(map_data):
+    """Checks if a single player controls all territories."""
+    owners = set(v["owner"] for v in map_data.values())
+    
+    if len(owners) == 1:  # Only one player owns all territories
+        winner = owners.pop()
+        print(f"\n🏆 {winner} has won the game! 🏆")
+        return True
+    
+    return False

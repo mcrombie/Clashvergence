@@ -68,15 +68,17 @@
 #     # Show the map
 #     plt.show()
 
-
-from src.game_logic import take_turn
+from src.game_logic import take_turn, check_victory
 from src.map_data import simplified_territory_map
 
-players = [("Player 1", True), ("Player 2", False)]  # Player 1 is human, Player 2 is AI
+players = [("Player 1", True), ("Player 2", False)]
 turns = 10
 
 for turn in range(turns):
     print(f"\n===== Turn {turn + 1} =====")
+    
     for player, is_human in players:
         take_turn(player, simplified_territory_map, is_human)
-
+        
+        if check_victory(simplified_territory_map):
+            exit()  # End the game immediately
