@@ -54,20 +54,13 @@ def battle(attacker, defender, map_data):
 
 
 def take_turn(player, map_data, is_human=False):
-    """Handles a turn for either a human player or AI."""
     print(f"\n{player}'s turn!")
 
-    if is_human:
-        # Human-controlled reinforcement
-        print("Your territories:", [t for t, v in map_data.items() if v["owner"] == player])
-        chosen_territory = input("Choose a territory to reinforce: ")
-        if chosen_territory in map_data and map_data[chosen_territory]["owner"] == player:
-            map_data[chosen_territory]["armies"] += 3
-            print(f"You reinforced {chosen_territory} with 3 armies.")
-        else:
-            print("Invalid choice. Skipping reinforcement.")
+    # Reinforce based on controlled territories
+    reinforce(player, map_data)
 
-        # Human-controlled attack
+    if is_human:
+        # Human input for attack and fortify phases (unchanged)
         attack_choice = input("Do you want to attack? (yes/no): ").lower()
         if attack_choice == "yes":
             attacker = input("Choose your attacking territory: ")
@@ -79,10 +72,7 @@ def take_turn(player, map_data, is_human=False):
                 map_data[attacker]["armies"] > 1
             ):
                 battle(attacker, defender, map_data)
-            else:
-                print("Invalid attack. Skipping.")
 
-        # Human-controlled fortify
         fortify_choice = input("Do you want to fortify? (yes/no): ").lower()
         if fortify_choice == "yes":
             from_territory = input("Choose the territory to move armies from: ")
@@ -96,32 +86,29 @@ def take_turn(player, map_data, is_human=False):
                 map_data[from_territory]["armies"] -= 2
                 map_data[to_territory]["armies"] += 2
                 print(f"You fortified {to_territory} from {from_territory}.")
-            else:
-                print("Invalid fortification. Skipping.")
-
     else:
-        # AI plays automatically
-        reinforce(player, map_data)
+        # AI-controlled attack and fortify
         attacker, defender = choose_attack(player, map_data)
         if attacker and defender:
             battle(attacker, defender, map_data)
         fortify(player, map_data)
 
 
-
 def reinforce(player, map_data):
-    """AI selects the weakest owned territory and reinforces it."""
+    """AI or player receives reinforcements based on territory count."""
     owned_territories = [t for t, v in map_data.items() if v["owner"] == player]
     
     if not owned_territories:
         return
     
-    # Find the territory with the fewest armies
+    # Base reinforcement: 1 army per 3 territories (min 3 armies)
+    reinforcement_count = max(3, len(owned_territories) // 3)
+
+    # Add reinforcements to the weakest territory
     weakest_territory = min(owned_territories, key=lambda t: map_data[t]["armies"])
-    
-    # Add 3 armies
-    map_data[weakest_territory]["armies"] += 3
-    print(f"{player} reinforced {weakest_territory} with 3 armies.")
+    map_data[weakest_territory]["armies"] += reinforcement_count
+
+    print(f"{player} reinforced {weakest_territory} with {reinforcement_count} armies.")
 
 
 def choose_attack(player, map_data):
