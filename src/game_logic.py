@@ -56,11 +56,10 @@ def battle(attacker, defender, map_data):
 def take_turn(player, map_data, is_human=False):
     print(f"\n{player}'s turn!")
 
-    # Reinforce based on controlled territories
     reinforce(player, map_data)
 
     if is_human:
-        # Human input for attack and fortify phases (unchanged)
+        # Player manually chooses attack (unchanged)
         attack_choice = input("Do you want to attack? (yes/no): ").lower()
         if attack_choice == "yes":
             attacker = input("Choose your attacking territory: ")
@@ -72,22 +71,8 @@ def take_turn(player, map_data, is_human=False):
                 map_data[attacker]["armies"] > 1
             ):
                 battle(attacker, defender, map_data)
-
-        fortify_choice = input("Do you want to fortify? (yes/no): ").lower()
-        if fortify_choice == "yes":
-            from_territory = input("Choose the territory to move armies from: ")
-            to_territory = input("Choose the territory to move armies to: ")
-            if (
-                from_territory in map_data and to_territory in map_data and
-                map_data[from_territory]["owner"] == player and
-                map_data[to_territory]["owner"] == player and
-                map_data[from_territory]["armies"] > 1
-            ):
-                map_data[from_territory]["armies"] -= 2
-                map_data[to_territory]["armies"] += 2
-                print(f"You fortified {to_territory} from {from_territory}.")
     else:
-        # AI-controlled attack and fortify
+        # AI uses new attack strategy
         attacker, defender = choose_attack(player, map_data)
         if attacker and defender:
             battle(attacker, defender, map_data)
@@ -112,7 +97,7 @@ def reinforce(player, map_data):
 
 
 def choose_attack(player, map_data):
-    """AI selects the best attack: prioritize weak enemy territories."""
+    """AI prioritizes attacking weak enemy territories with a high chance of success."""
     possible_attacks = [
         (t, n)
         for t in map_data
@@ -120,13 +105,22 @@ def choose_attack(player, map_data):
         for n in map_data[t]["neighbors"]
         if map_data[n]["owner"] != player
     ]
-    
+
     if not possible_attacks:
         return None, None
+
+    # Prioritize targets based on army strength: AI should attack weaker targets first
+    best_attack = min(
+        possible_attacks, 
+        key=lambda x: map_data[x[1]]["armies"] - map_data[x[0]]["armies"]
+    )
+
+    # Only attack if AI has more armies than the target (adjust this threshold if needed)
+    if map_data[best_attack[0]]["armies"] > map_data[best_attack[1]]["armies"]:
+        return best_attack
     
-    # Prioritize attacking the enemy territory with the least armies
-    best_attack = min(possible_attacks, key=lambda x: map_data[x[1]]["armies"])
-    return best_attack
+    return None, None  # Skip attack if no good targets
+
 
 
 def fortify(player, map_data):
