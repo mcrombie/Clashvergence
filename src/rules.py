@@ -40,3 +40,16 @@ game_rules = {
         "optional_score_threshold": 70,  # Optional: Control 70% of the map for victory
     },
 }
+
+continent_bonuses = {
+    "Virginia": 5,
+    "West Virginia": 2,
+    "Maryland": 3,
+    "Delaware": 2,
+    "Ohio": 4,
+    "Kentucky": 3,
+    "Tennessee": 4,
+    "North Carolina": 5,
+    "Pennsylvania": 5,
+    "New Jersey": 3
+}

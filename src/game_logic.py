@@ -1,4 +1,6 @@
 import random
+from src.rules import continent_bonuses
+
 
 def roll_dice(num_dice):
     """Rolls a given number of 6-sided dice and returns a sorted list."""
@@ -80,14 +82,28 @@ def take_turn(player, map_data, is_human=False):
 
 
 def reinforce(player, map_data):
-    """AI or player receives reinforcements based on territory count."""
+    """Reinforce based on controlled territories and continent bonuses."""
     owned_territories = [t for t, v in map_data.items() if v["owner"] == player]
-    
+
     if not owned_territories:
         return
-    
-    # Base reinforcement: 1 army per 3 territories (min 3 armies)
+
+    # Base reinforcement: 1 army per 3 territories (minimum 3)
     reinforcement_count = max(3, len(owned_territories) // 3)
+
+    # Check for continent bonuses
+    player_territories = {t: v for t, v in map_data.items() if v["owner"] == player}
+    controlled_continents = []
+
+    for continent, bonus in continent_bonuses.items():
+        continent_territories = [t for t in player_territories if continent in t]
+        if len(continent_territories) == sum(1 for t in map_data if continent in t):
+            controlled_continents.append((continent, bonus))
+
+    # Add continent bonuses
+    for continent, bonus in controlled_continents:
+        reinforcement_count += bonus
+        print(f"{player} received a {bonus} army bonus for controlling {continent}.")
 
     # Add reinforcements to the weakest territory
     weakest_territory = min(owned_territories, key=lambda t: map_data[t]["armies"])
