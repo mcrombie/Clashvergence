@@ -10,4 +10,4 @@ I am still working through an online tutorial to review the basics of AI develop
 For now, I am going to progress through the course some each day and slowly begin building out my practice project here. 
 This README will just be like a development journal until I am done.
 
-Here is what I told OpenAI my idea is: "My idea at this early stage is to make a risk-like (the board game) simulation where empires battle for control over a map. The rules should be fairly simple, like the board game, so I can focus on the nuances of the AIs being used to make each empire's decisions. For example, one could be extremely defensive, another offensive, and another adaptive. My idea is to make it mor of a simulator than a game"
+Here is what I told OpenAI my idea is: "My idea at this early stage is to make a risk-like (the board game) simulation where empires battle for control over a map. The rules should be fairly simple, like the board game, so I can focus on the nuances of the AIs being used to make each empire's decisions. For example, one could be extremely defensive, another offensive, and another adaptive. My idea is to make it more of a simulator than a game"
