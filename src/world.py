@@ -2,6 +2,7 @@ from src.models import Region, Faction, WorldState
 
 
 def create_initial_world() -> WorldState:
+    '''Seven Regions and three Factions, where each Faction starts bordering three unoccupied regions'''
     regions = {
         "A": Region("A", ["B", "F", "M"], "Faction1", 2),
         "B": Region("B", ["A", "C", "M"], None, 2),
