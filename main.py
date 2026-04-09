@@ -1,20 +1,20 @@
 from src.world import create_initial_world
-from src.actions import expand, invest
+from src.simulation import run_simulation
 
 
-world = create_initial_world()
+def main():
+    world = create_initial_world()
+    world = run_simulation(world, 10)
 
-print(world.regions["A"].resources)  # 2
-print(world.regions["A"].owner)  # 2
-print(world.regions["B"].owner)  # 2
+    print("\nFinal Results")
+    for faction_name, faction in world.factions.items():
+        print(f"{faction_name}: treasury={faction.treasury}")
 
-invest("Faction1", "A", world)
-expand("Faction1", "B", world)
-print(world.regions["B"].owner)  # 2
+    for region_name, region in world.regions.items():
+        print(
+            f"{region_name}: owner={region.owner}, resources={region.resources}"
+        )
 
-print(world.regions["A"].resources)  # 3
 
-for _ in range(10):
-    invest("Faction1", "A", world)
-
-print(world.regions["A"].resources)  # should stop at 5
+if __name__ == "__main__":
+    main()
