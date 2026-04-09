@@ -27,13 +27,13 @@ def expand(faction_name, target_region_name, world):
 
     return False
 
-def get_investable_regions(faction_name, world):
+def get_investable_regions(faction_name, world, max_resources=5):
     '''Returns a list of Regions the Faction owns and is capable of investing in'''
 
     investable_regions: set[str] = set()
 
     for region in world.regions.values():
-        if region.owner == faction_name:
+        if region.owner == faction_name and region.resources < max_resources:
             investable_regions.add(region.name)
 
     return list(investable_regions)
