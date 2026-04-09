@@ -24,7 +24,7 @@ from src.experiments import run_order_comparison
 
 
 def main():
-    run_order_comparison(num_turns=10, output_file="results.txt")
+    run_order_comparison(num_turns=10, iterations=20, output_file="results.txt")
 
 
 if __name__ == "__main__":
