@@ -37,14 +37,14 @@ def summarize_world(world):
     return summary
 
 
-def run_experiment(num_turns, faction_order):
+def run_experiment(num_turns, faction_order, map_name):
     """Runs one simulation and returns a summary."""
-    world = create_world("seven_region_ring")
+    world = create_world(map_name=map_name)
     final_world = run_simulation(
         world,
         num_turns,
         faction_order=faction_order,
-        verbose=False
+        verbose=False,
     )
     return summarize_world(final_world)
 
@@ -89,9 +89,10 @@ def aggregate_summaries(summaries):
     return aggregate
 
 
-def format_aggregate_summary(aggregate, faction_order):
+def format_aggregate_summary(aggregate, faction_order, map_name):
     lines = []
     lines.append("\n==============================")
+    lines.append(f"Map: {map_name}")
     lines.append(f"Faction Order: {faction_order}")
     lines.append(f"Runs: {aggregate['runs']}")
     lines.append("Center Owner Counts:")
@@ -114,8 +115,14 @@ def format_aggregate_summary(aggregate, faction_order):
     return "\n".join(lines)
 
 
-def run_order_comparison(num_turns=10, iterations=10, output_file=None):
-    """Runs repeated simulations for several faction orders."""
+def run_order_comparison(
+    num_turns=10,
+    iterations=10,
+    map_name="seven_region_ring",
+    output_file=None,
+):
+    """Runs repeated simulations for several faction orders on a chosen map."""
+
     faction_orders = [
         ["Faction1", "Faction2", "Faction3"],
         ["Faction2", "Faction3", "Faction1"],
@@ -128,11 +135,19 @@ def run_order_comparison(num_turns=10, iterations=10, output_file=None):
         summaries = []
 
         for _ in range(iterations):
-            summary = run_experiment(num_turns=num_turns, faction_order=faction_order)
+            summary = run_experiment(
+                num_turns=num_turns,
+                faction_order=faction_order,
+                map_name=map_name,
+            )
             summaries.append(summary)
 
         aggregate = aggregate_summaries(summaries)
-        formatted = format_aggregate_summary(aggregate, faction_order)
+        formatted = format_aggregate_summary(
+            aggregate=aggregate,
+            faction_order=faction_order,
+            map_name=map_name,
+        )
 
         print(formatted)
         all_output.append(formatted)
