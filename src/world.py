@@ -10,7 +10,7 @@ def create_initial_world() -> WorldState:
         "D": Region("D", ["C", "E", "M"], None, 2),
         "E": Region("E", ["D", "F", "M"], "Faction3", 2),
         "F": Region("F", ["E", "A", "M"], None, 2),
-        "M": Region("M", ["A", "B", "C", "D", "E", "F"], None, 3),
+        "M": Region("M", ["A", "B", "C", "D", "E", "F"], None, 2),
     }
 
     factions = {

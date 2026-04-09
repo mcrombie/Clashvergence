@@ -52,5 +52,5 @@ def invest(faction_name, target_region_name, world, max_resources=5):
     if region.resources >= max_resources:
         return False
 
-    region.resources += 1
+    region.resources += 2
     return True
