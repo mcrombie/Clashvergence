@@ -1,4 +1,4 @@
-from src.world import create_initial_world
+from src.world import create_world
 from src.simulation import run_simulation
 
 
@@ -39,7 +39,7 @@ def summarize_world(world):
 
 def run_experiment(num_turns, faction_order):
     """Runs one simulation and returns a summary."""
-    world = create_initial_world()
+    world = create_world("seven_region_ring")
     final_world = run_simulation(
         world,
         num_turns,

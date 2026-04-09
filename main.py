@@ -1,9 +1,9 @@
-from src.world import create_initial_world
+from src.world import create_world
 from src.simulation import run_simulation
 
 
 # def main():
-#     world = create_initial_world()
+#     world = create_world("seven_region_ring")
 #     world = run_simulation(world, 10)
 
 #     print("\nFinal Results")

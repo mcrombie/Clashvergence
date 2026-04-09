@@ -1,22 +1,27 @@
 from src.models import Region, Faction, WorldState
+from src.maps import MAPS
 
 
-def create_initial_world() -> WorldState:
-    '''Seven Regions and three Factions, where each Faction starts bordering three unoccupied regions'''
-    regions = {
-        "A": Region("A", ["B", "F", "M"], "Faction1", 2),
-        "B": Region("B", ["A", "C", "M"], None, 2),
-        "C": Region("C", ["B", "D", "M"], "Faction2", 2),
-        "D": Region("D", ["C", "E", "M"], None, 2),
-        "E": Region("E", ["D", "F", "M"], "Faction3", 2),
-        "F": Region("F", ["E", "A", "M"], None, 2),
-        "M": Region("M", ["A", "B", "C", "D", "E", "F"], None, 2),
-    }
-
-    factions = {
+def create_factions():
+    return {
         "Faction1": Faction("Faction1", "expansionist"),
         "Faction2": Faction("Faction2", "balanced"),
         "Faction3": Faction("Faction3", "economic"),
     }
+
+
+def create_world(map_name="seven_region_ring") -> WorldState:
+    map_definition = MAPS[map_name]
+
+    regions = {}
+    for region_name, region_data in map_definition["regions"].items():
+        regions[region_name] = Region(
+            name=region_name,
+            neighbors=region_data["neighbors"],
+            owner=region_data["owner"],
+            resources=region_data["resources"],
+        )
+
+    factions = create_factions()
 
     return WorldState(regions=regions, factions=factions)
