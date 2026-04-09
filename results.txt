@@ -1,0 +1,29 @@
+
+==============================
+Faction Order: ['Faction1', 'Faction2', 'Faction3']
+Turns: 10
+Center Owner: Faction1
+Faction Results:
+  Faction1: treasury=112, owned_regions=4
+  Faction2: treasury=79, owned_regions=2
+  Faction3: treasury=47, owned_regions=1
+
+
+==============================
+Faction Order: ['Faction2', 'Faction3', 'Faction1']
+Turns: 10
+Center Owner: Faction2
+Faction Results:
+  Faction1: treasury=94, owned_regions=3
+  Faction2: treasury=103, owned_regions=3
+  Faction3: treasury=47, owned_regions=1
+
+
+==============================
+Faction Order: ['Faction3', 'Faction1', 'Faction2']
+Turns: 10
+Center Owner: Faction1
+Faction Results:
+  Faction1: treasury=112, owned_regions=4
+  Faction2: treasury=79, owned_regions=2
+  Faction3: treasury=47, owned_regions=1
