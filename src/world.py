@@ -7,6 +7,7 @@ def create_factions():
         "Faction1": Faction("Faction1", "expansionist", treasury=1),
         "Faction2": Faction("Faction2", "balanced", treasury=1),
         "Faction3": Faction("Faction3", "economic", treasury=1),
+        "Faction4": Faction("Faction4", "opportunist", treasury=1),
     }
 
 

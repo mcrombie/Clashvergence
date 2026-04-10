@@ -1,16 +1,19 @@
 
 ==============================
-Map: ten_region_ring
-Runs: 20
+Map: thirteen_region_ring
+Runs: 100
 Center Owner Counts:
-  Faction3: 7
-  Faction2: 8
-  Faction1: 5
+  Faction4: 25
+  Faction2: 28
+  Faction1: 26
+  Faction3: 21
 Win Counts:
-  Faction1: 7
-  Faction2: 7
-  Faction3: 6
+  Faction1: 20
+  Faction2: 47
+  Faction3: 21
+  Faction4: 12
 Average Results:
-  Faction1: avg_treasury=348.65, avg_owned_regions=3.35
-  Faction2: avg_treasury=334.70, avg_owned_regions=3.20
-  Faction3: avg_treasury=356.55, avg_owned_regions=3.45
+  Faction1: avg_treasury=327.50, avg_owned_regions=3.10
+  Faction2: avg_treasury=358.13, avg_owned_regions=3.47
+  Faction3: avg_treasury=339.17, avg_owned_regions=3.23
+  Faction4: avg_treasury=336.66, avg_owned_regions=3.20

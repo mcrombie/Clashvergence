@@ -3,7 +3,7 @@ from src.simulation import run_simulation
 
 
 # def main():
-#     world = create_world("ten_region_ring")
+#     world = create_world("thirteen_region_ring")
 #     world = run_simulation(world, 10)
 
 #     print("\nFinal Results")
@@ -25,8 +25,8 @@ from src.experiments import run_order_comparison
 def main():
     run_order_comparison(
         num_turns=20,
-        iterations=20,
-        map_name="ten_region_ring",
+        iterations=100,
+        map_name="thirteen_region_ring",
         output_file="results.txt",
     )
 

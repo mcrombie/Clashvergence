@@ -69,10 +69,7 @@ def choose_action(faction_name, world):
         best_expand_target = choose_expand_target(faction_name, world)
         best_expand_score = score_expand_target(best_expand_target, world)
 
-    # --- STRATEGY LOGIC ---
-
     if faction.strategy == "expansionist":
-        # Aggressive: expand unless it's a very poor target
         expansion_score_threshold = 6
 
         if can_expand and best_expand_score >= expansion_score_threshold:
@@ -84,9 +81,7 @@ def choose_action(faction_name, world):
         if can_expand:
             return ("expand", best_expand_target)
 
-
     elif faction.strategy == "balanced":
-        # Moderate: expand if opportunity is decent OR treasury is healthy
         expansion_score_threshold = 8
         treasury_threshold = EXPANSION_COST * 1.5
 
@@ -103,9 +98,28 @@ def choose_action(faction_name, world):
         if can_expand:
             return ("expand", best_expand_target)
 
+    elif faction.strategy == "opportunist":
+        expansion_score_threshold = 8
+        treasury_threshold = EXPANSION_COST * 1.5
+
+        if can_expand:
+            if (
+                best_expand_score >= expansion_score_threshold
+                or faction.treasury >= treasury_threshold
+            ):
+                return ("expand", best_expand_target)
+
+        # SAFETY: don't get stuck forever
+        if can_expand and world.turn > 3:
+            return ("expand", best_expand_target)
+
+        if can_invest:
+            return ("invest", choose_invest_target(faction_name, world))
+
+        if can_expand:
+            return ("expand", best_expand_target)
 
     elif faction.strategy == "economic":
-        # Your current logic (unchanged)
         economic_treasury_threshold = EXPANSION_COST * 2
         economic_expand_score_threshold = 10
 
