@@ -1,4 +1,5 @@
 from src.actions import get_expandable_regions, get_investable_regions, expand, invest
+from src.config import EXPANSION_COST
 import random
 
 def choose_expand_target(faction_name, world):
@@ -40,7 +41,7 @@ def choose_action(faction_name, world):
     expandable_regions = get_expandable_regions(faction_name, world)
     investable_regions = get_investable_regions(faction_name, world)
 
-    can_expand = bool(expandable_regions)
+    can_expand = bool(expandable_regions) and faction.treasury >= EXPANSION_COST
     can_invest = bool(investable_regions)
 
     if faction.strategy == "expansionist":

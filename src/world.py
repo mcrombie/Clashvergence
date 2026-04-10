@@ -4,9 +4,9 @@ from src.maps import MAPS
 
 def create_factions():
     return {
-        "Faction1": Faction("Faction1", "expansionist"),
-        "Faction2": Faction("Faction2", "balanced"),
-        "Faction3": Faction("Faction3", "economic"),
+        "Faction1": Faction("Faction1", "expansionist", treasury=1),
+        "Faction2": Faction("Faction2", "balanced", treasury=1),
+        "Faction3": Faction("Faction3", "economic", treasury=1),
     }
 
 

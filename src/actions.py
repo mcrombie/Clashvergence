@@ -1,4 +1,5 @@
 
+from src.config import EXPANSION_COST, MAX_RESOURCES
 
 def get_expandable_regions(faction_name, world):
 
@@ -21,24 +22,30 @@ def expand(faction_name, target_region_name, world):
     if target_region_name not in world.regions:
         return False
 
+    faction = world.factions[faction_name]
+
+    if faction.treasury < EXPANSION_COST:
+        return False
+
     if target_region_name in get_expandable_regions(faction_name, world):
+        faction.treasury -= EXPANSION_COST
         world.regions[target_region_name].owner = faction_name
         return True
 
     return False
 
-def get_investable_regions(faction_name, world, max_resources=5):
+def get_investable_regions(faction_name, world):
     '''Returns a list of Regions the Faction owns and is capable of investing in'''
 
     investable_regions: set[str] = set()
 
     for region in world.regions.values():
-        if region.owner == faction_name and region.resources < max_resources:
+        if region.owner == faction_name and region.resources < MAX_RESOURCES:
             investable_regions.add(region.name)
 
     return list(investable_regions)
 
-def invest(faction_name, target_region_name, world, max_resources=5):
+def invest(faction_name, target_region_name, world):
     '''Returns whether the Faction successfully invested in the target Region'''
 
     if target_region_name not in world.regions:
@@ -49,8 +56,8 @@ def invest(faction_name, target_region_name, world, max_resources=5):
 
     region = world.regions[target_region_name]
 
-    if region.resources >= max_resources:
+    if region.resources >= MAX_RESOURCES:
         return False
 
-    region.resources += 2
+    region.resources += 4
     return True

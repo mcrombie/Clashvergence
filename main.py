@@ -24,7 +24,7 @@ from src.experiments import run_order_comparison
 
 def main():
     run_order_comparison(
-        num_turns=10,
+        num_turns=20,
         iterations=20,
         map_name="ten_region_ring",
         output_file="results.txt",
