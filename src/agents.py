@@ -62,27 +62,44 @@ def choose_action(faction_name, world):
     can_expand = bool(expandable_regions) and faction.treasury >= EXPANSION_COST
     can_invest = bool(investable_regions)
 
+    best_expand_target = None
+    best_expand_score = 0
+
+    if can_expand:
+        best_expand_target = choose_expand_target(faction_name, world)
+        best_expand_score = score_expand_target(best_expand_target, world)
+
     if faction.strategy == "expansionist":
         if can_expand:
-            return ("expand", choose_expand_target(faction_name, world))
-        elif can_invest:
-            return ("invest", choose_invest_target(faction_name, world))
-
-    elif faction.strategy == "economic":
+            return ("expand", best_expand_target)
         if can_invest:
             return ("invest", choose_invest_target(faction_name, world))
-        elif can_expand:
-            return ("expand", choose_expand_target(faction_name, world))
 
     elif faction.strategy == "balanced":
         if can_expand and can_invest:
             if random.random() < 0.5:
-                return ("expand", choose_expand_target(faction_name, world))
-            else:
-                return ("invest", choose_invest_target(faction_name, world))
-        elif can_expand:
-            return ("expand", choose_expand_target(faction_name, world))
-        elif can_invest:
+                return ("expand", best_expand_target)
             return ("invest", choose_invest_target(faction_name, world))
+        if can_expand:
+            return ("expand", best_expand_target)
+        if can_invest:
+            return ("invest", choose_invest_target(faction_name, world))
+
+    elif faction.strategy == "economic":
+        economic_treasury_threshold = EXPANSION_COST * 2
+        economic_expand_score_threshold = 10
+
+        if can_expand:
+            if (
+                best_expand_score >= economic_expand_score_threshold
+                or faction.treasury >= economic_treasury_threshold
+            ):
+                return ("expand", best_expand_target)
+
+        if can_invest:
+            return ("invest", choose_invest_target(faction_name, world))
+
+        if can_expand:
+            return ("expand", best_expand_target)
 
     return (None, None)
