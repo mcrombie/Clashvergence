@@ -1,5 +1,6 @@
 from src.agents import choose_action
 from src.actions import expand, invest
+import random
 
 
 def update_treasuries(world):
@@ -10,16 +11,22 @@ def update_treasuries(world):
             world.factions[region.owner].treasury += region.resources
 
 
-def run_turn(world, faction_order=None, verbose=True):
+def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     """Runs one full turn of the simulation."""
 
     if verbose:
         print(f"\nTurn {world.turn + 1}")
 
+    # shuffle turn order
     if faction_order is None:
-        faction_order = list(world.factions.keys())
+        turn_order = list(world.factions.keys())
+        if randomize_order: random.shuffle(turn_order)
+    else:
+        # if a fixed order is passed (for experiments), still shuffle a copy
+        turn_order = faction_order.copy()
+        if randomize_order: random.shuffle(turn_order)
 
-    for faction_name in faction_order:
+    for faction_name in turn_order:
         action_name, target_region_name = choose_action(faction_name, world)
 
         if action_name == "expand":

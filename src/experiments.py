@@ -93,7 +93,7 @@ def format_aggregate_summary(aggregate, faction_order, map_name):
     lines = []
     lines.append("\n==============================")
     lines.append(f"Map: {map_name}")
-    lines.append(f"Faction Order: {faction_order}")
+    # lines.append(f"Faction Order: {faction_order}")
     lines.append(f"Runs: {aggregate['runs']}")
     lines.append("Center Owner Counts:")
 
@@ -124,9 +124,7 @@ def run_order_comparison(
     """Runs repeated simulations for several faction orders on a chosen map."""
 
     faction_orders = [
-        ["Faction1", "Faction2", "Faction3"],
-        ["Faction2", "Faction3", "Faction1"],
-        ["Faction3", "Faction1", "Faction2"],
+    ["Faction1", "Faction2", "Faction3"]
     ]
 
     all_output = []
