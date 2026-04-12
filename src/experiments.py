@@ -37,13 +37,13 @@ def summarize_world(world):
     return summary
 
 
-def run_experiment(num_turns, faction_order, map_name):
+def run_experiment(num_turns, map_name):
     """Runs one simulation and returns a summary."""
     world = create_world(map_name=map_name)
     final_world = run_simulation(
         world,
         num_turns,
-        faction_order=faction_order,
+        faction_order=None,
         verbose=False,
     )
     return summarize_world(final_world)
@@ -89,11 +89,11 @@ def aggregate_summaries(summaries):
     return aggregate
 
 
-def format_aggregate_summary(aggregate, faction_order, map_name):
+def format_aggregate_summary(aggregate, map_name, label):
     lines = []
     lines.append("\n==============================")
     lines.append(f"Map: {map_name}")
-    # lines.append(f"Faction Order: {faction_order}")
+    lines.append(f"{label}")
     lines.append(f"Runs: {aggregate['runs']}")
     lines.append("Center Owner Counts:")
 
@@ -115,40 +115,89 @@ def format_aggregate_summary(aggregate, faction_order, map_name):
     return "\n".join(lines)
 
 
-def run_order_comparison(
-    num_turns=10,
-    iterations=10,
-    map_name="seven_region_ring",
+def run_batch(num_turns=20, iterations=100, map_name="thirteen_region_ring"):
+    """Runs one batch of simulations and returns the aggregate."""
+    summaries = []
+
+    for _ in range(iterations):
+        summary = run_experiment(num_turns=num_turns, map_name=map_name)
+        summaries.append(summary)
+
+    return aggregate_summaries(summaries)
+
+
+def run_multiple_batches(
+    num_turns=20,
+    iterations_per_batch=100,
+    num_batches=5,
+    map_name="thirteen_region_ring",
     output_file=None,
 ):
-    """Runs repeated simulations for several faction orders on a chosen map."""
-
-    faction_orders = [
-    ["Faction1", "Faction2", "Faction3", "Faction4"]
-    ]
-
+    """Runs multiple batches and aggregates the batch-level results."""
     all_output = []
+    batch_aggregates = []
 
-    for faction_order in faction_orders:
-        summaries = []
-
-        for _ in range(iterations):
-            summary = run_experiment(
-                num_turns=num_turns,
-                faction_order=faction_order,
-                map_name=map_name,
-            )
-            summaries.append(summary)
-
-        aggregate = aggregate_summaries(summaries)
-        formatted = format_aggregate_summary(
-            aggregate=aggregate,
-            faction_order=faction_order,
+    for batch_number in range(1, num_batches + 1):
+        batch_aggregate = run_batch(
+            num_turns=num_turns,
+            iterations=iterations_per_batch,
             map_name=map_name,
         )
+        batch_aggregates.append(batch_aggregate)
 
+        formatted = format_aggregate_summary(
+            batch_aggregate,
+            map_name=map_name,
+            label=f"Batch {batch_number}"
+        )
         print(formatted)
         all_output.append(formatted)
+
+    faction_names = list(batch_aggregates[0]["win_counts"].keys())
+
+    overall = {
+        "batches": num_batches,
+        "runs_per_batch": iterations_per_batch,
+        "total_runs": num_batches * iterations_per_batch,
+        "average_win_counts": {faction_name: 0 for faction_name in faction_names},
+        "average_treasury": {faction_name: 0 for faction_name in faction_names},
+        "average_owned_regions": {faction_name: 0 for faction_name in faction_names},
+    }
+
+    for batch_aggregate in batch_aggregates:
+        for faction_name in faction_names:
+            overall["average_win_counts"][faction_name] += batch_aggregate["win_counts"][faction_name]
+            overall["average_treasury"][faction_name] += batch_aggregate["average_treasury"][faction_name]
+            overall["average_owned_regions"][faction_name] += batch_aggregate["average_owned_regions"][faction_name]
+
+    for faction_name in faction_names:
+        overall["average_win_counts"][faction_name] /= num_batches
+        overall["average_treasury"][faction_name] /= num_batches
+        overall["average_owned_regions"][faction_name] /= num_batches
+
+    overall_lines = []
+    overall_lines.append("\n==============================")
+    overall_lines.append(f"Map: {map_name}")
+    overall_lines.append("Overall Average Across Batches")
+    overall_lines.append(f"Batches: {overall['batches']}")
+    overall_lines.append(f"Runs per batch: {overall['runs_per_batch']}")
+    overall_lines.append(f"Total runs: {overall['total_runs']}")
+    overall_lines.append("Average Win Counts Per 100-Run Batch:")
+
+    for faction_name, count in overall["average_win_counts"].items():
+        overall_lines.append(f"  {faction_name}: {count:.2f}")
+
+    overall_lines.append("Average Treasury Across Batches:")
+    for faction_name, value in overall["average_treasury"].items():
+        overall_lines.append(f"  {faction_name}: {value:.2f}")
+
+    overall_lines.append("Average Owned Regions Across Batches:")
+    for faction_name, value in overall["average_owned_regions"].items():
+        overall_lines.append(f"  {faction_name}: {value:.2f}")
+
+    overall_text = "\n".join(overall_lines)
+    print(overall_text)
+    all_output.append(overall_text)
 
     if output_file:
         with open(output_file, "w") as file:

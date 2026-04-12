@@ -1,31 +1,11 @@
-from src.world import create_world
-from src.simulation import run_simulation
+from src.experiments import run_multiple_batches
 
-
-# def main():
-#     world = create_world("thirteen_region_ring")
-#     world = run_simulation(world, 10)
-
-#     print("\nFinal Results")
-#     for faction_name, faction in world.factions.items():
-#         print(f"{faction_name}: treasury={faction.treasury}")
-
-#     for region_name, region in world.regions.items():
-#         print(
-#             f"{region_name}: owner={region.owner}, resources={region.resources}"
-#         )
-
-
-# if __name__ == "__main__":
-#     main()
-
-
-from src.experiments import run_order_comparison
 
 def main():
-    run_order_comparison(
+    run_multiple_batches(
         num_turns=20,
-        iterations=100,
+        iterations_per_batch=100,
+        num_batches=5,
         map_name="thirteen_region_ring",
         output_file="results.txt",
     )

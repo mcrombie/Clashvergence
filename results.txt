@@ -1,19 +1,127 @@
 
 ==============================
 Map: thirteen_region_ring
+Batch 1
 Runs: 100
 Center Owner Counts:
-  Faction4: 25
-  Faction2: 28
-  Faction1: 26
-  Faction3: 21
+  Faction3: 30
+  Faction2: 17
+  Faction4: 28
+  Faction1: 25
 Win Counts:
-  Faction1: 20
-  Faction2: 47
-  Faction3: 21
-  Faction4: 12
+  Faction1: 21
+  Faction2: 33
+  Faction3: 26
+  Faction4: 20
 Average Results:
-  Faction1: avg_treasury=327.50, avg_owned_regions=3.10
-  Faction2: avg_treasury=358.13, avg_owned_regions=3.47
-  Faction3: avg_treasury=339.17, avg_owned_regions=3.23
-  Faction4: avg_treasury=336.66, avg_owned_regions=3.20
+  Faction1: avg_treasury=332.94, avg_owned_regions=3.16
+  Faction2: avg_treasury=349.44, avg_owned_regions=3.36
+  Faction3: avg_treasury=336.19, avg_owned_regions=3.21
+  Faction4: avg_treasury=342.05, avg_owned_regions=3.27
+
+
+==============================
+Map: thirteen_region_ring
+Batch 2
+Runs: 100
+Center Owner Counts:
+  Faction2: 20
+  Faction3: 26
+  Faction1: 26
+  Faction4: 28
+Win Counts:
+  Faction1: 26
+  Faction2: 31
+  Faction3: 29
+  Faction4: 14
+Average Results:
+  Faction1: avg_treasury=338.75, avg_owned_regions=3.23
+  Faction2: avg_treasury=345.49, avg_owned_regions=3.31
+  Faction3: avg_treasury=341.44, avg_owned_regions=3.28
+  Faction4: avg_treasury=334.38, avg_owned_regions=3.18
+
+
+==============================
+Map: thirteen_region_ring
+Batch 3
+Runs: 100
+Center Owner Counts:
+  Faction3: 29
+  Faction4: 28
+  Faction1: 24
+  Faction2: 19
+Win Counts:
+  Faction1: 27
+  Faction2: 33
+  Faction3: 25
+  Faction4: 15
+Average Results:
+  Faction1: avg_treasury=340.47, avg_owned_regions=3.25
+  Faction2: avg_treasury=347.07, avg_owned_regions=3.33
+  Faction3: avg_treasury=332.98, avg_owned_regions=3.18
+  Faction4: avg_treasury=339.26, avg_owned_regions=3.24
+
+
+==============================
+Map: thirteen_region_ring
+Batch 4
+Runs: 100
+Center Owner Counts:
+  Faction3: 25
+  Faction4: 20
+  Faction1: 28
+  Faction2: 27
+Win Counts:
+  Faction1: 29
+  Faction2: 40
+  Faction3: 21
+  Faction4: 10
+Average Results:
+  Faction1: avg_treasury=342.05, avg_owned_regions=3.27
+  Faction2: avg_treasury=354.97, avg_owned_regions=3.43
+  Faction3: avg_treasury=333.03, avg_owned_regions=3.17
+  Faction4: avg_treasury=330.57, avg_owned_regions=3.13
+
+
+==============================
+Map: thirteen_region_ring
+Batch 5
+Runs: 100
+Center Owner Counts:
+  Faction1: 14
+  Faction2: 37
+  Faction3: 30
+  Faction4: 19
+Win Counts:
+  Faction1: 18
+  Faction2: 32
+  Faction3: 29
+  Faction4: 21
+Average Results:
+  Faction1: avg_treasury=329.64, avg_owned_regions=3.12
+  Faction2: avg_treasury=347.07, avg_owned_regions=3.33
+  Faction3: avg_treasury=346.23, avg_owned_regions=3.33
+  Faction4: avg_treasury=338.10, avg_owned_regions=3.22
+
+
+==============================
+Map: thirteen_region_ring
+Overall Average Across Batches
+Batches: 5
+Runs per batch: 100
+Total runs: 500
+Average Win Counts Per 100-Run Batch:
+  Faction1: 24.20
+  Faction2: 33.80
+  Faction3: 26.00
+  Faction4: 16.00
+Average Treasury Across Batches:
+  Faction1: 336.77
+  Faction2: 348.81
+  Faction3: 337.97
+  Faction4: 336.87
+Average Owned Regions Across Batches:
+  Faction1: 3.21
+  Faction2: 3.35
+  Faction3: 3.23
+  Faction4: 3.21
