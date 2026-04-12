@@ -15,6 +15,7 @@ class Faction:
 
 @dataclass
 class WorldState:
-    regions: dict[str, Region] = field(default_factory=dict)
-    factions: dict[str, Faction] = field(default_factory=dict)
+    regions: dict[str, Region]
+    factions: dict[str, Faction]
     turn: int = 0
+    events: list = field(default_factory=list)

@@ -1,14 +1,17 @@
-from src.experiments import run_turn_horizon_comparison
+from src.world import create_world
+from src.simulation import run_simulation
+from src.narrative import build_chronicle
 
 
 def main():
-    run_turn_horizon_comparison(
-        turn_counts=[5, 10, 20, 40, 80, 160],
-        iterations_per_batch=100,
-        num_batches=5,
-        map_name="thirteen_region_ring",
-        output_file="turn_horizon_results.txt",
-    )
+    world = create_world(map_name="thirteen_region_ring")
+    world = run_simulation(world, num_turns=20, verbose=False)
+
+    chronicle = build_chronicle(world)
+    print(chronicle)
+
+    with open("chronicle.txt", "w") as file:
+        file.write(chronicle)
 
 
 if __name__ == "__main__":
