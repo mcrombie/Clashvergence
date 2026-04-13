@@ -59,8 +59,14 @@
       stroke-linejoin: round;
       opacity: 0.96;
     }
-    .anchor {
-      fill: rgba(31, 41, 51, 0.82);
+    .edge {
+      stroke: var(--line);
+      stroke-width: 2;
+      opacity: 0.85;
+    }
+    .node {
+      stroke: #51463b;
+      stroke-width: 1.5;
     }
     .label {
       font-size: 15px;
@@ -129,52 +135,58 @@
     <div class="layout">
       <section class="card">
         <svg viewBox='0 0 900 900' role='img' aria-label='asymmetric_frontier map'>
-<polygon points='808.0,182.0 457.8,28.0 872.0,28.0 872.0,169.7' fill='#d1495b' class='territory' />
-<circle cx='800.1' cy='50.0' r='6' class='anchor' />
+<line x1='800.1' y1='50.0' x2='850.0' y2='307.5' class='edge' />
+<line x1='800.1' y1='50.0' x2='705.4' y2='265.5' class='edge' />
+<line x1='850.0' y1='307.5' x2='789.4' y2='648.4' class='edge' />
+<line x1='850.0' y1='307.5' x2='671.9' y2='472.4' class='edge' />
+<line x1='705.4' y1='265.5' x2='671.9' y2='472.4' class='edge' />
+<line x1='705.4' y1='265.5' x2='537.9' y2='511.9' class='edge' />
+<line x1='789.4' y1='648.4' x2='671.9' y2='472.4' class='edge' />
+<line x1='789.4' y1='648.4' x2='419.6' y2='826.2' class='edge' />
+<line x1='671.9' y1='472.4' x2='537.9' y2='511.9' class='edge' />
+<line x1='671.9' y1='472.4' x2='318.2' y2='596.6' class='edge' />
+<line x1='537.9' y1='511.9' x2='262.5' y2='372.6' class='edge' />
+<line x1='419.6' y1='826.2' x2='318.2' y2='596.6' class='edge' />
+<line x1='419.6' y1='826.2' x2='57.9' y2='789.9' class='edge' />
+<line x1='318.2' y1='596.6' x2='262.5' y2='372.6' class='edge' />
+<line x1='318.2' y1='596.6' x2='50.0' y2='499.0' class='edge' />
+<line x1='262.5' y1='372.6' x2='50.0' y2='210.9' class='edge' />
+<line x1='57.9' y1='789.9' x2='50.0' y2='499.0' class='edge' />
+<line x1='50.0' y1='499.0' x2='50.0' y2='210.9' class='edge' />
+<circle cx='800.1' cy='50.0' r='24' fill='#d1495b' class='node' />
 <text x='800.1' y='42.0' text-anchor='middle' class='label'>A</text>
 <text x='800.1' y='62.0' text-anchor='middle' class='resource'>R2</text>
-<polygon points='846.9,482.8 750.8,379.0 808.0,182.0 872.0,169.7 872.0,487.2' fill='#d9d9d9' class='territory' />
-<circle cx='850.0' cy='307.5' r='6' class='anchor' />
+<circle cx='850.0' cy='307.5' r='24' fill='#d9d9d9' class='node' />
 <text x='850.0' y='299.5' text-anchor='middle' class='label'>B</text>
 <text x='850.0' y='319.5' text-anchor='middle' class='resource'>R1</text>
-<polygon points='562.6,348.5 477.0,290.4 413.5,28.0 457.8,28.0 808.0,182.0 750.8,379.0' fill='#d9d9d9' class='territory' />
-<circle cx='705.4' cy='265.5' r='6' class='anchor' />
+<circle cx='705.4' cy='265.5' r='24' fill='#d9d9d9' class='node' />
 <text x='705.4' y='257.5' text-anchor='middle' class='label'>C</text>
 <text x='705.4' y='277.5' text-anchor='middle' class='resource'>R3</text>
-<polygon points='592.2,711.8 642.4,619.3 846.9,482.8 872.0,487.2 872.0,872.0 669.3,872.0' fill='#edae49' class='territory' />
-<circle cx='789.4' cy='648.4' r='6' class='anchor' />
+<circle cx='789.4' cy='648.4' r='24' fill='#edae49' class='node' />
 <text x='789.4' y='640.4' text-anchor='middle' class='label'>D</text>
 <text x='789.4' y='660.4' text-anchor='middle' class='resource'>R2</text>
-<polygon points='562.6,348.5 750.8,379.0 846.9,482.8 642.4,619.3' fill='#d9d9d9' class='territory' />
-<circle cx='671.9' cy='472.4' r='6' class='anchor' />
+<circle cx='671.9' cy='472.4' r='24' fill='#d9d9d9' class='node' />
 <text x='671.9' y='464.4' text-anchor='middle' class='label'>E</text>
 <text x='671.9' y='484.4' text-anchor='middle' class='resource'>R2</text>
-<polygon points='471.3,666.2 391.5,459.4 477.0,290.4 562.6,348.5 642.4,619.3 592.2,711.8' fill='#d9d9d9' class='territory' />
-<circle cx='537.9' cy='511.9' r='6' class='anchor' />
+<circle cx='537.9' cy='511.9' r='24' fill='#d9d9d9' class='node' />
 <text x='537.9' y='503.9' text-anchor='middle' class='label'>F</text>
 <text x='537.9' y='523.9' text-anchor='middle' class='resource'>R1</text>
-<polygon points='242.9,767.0 471.3,666.2 592.2,711.8 669.3,872.0 232.3,872.0' fill='#d9d9d9' class='territory' />
-<circle cx='419.6' cy='826.2' r='6' class='anchor' />
+<circle cx='419.6' cy='826.2' r='24' fill='#d9d9d9' class='node' />
 <text x='419.6' y='818.2' text-anchor='middle' class='label'>G</text>
 <text x='419.6' y='838.2' text-anchor='middle' class='resource'>R3</text>
-<polygon points='242.9,767.0 149.9,641.8 198.8,507.4 391.5,459.4 471.3,666.2' fill='#d9d9d9' class='territory' />
-<circle cx='318.2' cy='596.6' r='6' class='anchor' />
+<circle cx='318.2' cy='596.6' r='24' fill='#d9d9d9' class='node' />
 <text x='318.2' y='588.6' text-anchor='middle' class='label'>H</text>
 <text x='318.2' y='608.6' text-anchor='middle' class='resource'>R2</text>
-<polygon points='198.8,507.4 108.2,354.9 357.1,28.0 413.5,28.0 477.0,290.4 391.5,459.4' fill='#00798c' class='territory' />
-<circle cx='262.5' cy='372.6' r='6' class='anchor' />
+<circle cx='262.5' cy='372.6' r='24' fill='#00798c' class='node' />
 <text x='262.5' y='364.6' text-anchor='middle' class='label'>I</text>
 <text x='262.5' y='384.6' text-anchor='middle' class='resource'>R2</text>
-<polygon points='28.0,645.1 149.9,641.8 242.9,767.0 232.3,872.0 28.0,872.0' fill='#30638e' class='territory' />
-<circle cx='57.9' cy='789.9' r='6' class='anchor' />
+<circle cx='57.9' cy='789.9' r='24' fill='#30638e' class='node' />
 <text x='57.9' y='781.9' text-anchor='middle' class='label'>J</text>
 <text x='57.9' y='801.9' text-anchor='middle' class='resource'>R1</text>
-<polygon points='28.0,645.1 28.0,354.9 108.2,354.9 198.8,507.4 149.9,641.8' fill='#d9d9d9' class='territory' />
-<circle cx='50.0' cy='499.0' r='6' class='anchor' />
+<circle cx='50.0' cy='499.0' r='24' fill='#d9d9d9' class='node' />
 <text x='50.0' y='491.0' text-anchor='middle' class='label'>K</text>
 <text x='50.0' y='511.0' text-anchor='middle' class='resource'>R3</text>
-<polygon points='108.2,354.9 28.0,354.9 28.0,28.0 357.1,28.0' fill='#d9d9d9' class='territory' />
-<circle cx='50.0' cy='210.9' r='6' class='anchor' />
+<circle cx='50.0' cy='210.9' r='24' fill='#d9d9d9' class='node' />
 <text x='50.0' y='202.9' text-anchor='middle' class='label'>L</text>
 <text x='50.0' y='222.9' text-anchor='middle' class='resource'>R2</text>
 </svg>
@@ -200,8 +212,8 @@
           </tbody>
         </table>
         <p class="note">
-          This view is intentionally lightweight and testing-oriented. It is meant to make
-          connectivity and starting positions easy to inspect without committing to a final UI.
+          Structured ring maps are rendered with exact shared borders. Irregular maps fall back
+          to an explicit graph view so the renderer does not imply borders that do not exist.
         </p>
       </aside>
     </div>

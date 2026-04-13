@@ -42,6 +42,15 @@ def is_multi_ring_map(regions):
     return "C" in names and bool(outer) and bool(middle) and bool(inner)
 
 
+def is_ring_map(regions):
+    center_name = find_universal_center(regions)
+    if center_name is None:
+        return False
+
+    outer_names = [name for name in regions if name != center_name]
+    return all(center_name in regions[name]["neighbors"] for name in outer_names)
+
+
 def build_multi_ring_layout(regions, width, height):
     center_x = width / 2
     center_y = height / 2
@@ -160,106 +169,66 @@ def build_map_layout(regions, width=900, height=900):
     return build_force_layout(regions, width, height)
 
 
-def clip_polygon_to_half_plane(polygon, normal_x, normal_y, threshold):
-    clipped = []
-
-    if not polygon:
-        return clipped
-
-    for index, current_point in enumerate(polygon):
-        previous_point = polygon[index - 1]
-
-        current_value = (current_point[0] * normal_x) + (current_point[1] * normal_y) - threshold
-        previous_value = (previous_point[0] * normal_x) + (previous_point[1] * normal_y) - threshold
-
-        current_inside = current_value >= -1e-6
-        previous_inside = previous_value >= -1e-6
-
-        if current_inside != previous_inside:
-            dx = current_point[0] - previous_point[0]
-            dy = current_point[1] - previous_point[1]
-            denominator = (dx * normal_x) + (dy * normal_y)
-
-            if abs(denominator) > 1e-9:
-                t = (
-                    threshold
-                    - (previous_point[0] * normal_x)
-                    - (previous_point[1] * normal_y)
-                ) / denominator
-                intersection = (
-                    previous_point[0] + (t * dx),
-                    previous_point[1] + (t * dy),
-                )
-                clipped.append(intersection)
-
-        if current_inside:
-            clipped.append(current_point)
-
-    return clipped
-
-
-def build_voronoi_cells(positions, width, height, padding=28):
-    bounds = [
-        (padding, padding),
-        (width - padding, padding),
-        (width - padding, height - padding),
-        (padding, height - padding),
-    ]
-    cells = {}
-
-    for region_name, (site_x, site_y) in positions.items():
-        polygon = bounds[:]
-
-        for other_name, (other_x, other_y) in positions.items():
-            if other_name == region_name:
-                continue
-
-            normal_x = site_x - other_x
-            normal_y = site_y - other_y
-            threshold = (
-                ((site_x * site_x) + (site_y * site_y))
-                - ((other_x * other_x) + (other_y * other_y))
-            ) / 2
-            polygon = clip_polygon_to_half_plane(
-                polygon,
-                normal_x,
-                normal_y,
-                threshold,
-            )
-
-            if not polygon:
-                break
-
-        cells[region_name] = polygon
-
-    return cells
-
-
 def polygon_to_points_text(polygon):
     return " ".join(f"{x:.1f},{y:.1f}" for x, y in polygon)
 
 
-def render_map_svg(map_name, map_definition, width=900, height=900):
+def polar_to_cartesian(center_x, center_y, radius, angle_deg):
+    angle_rad = math.radians(angle_deg)
+    return (
+        center_x + (radius * math.cos(angle_rad)),
+        center_y + (radius * math.sin(angle_rad)),
+    )
+
+
+def build_annular_sector(center_x, center_y, inner_radius, outer_radius, start_deg, end_deg, steps=8):
+    polygon = []
+
+    if outer_radius > 0:
+        for step in range(steps + 1):
+            angle = start_deg + ((end_deg - start_deg) * step / steps)
+            polygon.append(polar_to_cartesian(center_x, center_y, outer_radius, angle))
+
+    if inner_radius <= 0:
+        polygon.append((center_x, center_y))
+        return polygon
+
+    for step in range(steps, -1, -1):
+        angle = start_deg + ((end_deg - start_deg) * step / steps)
+        polygon.append(polar_to_cartesian(center_x, center_y, inner_radius, angle))
+
+    return polygon
+
+
+def get_annular_label_position(center_x, center_y, inner_radius, outer_radius, start_deg, end_deg):
+    angle = (start_deg + end_deg) / 2
+    radius = (inner_radius + outer_radius) / 2
+    return polar_to_cartesian(center_x, center_y, radius, angle)
+
+
+def render_graph_map_svg(map_name, map_definition, width=900, height=900):
     regions = map_definition["regions"]
     positions = build_map_layout(regions, width=width, height=height)
-    cells = build_voronoi_cells(positions, width=width, height=height)
+    edges = get_map_edges(regions)
     svg_lines = []
 
     svg_lines.append(
         f"<svg viewBox='0 0 {width} {height}' role='img' aria-label='{html.escape(map_name)} map'>"
     )
 
+    for first_name, second_name in edges:
+        x1, y1 = positions[first_name]
+        x2, y2 = positions[second_name]
+        svg_lines.append(
+            f"<line x1='{x1:.1f}' y1='{y1:.1f}' x2='{x2:.1f}' y2='{y2:.1f}' class='edge' />"
+        )
+
     for region_name in sorted(regions):
         region_data = regions[region_name]
         x, y = positions[region_name]
         fill = FACTION_COLORS.get(region_data["owner"], FACTION_COLORS[None])
-        polygon = cells[region_name]
-        points_text = polygon_to_points_text(polygon)
         svg_lines.append(
-            f"<polygon points='{points_text}' fill='{fill}' class='territory' />"
-        )
-        svg_lines.append(
-            f"<circle cx='{x:.1f}' cy='{y:.1f}' r='6' class='anchor' />"
+            f"<circle cx='{x:.1f}' cy='{y:.1f}' r='24' fill='{fill}' class='node' />"
         )
         svg_lines.append(
             f"<text x='{x:.1f}' y='{y - 8:.1f}' text-anchor='middle' class='label'>"
@@ -272,6 +241,224 @@ def render_map_svg(map_name, map_definition, width=900, height=900):
 
     svg_lines.append("</svg>")
     return "\n".join(svg_lines)
+
+
+def render_ring_map_svg(map_name, map_definition, width=900, height=900):
+    regions = map_definition["regions"]
+    center_name = find_universal_center(regions)
+    outer_names = sorted(name for name in regions if name != center_name)
+    center_x = width / 2
+    center_y = height / 2
+    center_radius = min(width, height) * 0.16
+    outer_radius = min(width, height) * 0.47
+    sector_width = 360 / len(outer_names)
+    first_start = -90 - (sector_width / 2)
+    svg_lines = []
+
+    svg_lines.append(
+        f"<svg viewBox='0 0 {width} {height}' role='img' aria-label='{html.escape(map_name)} map'>"
+    )
+
+    center_fill = FACTION_COLORS.get(regions[center_name]["owner"], FACTION_COLORS[None])
+    center_polygon = build_annular_sector(
+        center_x,
+        center_y,
+        0,
+        center_radius,
+        0,
+        360,
+        steps=32,
+    )
+    svg_lines.append(
+        f"<polygon points='{polygon_to_points_text(center_polygon)}' fill='{center_fill}' class='territory' />"
+    )
+    svg_lines.append(
+        f"<text x='{center_x:.1f}' y='{center_y - 8:.1f}' text-anchor='middle' class='label'>{html.escape(center_name)}</text>"
+    )
+    svg_lines.append(
+        f"<text x='{center_x:.1f}' y='{center_y + 12:.1f}' text-anchor='middle' class='resource'>R{regions[center_name]['resources']}</text>"
+    )
+
+    for index, region_name in enumerate(outer_names):
+        start_deg = first_start + (index * sector_width)
+        end_deg = start_deg + sector_width
+        polygon = build_annular_sector(
+            center_x,
+            center_y,
+            center_radius,
+            outer_radius,
+            start_deg,
+            end_deg,
+        )
+        x, y = get_annular_label_position(
+            center_x,
+            center_y,
+            center_radius,
+            outer_radius,
+            start_deg,
+            end_deg,
+        )
+        fill = FACTION_COLORS.get(regions[region_name]["owner"], FACTION_COLORS[None])
+        svg_lines.append(
+            f"<polygon points='{polygon_to_points_text(polygon)}' fill='{fill}' class='territory' />"
+        )
+        svg_lines.append(
+            f"<text x='{x:.1f}' y='{y - 8:.1f}' text-anchor='middle' class='label'>{html.escape(region_name)}</text>"
+        )
+        svg_lines.append(
+            f"<text x='{x:.1f}' y='{y + 12:.1f}' text-anchor='middle' class='resource'>R{regions[region_name]['resources']}</text>"
+        )
+
+    svg_lines.append("</svg>")
+    return "\n".join(svg_lines)
+
+
+def render_multi_ring_map_svg(map_name, map_definition, width=900, height=900):
+    regions = map_definition["regions"]
+    center_x = width / 2
+    center_y = height / 2
+    inner_center_radius = 70
+    inner_outer_radius = 170
+    middle_outer_radius = 290
+    outer_outer_radius = 410
+    svg_lines = []
+
+    svg_lines.append(
+        f"<svg viewBox='0 0 {width} {height}' role='img' aria-label='{html.escape(map_name)} map'>"
+    )
+
+    center_polygon = build_annular_sector(
+        center_x,
+        center_y,
+        0,
+        inner_center_radius,
+        0,
+        360,
+        steps=32,
+    )
+    center_fill = FACTION_COLORS.get(regions["C"]["owner"], FACTION_COLORS[None])
+    svg_lines.append(
+        f"<polygon points='{polygon_to_points_text(center_polygon)}' fill='{center_fill}' class='territory' />"
+    )
+    svg_lines.append(
+        f"<text x='{center_x:.1f}' y='{center_y - 8:.1f}' text-anchor='middle' class='label'>C</text>"
+    )
+    svg_lines.append(
+        f"<text x='{center_x:.1f}' y='{center_y + 12:.1f}' text-anchor='middle' class='resource'>R{regions['C']['resources']}</text>"
+    )
+
+    outer_names = sorted(name for name in regions if name.startswith("O"))
+    middle_names = sorted(name for name in regions if name.startswith("M"))
+    inner_names = sorted(name for name in regions if name.startswith("I"))
+
+    outer_step = 360 / len(outer_names)
+    middle_step = 360 / len(middle_names)
+    inner_step = 360 / len(inner_names)
+
+    for index, region_name in enumerate(outer_names):
+        start_deg = (-90 - (outer_step / 2)) + (index * outer_step)
+        end_deg = start_deg + outer_step
+        polygon = build_annular_sector(
+            center_x,
+            center_y,
+            middle_outer_radius,
+            outer_outer_radius,
+            start_deg,
+            end_deg,
+        )
+        x, y = get_annular_label_position(
+            center_x,
+            center_y,
+            middle_outer_radius,
+            outer_outer_radius,
+            start_deg,
+            end_deg,
+        )
+        fill = FACTION_COLORS.get(regions[region_name]["owner"], FACTION_COLORS[None])
+        svg_lines.append(
+            f"<polygon points='{polygon_to_points_text(polygon)}' fill='{fill}' class='territory' />"
+        )
+        svg_lines.append(
+            f"<text x='{x:.1f}' y='{y - 8:.1f}' text-anchor='middle' class='label'>{html.escape(region_name)}</text>"
+        )
+        svg_lines.append(
+            f"<text x='{x:.1f}' y='{y + 12:.1f}' text-anchor='middle' class='resource'>R{regions[region_name]['resources']}</text>"
+        )
+
+    for index, region_name in enumerate(middle_names):
+        start_deg = -90 + (index * middle_step)
+        end_deg = start_deg + middle_step
+        polygon = build_annular_sector(
+            center_x,
+            center_y,
+            inner_outer_radius,
+            middle_outer_radius,
+            start_deg,
+            end_deg,
+        )
+        x, y = get_annular_label_position(
+            center_x,
+            center_y,
+            inner_outer_radius,
+            middle_outer_radius,
+            start_deg,
+            end_deg,
+        )
+        fill = FACTION_COLORS.get(regions[region_name]["owner"], FACTION_COLORS[None])
+        svg_lines.append(
+            f"<polygon points='{polygon_to_points_text(polygon)}' fill='{fill}' class='territory' />"
+        )
+        svg_lines.append(
+            f"<text x='{x:.1f}' y='{y - 8:.1f}' text-anchor='middle' class='label'>{html.escape(region_name)}</text>"
+        )
+        svg_lines.append(
+            f"<text x='{x:.1f}' y='{y + 12:.1f}' text-anchor='middle' class='resource'>R{regions[region_name]['resources']}</text>"
+        )
+
+    for index, region_name in enumerate(inner_names):
+        start_deg = -90 + (index * inner_step)
+        end_deg = start_deg + inner_step
+        polygon = build_annular_sector(
+            center_x,
+            center_y,
+            inner_center_radius,
+            inner_outer_radius,
+            start_deg,
+            end_deg,
+        )
+        x, y = get_annular_label_position(
+            center_x,
+            center_y,
+            inner_center_radius,
+            inner_outer_radius,
+            start_deg,
+            end_deg,
+        )
+        fill = FACTION_COLORS.get(regions[region_name]["owner"], FACTION_COLORS[None])
+        svg_lines.append(
+            f"<polygon points='{polygon_to_points_text(polygon)}' fill='{fill}' class='territory' />"
+        )
+        svg_lines.append(
+            f"<text x='{x:.1f}' y='{y - 8:.1f}' text-anchor='middle' class='label'>{html.escape(region_name)}</text>"
+        )
+        svg_lines.append(
+            f"<text x='{x:.1f}' y='{y + 12:.1f}' text-anchor='middle' class='resource'>R{regions[region_name]['resources']}</text>"
+        )
+
+    svg_lines.append("</svg>")
+    return "\n".join(svg_lines)
+
+
+def render_map_svg(map_name, map_definition, width=900, height=900):
+    regions = map_definition["regions"]
+
+    if is_multi_ring_map(regions):
+        return render_multi_ring_map_svg(map_name, map_definition, width=width, height=height)
+
+    if is_ring_map(regions):
+        return render_ring_map_svg(map_name, map_definition, width=width, height=height)
+
+    return render_graph_map_svg(map_name, map_definition, width=width, height=height)
 
 
 def render_map_html(map_name, map_definition):
@@ -363,8 +550,14 @@ def render_map_html(map_name, map_definition):
       stroke-linejoin: round;
       opacity: 0.96;
     }}
-    .anchor {{
-      fill: rgba(31, 41, 51, 0.82);
+    .edge {{
+      stroke: var(--line);
+      stroke-width: 2;
+      opacity: 0.85;
+    }}
+    .node {{
+      stroke: #51463b;
+      stroke-width: 1.5;
     }}
     .label {{
       font-size: 15px;
@@ -455,8 +648,8 @@ def render_map_html(map_name, map_definition):
           </tbody>
         </table>
         <p class="note">
-          This view is intentionally lightweight and testing-oriented. It is meant to make
-          connectivity and starting positions easy to inspect without committing to a final UI.
+          Structured ring maps are rendered with exact shared borders. Irregular maps fall back
+          to an explicit graph view so the renderer does not imply borders that do not exist.
         </p>
       </aside>
     </div>
