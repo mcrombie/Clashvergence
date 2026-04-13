@@ -2,9 +2,9 @@ Detailed Simulation Results
 
 Simulation Setup
 
-Map: thirteen_region_ring
+Map: multi_ring_symmetry
 Turns: 20
-Regions: 13
+Regions: 37
 Factions: 4
 Faction Strategies:
   Faction1: strategy=expansionist, starting_treasury=1
@@ -14,64 +14,117 @@ Faction Strategies:
 
 Simulation Chronicle
 
-On turn 2, Faction1 made its first expansion into M.
-On turn 2, Faction2 made its first expansion into E.
-On turn 2, Faction4 made its first expansion into K.
-On turn 2, Faction3 made its first expansion into H.
-On turn 2, Faction1 seized M, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into L.
+On turn 2, Faction4 made its first expansion into M10.
+On turn 2, Faction2 made its first expansion into M4.
+On turn 2, Faction1 made its first expansion into M1.
+On turn 2, Faction3 made its first expansion into M7.
+On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M11.
+On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M5.
+On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M2.
+On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M8.
+On turn 3, Faction4 seized M11, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
+On turn 3, Faction1 seized M2, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
 
 Opening Phase
 
-The strongest early land grab was Faction1's claim of M on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Faction1, Faction2, and Faction3 led expansion with 2 claim(s).
-Across the first 5 turns, Faction3 invested most often with 3 investment(s).
-By the end of turn 5, Faction3 held the opening treasury lead at 43.
+The strongest early land grab was Faction2's claim of C on turn 5, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
+Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
+By the end of turn 5, Faction2 held the opening treasury lead at 37.
 
 Faction Trajectories
 
-Faction1 grew steadily from the opening and converted that position into first place with 4 regions and 335 treasury.
-Faction2 opened well but faded in the later turns, finishing with 4 regions and 335 treasury.
-Faction3 opened well but faded in the later turns, finishing with 3 regions and 268 treasury.
-Faction4 remained competitive without taking control, ending on 2 regions and 190 treasury.
+Faction1 opened well but faded in the later turns, finishing with 9 regions and 527 treasury.
+Faction2 grew steadily from the opening and converted that position into first place with 9 regions and 536 treasury.
+Faction3 opened well but faded in the later turns, finishing with 9 regions and 527 treasury.
+Faction4 opened well but faded in the later turns, finishing with 10 regions and 532 treasury.
 
 Faction Behavior
 
-Faction1 expanded 3 times and invested 4 times, and generally favored development over expansion.
-Faction2 expanded 3 times and invested 4 times, and generally favored development over expansion.
-Faction3 expanded 2 times and invested 3 times, and generally favored development over expansion.
-Faction4 expanded 1 times and invested 2 times, and generally favored development over expansion.
+Faction1 expanded 8 times and invested 9 times, and generally favored development over expansion.
+Faction2 expanded 8 times and invested 9 times, and generally favored development over expansion.
+Faction3 expanded 8 times and invested 9 times, and generally favored development over expansion.
+Faction4 expanded 9 times and invested 10 times, and generally favored development over expansion.
 
 Final Standings
 
-Faction1 finished first with a treasury of 335 and control of 4 regions.
-Faction2 ended with a treasury of 335 and 4 regions.
-Faction3 ended with a treasury of 268 and 3 regions.
-Faction4 ended with a treasury of 190 and 2 regions.
+Faction2 finished first with a treasury of 536 and control of 9 regions.
+Faction4 ended with a treasury of 532 and 10 regions.
+Faction1 ended with a treasury of 527 and 9 regions.
+Faction3 ended with a treasury of 527 and 9 regions.
 
 Event Log
 
-Turn 1: Faction1 invested in A (invest_amount=4, new_resources=5)
-Turn 1: Faction4 invested in J (invest_amount=4, new_resources=5)
-Turn 1: Faction3 invested in G (invest_amount=4, new_resources=5)
-Turn 1: Faction2 invested in D (invest_amount=4, new_resources=5)
-Turn 2: Faction1 expanded into M (score=32, resources=2, neighbors=12, unclaimed_neighbors=8, treasury_after=3)
-Turn 2: Faction2 expanded into E (score=9, resources=2, neighbors=3, unclaimed_neighbors=1, treasury_after=3)
-Turn 2: Faction4 expanded into K (score=9, resources=2, neighbors=3, unclaimed_neighbors=1, treasury_after=3)
-Turn 2: Faction3 expanded into H (score=9, resources=2, neighbors=3, unclaimed_neighbors=1, treasury_after=3)
-Turn 3: Faction2 expanded into C (score=9, resources=2, neighbors=3, unclaimed_neighbors=1, treasury_after=7)
-Turn 3: Faction1 expanded into L (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=7)
-Turn 3: Faction3 expanded into I (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=7)
-Turn 3: Faction4 invested in K (invest_amount=4, new_resources=5)
-Turn 4: Faction2 expanded into F (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=13)
-Turn 4: Faction3 invested in H (invest_amount=4, new_resources=5)
-Turn 4: Faction1 expanded into B (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=13)
-Turn 5: Faction3 invested in I (invest_amount=4, new_resources=5)
-Turn 5: Faction1 invested in B (invest_amount=4, new_resources=5)
-Turn 5: Faction2 invested in C (invest_amount=4, new_resources=5)
-Turn 6: Faction1 invested in L (invest_amount=4, new_resources=5)
-Turn 6: Faction2 invested in E (invest_amount=4, new_resources=5)
-Turn 7: Faction2 invested in F (invest_amount=4, new_resources=5)
-Turn 7: Faction1 invested in M (invest_amount=4, new_resources=5)
+Turn 1: Faction2 invested in O5 (invest_amount=4, new_resources=5)
+Turn 1: Faction4 invested in O13 (invest_amount=4, new_resources=5)
+Turn 1: Faction3 invested in O9 (invest_amount=4, new_resources=5)
+Turn 1: Faction1 invested in O1 (invest_amount=4, new_resources=5)
+Turn 2: Faction4 expanded into M10 (score=17, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=3)
+Turn 2: Faction2 expanded into M4 (score=17, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=3)
+Turn 2: Faction1 expanded into M1 (score=17, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=3)
+Turn 2: Faction3 expanded into M7 (score=17, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=3)
+Turn 3: Faction4 expanded into M11 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=7)
+Turn 3: Faction1 expanded into M2 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=7)
+Turn 3: Faction3 expanded into M8 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=7)
+Turn 3: Faction2 expanded into M5 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=7)
+Turn 4: Faction1 expanded into I2 (score=19, resources=3, neighbors=5, unclaimed_neighbors=4, treasury_after=13)
+Turn 4: Faction3 expanded into I6 (score=19, resources=3, neighbors=5, unclaimed_neighbors=4, treasury_after=13)
+Turn 4: Faction2 expanded into I4 (score=19, resources=3, neighbors=5, unclaimed_neighbors=4, treasury_after=13)
+Turn 4: Faction4 expanded into I8 (score=19, resources=3, neighbors=5, unclaimed_neighbors=4, treasury_after=13)
+Turn 5: Faction2 expanded into C (score=22, resources=3, neighbors=8, unclaimed_neighbors=4, treasury_after=22)
+Turn 5: Faction4 expanded into O15 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=22)
+Turn 5: Faction1 expanded into O3 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=22)
+Turn 5: Faction3 expanded into O11 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=22)
+Turn 6: Faction2 expanded into O7 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=34)
+Turn 6: Faction1 expanded into M3 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=33)
+Turn 6: Faction3 expanded into M9 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=33)
+Turn 6: Faction4 expanded into M12 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=33)
+Turn 7: Faction1 expanded into I3 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=46)
+Turn 7: Faction2 expanded into M6 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=48)
+Turn 7: Faction3 expanded into I7 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=46)
+Turn 7: Faction4 expanded into I1 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=46)
+Turn 8: Faction1 expanded into O2 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=62)
+Turn 8: Faction2 expanded into I5 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=64)
+Turn 8: Faction3 expanded into O10 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=62)
+Turn 8: Faction4 expanded into O14 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=62)
+Turn 9: Faction1 expanded into O4 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=80)
+Turn 9: Faction3 expanded into O8 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=80)
+Turn 9: Faction2 expanded into O6 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=83)
+Turn 9: Faction4 expanded into O16 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=80)
+Turn 10: Faction4 expanded into O12 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=100)
+Turn 10: Faction1 invested in M1 (invest_amount=4, new_resources=5)
+Turn 10: Faction2 invested in M4 (invest_amount=4, new_resources=5)
+Turn 10: Faction3 invested in M7 (invest_amount=4, new_resources=5)
+Turn 11: Faction4 invested in M10 (invest_amount=4, new_resources=5)
+Turn 11: Faction1 invested in M2 (invest_amount=4, new_resources=5)
+Turn 11: Faction2 invested in M5 (invest_amount=4, new_resources=5)
+Turn 11: Faction3 invested in M8 (invest_amount=4, new_resources=5)
+Turn 12: Faction2 invested in M6 (invest_amount=4, new_resources=5)
+Turn 12: Faction1 invested in M3 (invest_amount=4, new_resources=5)
+Turn 12: Faction4 invested in M11 (invest_amount=4, new_resources=5)
+Turn 12: Faction3 invested in M9 (invest_amount=4, new_resources=5)
+Turn 13: Faction4 invested in M12 (invest_amount=4, new_resources=5)
+Turn 13: Faction3 invested in O10 (invest_amount=4, new_resources=5)
+Turn 13: Faction2 invested in O6 (invest_amount=4, new_resources=5)
+Turn 13: Faction1 invested in O2 (invest_amount=4, new_resources=5)
+Turn 14: Faction1 invested in O3 (invest_amount=4, new_resources=5)
+Turn 14: Faction3 invested in O11 (invest_amount=4, new_resources=5)
+Turn 14: Faction2 invested in O7 (invest_amount=4, new_resources=5)
+Turn 14: Faction4 invested in O12 (invest_amount=4, new_resources=5)
+Turn 15: Faction4 invested in O14 (invest_amount=4, new_resources=5)
+Turn 15: Faction1 invested in O4 (invest_amount=4, new_resources=5)
+Turn 15: Faction2 invested in C (invest_amount=4, new_resources=5)
+Turn 15: Faction3 invested in O8 (invest_amount=4, new_resources=5)
+Turn 16: Faction2 invested in I4 (invest_amount=4, new_resources=5)
+Turn 16: Faction1 invested in I2 (invest_amount=4, new_resources=5)
+Turn 16: Faction4 invested in O15 (invest_amount=4, new_resources=5)
+Turn 16: Faction3 invested in I6 (invest_amount=4, new_resources=5)
+Turn 17: Faction1 invested in I3 (invest_amount=4, new_resources=5)
+Turn 17: Faction3 invested in I7 (invest_amount=4, new_resources=5)
+Turn 17: Faction2 invested in I5 (invest_amount=4, new_resources=5)
+Turn 17: Faction4 invested in O16 (invest_amount=4, new_resources=5)
+Turn 18: Faction4 invested in I1 (invest_amount=4, new_resources=5)
+Turn 19: Faction4 invested in I8 (invest_amount=4, new_resources=5)
 
 Per-Turn Metrics
 
@@ -91,106 +144,106 @@ Turn 3
   Faction1: treasury=16, regions=3, expansions=1, investments=0
   Faction2: treasury=16, regions=3, expansions=1, investments=0
   Faction3: treasury=16, regions=3, expansions=1, investments=0
-  Faction4: treasury=20, regions=2, expansions=0, investments=1
+  Faction4: treasury=16, regions=3, expansions=1, investments=0
 
 Turn 4
-  Faction1: treasury=24, regions=4, expansions=1, investments=0
-  Faction2: treasury=24, regions=4, expansions=1, investments=0
-  Faction3: treasury=28, regions=3, expansions=0, investments=1
-  Faction4: treasury=30, regions=2, expansions=0, investments=0
+  Faction1: treasury=25, regions=4, expansions=1, investments=0
+  Faction2: treasury=25, regions=4, expansions=1, investments=0
+  Faction3: treasury=25, regions=4, expansions=1, investments=0
+  Faction4: treasury=25, regions=4, expansions=1, investments=0
 
 Turn 5
-  Faction1: treasury=38, regions=4, expansions=0, investments=1
-  Faction2: treasury=38, regions=4, expansions=0, investments=1
-  Faction3: treasury=43, regions=3, expansions=0, investments=1
-  Faction4: treasury=40, regions=2, expansions=0, investments=0
+  Faction1: treasury=36, regions=5, expansions=1, investments=0
+  Faction2: treasury=37, regions=5, expansions=1, investments=0
+  Faction3: treasury=36, regions=5, expansions=1, investments=0
+  Faction4: treasury=36, regions=5, expansions=1, investments=0
 
 Turn 6
-  Faction1: treasury=55, regions=4, expansions=0, investments=1
-  Faction2: treasury=55, regions=4, expansions=0, investments=1
-  Faction3: treasury=58, regions=3, expansions=0, investments=0
-  Faction4: treasury=50, regions=2, expansions=0, investments=0
+  Faction1: treasury=49, regions=6, expansions=1, investments=0
+  Faction2: treasury=51, regions=6, expansions=1, investments=0
+  Faction3: treasury=49, regions=6, expansions=1, investments=0
+  Faction4: treasury=49, regions=6, expansions=1, investments=0
 
 Turn 7
-  Faction1: treasury=75, regions=4, expansions=0, investments=1
-  Faction2: treasury=75, regions=4, expansions=0, investments=1
-  Faction3: treasury=73, regions=3, expansions=0, investments=0
-  Faction4: treasury=60, regions=2, expansions=0, investments=0
+  Faction1: treasury=65, regions=7, expansions=1, investments=0
+  Faction2: treasury=67, regions=7, expansions=1, investments=0
+  Faction3: treasury=65, regions=7, expansions=1, investments=0
+  Faction4: treasury=65, regions=7, expansions=1, investments=0
 
 Turn 8
-  Faction1: treasury=95, regions=4, expansions=0, investments=0
-  Faction2: treasury=95, regions=4, expansions=0, investments=0
-  Faction3: treasury=88, regions=3, expansions=0, investments=0
-  Faction4: treasury=70, regions=2, expansions=0, investments=0
+  Faction1: treasury=83, regions=8, expansions=1, investments=0
+  Faction2: treasury=86, regions=8, expansions=1, investments=0
+  Faction3: treasury=83, regions=8, expansions=1, investments=0
+  Faction4: treasury=83, regions=8, expansions=1, investments=0
 
 Turn 9
-  Faction1: treasury=115, regions=4, expansions=0, investments=0
-  Faction2: treasury=115, regions=4, expansions=0, investments=0
-  Faction3: treasury=103, regions=3, expansions=0, investments=0
-  Faction4: treasury=80, regions=2, expansions=0, investments=0
+  Faction1: treasury=103, regions=9, expansions=1, investments=0
+  Faction2: treasury=107, regions=9, expansions=1, investments=0
+  Faction3: treasury=103, regions=9, expansions=1, investments=0
+  Faction4: treasury=103, regions=9, expansions=1, investments=0
 
 Turn 10
-  Faction1: treasury=135, regions=4, expansions=0, investments=0
-  Faction2: treasury=135, regions=4, expansions=0, investments=0
-  Faction3: treasury=118, regions=3, expansions=0, investments=0
-  Faction4: treasury=90, regions=2, expansions=0, investments=0
+  Faction1: treasury=129, regions=9, expansions=0, investments=1
+  Faction2: treasury=134, regions=9, expansions=0, investments=1
+  Faction3: treasury=129, regions=9, expansions=0, investments=1
+  Faction4: treasury=125, regions=10, expansions=1, investments=0
 
 Turn 11
-  Faction1: treasury=155, regions=4, expansions=0, investments=0
-  Faction2: treasury=155, regions=4, expansions=0, investments=0
-  Faction3: treasury=133, regions=3, expansions=0, investments=0
-  Faction4: treasury=100, regions=2, expansions=0, investments=0
+  Faction1: treasury=158, regions=9, expansions=0, investments=1
+  Faction2: treasury=164, regions=9, expansions=0, investments=1
+  Faction3: treasury=158, regions=9, expansions=0, investments=1
+  Faction4: treasury=153, regions=10, expansions=0, investments=1
 
 Turn 12
-  Faction1: treasury=175, regions=4, expansions=0, investments=0
-  Faction2: treasury=175, regions=4, expansions=0, investments=0
-  Faction3: treasury=148, regions=3, expansions=0, investments=0
-  Faction4: treasury=110, regions=2, expansions=0, investments=0
+  Faction1: treasury=190, regions=9, expansions=0, investments=1
+  Faction2: treasury=197, regions=9, expansions=0, investments=1
+  Faction3: treasury=190, regions=9, expansions=0, investments=1
+  Faction4: treasury=184, regions=10, expansions=0, investments=1
 
 Turn 13
-  Faction1: treasury=195, regions=4, expansions=0, investments=0
-  Faction2: treasury=195, regions=4, expansions=0, investments=0
-  Faction3: treasury=163, regions=3, expansions=0, investments=0
-  Faction4: treasury=120, regions=2, expansions=0, investments=0
+  Faction1: treasury=225, regions=9, expansions=0, investments=1
+  Faction2: treasury=233, regions=9, expansions=0, investments=1
+  Faction3: treasury=225, regions=9, expansions=0, investments=1
+  Faction4: treasury=218, regions=10, expansions=0, investments=1
 
 Turn 14
-  Faction1: treasury=215, regions=4, expansions=0, investments=0
-  Faction2: treasury=215, regions=4, expansions=0, investments=0
-  Faction3: treasury=178, regions=3, expansions=0, investments=0
-  Faction4: treasury=130, regions=2, expansions=0, investments=0
+  Faction1: treasury=263, regions=9, expansions=0, investments=1
+  Faction2: treasury=272, regions=9, expansions=0, investments=1
+  Faction3: treasury=263, regions=9, expansions=0, investments=1
+  Faction4: treasury=255, regions=10, expansions=0, investments=1
 
 Turn 15
-  Faction1: treasury=235, regions=4, expansions=0, investments=0
-  Faction2: treasury=235, regions=4, expansions=0, investments=0
-  Faction3: treasury=193, regions=3, expansions=0, investments=0
-  Faction4: treasury=140, regions=2, expansions=0, investments=0
+  Faction1: treasury=304, regions=9, expansions=0, investments=1
+  Faction2: treasury=313, regions=9, expansions=0, investments=1
+  Faction3: treasury=304, regions=9, expansions=0, investments=1
+  Faction4: treasury=295, regions=10, expansions=0, investments=1
 
 Turn 16
-  Faction1: treasury=255, regions=4, expansions=0, investments=0
-  Faction2: treasury=255, regions=4, expansions=0, investments=0
-  Faction3: treasury=208, regions=3, expansions=0, investments=0
-  Faction4: treasury=150, regions=2, expansions=0, investments=0
+  Faction1: treasury=347, regions=9, expansions=0, investments=1
+  Faction2: treasury=356, regions=9, expansions=0, investments=1
+  Faction3: treasury=347, regions=9, expansions=0, investments=1
+  Faction4: treasury=338, regions=10, expansions=0, investments=1
 
 Turn 17
-  Faction1: treasury=275, regions=4, expansions=0, investments=0
-  Faction2: treasury=275, regions=4, expansions=0, investments=0
-  Faction3: treasury=223, regions=3, expansions=0, investments=0
-  Faction4: treasury=160, regions=2, expansions=0, investments=0
+  Faction1: treasury=392, regions=9, expansions=0, investments=1
+  Faction2: treasury=401, regions=9, expansions=0, investments=1
+  Faction3: treasury=392, regions=9, expansions=0, investments=1
+  Faction4: treasury=384, regions=10, expansions=0, investments=1
 
 Turn 18
-  Faction1: treasury=295, regions=4, expansions=0, investments=0
-  Faction2: treasury=295, regions=4, expansions=0, investments=0
-  Faction3: treasury=238, regions=3, expansions=0, investments=0
-  Faction4: treasury=170, regions=2, expansions=0, investments=0
+  Faction1: treasury=437, regions=9, expansions=0, investments=0
+  Faction2: treasury=446, regions=9, expansions=0, investments=0
+  Faction3: treasury=437, regions=9, expansions=0, investments=0
+  Faction4: treasury=432, regions=10, expansions=0, investments=1
 
 Turn 19
-  Faction1: treasury=315, regions=4, expansions=0, investments=0
-  Faction2: treasury=315, regions=4, expansions=0, investments=0
-  Faction3: treasury=253, regions=3, expansions=0, investments=0
-  Faction4: treasury=180, regions=2, expansions=0, investments=0
+  Faction1: treasury=482, regions=9, expansions=0, investments=0
+  Faction2: treasury=491, regions=9, expansions=0, investments=0
+  Faction3: treasury=482, regions=9, expansions=0, investments=0
+  Faction4: treasury=482, regions=10, expansions=0, investments=1
 
 Turn 20
-  Faction1: treasury=335, regions=4, expansions=0, investments=0
-  Faction2: treasury=335, regions=4, expansions=0, investments=0
-  Faction3: treasury=268, regions=3, expansions=0, investments=0
-  Faction4: treasury=190, regions=2, expansions=0, investments=0
+  Faction1: treasury=527, regions=9, expansions=0, investments=0
+  Faction2: treasury=536, regions=9, expansions=0, investments=0
+  Faction3: treasury=527, regions=9, expansions=0, investments=0
+  Faction4: treasury=532, regions=10, expansions=0, investments=0

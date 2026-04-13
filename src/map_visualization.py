@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import math
+import re
 
 
 FACTION_COLORS = {
@@ -11,6 +12,13 @@ FACTION_COLORS = {
     "Faction4": "#30638e",
     None: "#d9d9d9",
 }
+
+
+def natural_sort_key(name):
+    match = re.fullmatch(r"([A-Za-z]+)(\d+)", name)
+    if match:
+        return (match.group(1), int(match.group(2)))
+    return (name, -1)
 
 
 def get_map_edges(regions):
@@ -57,9 +65,9 @@ def build_multi_ring_layout(regions, width, height):
     positions = {}
 
     ring_specs = [
-        (sorted([name for name in regions if name.startswith("O")]), 320),
-        (sorted([name for name in regions if name.startswith("M")]), 220),
-        (sorted([name for name in regions if name.startswith("I")]), 120),
+        (sorted([name for name in regions if name.startswith("O")], key=natural_sort_key), 320),
+        (sorted([name for name in regions if name.startswith("M")], key=natural_sort_key), 220),
+        (sorted([name for name in regions if name.startswith("I")], key=natural_sort_key), 120),
     ]
 
     for names, radius in ring_specs:
@@ -84,7 +92,7 @@ def build_ring_layout(regions, width, height, center_name):
     radius = min(width, height) * 0.34
     positions = {center_name: (center_x, center_y)}
 
-    outer_names = sorted(name for name in regions if name != center_name)
+    outer_names = sorted((name for name in regions if name != center_name), key=natural_sort_key)
     for index, name in enumerate(outer_names):
         angle = (2 * math.pi * index / len(outer_names)) - (math.pi / 2)
         positions[name] = (
@@ -96,7 +104,7 @@ def build_ring_layout(regions, width, height, center_name):
 
 
 def build_force_layout(regions, width, height, iterations=250):
-    names = sorted(regions)
+    names = sorted(regions, key=natural_sort_key)
     count = len(names)
     center_x = width / 2
     center_y = height / 2
@@ -223,7 +231,7 @@ def render_graph_map_svg(map_name, map_definition, width=900, height=900):
             f"<line x1='{x1:.1f}' y1='{y1:.1f}' x2='{x2:.1f}' y2='{y2:.1f}' class='edge' />"
         )
 
-    for region_name in sorted(regions):
+    for region_name in sorted(regions, key=natural_sort_key):
         region_data = regions[region_name]
         x, y = positions[region_name]
         fill = FACTION_COLORS.get(region_data["owner"], FACTION_COLORS[None])
@@ -246,7 +254,7 @@ def render_graph_map_svg(map_name, map_definition, width=900, height=900):
 def render_ring_map_svg(map_name, map_definition, width=900, height=900):
     regions = map_definition["regions"]
     center_name = find_universal_center(regions)
-    outer_names = sorted(name for name in regions if name != center_name)
+    outer_names = sorted((name for name in regions if name != center_name), key=natural_sort_key)
     center_x = width / 2
     center_y = height / 2
     center_radius = min(width, height) * 0.16
@@ -347,9 +355,9 @@ def render_multi_ring_map_svg(map_name, map_definition, width=900, height=900):
         f"<text x='{center_x:.1f}' y='{center_y + 12:.1f}' text-anchor='middle' class='resource'>R{regions['C']['resources']}</text>"
     )
 
-    outer_names = sorted(name for name in regions if name.startswith("O"))
-    middle_names = sorted(name for name in regions if name.startswith("M"))
-    inner_names = sorted(name for name in regions if name.startswith("I"))
+    outer_names = sorted((name for name in regions if name.startswith("O")), key=natural_sort_key)
+    middle_names = sorted((name for name in regions if name.startswith("M")), key=natural_sort_key)
+    inner_names = sorted((name for name in regions if name.startswith("I")), key=natural_sort_key)
 
     outer_step = 360 / len(outer_names)
     middle_step = 360 / len(middle_names)
@@ -461,10 +469,16 @@ def render_map_svg(map_name, map_definition, width=900, height=900):
     return render_graph_map_svg(map_name, map_definition, width=width, height=height)
 
 
+def supports_exact_border_view(regions):
+    return is_ring_map(regions) and not is_multi_ring_map(regions)
+
+
 def render_map_html(map_name, map_definition):
     description = html.escape(map_definition["description"])
     regions = map_definition["regions"]
-    svg = render_map_svg(map_name, map_definition)
+    graph_svg = render_graph_map_svg(map_name, map_definition)
+    has_exact_border_view = supports_exact_border_view(regions)
+    border_svg = render_map_svg(map_name, map_definition) if has_exact_border_view else graph_svg
 
     legend_items = []
     for faction_name in ["Faction1", "Faction2", "Faction3", "Faction4", None]:
@@ -475,9 +489,9 @@ def render_map_html(map_name, map_definition):
         )
 
     info_rows = []
-    for region_name in sorted(regions):
+    for region_name in sorted(regions, key=natural_sort_key):
         region_data = regions[region_name]
-        neighbors = ", ".join(sorted(region_data["neighbors"]))
+        neighbors = ", ".join(sorted(region_data["neighbors"], key=natural_sort_key))
         owner = region_data["owner"] or "Unclaimed"
         info_rows.append(
             "<tr>"
@@ -534,6 +548,33 @@ def render_map_html(map_name, map_definition):
       border-radius: 18px;
       padding: 18px;
       box-shadow: 0 10px 30px rgba(31, 41, 51, 0.08);
+    }}
+    .toolbar {{
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }}
+    .toggle {{
+      border: 1px solid #c9c1b2;
+      background: #f4efe4;
+      color: #1f2933;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }}
+    .toggle.active {{
+      background: #30638e;
+      color: white;
+      border-color: #30638e;
+    }}
+    .map-view {{
+      display: none;
+    }}
+    .map-view.active {{
+      display: block;
     }}
     svg {{
       width: 100%;
@@ -625,7 +666,20 @@ def render_map_html(map_name, map_definition):
     <p class="lede">{description}</p>
     <div class="layout">
       <section class="card">
-        {svg}
+        {"".join([
+          "<div class='toolbar'>"
+          "<button class='toggle active' type='button' data-view-target='borders'>Shared Borders</button>"
+          "<button class='toggle' type='button' data-view-target='graph'>Connection Lines</button>"
+          "</div>"
+          f"<div class='map-view active' data-view='borders'>{border_svg}</div>"
+          f"<div class='map-view' data-view='graph'>{graph_svg}</div>"
+          if has_exact_border_view
+          else
+          "<div class='toolbar'>"
+          "<button class='toggle active' type='button' data-view-target='graph'>Connection Lines</button>"
+          "</div>"
+          f"<div class='map-view active' data-view='graph'>{graph_svg}</div>"
+        ])}
       </section>
       <aside class="card">
         <h2>Legend</h2>
@@ -648,12 +702,36 @@ def render_map_html(map_name, map_definition):
           </tbody>
         </table>
         <p class="note">
-          Structured ring maps are rendered with exact shared borders. Irregular maps fall back
-          to an explicit graph view so the renderer does not imply borders that do not exist.
+          {
+            "Use Shared Borders for the map-style view and Connection Lines for the explicit adjacency "
+            "graph. The graph view is the ground-truth fallback whenever you want to inspect links directly."
+            if has_exact_border_view
+            else
+            "This map currently uses only the explicit Connection Lines view because the temporary "
+            "shared-borders renderer cannot represent this topology without implying false adjacency."
+          }
         </p>
       </aside>
     </div>
   </div>
+  <script>
+    const buttons = document.querySelectorAll('[data-view-target]');
+    const views = document.querySelectorAll('[data-view]');
+
+    for (const button of buttons) {{
+      button.addEventListener('click', () => {{
+        const target = button.getAttribute('data-view-target');
+
+        for (const otherButton of buttons) {{
+          otherButton.classList.toggle('active', otherButton === button);
+        }}
+
+        for (const view of views) {{
+          view.classList.toggle('active', view.getAttribute('data-view') === target);
+        }}
+      }});
+    }}
+  </script>
 </body>
 </html>"""
 
