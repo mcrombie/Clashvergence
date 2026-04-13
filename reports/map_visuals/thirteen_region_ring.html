@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>thirteen_region_ring Visualization</title>
+  <style>
+    :root {
+      --bg: #f6f2e8;
+      --ink: #1f2933;
+      --panel: #fffdf8;
+      --line: #b8b2a6;
+      --grid: #e6dfd2;
+    }
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Georgia, "Times New Roman", serif;
+      background: linear-gradient(180deg, #f3ede0 0%, #faf7ef 100%);
+      color: var(--ink);
+    }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 34px;
+    }
+    .lede {
+      margin: 0 0 20px;
+      max-width: 70ch;
+      line-height: 1.5;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--grid);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(31, 41, 51, 0.08);
+    }
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.75), rgba(255,255,255,0.3)),
+        repeating-radial-gradient(circle at center, transparent 0 70px, rgba(184,178,166,0.12) 70px 71px);
+      border-radius: 14px;
+    }
+    .edge {
+      stroke: var(--line);
+      stroke-width: 2;
+      opacity: 0.8;
+    }
+    .node {
+      stroke: #51463b;
+      stroke-width: 1.5;
+    }
+    .label {
+      font-size: 13px;
+      font-weight: 700;
+      fill: #111827;
+      dominant-baseline: middle;
+      pointer-events: none;
+    }
+    .legend {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px;
+      display: grid;
+      gap: 8px;
+    }
+    .legend li {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .swatch {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid #51463b;
+      display: inline-block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--grid);
+      vertical-align: top;
+    }
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .note {
+      margin-top: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>thirteen_region_ring</h1>
+    <p class="lede">Thirteen regions with a twelve-region outer ring and one center region, designed for four factions.</p>
+    <div class="layout">
+      <section class="card">
+        <svg viewBox='0 0 900 900' role='img' aria-label='thirteen_region_ring map'>
+<line x1='450.0' y1='144.0' x2='603.0' y2='185.0' class='edge' />
+<line x1='450.0' y1='144.0' x2='297.0' y2='185.0' class='edge' />
+<line x1='450.0' y1='144.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='603.0' y1='185.0' x2='715.0' y2='297.0' class='edge' />
+<line x1='603.0' y1='185.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='715.0' y1='297.0' x2='756.0' y2='450.0' class='edge' />
+<line x1='715.0' y1='297.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='756.0' y1='450.0' x2='715.0' y2='603.0' class='edge' />
+<line x1='756.0' y1='450.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='715.0' y1='603.0' x2='603.0' y2='715.0' class='edge' />
+<line x1='715.0' y1='603.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='603.0' y1='715.0' x2='450.0' y2='756.0' class='edge' />
+<line x1='603.0' y1='715.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='450.0' y1='756.0' x2='297.0' y2='715.0' class='edge' />
+<line x1='450.0' y1='756.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='297.0' y1='715.0' x2='185.0' y2='603.0' class='edge' />
+<line x1='297.0' y1='715.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='185.0' y1='603.0' x2='144.0' y2='450.0' class='edge' />
+<line x1='185.0' y1='603.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='144.0' y1='450.0' x2='185.0' y2='297.0' class='edge' />
+<line x1='144.0' y1='450.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='185.0' y1='297.0' x2='297.0' y2='185.0' class='edge' />
+<line x1='185.0' y1='297.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='297.0' y1='185.0' x2='450.0' y2='450.0' class='edge' />
+<circle cx='450.0' cy='144.0' r='22' fill='#d1495b' class='node' />
+<text x='450.0' y='145.0' text-anchor='middle' class='label'>A</text>
+<circle cx='603.0' cy='185.0' r='22' fill='#d9d9d9' class='node' />
+<text x='603.0' y='186.0' text-anchor='middle' class='label'>B</text>
+<circle cx='715.0' cy='297.0' r='22' fill='#d9d9d9' class='node' />
+<text x='715.0' y='298.0' text-anchor='middle' class='label'>C</text>
+<circle cx='756.0' cy='450.0' r='22' fill='#edae49' class='node' />
+<text x='756.0' y='451.0' text-anchor='middle' class='label'>D</text>
+<circle cx='715.0' cy='603.0' r='22' fill='#d9d9d9' class='node' />
+<text x='715.0' y='604.0' text-anchor='middle' class='label'>E</text>
+<circle cx='603.0' cy='715.0' r='22' fill='#d9d9d9' class='node' />
+<text x='603.0' y='716.0' text-anchor='middle' class='label'>F</text>
+<circle cx='450.0' cy='756.0' r='22' fill='#00798c' class='node' />
+<text x='450.0' y='757.0' text-anchor='middle' class='label'>G</text>
+<circle cx='297.0' cy='715.0' r='22' fill='#d9d9d9' class='node' />
+<text x='297.0' y='716.0' text-anchor='middle' class='label'>H</text>
+<circle cx='185.0' cy='603.0' r='22' fill='#d9d9d9' class='node' />
+<text x='185.0' y='604.0' text-anchor='middle' class='label'>I</text>
+<circle cx='144.0' cy='450.0' r='22' fill='#30638e' class='node' />
+<text x='144.0' y='451.0' text-anchor='middle' class='label'>J</text>
+<circle cx='185.0' cy='297.0' r='22' fill='#d9d9d9' class='node' />
+<text x='185.0' y='298.0' text-anchor='middle' class='label'>K</text>
+<circle cx='297.0' cy='185.0' r='22' fill='#d9d9d9' class='node' />
+<text x='297.0' y='186.0' text-anchor='middle' class='label'>L</text>
+<circle cx='450.0' cy='450.0' r='22' fill='#d9d9d9' class='node' />
+<text x='450.0' y='451.0' text-anchor='middle' class='label'>M</text>
+</svg>
+      </section>
+      <aside class="card">
+        <h2>Legend</h2>
+        <ul class="legend">
+          <li><span class='swatch' style='background:#d1495b'></span>Faction1</li><li><span class='swatch' style='background:#edae49'></span>Faction2</li><li><span class='swatch' style='background:#00798c'></span>Faction3</li><li><span class='swatch' style='background:#30638e'></span>Faction4</li><li><span class='swatch' style='background:#d9d9d9'></span>Unclaimed</li>
+        </ul>
+        <h2>Regions</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Region</th>
+              <th>Owner</th>
+              <th>Res</th>
+              <th>Links</th>
+              <th>Neighbors</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>A</td><td>Faction1</td><td>2</td><td>3</td><td>B, L, M</td></tr><tr><td>B</td><td>Unclaimed</td><td>2</td><td>3</td><td>A, C, M</td></tr><tr><td>C</td><td>Unclaimed</td><td>2</td><td>3</td><td>B, D, M</td></tr><tr><td>D</td><td>Faction2</td><td>2</td><td>3</td><td>C, E, M</td></tr><tr><td>E</td><td>Unclaimed</td><td>2</td><td>3</td><td>D, F, M</td></tr><tr><td>F</td><td>Unclaimed</td><td>2</td><td>3</td><td>E, G, M</td></tr><tr><td>G</td><td>Faction3</td><td>2</td><td>3</td><td>F, H, M</td></tr><tr><td>H</td><td>Unclaimed</td><td>2</td><td>3</td><td>G, I, M</td></tr><tr><td>I</td><td>Unclaimed</td><td>2</td><td>3</td><td>H, J, M</td></tr><tr><td>J</td><td>Faction4</td><td>2</td><td>3</td><td>I, K, M</td></tr><tr><td>K</td><td>Unclaimed</td><td>2</td><td>3</td><td>J, L, M</td></tr><tr><td>L</td><td>Unclaimed</td><td>2</td><td>3</td><td>A, K, M</td></tr><tr><td>M</td><td>Unclaimed</td><td>2</td><td>12</td><td>A, B, C, D, E, F, G, H, I, J, K, L</td></tr>
+          </tbody>
+        </table>
+        <p class="note">
+          This view is intentionally lightweight and testing-oriented. It is meant to make
+          connectivity and starting positions easy to inspect without committing to a final UI.
+        </p>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>
