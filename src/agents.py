@@ -20,7 +20,10 @@ def choose_expand_target(faction_name, world):
 
     best_region = max(
         expandable_regions,
-        key=lambda region_name: score_expand_target(region_name, world)
+        key=lambda region_name: (
+            score_expand_target(region_name, world),
+            region_name,
+        )
     )
 
     return best_region
@@ -34,7 +37,10 @@ def choose_invest_target(faction_name, world):
     # choose lowest-resource region (simple heuristic)
     best_region = min(
         investable_regions,
-        key=lambda name: world.regions[name].resources
+        key=lambda name: (
+            world.regions[name].resources,
+            name,
+        )
     )
 
     return best_region

@@ -14,7 +14,7 @@ def get_expandable_regions(faction_name, world):
                 if neighbor.owner is None:
                     expandable_regions.add(neighbor_name)
 
-    return list(expandable_regions)
+    return sorted(expandable_regions)
 
 
 def get_expand_target_score_components(region_name, world):
@@ -279,7 +279,7 @@ def get_investable_regions(faction_name, world):
         if region.owner == faction_name and region.resources < MAX_RESOURCES:
             investable_regions.add(region.name)
 
-    return list(investable_regions)
+    return sorted(investable_regions)
 
 
 def invest(faction_name, target_region_name, world):
