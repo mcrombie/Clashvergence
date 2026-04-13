@@ -1,7 +1,7 @@
 from src.models import Region, Faction, WorldState
 from src.maps import MAPS
 
-
+# TO DO: Make dynamic Faction creation system
 def create_factions():
     return {
         "Faction1": Faction("Faction1", "expansionist", treasury=1),
