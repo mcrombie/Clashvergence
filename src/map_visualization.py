@@ -44,9 +44,9 @@ def find_universal_center(regions):
 
 def is_multi_ring_map(regions):
     names = set(regions)
-    outer = {name for name in names if name.startswith("O")}
-    middle = {name for name in names if name.startswith("M")}
-    inner = {name for name in names if name.startswith("I")}
+    outer = {name for name in names if re.fullmatch(r"O\d+", name)}
+    middle = {name for name in names if re.fullmatch(r"M\d+", name)}
+    inner = {name for name in names if re.fullmatch(r"I\d+", name)}
     return "C" in names and bool(outer) and bool(middle) and bool(inner)
 
 
