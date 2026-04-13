@@ -1,6 +1,6 @@
 def get_turn_events(world, turn):
     """Returns all events recorded for a specific turn."""
-    return [event for event in world.events if event["turn"] == turn]
+    return [event for event in world.events if event.turn == turn]
 
 
 def get_owned_region_counts(world):
@@ -25,12 +25,12 @@ def build_turn_metrics(world):
         investments = 0
 
         for event in turn_events:
-            if event["faction"] != faction_name:
+            if event.faction != faction_name:
                 continue
 
-            if event["type"] == "expand":
+            if event.type == "expand":
                 expansions += 1
-            elif event["type"] == "invest":
+            elif event.type == "invest":
                 investments += 1
 
         faction_metrics[faction_name] = {

@@ -4,6 +4,8 @@ from src.world import create_factions
 
 def get_expand_event_importance(event):
     """Returns the importance score recorded on an expansion event."""
+    if event.significance is not None:
+        return event.significance
     return event.get("score", 0)
 
 
@@ -17,7 +19,7 @@ def get_events_for_turn_range(world, start_turn=0, end_turn=None):
     events = []
 
     for event in world.events:
-        turn = event["turn"]
+        turn = event.turn
         if turn < start_turn:
             continue
         if end_turn is not None and turn > end_turn:
@@ -35,7 +37,7 @@ def get_events_by_faction(world):
         events_by_faction[faction_name] = []
 
     for event in world.events:
-        faction_name = event["faction"]
+        faction_name = event.faction
         if faction_name in events_by_faction:
             events_by_faction[faction_name].append(event)
 
@@ -47,8 +49,8 @@ def get_first_expansions(world):
     first_expansions = {}
 
     for event in world.events:
-        if event["type"] == "expand":
-            faction_name = event["faction"]
+        if event.type == "expand":
+            faction_name = event.faction
             if faction_name not in first_expansions:
                 first_expansions[faction_name] = event
 
@@ -60,14 +62,14 @@ def get_high_value_expansions(world, minimum_score=10):
     important_expansions = []
 
     for event in world.events:
-        if event["type"] == "expand":
+        if event.type == "expand":
             importance_score = get_expand_event_importance(event)
 
             if importance_score >= minimum_score:
                 important_expansions.append({
-                    "turn": event["turn"],
-                    "faction": event["faction"],
-                    "region": event["region"],
+                    "turn": event.turn,
+                    "faction": event.faction,
+                    "region": event.region,
                     "resources": event.get("resources", 0),
                     "neighbors": event.get("neighbors", 0),
                     "unclaimed_neighbors": event.get("unclaimed_neighbors", 0),
@@ -79,7 +81,7 @@ def get_high_value_expansions(world, minimum_score=10):
 
 def get_top_scoring_opening_claim(world):
     """Returns the first claim of the highest-scoring region in the opening events."""
-    expansion_events = [event for event in world.events if event["type"] == "expand"]
+    expansion_events = [event for event in world.events if event.type == "expand"]
 
     if not expansion_events:
         return None
@@ -87,9 +89,9 @@ def get_top_scoring_opening_claim(world):
     best_event = max(expansion_events, key=get_expand_event_importance)
 
     return {
-        "turn": best_event["turn"],
-        "faction": best_event["faction"],
-        "region": best_event["region"],
+        "turn": best_event.turn,
+        "faction": best_event.faction,
+        "region": best_event.region,
         "resources": best_event.get("resources", 0),
         "neighbors": best_event.get("neighbors", 0),
         "unclaimed_neighbors": best_event.get("unclaimed_neighbors", 0),
@@ -102,8 +104,8 @@ def get_opening_expansion_leaders(world, opening_turns=3):
     counts = {faction_name: 0 for faction_name in world.factions}
 
     for event in get_events_for_turn_range(world, end_turn=opening_turns - 1):
-        if event["type"] == "expand":
-            counts[event["faction"]] += 1
+        if event.type == "expand":
+            counts[event.faction] += 1
 
     best_count = max(counts.values(), default=0)
     leaders = [
@@ -124,8 +126,8 @@ def get_opening_investment_leaders(world, opening_turns=5):
     counts = {faction_name: 0 for faction_name in world.factions}
 
     for event in get_events_for_turn_range(world, end_turn=opening_turns - 1):
-        if event["type"] == "invest":
-            counts[event["faction"]] += 1
+        if event.type == "invest":
+            counts[event.faction] += 1
 
     best_count = max(counts.values(), default=0)
     leaders = [
@@ -143,14 +145,14 @@ def get_opening_investment_leaders(world, opening_turns=5):
 
 def build_initial_opening_state(world):
     """Infers initial ownership and resource values from the final world and event log."""
-    expanded_regions = {event["region"] for event in world.events if event["type"] == "expand"}
+    expanded_regions = {event.region for event in world.events if event.type == "expand"}
     region_state = {}
 
     for region_name, region in world.regions.items():
         initial_resources = region.resources
 
         for event in world.events:
-            if event["type"] == "invest" and event["region"] == region_name:
+            if event.type == "invest" and event.region == region_name:
                 initial_resources -= event.get("invest_amount", 0)
 
         if initial_resources < 0:
@@ -177,18 +179,18 @@ def replay_opening_treasury_snapshots(world, opening_turns=5):
     snapshots = []
 
     for turn in range(opening_turns):
-        turn_events = [event for event in world.events if event["turn"] == turn]
+        turn_events = [event for event in world.events if event.turn == turn]
 
         for event in turn_events:
-            faction_name = event["faction"]
+            faction_name = event.faction
 
-            if event["type"] == "expand":
+            if event.type == "expand":
                 treasuries[faction_name] -= event.get("cost", 0)
-                region_state[event["region"]]["owner"] = faction_name
-            elif event["type"] == "invest":
-                region_state[event["region"]]["resources"] = event.get(
+                region_state[event.region]["owner"] = faction_name
+            elif event.type == "invest":
+                region_state[event.region]["resources"] = event.get(
                     "new_resources",
-                    region_state[event["region"]]["resources"] + event.get("invest_amount", 0),
+                    region_state[event.region]["resources"] + event.get("invest_amount", 0),
                 )
 
         for region in region_state.values():
@@ -275,8 +277,8 @@ def get_faction_event_counts(world):
         }
 
     for event in world.events:
-        faction_name = event["faction"]
-        event_type = event["type"]
+        faction_name = event.faction
+        event_type = event.type
 
         if faction_name in faction_event_counts and event_type in faction_event_counts[faction_name]:
             faction_event_counts[faction_name][event_type] += 1
@@ -312,9 +314,9 @@ def get_key_events(world):
     for event in first_expansions.values():
         key_events.append({
             "kind": "first_expansion",
-            "turn": event["turn"],
-            "faction": event["faction"],
-            "region": event["region"],
+            "turn": event.turn,
+            "faction": event.faction,
+            "region": event.region,
         })
 
     for event in get_high_value_expansions(world):

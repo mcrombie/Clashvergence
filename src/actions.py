@@ -1,4 +1,5 @@
 from src.config import EXPANSION_COST, MAX_RESOURCES, INVEST_AMOUNT
+from src.models import Event
 
 
 def get_expandable_regions(faction_name, world):
@@ -51,19 +52,36 @@ def expand(faction_name, target_region_name, world):
     if target_region_name not in get_expandable_regions(faction_name, world):
         return False
 
+    treasury_before = faction.treasury
+    owner_before = world.regions[target_region_name].owner
     score_components = get_expand_target_score_components(target_region_name, world)
     faction.treasury -= EXPANSION_COST
     world.regions[target_region_name].owner = faction_name
 
-    world.events.append({
-        "turn": world.turn,
-        "type": "expand",
-        "faction": faction_name,
-        "region": target_region_name,
-        "cost": EXPANSION_COST,
-        "treasury_after": faction.treasury,
-        **score_components,
-    })
+    world.events.append(Event(
+        turn=world.turn,
+        type="expand",
+        faction=faction_name,
+        region=target_region_name,
+        details={
+            "cost": EXPANSION_COST,
+            "resources": score_components["resources"],
+            "neighbors": score_components["neighbors"],
+            "unclaimed_neighbors": score_components["unclaimed_neighbors"],
+            "score": score_components["score"],
+        },
+        context={
+            "treasury_before": treasury_before,
+            "treasury_after": faction.treasury,
+            "owner_before": owner_before,
+        },
+        impact={
+            "owner_after": faction_name,
+            "treasury_change": -EXPANSION_COST,
+        },
+        tags=["expansion", "territory_gain", "scored_target"],
+        significance=float(score_components["score"]),
+    ))
 
     return True
 
@@ -90,6 +108,7 @@ def invest(faction_name, target_region_name, world):
         return False
 
     region = world.regions[target_region_name]
+    resources_before = region.resources
 
     if region.resources >= MAX_RESOURCES:
         return False
@@ -99,13 +118,23 @@ def invest(faction_name, target_region_name, world):
     if region.resources > MAX_RESOURCES:
         region.resources = MAX_RESOURCES
 
-    world.events.append({
-        "turn": world.turn,
-        "type": "invest",
-        "faction": faction_name,
-        "region": target_region_name,
-        "invest_amount": INVEST_AMOUNT,
-        "new_resources": region.resources,
-    })
+    world.events.append(Event(
+        turn=world.turn,
+        type="invest",
+        faction=faction_name,
+        region=target_region_name,
+        details={
+            "invest_amount": INVEST_AMOUNT,
+        },
+        context={
+            "resources_before": resources_before,
+        },
+        impact={
+            "new_resources": region.resources,
+            "resource_change": region.resources - resources_before,
+        },
+        tags=["investment", "development"],
+        significance=float(region.resources - resources_before),
+    ))
 
     return True

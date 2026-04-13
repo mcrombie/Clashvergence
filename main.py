@@ -28,23 +28,23 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
 
 def format_event(event):
     """Formats one simulation event for the results report."""
-    if event["type"] == "expand":
+    if event.type == "expand":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} expanded into {event['region']} "
+            f"Turn {event.turn + 1}: {event.faction} expanded into {event.region} "
             f"(score={event.get('score', 0)}, resources={event.get('resources', 0)}, "
             f"neighbors={event.get('neighbors', 0)}, "
             f"unclaimed_neighbors={event.get('unclaimed_neighbors', 0)}, "
             f"treasury_after={event.get('treasury_after', 0)})"
         )
 
-    if event["type"] == "invest":
+    if event.type == "invest":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} invested in {event['region']} "
+            f"Turn {event.turn + 1}: {event.faction} invested in {event.region} "
             f"(invest_amount={event.get('invest_amount', 0)}, "
             f"new_resources={event.get('new_resources', 0)})"
         )
 
-    return f"Turn {event['turn'] + 1}: {event}"
+    return f"Turn {event.turn + 1}: {event}"
 
 
 def build_results_report(world, map_name, num_turns, starting_treasuries):
@@ -82,7 +82,7 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
 
 
 def main():
-    map_name = "thirteen_region_ring"
+    map_name = "asymmetric_frontier"
     num_turns = 20
 
     world = create_world(map_name=map_name)
