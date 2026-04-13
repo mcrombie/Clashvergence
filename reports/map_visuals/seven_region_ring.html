@@ -49,25 +49,31 @@
       height: auto;
       display: block;
       background:
-        radial-gradient(circle at center, rgba(255,255,255,0.75), rgba(255,255,255,0.3)),
-        repeating-radial-gradient(circle at center, transparent 0 70px, rgba(184,178,166,0.12) 70px 71px);
+        radial-gradient(circle at center, rgba(255,255,255,0.78), rgba(255,255,255,0.35)),
+        linear-gradient(180deg, rgba(233, 226, 210, 0.32), rgba(255, 255, 255, 0));
       border-radius: 14px;
     }
-    .edge {
-      stroke: var(--line);
-      stroke-width: 2;
-      opacity: 0.8;
+    .territory {
+      stroke: #4b4138;
+      stroke-width: 2.2;
+      stroke-linejoin: round;
+      opacity: 0.96;
     }
-    .node {
-      stroke: #51463b;
-      stroke-width: 1.5;
+    .anchor {
+      fill: rgba(31, 41, 51, 0.82);
     }
     .label {
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
       fill: #111827;
-      dominant-baseline: middle;
       pointer-events: none;
+    }
+    .resource {
+      font-size: 11px;
+      font-weight: 700;
+      fill: #243b53;
+      pointer-events: none;
+      letter-spacing: 0.04em;
     }
     .legend {
       list-style: none;
@@ -123,32 +129,34 @@
     <div class="layout">
       <section class="card">
         <svg viewBox='0 0 900 900' role='img' aria-label='seven_region_ring map'>
-<line x1='450.0' y1='144.0' x2='715.0' y2='297.0' class='edge' />
-<line x1='450.0' y1='144.0' x2='185.0' y2='297.0' class='edge' />
-<line x1='450.0' y1='144.0' x2='450.0' y2='450.0' class='edge' />
-<line x1='715.0' y1='297.0' x2='715.0' y2='603.0' class='edge' />
-<line x1='715.0' y1='297.0' x2='450.0' y2='450.0' class='edge' />
-<line x1='715.0' y1='603.0' x2='450.0' y2='756.0' class='edge' />
-<line x1='715.0' y1='603.0' x2='450.0' y2='450.0' class='edge' />
-<line x1='450.0' y1='756.0' x2='185.0' y2='603.0' class='edge' />
-<line x1='450.0' y1='756.0' x2='450.0' y2='450.0' class='edge' />
-<line x1='185.0' y1='603.0' x2='185.0' y2='297.0' class='edge' />
-<line x1='185.0' y1='603.0' x2='450.0' y2='450.0' class='edge' />
-<line x1='185.0' y1='297.0' x2='450.0' y2='450.0' class='edge' />
-<circle cx='450.0' cy='144.0' r='22' fill='#d1495b' class='node' />
-<text x='450.0' y='145.0' text-anchor='middle' class='label'>A</text>
-<circle cx='715.0' cy='297.0' r='22' fill='#d9d9d9' class='node' />
-<text x='715.0' y='298.0' text-anchor='middle' class='label'>B</text>
-<circle cx='715.0' cy='603.0' r='22' fill='#edae49' class='node' />
-<text x='715.0' y='604.0' text-anchor='middle' class='label'>C</text>
-<circle cx='450.0' cy='756.0' r='22' fill='#d9d9d9' class='node' />
-<text x='450.0' y='757.0' text-anchor='middle' class='label'>D</text>
-<circle cx='185.0' cy='603.0' r='22' fill='#00798c' class='node' />
-<text x='185.0' y='604.0' text-anchor='middle' class='label'>E</text>
-<circle cx='185.0' cy='297.0' r='22' fill='#d9d9d9' class='node' />
-<text x='185.0' y='298.0' text-anchor='middle' class='label'>F</text>
-<circle cx='450.0' cy='450.0' r='22' fill='#d9d9d9' class='node' />
-<text x='450.0' y='451.0' text-anchor='middle' class='label'>M</text>
+<polygon points='538.3,297.0 361.7,297.0 206.4,28.0 693.6,28.0' fill='#d1495b' class='territory' />
+<circle cx='450.0' cy='144.0' r='6' class='anchor' />
+<text x='450.0' y='136.0' text-anchor='middle' class='label'>A</text>
+<text x='450.0' y='156.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='626.7,450.0 538.3,297.0 693.6,28.0 872.0,28.0 872.0,450.0' fill='#d9d9d9' class='territory' />
+<circle cx='715.0' cy='297.0' r='6' class='anchor' />
+<text x='715.0' y='289.0' text-anchor='middle' class='label'>B</text>
+<text x='715.0' y='309.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='538.3,603.0 626.7,450.0 872.0,450.0 872.0,872.0 693.6,872.0' fill='#edae49' class='territory' />
+<circle cx='715.0' cy='603.0' r='6' class='anchor' />
+<text x='715.0' y='595.0' text-anchor='middle' class='label'>C</text>
+<text x='715.0' y='615.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='361.7,603.0 538.3,603.0 693.6,872.0 206.4,872.0' fill='#d9d9d9' class='territory' />
+<circle cx='450.0' cy='756.0' r='6' class='anchor' />
+<text x='450.0' y='748.0' text-anchor='middle' class='label'>D</text>
+<text x='450.0' y='768.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='28.0,450.0 273.3,450.0 361.7,603.0 206.4,872.0 28.0,872.0' fill='#00798c' class='territory' />
+<circle cx='185.0' cy='603.0' r='6' class='anchor' />
+<text x='185.0' y='595.0' text-anchor='middle' class='label'>E</text>
+<text x='185.0' y='615.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='28.0,450.0 28.0,28.0 206.4,28.0 361.7,297.0 273.3,450.0' fill='#d9d9d9' class='territory' />
+<circle cx='185.0' cy='297.0' r='6' class='anchor' />
+<text x='185.0' y='289.0' text-anchor='middle' class='label'>F</text>
+<text x='185.0' y='309.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='361.7,603.0 273.3,450.0 361.7,297.0 538.3,297.0 626.7,450.0 538.3,603.0' fill='#d9d9d9' class='territory' />
+<circle cx='450.0' cy='450.0' r='6' class='anchor' />
+<text x='450.0' y='442.0' text-anchor='middle' class='label'>M</text>
+<text x='450.0' y='462.0' text-anchor='middle' class='resource'>R2</text>
 </svg>
       </section>
       <aside class="card">

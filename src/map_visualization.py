@@ -160,33 +160,114 @@ def build_map_layout(regions, width=900, height=900):
     return build_force_layout(regions, width, height)
 
 
+def clip_polygon_to_half_plane(polygon, normal_x, normal_y, threshold):
+    clipped = []
+
+    if not polygon:
+        return clipped
+
+    for index, current_point in enumerate(polygon):
+        previous_point = polygon[index - 1]
+
+        current_value = (current_point[0] * normal_x) + (current_point[1] * normal_y) - threshold
+        previous_value = (previous_point[0] * normal_x) + (previous_point[1] * normal_y) - threshold
+
+        current_inside = current_value >= -1e-6
+        previous_inside = previous_value >= -1e-6
+
+        if current_inside != previous_inside:
+            dx = current_point[0] - previous_point[0]
+            dy = current_point[1] - previous_point[1]
+            denominator = (dx * normal_x) + (dy * normal_y)
+
+            if abs(denominator) > 1e-9:
+                t = (
+                    threshold
+                    - (previous_point[0] * normal_x)
+                    - (previous_point[1] * normal_y)
+                ) / denominator
+                intersection = (
+                    previous_point[0] + (t * dx),
+                    previous_point[1] + (t * dy),
+                )
+                clipped.append(intersection)
+
+        if current_inside:
+            clipped.append(current_point)
+
+    return clipped
+
+
+def build_voronoi_cells(positions, width, height, padding=28):
+    bounds = [
+        (padding, padding),
+        (width - padding, padding),
+        (width - padding, height - padding),
+        (padding, height - padding),
+    ]
+    cells = {}
+
+    for region_name, (site_x, site_y) in positions.items():
+        polygon = bounds[:]
+
+        for other_name, (other_x, other_y) in positions.items():
+            if other_name == region_name:
+                continue
+
+            normal_x = site_x - other_x
+            normal_y = site_y - other_y
+            threshold = (
+                ((site_x * site_x) + (site_y * site_y))
+                - ((other_x * other_x) + (other_y * other_y))
+            ) / 2
+            polygon = clip_polygon_to_half_plane(
+                polygon,
+                normal_x,
+                normal_y,
+                threshold,
+            )
+
+            if not polygon:
+                break
+
+        cells[region_name] = polygon
+
+    return cells
+
+
+def polygon_to_points_text(polygon):
+    return " ".join(f"{x:.1f},{y:.1f}" for x, y in polygon)
+
+
 def render_map_svg(map_name, map_definition, width=900, height=900):
     regions = map_definition["regions"]
     positions = build_map_layout(regions, width=width, height=height)
-    edges = get_map_edges(regions)
+    cells = build_voronoi_cells(positions, width=width, height=height)
     svg_lines = []
 
     svg_lines.append(
         f"<svg viewBox='0 0 {width} {height}' role='img' aria-label='{html.escape(map_name)} map'>"
     )
 
-    for first_name, second_name in edges:
-        x1, y1 = positions[first_name]
-        x2, y2 = positions[second_name]
-        svg_lines.append(
-            f"<line x1='{x1:.1f}' y1='{y1:.1f}' x2='{x2:.1f}' y2='{y2:.1f}' class='edge' />"
-        )
-
     for region_name in sorted(regions):
         region_data = regions[region_name]
         x, y = positions[region_name]
         fill = FACTION_COLORS.get(region_data["owner"], FACTION_COLORS[None])
+        polygon = cells[region_name]
+        points_text = polygon_to_points_text(polygon)
         svg_lines.append(
-            f"<circle cx='{x:.1f}' cy='{y:.1f}' r='22' fill='{fill}' class='node' />"
+            f"<polygon points='{points_text}' fill='{fill}' class='territory' />"
         )
         svg_lines.append(
-            f"<text x='{x:.1f}' y='{y + 1:.1f}' text-anchor='middle' class='label'>"
+            f"<circle cx='{x:.1f}' cy='{y:.1f}' r='6' class='anchor' />"
+        )
+        svg_lines.append(
+            f"<text x='{x:.1f}' y='{y - 8:.1f}' text-anchor='middle' class='label'>"
             f"{html.escape(region_name)}</text>"
+        )
+        svg_lines.append(
+            f"<text x='{x:.1f}' y='{y + 12:.1f}' text-anchor='middle' class='resource'>"
+            f"R{region_data['resources']}</text>"
         )
 
     svg_lines.append("</svg>")
@@ -272,25 +353,31 @@ def render_map_html(map_name, map_definition):
       height: auto;
       display: block;
       background:
-        radial-gradient(circle at center, rgba(255,255,255,0.75), rgba(255,255,255,0.3)),
-        repeating-radial-gradient(circle at center, transparent 0 70px, rgba(184,178,166,0.12) 70px 71px);
+        radial-gradient(circle at center, rgba(255,255,255,0.78), rgba(255,255,255,0.35)),
+        linear-gradient(180deg, rgba(233, 226, 210, 0.32), rgba(255, 255, 255, 0));
       border-radius: 14px;
     }}
-    .edge {{
-      stroke: var(--line);
-      stroke-width: 2;
-      opacity: 0.8;
+    .territory {{
+      stroke: #4b4138;
+      stroke-width: 2.2;
+      stroke-linejoin: round;
+      opacity: 0.96;
     }}
-    .node {{
-      stroke: #51463b;
-      stroke-width: 1.5;
+    .anchor {{
+      fill: rgba(31, 41, 51, 0.82);
     }}
     .label {{
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
       fill: #111827;
-      dominant-baseline: middle;
       pointer-events: none;
+    }}
+    .resource {{
+      font-size: 11px;
+      font-weight: 700;
+      fill: #243b53;
+      pointer-events: none;
+      letter-spacing: 0.04em;
     }}
     .legend {{
       list-style: none;

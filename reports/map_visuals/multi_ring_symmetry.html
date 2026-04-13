@@ -49,25 +49,31 @@
       height: auto;
       display: block;
       background:
-        radial-gradient(circle at center, rgba(255,255,255,0.75), rgba(255,255,255,0.3)),
-        repeating-radial-gradient(circle at center, transparent 0 70px, rgba(184,178,166,0.12) 70px 71px);
+        radial-gradient(circle at center, rgba(255,255,255,0.78), rgba(255,255,255,0.35)),
+        linear-gradient(180deg, rgba(233, 226, 210, 0.32), rgba(255, 255, 255, 0));
       border-radius: 14px;
     }
-    .edge {
-      stroke: var(--line);
-      stroke-width: 2;
-      opacity: 0.8;
+    .territory {
+      stroke: #4b4138;
+      stroke-width: 2.2;
+      stroke-linejoin: round;
+      opacity: 0.96;
     }
-    .node {
-      stroke: #51463b;
-      stroke-width: 1.5;
+    .anchor {
+      fill: rgba(31, 41, 51, 0.82);
     }
     .label {
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
       fill: #111827;
-      dominant-baseline: middle;
       pointer-events: none;
+    }
+    .resource {
+      font-size: 11px;
+      font-weight: 700;
+      fill: #243b53;
+      pointer-events: none;
+      letter-spacing: 0.04em;
     }
     .legend {
       list-style: none;
@@ -123,164 +129,154 @@
     <div class="layout">
       <section class="card">
         <svg viewBox='0 0 900 900' role='img' aria-label='multi_ring_symmetry map'>
-<line x1='450.0' y1='450.0' x2='450.0' y2='330.0' class='edge' />
-<line x1='450.0' y1='450.0' x2='534.9' y2='365.1' class='edge' />
-<line x1='450.0' y1='450.0' x2='570.0' y2='450.0' class='edge' />
-<line x1='450.0' y1='450.0' x2='534.9' y2='534.9' class='edge' />
-<line x1='450.0' y1='450.0' x2='450.0' y2='570.0' class='edge' />
-<line x1='450.0' y1='450.0' x2='365.1' y2='534.9' class='edge' />
-<line x1='450.0' y1='450.0' x2='330.0' y2='450.0' class='edge' />
-<line x1='450.0' y1='450.0' x2='365.1' y2='365.1' class='edge' />
-<line x1='450.0' y1='330.0' x2='534.9' y2='365.1' class='edge' />
-<line x1='450.0' y1='330.0' x2='365.1' y2='365.1' class='edge' />
-<line x1='450.0' y1='330.0' x2='450.0' y2='230.0' class='edge' />
-<line x1='450.0' y1='330.0' x2='640.5' y2='560.0' class='edge' />
-<line x1='534.9' y1='365.1' x2='570.0' y2='450.0' class='edge' />
-<line x1='534.9' y1='365.1' x2='640.5' y2='560.0' class='edge' />
-<line x1='534.9' y1='365.1' x2='560.0' y2='640.5' class='edge' />
-<line x1='570.0' y1='450.0' x2='534.9' y2='534.9' class='edge' />
-<line x1='570.0' y1='450.0' x2='450.0' y2='670.0' class='edge' />
-<line x1='570.0' y1='450.0' x2='340.0' y2='640.5' class='edge' />
-<line x1='534.9' y1='534.9' x2='450.0' y2='570.0' class='edge' />
-<line x1='534.9' y1='534.9' x2='340.0' y2='640.5' class='edge' />
-<line x1='534.9' y1='534.9' x2='259.5' y2='560.0' class='edge' />
-<line x1='450.0' y1='570.0' x2='365.1' y2='534.9' class='edge' />
-<line x1='450.0' y1='570.0' x2='230.0' y2='450.0' class='edge' />
-<line x1='450.0' y1='570.0' x2='259.5' y2='340.0' class='edge' />
-<line x1='365.1' y1='534.9' x2='330.0' y2='450.0' class='edge' />
-<line x1='365.1' y1='534.9' x2='259.5' y2='340.0' class='edge' />
-<line x1='365.1' y1='534.9' x2='340.0' y2='259.5' class='edge' />
-<line x1='330.0' y1='450.0' x2='365.1' y2='365.1' class='edge' />
-<line x1='330.0' y1='450.0' x2='560.0' y2='259.5' class='edge' />
-<line x1='330.0' y1='450.0' x2='640.5' y2='340.0' class='edge' />
-<line x1='365.1' y1='365.1' x2='640.5' y2='340.0' class='edge' />
-<line x1='365.1' y1='365.1' x2='670.0' y2='450.0' class='edge' />
-<line x1='450.0' y1='230.0' x2='670.0' y2='450.0' class='edge' />
-<line x1='450.0' y1='230.0' x2='640.5' y2='560.0' class='edge' />
-<line x1='450.0' y1='230.0' x2='450.0' y2='130.0' class='edge' />
-<line x1='450.0' y1='230.0' x2='450.0' y2='770.0' class='edge' />
-<line x1='560.0' y1='259.5' x2='640.5' y2='340.0' class='edge' />
-<line x1='560.0' y1='259.5' x2='340.0' y2='259.5' class='edge' />
-<line x1='560.0' y1='259.5' x2='770.0' y2='450.0' class='edge' />
-<line x1='560.0' y1='259.5' x2='745.6' y2='572.5' class='edge' />
-<line x1='640.5' y1='340.0' x2='670.0' y2='450.0' class='edge' />
-<line x1='640.5' y1='340.0' x2='745.6' y2='572.5' class='edge' />
-<line x1='640.5' y1='340.0' x2='676.3' y2='676.3' class='edge' />
-<line x1='670.0' y1='450.0' x2='676.3' y2='676.3' class='edge' />
-<line x1='670.0' y1='450.0' x2='572.5' y2='745.6' class='edge' />
-<line x1='640.5' y1='560.0' x2='560.0' y2='640.5' class='edge' />
-<line x1='640.5' y1='560.0' x2='450.0' y2='770.0' class='edge' />
-<line x1='640.5' y1='560.0' x2='327.5' y2='745.6' class='edge' />
-<line x1='560.0' y1='640.5' x2='450.0' y2='670.0' class='edge' />
-<line x1='560.0' y1='640.5' x2='327.5' y2='745.6' class='edge' />
-<line x1='560.0' y1='640.5' x2='223.7' y2='676.3' class='edge' />
-<line x1='450.0' y1='670.0' x2='340.0' y2='640.5' class='edge' />
-<line x1='450.0' y1='670.0' x2='154.4' y2='572.5' class='edge' />
-<line x1='450.0' y1='670.0' x2='130.0' y2='450.0' class='edge' />
-<line x1='340.0' y1='640.5' x2='259.5' y2='560.0' class='edge' />
-<line x1='340.0' y1='640.5' x2='130.0' y2='450.0' class='edge' />
-<line x1='340.0' y1='640.5' x2='154.4' y2='327.5' class='edge' />
-<line x1='259.5' y1='560.0' x2='230.0' y2='450.0' class='edge' />
-<line x1='259.5' y1='560.0' x2='154.4' y2='327.5' class='edge' />
-<line x1='259.5' y1='560.0' x2='223.7' y2='223.7' class='edge' />
-<line x1='230.0' y1='450.0' x2='259.5' y2='340.0' class='edge' />
-<line x1='230.0' y1='450.0' x2='572.5' y2='154.4' class='edge' />
-<line x1='230.0' y1='450.0' x2='327.5' y2='154.4' class='edge' />
-<line x1='259.5' y1='340.0' x2='340.0' y2='259.5' class='edge' />
-<line x1='259.5' y1='340.0' x2='572.5' y2='154.4' class='edge' />
-<line x1='259.5' y1='340.0' x2='676.3' y2='223.7' class='edge' />
-<line x1='340.0' y1='259.5' x2='676.3' y2='223.7' class='edge' />
-<line x1='340.0' y1='259.5' x2='745.6' y2='327.5' class='edge' />
-<line x1='450.0' y1='130.0' x2='572.5' y2='745.6' class='edge' />
-<line x1='450.0' y1='130.0' x2='450.0' y2='770.0' class='edge' />
-<line x1='572.5' y1='154.4' x2='676.3' y2='223.7' class='edge' />
-<line x1='572.5' y1='154.4' x2='327.5' y2='154.4' class='edge' />
-<line x1='676.3' y1='223.7' x2='745.6' y2='327.5' class='edge' />
-<line x1='745.6' y1='327.5' x2='770.0' y2='450.0' class='edge' />
-<line x1='770.0' y1='450.0' x2='745.6' y2='572.5' class='edge' />
-<line x1='745.6' y1='572.5' x2='676.3' y2='676.3' class='edge' />
-<line x1='676.3' y1='676.3' x2='572.5' y2='745.6' class='edge' />
-<line x1='450.0' y1='770.0' x2='327.5' y2='745.6' class='edge' />
-<line x1='327.5' y1='745.6' x2='223.7' y2='676.3' class='edge' />
-<line x1='223.7' y1='676.3' x2='154.4' y2='572.5' class='edge' />
-<line x1='154.4' y1='572.5' x2='130.0' y2='450.0' class='edge' />
-<line x1='130.0' y1='450.0' x2='154.4' y2='327.5' class='edge' />
-<line x1='154.4' y1='327.5' x2='223.7' y2='223.7' class='edge' />
-<line x1='223.7' y1='223.7' x2='327.5' y2='154.4' class='edge' />
-<circle cx='450.0' cy='450.0' r='22' fill='#d9d9d9' class='node' />
-<text x='450.0' y='451.0' text-anchor='middle' class='label'>C</text>
-<circle cx='450.0' cy='330.0' r='22' fill='#d9d9d9' class='node' />
-<text x='450.0' y='331.0' text-anchor='middle' class='label'>I1</text>
-<circle cx='534.9' cy='365.1' r='22' fill='#d9d9d9' class='node' />
-<text x='534.9' y='366.1' text-anchor='middle' class='label'>I2</text>
-<circle cx='570.0' cy='450.0' r='22' fill='#d9d9d9' class='node' />
-<text x='570.0' y='451.0' text-anchor='middle' class='label'>I3</text>
-<circle cx='534.9' cy='534.9' r='22' fill='#d9d9d9' class='node' />
-<text x='534.9' y='535.9' text-anchor='middle' class='label'>I4</text>
-<circle cx='450.0' cy='570.0' r='22' fill='#d9d9d9' class='node' />
-<text x='450.0' y='571.0' text-anchor='middle' class='label'>I5</text>
-<circle cx='365.1' cy='534.9' r='22' fill='#d9d9d9' class='node' />
-<text x='365.1' y='535.9' text-anchor='middle' class='label'>I6</text>
-<circle cx='330.0' cy='450.0' r='22' fill='#d9d9d9' class='node' />
-<text x='330.0' y='451.0' text-anchor='middle' class='label'>I7</text>
-<circle cx='365.1' cy='365.1' r='22' fill='#d9d9d9' class='node' />
-<text x='365.1' y='366.1' text-anchor='middle' class='label'>I8</text>
-<circle cx='450.0' cy='230.0' r='22' fill='#d9d9d9' class='node' />
-<text x='450.0' y='231.0' text-anchor='middle' class='label'>M1</text>
-<circle cx='560.0' cy='259.5' r='22' fill='#d9d9d9' class='node' />
-<text x='560.0' y='260.5' text-anchor='middle' class='label'>M10</text>
-<circle cx='640.5' cy='340.0' r='22' fill='#d9d9d9' class='node' />
-<text x='640.5' y='341.0' text-anchor='middle' class='label'>M11</text>
-<circle cx='670.0' cy='450.0' r='22' fill='#d9d9d9' class='node' />
-<text x='670.0' y='451.0' text-anchor='middle' class='label'>M12</text>
-<circle cx='640.5' cy='560.0' r='22' fill='#d9d9d9' class='node' />
-<text x='640.5' y='561.0' text-anchor='middle' class='label'>M2</text>
-<circle cx='560.0' cy='640.5' r='22' fill='#d9d9d9' class='node' />
-<text x='560.0' y='641.5' text-anchor='middle' class='label'>M3</text>
-<circle cx='450.0' cy='670.0' r='22' fill='#d9d9d9' class='node' />
-<text x='450.0' y='671.0' text-anchor='middle' class='label'>M4</text>
-<circle cx='340.0' cy='640.5' r='22' fill='#d9d9d9' class='node' />
-<text x='340.0' y='641.5' text-anchor='middle' class='label'>M5</text>
-<circle cx='259.5' cy='560.0' r='22' fill='#d9d9d9' class='node' />
-<text x='259.5' y='561.0' text-anchor='middle' class='label'>M6</text>
-<circle cx='230.0' cy='450.0' r='22' fill='#d9d9d9' class='node' />
-<text x='230.0' y='451.0' text-anchor='middle' class='label'>M7</text>
-<circle cx='259.5' cy='340.0' r='22' fill='#d9d9d9' class='node' />
-<text x='259.5' y='341.0' text-anchor='middle' class='label'>M8</text>
-<circle cx='340.0' cy='259.5' r='22' fill='#d9d9d9' class='node' />
-<text x='340.0' y='260.5' text-anchor='middle' class='label'>M9</text>
-<circle cx='450.0' cy='130.0' r='22' fill='#d1495b' class='node' />
-<text x='450.0' y='131.0' text-anchor='middle' class='label'>O1</text>
-<circle cx='572.5' cy='154.4' r='22' fill='#d9d9d9' class='node' />
-<text x='572.5' y='155.4' text-anchor='middle' class='label'>O10</text>
-<circle cx='676.3' cy='223.7' r='22' fill='#d9d9d9' class='node' />
-<text x='676.3' y='224.7' text-anchor='middle' class='label'>O11</text>
-<circle cx='745.6' cy='327.5' r='22' fill='#d9d9d9' class='node' />
-<text x='745.6' y='328.5' text-anchor='middle' class='label'>O12</text>
-<circle cx='770.0' cy='450.0' r='22' fill='#30638e' class='node' />
-<text x='770.0' y='451.0' text-anchor='middle' class='label'>O13</text>
-<circle cx='745.6' cy='572.5' r='22' fill='#d9d9d9' class='node' />
-<text x='745.6' y='573.5' text-anchor='middle' class='label'>O14</text>
-<circle cx='676.3' cy='676.3' r='22' fill='#d9d9d9' class='node' />
-<text x='676.3' y='677.3' text-anchor='middle' class='label'>O15</text>
-<circle cx='572.5' cy='745.6' r='22' fill='#d9d9d9' class='node' />
-<text x='572.5' y='746.6' text-anchor='middle' class='label'>O16</text>
-<circle cx='450.0' cy='770.0' r='22' fill='#d9d9d9' class='node' />
-<text x='450.0' y='771.0' text-anchor='middle' class='label'>O2</text>
-<circle cx='327.5' cy='745.6' r='22' fill='#d9d9d9' class='node' />
-<text x='327.5' y='746.6' text-anchor='middle' class='label'>O3</text>
-<circle cx='223.7' cy='676.3' r='22' fill='#d9d9d9' class='node' />
-<text x='223.7' y='677.3' text-anchor='middle' class='label'>O4</text>
-<circle cx='154.4' cy='572.5' r='22' fill='#edae49' class='node' />
-<text x='154.4' y='573.5' text-anchor='middle' class='label'>O5</text>
-<circle cx='130.0' cy='450.0' r='22' fill='#d9d9d9' class='node' />
-<text x='130.0' y='451.0' text-anchor='middle' class='label'>O6</text>
-<circle cx='154.4' cy='327.5' r='22' fill='#d9d9d9' class='node' />
-<text x='154.4' y='328.5' text-anchor='middle' class='label'>O7</text>
-<circle cx='223.7' cy='223.7' r='22' fill='#d9d9d9' class='node' />
-<text x='223.7' y='224.7' text-anchor='middle' class='label'>O8</text>
-<circle cx='327.5' cy='154.4' r='22' fill='#00798c' class='node' />
-<text x='327.5' y='155.4' text-anchor='middle' class='label'>O9</text>
+<polygon points='510.0,474.9 474.9,510.0 425.1,510.0 390.0,474.9 390.0,425.1 425.1,390.0 474.9,390.0 510.0,425.1' fill='#d9d9d9' class='territory' />
+<circle cx='450.0' cy='450.0' r='6' class='anchor' />
+<text x='450.0' y='442.0' text-anchor='middle' class='label'>C</text>
+<text x='450.0' y='462.0' text-anchor='middle' class='resource'>R3</text>
+<polygon points='474.9,390.0 425.1,390.0 389.3,303.6 404.4,280.0 495.6,280.0 510.7,303.6' fill='#d9d9d9' class='territory' />
+<circle cx='450.0' cy='330.0' r='6' class='anchor' />
+<text x='450.0' y='322.0' text-anchor='middle' class='label'>I1</text>
+<text x='450.0' y='342.0' text-anchor='middle' class='resource'>R3</text>
+<polygon points='510.0,425.1 474.9,390.0 510.7,303.6 579.9,320.1 596.4,389.3' fill='#d9d9d9' class='territory' />
+<circle cx='534.9' cy='365.1' r='6' class='anchor' />
+<text x='534.9' y='357.1' text-anchor='middle' class='label'>I2</text>
+<text x='534.9' y='377.1' text-anchor='middle' class='resource'>R3</text>
+<polygon points='620.0,495.6 596.4,510.7 510.0,474.9 510.0,425.1 596.4,389.3 620.0,404.4' fill='#d9d9d9' class='territory' />
+<circle cx='570.0' cy='450.0' r='6' class='anchor' />
+<text x='570.0' y='442.0' text-anchor='middle' class='label'>I3</text>
+<text x='570.0' y='462.0' text-anchor='middle' class='resource'>R3</text>
+<polygon points='510.0,474.9 596.4,510.7 579.9,579.9 510.7,596.4 474.9,510.0' fill='#d9d9d9' class='territory' />
+<circle cx='534.9' cy='534.9' r='6' class='anchor' />
+<text x='534.9' y='526.9' text-anchor='middle' class='label'>I4</text>
+<text x='534.9' y='546.9' text-anchor='middle' class='resource'>R3</text>
+<polygon points='474.9,510.0 510.7,596.4 495.6,620.0 404.4,620.0 389.3,596.4 425.1,510.0' fill='#d9d9d9' class='territory' />
+<circle cx='450.0' cy='570.0' r='6' class='anchor' />
+<text x='450.0' y='562.0' text-anchor='middle' class='label'>I5</text>
+<text x='450.0' y='582.0' text-anchor='middle' class='resource'>R3</text>
+<polygon points='425.1,510.0 389.3,596.4 320.1,579.9 303.6,510.7 390.0,474.9' fill='#d9d9d9' class='territory' />
+<circle cx='365.1' cy='534.9' r='6' class='anchor' />
+<text x='365.1' y='526.9' text-anchor='middle' class='label'>I6</text>
+<text x='365.1' y='546.9' text-anchor='middle' class='resource'>R3</text>
+<polygon points='390.0,425.1 390.0,474.9 303.6,510.7 280.0,495.6 280.0,404.4 303.6,389.3' fill='#d9d9d9' class='territory' />
+<circle cx='330.0' cy='450.0' r='6' class='anchor' />
+<text x='330.0' y='442.0' text-anchor='middle' class='label'>I7</text>
+<text x='330.0' y='462.0' text-anchor='middle' class='resource'>R3</text>
+<polygon points='425.1,390.0 390.0,425.1 303.6,389.3 320.1,320.1 389.3,303.6' fill='#d9d9d9' class='territory' />
+<circle cx='365.1' cy='365.1' r='6' class='anchor' />
+<text x='365.1' y='357.1' text-anchor='middle' class='label'>I8</text>
+<text x='365.1' y='377.1' text-anchor='middle' class='resource'>R3</text>
+<polygon points='495.6,280.0 404.4,280.0 383.3,201.0 396.3,180.0 503.7,180.0 516.7,201.0' fill='#d9d9d9' class='territory' />
+<circle cx='450.0' cy='230.0' r='6' class='anchor' />
+<text x='450.0' y='222.0' text-anchor='middle' class='label'>M1</text>
+<text x='450.0' y='242.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='579.9,320.1 510.7,303.6 495.6,280.0 516.7,201.0 609.0,212.0 627.6,272.4' fill='#d9d9d9' class='territory' />
+<circle cx='560.0' cy='259.5' r='6' class='anchor' />
+<text x='560.0' y='251.5' text-anchor='middle' class='label'>M10</text>
+<text x='560.0' y='271.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='620.0,404.4 596.4,389.3 579.9,320.1 627.6,272.4 688.0,291.0 699.0,383.3' fill='#d9d9d9' class='territory' />
+<circle cx='640.5' cy='340.0' r='6' class='anchor' />
+<text x='640.5' y='332.0' text-anchor='middle' class='label'>M11</text>
+<text x='640.5' y='352.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='620.0,495.6 620.0,404.4 699.0,383.3 720.0,396.3 720.0,503.7 699.0,516.7' fill='#d9d9d9' class='territory' />
+<circle cx='670.0' cy='450.0' r='6' class='anchor' />
+<text x='670.0' y='442.0' text-anchor='middle' class='label'>M12</text>
+<text x='670.0' y='462.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='627.6,627.6 579.9,579.9 596.4,510.7 620.0,495.6 699.0,516.7 688.0,609.0' fill='#d9d9d9' class='territory' />
+<circle cx='640.5' cy='560.0' r='6' class='anchor' />
+<text x='640.5' y='552.0' text-anchor='middle' class='label'>M2</text>
+<text x='640.5' y='572.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='516.7,699.0 495.6,620.0 510.7,596.4 579.9,579.9 627.6,627.6 609.0,688.0' fill='#d9d9d9' class='territory' />
+<circle cx='560.0' cy='640.5' r='6' class='anchor' />
+<text x='560.0' y='632.5' text-anchor='middle' class='label'>M3</text>
+<text x='560.0' y='652.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='396.3,720.0 383.3,699.0 404.4,620.0 495.6,620.0 516.7,699.0 503.7,720.0' fill='#d9d9d9' class='territory' />
+<circle cx='450.0' cy='670.0' r='6' class='anchor' />
+<text x='450.0' y='662.0' text-anchor='middle' class='label'>M4</text>
+<text x='450.0' y='682.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='389.3,596.4 404.4,620.0 383.3,699.0 291.0,688.0 272.4,627.6 320.1,579.9' fill='#d9d9d9' class='territory' />
+<circle cx='340.0' cy='640.5' r='6' class='anchor' />
+<text x='340.0' y='632.5' text-anchor='middle' class='label'>M5</text>
+<text x='340.0' y='652.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='303.6,510.7 320.1,579.9 272.4,627.6 212.0,609.0 201.0,516.7 280.0,495.6' fill='#d9d9d9' class='territory' />
+<circle cx='259.5' cy='560.0' r='6' class='anchor' />
+<text x='259.5' y='552.0' text-anchor='middle' class='label'>M6</text>
+<text x='259.5' y='572.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='280.0,495.6 201.0,516.7 180.0,503.7 180.0,396.3 201.0,383.3 280.0,404.4' fill='#d9d9d9' class='territory' />
+<circle cx='230.0' cy='450.0' r='6' class='anchor' />
+<text x='230.0' y='442.0' text-anchor='middle' class='label'>M7</text>
+<text x='230.0' y='462.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='320.1,320.1 303.6,389.3 280.0,404.4 201.0,383.3 212.0,291.0 272.4,272.4' fill='#d9d9d9' class='territory' />
+<circle cx='259.5' cy='340.0' r='6' class='anchor' />
+<text x='259.5' y='332.0' text-anchor='middle' class='label'>M8</text>
+<text x='259.5' y='352.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='404.4,280.0 389.3,303.6 320.1,320.1 272.4,272.4 291.0,212.0 383.3,201.0' fill='#d9d9d9' class='territory' />
+<circle cx='340.0' cy='259.5' r='6' class='anchor' />
+<text x='340.0' y='251.5' text-anchor='middle' class='label'>M9</text>
+<text x='340.0' y='271.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='396.3,180.0 366.1,28.0 533.9,28.0 503.7,180.0' fill='#d1495b' class='territory' />
+<circle cx='450.0' cy='130.0' r='6' class='anchor' />
+<text x='450.0' y='122.0' text-anchor='middle' class='label'>O1</text>
+<text x='450.0' y='142.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='609.0,212.0 516.7,201.0 503.7,180.0 533.9,28.0 732.0,28.0' fill='#d9d9d9' class='territory' />
+<circle cx='572.5' cy='154.4' r='6' class='anchor' />
+<text x='572.5' y='146.4' text-anchor='middle' class='label'>O10</text>
+<text x='572.5' y='166.4' text-anchor='middle' class='resource'>R2</text>
+<polygon points='688.0,291.0 627.6,272.4 609.0,212.0 732.0,28.0 872.0,28.0 872.0,168.0' fill='#d9d9d9' class='territory' />
+<circle cx='676.3' cy='223.7' r='6' class='anchor' />
+<text x='676.3' y='215.7' text-anchor='middle' class='label'>O11</text>
+<text x='676.3' y='235.7' text-anchor='middle' class='resource'>R2</text>
+<polygon points='720.0,396.3 699.0,383.3 688.0,291.0 872.0,168.0 872.0,366.1' fill='#d9d9d9' class='territory' />
+<circle cx='745.6' cy='327.5' r='6' class='anchor' />
+<text x='745.6' y='319.5' text-anchor='middle' class='label'>O12</text>
+<text x='745.6' y='339.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='720.0,503.7 720.0,396.3 872.0,366.1 872.0,533.9' fill='#30638e' class='territory' />
+<circle cx='770.0' cy='450.0' r='6' class='anchor' />
+<text x='770.0' y='442.0' text-anchor='middle' class='label'>O13</text>
+<text x='770.0' y='462.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='688.0,609.0 699.0,516.7 720.0,503.7 872.0,533.9 872.0,732.0' fill='#d9d9d9' class='territory' />
+<circle cx='745.6' cy='572.5' r='6' class='anchor' />
+<text x='745.6' y='564.5' text-anchor='middle' class='label'>O14</text>
+<text x='745.6' y='584.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='609.0,688.0 627.6,627.6 688.0,609.0 872.0,732.0 872.0,872.0 732.0,872.0' fill='#d9d9d9' class='territory' />
+<circle cx='676.3' cy='676.3' r='6' class='anchor' />
+<text x='676.3' y='668.3' text-anchor='middle' class='label'>O15</text>
+<text x='676.3' y='688.3' text-anchor='middle' class='resource'>R2</text>
+<polygon points='503.7,720.0 516.7,699.0 609.0,688.0 732.0,872.0 533.9,872.0' fill='#d9d9d9' class='territory' />
+<circle cx='572.5' cy='745.6' r='6' class='anchor' />
+<text x='572.5' y='737.6' text-anchor='middle' class='label'>O16</text>
+<text x='572.5' y='757.6' text-anchor='middle' class='resource'>R2</text>
+<polygon points='396.3,720.0 503.7,720.0 533.9,872.0 366.1,872.0' fill='#d9d9d9' class='territory' />
+<circle cx='450.0' cy='770.0' r='6' class='anchor' />
+<text x='450.0' y='762.0' text-anchor='middle' class='label'>O2</text>
+<text x='450.0' y='782.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='291.0,688.0 383.3,699.0 396.3,720.0 366.1,872.0 168.0,872.0' fill='#d9d9d9' class='territory' />
+<circle cx='327.5' cy='745.6' r='6' class='anchor' />
+<text x='327.5' y='737.6' text-anchor='middle' class='label'>O3</text>
+<text x='327.5' y='757.6' text-anchor='middle' class='resource'>R2</text>
+<polygon points='28.0,732.0 212.0,609.0 272.4,627.6 291.0,688.0 168.0,872.0 28.0,872.0' fill='#d9d9d9' class='territory' />
+<circle cx='223.7' cy='676.3' r='6' class='anchor' />
+<text x='223.7' y='668.3' text-anchor='middle' class='label'>O4</text>
+<text x='223.7' y='688.3' text-anchor='middle' class='resource'>R2</text>
+<polygon points='201.0,516.7 212.0,609.0 28.0,732.0 28.0,533.9 180.0,503.7' fill='#edae49' class='territory' />
+<circle cx='154.4' cy='572.5' r='6' class='anchor' />
+<text x='154.4' y='564.5' text-anchor='middle' class='label'>O5</text>
+<text x='154.4' y='584.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='180.0,503.7 28.0,533.9 28.0,366.1 180.0,396.3' fill='#d9d9d9' class='territory' />
+<circle cx='130.0' cy='450.0' r='6' class='anchor' />
+<text x='130.0' y='442.0' text-anchor='middle' class='label'>O6</text>
+<text x='130.0' y='462.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='201.0,383.3 180.0,396.3 28.0,366.1 28.0,168.0 212.0,291.0' fill='#d9d9d9' class='territory' />
+<circle cx='154.4' cy='327.5' r='6' class='anchor' />
+<text x='154.4' y='319.5' text-anchor='middle' class='label'>O7</text>
+<text x='154.4' y='339.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='272.4,272.4 212.0,291.0 28.0,168.0 28.0,28.0 168.0,28.0 291.0,212.0' fill='#d9d9d9' class='territory' />
+<circle cx='223.7' cy='223.7' r='6' class='anchor' />
+<text x='223.7' y='215.7' text-anchor='middle' class='label'>O8</text>
+<text x='223.7' y='235.7' text-anchor='middle' class='resource'>R2</text>
+<polygon points='383.3,201.0 291.0,212.0 168.0,28.0 366.1,28.0 396.3,180.0' fill='#00798c' class='territory' />
+<circle cx='327.5' cy='154.4' r='6' class='anchor' />
+<text x='327.5' y='146.4' text-anchor='middle' class='label'>O9</text>
+<text x='327.5' y='166.4' text-anchor='middle' class='resource'>R2</text>
 </svg>
       </section>
       <aside class="card">
