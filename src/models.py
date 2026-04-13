@@ -19,3 +19,4 @@ class WorldState:
     factions: dict[str, Faction]
     turn: int = 0
     events: list = field(default_factory=list)
+    metrics: list = field(default_factory=list)

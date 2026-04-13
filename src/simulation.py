@@ -1,5 +1,6 @@
 from src.agents import choose_action
 from src.actions import expand, invest
+from src.metrics import record_turn_metrics
 import random
 
 
@@ -50,6 +51,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
                 print(f"{faction_name} skipped its turn")
 
     update_treasuries(world)
+    record_turn_metrics(world)
     world.turn += 1
 
 def run_simulation(world, num_turns, faction_order=None, verbose=True):

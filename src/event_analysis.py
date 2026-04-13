@@ -1,3 +1,4 @@
+from src.metrics import get_turn_metrics
 from src.world import create_factions
 
 
@@ -204,6 +205,29 @@ def replay_opening_treasury_snapshots(world, opening_turns=5):
 
 def get_opening_treasury_leaders(world, opening_turns=5):
     """Returns the faction or factions leading in treasury after the opening turns."""
+    metrics_snapshot = get_turn_metrics(world, opening_turns)
+
+    if metrics_snapshot is not None:
+        best_treasury = max(
+            (
+                faction_metrics["treasury"]
+                for faction_metrics in metrics_snapshot["factions"].values()
+            ),
+            default=0,
+        )
+        leaders = [
+            faction_name
+            for faction_name, faction_metrics in metrics_snapshot["factions"].items()
+            if faction_metrics["treasury"] == best_treasury
+        ]
+
+        return {
+            "leaders": leaders,
+            "treasury": best_treasury,
+            "turn": metrics_snapshot["turn"] - 1,
+            "turns": opening_turns,
+        }
+
     snapshots = replay_opening_treasury_snapshots(world, opening_turns=opening_turns)
 
     if not snapshots:
