@@ -13,18 +13,12 @@ def count_owned_regions(world):
     return owned_region_counts
 
 
-def get_center_owner(world):
-    """Returns the owner of the center region M."""
-    return world.regions["M"].owner
-
-
 def summarize_world(world):
     """Returns a summary dictionary for the final state of the world."""
     owned_region_counts = count_owned_regions(world)
 
     summary = {
         "turn": world.turn,
-        "center_owner": get_center_owner(world),
         "factions": {}
     }
 
@@ -63,18 +57,12 @@ def aggregate_summaries(summaries):
 
     aggregate = {
         "runs": len(summaries),
-        "center_owner_counts": {},
         "win_counts": {faction_name: 0 for faction_name in faction_names},
         "average_treasury": {faction_name: 0 for faction_name in faction_names},
         "average_owned_regions": {faction_name: 0 for faction_name in faction_names},
     }
 
     for summary in summaries:
-        center_owner = summary["center_owner"]
-        aggregate["center_owner_counts"][center_owner] = (
-            aggregate["center_owner_counts"].get(center_owner, 0) + 1
-        )
-
         winner = get_winner(summary)
         aggregate["win_counts"][winner] += 1
 
@@ -95,11 +83,6 @@ def format_aggregate_summary(aggregate, map_name, label):
     lines.append(f"Map: {map_name}")
     lines.append(f"{label}")
     lines.append(f"Runs: {aggregate['runs']}")
-    lines.append("Center Owner Counts:")
-
-    for faction_name, count in aggregate["center_owner_counts"].items():
-        lines.append(f"  {faction_name}: {count}")
-
     lines.append("Win Counts:")
     for faction_name, count in aggregate["win_counts"].items():
         lines.append(f"  {faction_name}: {count}")
