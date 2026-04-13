@@ -56,6 +56,17 @@ def get_expansion_follow_up(event, used_outcome_clause=False):
     return None
 
 
+def get_outcome_clause(event):
+    """Returns a short outcome-aware clause when it adds value."""
+    if event.get("follow_up_region") is not None:
+        return f" and later supported its expansion into {event['follow_up_region']}"
+    if event.get("future_expansion_opened", 0) >= 4:
+        return " and later opened the way for further expansion"
+    if event.get("income_gain", 0) >= 3:
+        return " and later strengthened its income base"
+    return ""
+
+
 def summarize_event(event):
     """Turns one analyzed event into a sentence."""
     if event["kind"] == "first_expansion":
@@ -67,11 +78,7 @@ def summarize_event(event):
     if event["kind"] == "high_value_expansion":
         role_phrase = get_role_phrase(event)
         reason_clause = event.get("summary_reason") or "it strengthened the faction's position"
-        outcome_clause = ""
-        if event.get("future_expansion_opened", 0) >= 4:
-            outcome_clause = " and later opened the way for further expansion"
-        elif event.get("income_gain", 0) >= 3:
-            outcome_clause = " and later strengthened its income base"
+        outcome_clause = get_outcome_clause(event)
         follow_up = get_expansion_follow_up(event, used_outcome_clause=bool(outcome_clause))
 
         sentence = (

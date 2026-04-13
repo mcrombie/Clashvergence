@@ -9,11 +9,40 @@ def get_expand_event_importance(event):
     return event.details.get("score", event.get("score", 0))
 
 
-def summarize_expand_event(event):
+def get_short_term_follow_up(world, event, max_turn_gap=2):
+    """Returns the next short-term expansion by the same faction, if any."""
+    for candidate in world.events:
+        if candidate.type != "expand":
+            continue
+        if candidate.faction != event.faction:
+            continue
+        if candidate.turn <= event.turn:
+            continue
+        if candidate.turn > event.turn + max_turn_gap:
+            continue
+        return {
+            "follow_up_region": candidate.region,
+            "follow_up_turn": candidate.turn,
+        }
+
+    return {
+        "follow_up_region": None,
+        "follow_up_turn": None,
+    }
+
+
+def summarize_expand_event(event, world=None):
     """Returns a normalized interpreted summary for an expansion event."""
     details = event.details
     context = event.context
     impact = event.impact
+    follow_up = {
+        "follow_up_region": impact.get("follow_up_region"),
+        "follow_up_turn": impact.get("follow_up_turn"),
+    }
+
+    if world is not None and follow_up["follow_up_region"] is None:
+        follow_up = get_short_term_follow_up(world, event)
 
     return {
         "turn": event.turn,
@@ -49,6 +78,8 @@ def summarize_expand_event(event):
         "narrative_tags": impact.get("narrative_tags", list(event.tags)),
         "tags": list(event.tags),
         "significance": event.significance,
+        "follow_up_region": follow_up["follow_up_region"],
+        "follow_up_turn": follow_up["follow_up_turn"],
     }
 
 
@@ -109,7 +140,7 @@ def get_high_value_expansions(world, minimum_score=10):
             importance_score = get_expand_event_importance(event)
 
             if importance_score >= minimum_score:
-                important_expansions.append(summarize_expand_event(event))
+                important_expansions.append(summarize_expand_event(event, world=world))
 
     return important_expansions
 
@@ -123,7 +154,7 @@ def get_top_scoring_opening_claim(world):
 
     best_event = max(expansion_events, key=get_expand_event_importance)
 
-    return summarize_expand_event(best_event)
+    return summarize_expand_event(best_event, world=world)
 
 
 def get_opening_expansion_leaders(world, opening_turns=3):
@@ -370,6 +401,8 @@ def get_key_events(world):
             "narrative_tags": event["narrative_tags"],
             "tags": event["tags"],
             "regions_gained": event["regions_gained"],
+            "follow_up_region": event["follow_up_region"],
+            "follow_up_turn": event["follow_up_turn"],
         })
 
     key_events.sort(key=lambda event: event["turn"])
