@@ -1,15 +1,17 @@
 Simulation Chronicle
 
 On turn 1, Faction3 made its first expansion into M.
-On turn 1, Faction1 made its first expansion into L.
-On turn 1, Faction4 made its first expansion into I.
-On turn 1, Faction2 made its first expansion into C.
-On turn 1, Faction3 seized the strategically important region M.
-On turn 1, Faction1 seized the strategically important region L.
-On turn 1, Faction4 seized the strategically important region I.
-On turn 1, Faction2 seized the strategically important region C.
-On turn 2, Faction3 seized the strategically important region E.
-On turn 2, Faction2 seized the strategically important region B.
+On turn 1, Faction4 made its first expansion into K.
+On turn 1, Faction1 made its first expansion into B.
+On turn 1, Faction2 made its first expansion into E.
+On turn 1, Faction3 seized the strategically important region M, valued for its 2 resources, 12 connections, and 8 unclaimed neighboring regions that offered future expansion potential.
+
+Opening Phase
+
+The strongest early land grab was Faction3's claim of M on turn 1, a score-32 region with 2 resources, 12 connections, and 8 open neighbors.
+In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
+Across the first 5 turns, Faction1, Faction2, and Faction4 invested most often with 3 investment(s).
+By the end of turn 5, Faction1, Faction2, and Faction4 held the opening treasury lead at 39.
 
 Faction Behavior
 
