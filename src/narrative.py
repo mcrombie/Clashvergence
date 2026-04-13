@@ -4,6 +4,7 @@ from src.event_analysis import (
     get_key_events,
     get_opening_phase_summary,
 )
+from src.metrics import get_faction_metrics_history
 
 
 def format_turn(turn):
@@ -173,6 +174,80 @@ def summarize_faction_behavior(world):
     return lines
 
 
+def get_faction_trajectory_sentence(world, faction_name):
+    """Returns one short sentence describing a faction's arc."""
+    history = get_faction_metrics_history(world, faction_name)
+    standings = get_final_standings(world)
+
+    if not history:
+        return f"{faction_name} had too little recorded activity to describe a clear trajectory."
+
+    opening_end_index = min(4, len(history) - 1)
+    mid_index = len(history) // 2
+
+    opening_snapshot = history[opening_end_index]
+    mid_snapshot = history[mid_index]
+    final_snapshot = history[-1]
+
+    opening_treasury_max = max(entry[opening_end_index]["treasury"] for entry in (
+        get_faction_metrics_history(world, name) for name in world.factions
+    ))
+    opening_regions_max = max(entry[opening_end_index]["regions"] for entry in (
+        get_faction_metrics_history(world, name) for name in world.factions
+    ))
+
+    final_rank = next(
+        index + 1
+        for index, standing in enumerate(standings)
+        if standing["faction"] == faction_name
+    )
+
+    opening_strength = (
+        opening_snapshot["treasury"] == opening_treasury_max
+        or opening_snapshot["regions"] == opening_regions_max
+    )
+    late_treasury_gain = final_snapshot["treasury"] - mid_snapshot["treasury"]
+    early_treasury_gain = mid_snapshot["treasury"] - opening_snapshot["treasury"]
+    region_gain_after_opening = final_snapshot["regions"] - opening_snapshot["regions"]
+
+    if opening_strength and final_rank > 1:
+        return (
+            f"{faction_name} opened well but faded in the later turns, finishing with "
+            f"{final_snapshot['regions']} regions and {final_snapshot['treasury']} treasury."
+        )
+
+    if not opening_strength and final_rank == 1:
+        return (
+            f"{faction_name} built momentum gradually before surging late to finish first with "
+            f"{final_snapshot['regions']} regions and {final_snapshot['treasury']} treasury."
+        )
+
+    if final_rank == 1:
+        return (
+            f"{faction_name} grew steadily from the opening and converted that position into first place "
+            f"with {final_snapshot['regions']} regions and {final_snapshot['treasury']} treasury."
+        )
+
+    if region_gain_after_opening <= 0 and late_treasury_gain >= early_treasury_gain:
+        return (
+            f"{faction_name} remained competitive without taking control, ending on "
+            f"{final_snapshot['regions']} regions and {final_snapshot['treasury']} treasury."
+        )
+
+    return (
+        f"{faction_name} advanced steadily but never pulled clear, closing with "
+        f"{final_snapshot['regions']} regions and {final_snapshot['treasury']} treasury."
+    )
+
+
+def summarize_faction_trajectories(world):
+    """Returns one sentence per faction describing its overall arc."""
+    return [
+        get_faction_trajectory_sentence(world, faction_name)
+        for faction_name in world.factions
+    ]
+
+
 def summarize_final_standings(world):
     """Returns a short standings summary."""
     standings = get_final_standings(world)
@@ -214,6 +289,15 @@ def build_chronicle(world, max_key_events=10):
         lines.append("")
 
         for line in opening_phase_lines:
+            lines.append(line)
+
+    trajectory_lines = summarize_faction_trajectories(world)
+    if trajectory_lines:
+        lines.append("")
+        lines.append("Faction Trajectories")
+        lines.append("")
+
+        for line in trajectory_lines:
             lines.append(line)
 
     lines.append("")
