@@ -1,0 +1,79 @@
+Map Strategy Comparison
+
+Seed: 12345
+
+Map: thirteen_region_ring
+Turns: 10
+Simulations: 1000
+
+Faction    Outright Win  Shared First  Avg Treasury  Avg Regions
+------------------------------------------------------------------
+Faction1        36.00%       16.00%       126.840        3.520
+Faction2        22.50%       15.50%       124.460        3.380
+Faction3        12.80%        7.90%       119.811        3.146
+Faction4         9.00%        0.00%       115.722        2.954
+
+==================================================================
+
+Map: thirteen_region_ring
+Turns: 20
+Simulations: 1000
+
+Faction    Outright Win  Shared First  Avg Treasury  Avg Regions
+------------------------------------------------------------------
+Faction1        32.80%       12.00%       298.016        3.448
+Faction2        24.50%       11.80%       292.321        3.363
+Faction3        17.20%        5.40%       281.114        3.200
+Faction4        10.90%        0.00%       265.943        2.989
+
+==================================================================
+
+Map: thirteen_region_ring
+Turns: 40
+Simulations: 1000
+
+Faction    Outright Win  Shared First  Avg Treasury  Avg Regions
+------------------------------------------------------------------
+Faction1        33.00%       16.30%       650.331        3.493
+Faction2        21.80%       15.80%       630.792        3.376
+Faction3        13.00%        6.50%       592.377        3.149
+Faction4        12.90%        0.00%       563.377        2.982
+
+==================================================================
+
+Map: multi_ring_symmetry
+Turns: 10
+Simulations: 1000
+
+Faction    Outright Win  Shared First  Avg Treasury  Avg Regions
+------------------------------------------------------------------
+Faction1        23.70%        0.70%       129.157        9.239
+Faction2        30.50%        1.20%       130.398        9.036
+Faction3        21.40%        0.70%       129.085        9.296
+Faction4        22.50%        1.20%       128.373        9.429
+
+==================================================================
+
+Map: multi_ring_symmetry
+Turns: 20
+Simulations: 1000
+
+Faction    Outright Win  Shared First  Avg Treasury  Avg Regions
+------------------------------------------------------------------
+Faction1        25.00%        2.60%       530.208        9.241
+Faction2        20.20%        0.50%       528.097        9.002
+Faction3        25.70%        1.20%       530.980        9.341
+Faction4        26.50%        1.20%       531.400        9.416
+
+==================================================================
+
+Map: multi_ring_symmetry
+Turns: 40
+Simulations: 1000
+
+Faction    Outright Win  Shared First  Avg Treasury  Avg Regions
+------------------------------------------------------------------
+Faction1        22.20%        1.10%      1455.638        9.255
+Faction2         9.80%        0.00%      1431.109        9.017
+Faction3        27.40%        1.10%      1461.650        9.312
+Faction4        39.50%        0.00%      1472.335        9.416
