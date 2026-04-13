@@ -6,7 +6,50 @@ def get_expand_event_importance(event):
     """Returns the importance score recorded on an expansion event."""
     if event.significance is not None:
         return event.significance
-    return event.get("score", 0)
+    return event.details.get("score", event.get("score", 0))
+
+
+def summarize_expand_event(event):
+    """Returns a normalized interpreted summary for an expansion event."""
+    details = event.details
+    context = event.context
+    impact = event.impact
+
+    return {
+        "turn": event.turn,
+        "faction": event.faction,
+        "region": event.region,
+        "resources": details.get("resources", event.get("resources", 0)),
+        "neighbors": details.get("neighbors", event.get("neighbors", 0)),
+        "unclaimed_neighbors": details.get(
+            "unclaimed_neighbors",
+            event.get("unclaimed_neighbors", 0),
+        ),
+        "cost": details.get("cost", event.get("cost", 0)),
+        "importance_score": get_expand_event_importance(event),
+        "treasury_before": context.get("treasury_before"),
+        "treasury_after": context.get("treasury_after", event.get("treasury_after")),
+        "rank_before": context.get("rank_before"),
+        "owner_before": context.get("owner_before"),
+        "owner_after": impact.get("owner_after", event.faction),
+        "treasury_change": impact.get("treasury_change"),
+        "regions_gained": impact.get("regions_gained"),
+        "strategic_role": impact.get("strategic_role"),
+        "income_gain": impact.get("income_gain", details.get("resources", 0)),
+        "rank_after": impact.get("rank_after"),
+        "rank_change": impact.get("rank_change"),
+        "future_expansion_opened": impact.get(
+            "future_expansion_opened",
+            details.get("unclaimed_neighbors", 0),
+        ),
+        "importance_tier": impact.get("importance_tier"),
+        "is_turning_point": impact.get("is_turning_point", False),
+        "momentum_effect": impact.get("momentum_effect"),
+        "summary_reason": impact.get("summary_reason"),
+        "narrative_tags": impact.get("narrative_tags", list(event.tags)),
+        "tags": list(event.tags),
+        "significance": event.significance,
+    }
 
 
 def get_event_log(world):
@@ -66,15 +109,7 @@ def get_high_value_expansions(world, minimum_score=10):
             importance_score = get_expand_event_importance(event)
 
             if importance_score >= minimum_score:
-                important_expansions.append({
-                    "turn": event.turn,
-                    "faction": event.faction,
-                    "region": event.region,
-                    "resources": event.get("resources", 0),
-                    "neighbors": event.get("neighbors", 0),
-                    "unclaimed_neighbors": event.get("unclaimed_neighbors", 0),
-                    "importance_score": importance_score,
-                })
+                important_expansions.append(summarize_expand_event(event))
 
     return important_expansions
 
@@ -88,15 +123,7 @@ def get_top_scoring_opening_claim(world):
 
     best_event = max(expansion_events, key=get_expand_event_importance)
 
-    return {
-        "turn": best_event.turn,
-        "faction": best_event.faction,
-        "region": best_event.region,
-        "resources": best_event.get("resources", 0),
-        "neighbors": best_event.get("neighbors", 0),
-        "unclaimed_neighbors": best_event.get("unclaimed_neighbors", 0),
-        "importance_score": get_expand_event_importance(best_event),
-    }
+    return summarize_expand_event(best_event)
 
 
 def get_opening_expansion_leaders(world, opening_turns=3):
@@ -185,7 +212,7 @@ def replay_opening_treasury_snapshots(world, opening_turns=5):
             faction_name = event.faction
 
             if event.type == "expand":
-                treasuries[faction_name] -= event.get("cost", 0)
+                treasuries[faction_name] -= event.details.get("cost", event.get("cost", 0))
                 region_state[event.region]["owner"] = faction_name
             elif event.type == "invest":
                 region_state[event.region]["resources"] = event.get(
@@ -329,6 +356,20 @@ def get_key_events(world):
             "neighbors": event["neighbors"],
             "unclaimed_neighbors": event["unclaimed_neighbors"],
             "importance_score": event["importance_score"],
+            "treasury_after": event["treasury_after"],
+            "rank_before": event["rank_before"],
+            "rank_after": event["rank_after"],
+            "rank_change": event["rank_change"],
+            "income_gain": event["income_gain"],
+            "future_expansion_opened": event["future_expansion_opened"],
+            "importance_tier": event["importance_tier"],
+            "is_turning_point": event["is_turning_point"],
+            "momentum_effect": event["momentum_effect"],
+            "strategic_role": event["strategic_role"],
+            "summary_reason": event["summary_reason"],
+            "narrative_tags": event["narrative_tags"],
+            "tags": event["tags"],
+            "regions_gained": event["regions_gained"],
         })
 
     key_events.sort(key=lambda event: event["turn"])

@@ -6,21 +6,83 @@ from src.event_analysis import (
 )
 
 
+def format_turn(turn):
+    """Formats zero-based turn indices for user-facing output."""
+    return turn + 1
+
+
+def format_score(value):
+    """Formats score values without a trailing .0 when possible."""
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    return value
+
+
+def get_role_phrase(event):
+    """Returns the strongest narrative framing for an expansion's role."""
+    strategic_role = event.get("strategic_role")
+
+    if strategic_role == "junction":
+        return "a commanding junction"
+    if strategic_role == "frontier":
+        return "a frontier foothold"
+    if strategic_role == "consolidation":
+        return "a consolidating gain"
+    if strategic_role == "gamble":
+        return "a risky outpost"
+
+    if event.get("importance_tier") in {"major", "high"}:
+        return "a valuable prize"
+
+    return "an important gain"
+
+
+def get_expansion_follow_up(event, used_outcome_clause=False):
+    """Returns at most one short follow-up sentence for a key expansion."""
+    if event.get("is_turning_point"):
+        return "The move proved a genuine turning point in the opening contest."
+
+    if event.get("rank_change") is not None and event.get("rank_change") > 0 and event.get("rank_after") is not None:
+        return f"It lifted {event['faction']} to rank {event['rank_after']}."
+
+    if event.get("momentum_effect") in {"surging", "accelerating"}:
+        if used_outcome_clause:
+            return None
+        if event.get("future_expansion_opened", 0) >= 3:
+            return f"It opened room for further expansion."
+        if event.get("income_gain", 0) >= 3:
+            return f"It strengthened {event['faction']}'s income position."
+
+    return None
+
+
 def summarize_event(event):
     """Turns one analyzed event into a sentence."""
     if event["kind"] == "first_expansion":
         return (
-            f"On turn {event['turn']}, {event['faction']} made its first expansion into "
+            f"On turn {format_turn(event['turn'])}, {event['faction']} made its first expansion into "
             f"{event['region']}."
         )
 
     if event["kind"] == "high_value_expansion":
-        return (
-            f"On turn {event['turn']}, {event['faction']} seized the strategically important "
-            f"region {event['region']}, valued for its {event['resources']} resources, "
-            f"{event['neighbors']} connections, and {event['unclaimed_neighbors']} unclaimed "
-            f"neighboring regions that offered future expansion potential."
+        role_phrase = get_role_phrase(event)
+        reason_clause = event.get("summary_reason") or "it strengthened the faction's position"
+        outcome_clause = ""
+        if event.get("future_expansion_opened", 0) >= 4:
+            outcome_clause = " and later opened the way for further expansion"
+        elif event.get("income_gain", 0) >= 3:
+            outcome_clause = " and later strengthened its income base"
+        follow_up = get_expansion_follow_up(event, used_outcome_clause=bool(outcome_clause))
+
+        sentence = (
+            f"On turn {format_turn(event['turn'])}, {event['faction']} seized {event['region']}, "
+            f"{role_phrase} that mattered because {reason_clause}{outcome_clause}."
         )
+
+        if follow_up:
+            sentence += f" {follow_up}"
+
+        return sentence
 
     return None
 
@@ -46,13 +108,11 @@ def summarize_opening_phase(world):
 
     highest_scoring_claim = opening["highest_scoring_claim"]
     if highest_scoring_claim is not None:
+        role_phrase = get_role_phrase(highest_scoring_claim)
         lines.append(
             f"The strongest early land grab was {highest_scoring_claim['faction']}'s claim of "
-            f"{highest_scoring_claim['region']} on turn {highest_scoring_claim['turn']}, a "
-            f"score-{highest_scoring_claim['importance_score']} region with "
-            f"{highest_scoring_claim['resources']} resources, "
-            f"{highest_scoring_claim['neighbors']} connections, and "
-            f"{highest_scoring_claim['unclaimed_neighbors']} open neighbors."
+            f"{highest_scoring_claim['region']} on turn {format_turn(highest_scoring_claim['turn'])}, "
+            f"{role_phrase} that stood out because {highest_scoring_claim['summary_reason']}."
         )
 
     expansion_leaders = opening["expansion_leaders"]
@@ -74,7 +134,7 @@ def summarize_opening_phase(world):
     treasury_leaders = opening["treasury_leaders"]
     if treasury_leaders["leaders"]:
         lines.append(
-            f"By the end of turn {treasury_leaders['turn'] + 1}, "
+            f"By the end of turn {format_turn(treasury_leaders['turn'])}, "
             f"{format_faction_list(treasury_leaders['leaders'])} held the opening treasury lead "
             f"at {treasury_leaders['treasury']}."
         )
