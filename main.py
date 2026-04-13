@@ -82,7 +82,7 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
 
 
 def main():
-    map_name = "thirteen_region_ring"
+    map_name = "multi_ring_symmetry"
     num_turns = 20
 
     world = create_world(map_name=map_name)
