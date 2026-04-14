@@ -174,6 +174,27 @@ so that
 If a sentence lacks causality, rewrite it.
 """
 
+VICTOR_HISTORY_SYSTEM_PROMPT = """You write a short, deliberately biased historical reflection from the perspective of the winning faction in a strategy simulation.
+
+Use only the facts provided in the input JSON.
+Do not invent events, mechanics, motives, or lore.
+Do not contradict the simulation results.
+
+Write as if a historian from the winning faction is interpreting the outcome after the fact.
+The voice should be confident, restrained, and partisan, not wild or propagandistic.
+The winner's strategy should subtly shape the bias:
+
+expansionist -> boldness, initiative, rightful growth
+balanced -> prudence, steadiness, good judgment
+economic -> discipline, efficiency, stewardship
+opportunist -> timing, realism, exploiting rival weakness
+
+Emphasize the winner's competence and coherence.
+Frame rival failures as weaknesses of judgment, sustainability, timing, or structure only when supported by the data.
+Keep the paragraph compact: 3 to 5 sentences.
+No headings, no bullets, no JSON.
+"""
+
 
 def is_ai_interpretation_enabled():
     """Returns whether AI interpretation is enabled and configured."""
@@ -196,8 +217,8 @@ def _extract_response_text(response):
     return "\n".join(collected).strip()
 
 
-def generate_ai_interpretation(summary: dict) -> str | None:
-    """Returns an AI-written interpretation paragraph for one compact summary."""
+def _generate_ai_paragraph(summary: dict, system_prompt: str, max_output_tokens: int) -> str | None:
+    """Returns one AI-written paragraph for the provided summary and prompt."""
     if not is_ai_interpretation_enabled():
         return None
 
@@ -211,11 +232,11 @@ def generate_ai_interpretation(summary: dict) -> str | None:
         response = client.responses.create(
             model=AI_INTERPRETATION_MODEL,
             temperature=AI_INTERPRETATION_TEMPERATURE,
-            max_output_tokens=180,
+            max_output_tokens=max_output_tokens,
             input=[
                 {
                     "role": "system",
-                    "content": AI_INTERPRETATION_SYSTEM_PROMPT,
+                    "content": system_prompt,
                 },
                 {
                     "role": "user",
@@ -227,3 +248,21 @@ def generate_ai_interpretation(summary: dict) -> str | None:
         return interpretation or None
     except Exception:
         return None
+
+
+def generate_ai_interpretation(summary: dict) -> str | None:
+    """Returns an AI-written interpretation paragraph for one compact summary."""
+    return _generate_ai_paragraph(
+        summary=summary,
+        system_prompt=AI_INTERPRETATION_SYSTEM_PROMPT,
+        max_output_tokens=180,
+    )
+
+
+def generate_victor_history(summary: dict) -> str | None:
+    """Returns an AI-written victor-history paragraph for one compact summary."""
+    return _generate_ai_paragraph(
+        summary=summary,
+        system_prompt=VICTOR_HISTORY_SYSTEM_PROMPT,
+        max_output_tokens=220,
+    )

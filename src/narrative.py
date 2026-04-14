@@ -1,4 +1,4 @@
-from src.ai_interpretation import generate_ai_interpretation
+from src.ai_interpretation import generate_ai_interpretation, generate_victor_history
 from src.event_analysis import (
     build_initial_opening_state,
     ensure_event_importance_scores,
@@ -1346,6 +1346,85 @@ def build_ai_interpretation_summary(world, phase_analyses, standings, outcome_ty
     return summary
 
 
+def get_winner_doctrine_hint(strategy):
+    """Returns a short doctrinal lens for victor-history framing."""
+    doctrine_hints = {
+        "expansionist": "bold initiative and rightful growth",
+        "balanced": "prudence, adaptability, and steadier judgment",
+        "economic": "discipline, efficiency, and sound stewardship",
+        "opportunist": "timing, realism, and exploiting weakness",
+    }
+    return doctrine_hints.get(strategy, "coherent strategic judgment")
+
+
+def get_winner_path_to_victory(outcome_type, winner, winner_strategy, standings):
+    """Returns a compact winner-path label for the victor-history payload."""
+    runner_up = standings[1] if len(standings) > 1 else None
+    if outcome_type == "full_domination":
+        return f"{winner}'s {winner_strategy} approach reduced the field and ended in complete territorial control"
+    if outcome_type == "midgame_break":
+        return f"{winner}'s {winner_strategy} approach created the decisive middle-phase break"
+    if outcome_type == "late_snowball":
+        return f"{winner}'s {winner_strategy} approach stayed close and separated late"
+    if outcome_type == "economic_win":
+        if runner_up is not None and runner_up["owned_regions"] > standings[0]["owned_regions"]:
+            return f"{winner}'s {winner_strategy} approach finished first on treasury despite conceding map share"
+        return f"{winner}'s {winner_strategy} approach turned superior economic conversion into the winning margin"
+    if outcome_type == "balanced_contest":
+        return f"{winner}'s {winner_strategy} approach held together best in a narrow multi-faction finish"
+    return f"{winner}'s {winner_strategy} approach produced the strongest final position"
+
+
+def build_victor_history_summary(world, phase_analyses, standings, outcome_type):
+    """Builds the compact structured payload sent to the victor-history layer."""
+    winner = standings[0]["faction"]
+    winner_strategy = world.factions[winner].strategy
+    runner_up = standings[1] if len(standings) > 1 else None
+    turning_points = summarize_turning_points(world, phase_analyses)
+
+    return {
+        "map": getattr(world, "map_name", "") or "unknown_map",
+        "turns": len(world.metrics),
+        "outcome_type": outcome_type,
+        "winner": winner,
+        "winner_strategy": winner_strategy,
+        "winner_doctrine": get_winner_doctrine_hint(winner_strategy),
+        "winner_path_to_victory": get_winner_path_to_victory(
+            outcome_type=outcome_type,
+            winner=winner,
+            winner_strategy=winner_strategy,
+            standings=standings,
+        ),
+        "turning_points": turning_points[:2],
+        "phase_summary": {
+            "early": build_ai_phase_summary(phase_analyses[0] if len(phase_analyses) > 0 else None),
+            "mid": build_ai_phase_summary(phase_analyses[1] if len(phase_analyses) > 1 else None),
+            "late": build_ai_phase_summary(phase_analyses[2] if len(phase_analyses) > 2 else None),
+        },
+        "winner_trajectory": get_faction_trajectory_sentence(world, winner),
+        "runner_up_summary": (
+            {
+                "faction": runner_up["faction"],
+                "strategy": world.factions[runner_up["faction"]].strategy,
+                "treasury": runner_up["treasury"],
+                "regions": runner_up["owned_regions"],
+                "trajectory": get_faction_trajectory_sentence(world, runner_up["faction"]),
+            }
+            if runner_up is not None else None
+        ),
+        "final_standings": [
+            {
+                "rank": index + 1,
+                "faction": standing["faction"],
+                "strategy": world.factions[standing["faction"]].strategy,
+                "treasury": standing["treasury"],
+                "regions": standing["owned_regions"],
+            }
+            for index, standing in enumerate(standings)
+        ],
+    }
+
+
 def summarize_strategic_interpretation(world):
     """Returns a short interpretation of why the simulation ended as it did."""
     standings = get_final_standings(world)
@@ -1436,6 +1515,71 @@ def summarize_strategic_interpretation(world):
     return lines
 
 
+def build_victor_history_fallback(world, standings, outcome_type, phase_analyses):
+    """Returns a short biased but fact-grounded victor-history paragraph."""
+    winner = standings[0]["faction"]
+    winner_strategy = world.factions[winner].strategy
+    runner_up = standings[1] if len(standings) > 1 else None
+    doctrine_lines = {
+        "expansionist": "their advance proved that initiative and rightful growth mattered more than caution",
+        "balanced": "their steadier judgment proved sounder than the field's excesses",
+        "economic": "their discipline showed that durable power depended on stewardship as much as territory",
+        "opportunist": "their timing showed that realism and the exploitation of weakness decided the field",
+    }
+    doctrine_line = doctrine_lines.get(
+        winner_strategy,
+        "their coherence proved stronger than the field's scattered efforts",
+    )
+    turning_points = summarize_turning_points(world, phase_analyses)
+    turning_point_line = turning_points[0] if turning_points else None
+    result_line = build_outcome_specific_result_line(outcome_type, standings)
+
+    sentences = [
+        f"{winner}'s historians would treat this run as evidence that {doctrine_line}.",
+    ]
+    if turning_point_line is not None:
+        sentences.append(
+            f"They would point first to the decisive shift: {turning_point_line[0].lower() + turning_point_line[1:]}"
+        )
+    if outcome_type == "economic_win" and runner_up is not None:
+        sentences.append(
+            f"In their telling, rivals mistook sheer map share for strength, while {winner} finished ahead on treasury with {standings[0]['treasury']} against {runner_up['faction']}'s {runner_up['treasury']}."
+        )
+    elif outcome_type == "full_domination":
+        sentences.append(
+            f"Once the field narrowed, recovery paths disappeared, which left {winner} to finish with {format_count_noun(standings[0]['owned_regions'], 'region')} under its control."
+        )
+    elif result_line is not None:
+        sentences.append(result_line)
+
+    if runner_up is not None:
+        sentences.append(
+            f"From that partisan view, {runner_up['faction']}'s resistance was real but never as durable as {winner}'s final position."
+        )
+
+    return " ".join(sentences[:4])
+
+
+def summarize_victor_history(world):
+    """Returns one biased coda paragraph from the winner's perspective."""
+    standings = get_final_standings(world)
+    if not standings:
+        return []
+
+    phase_analyses, _phase_summaries = summarize_phases(world)
+    outcome_type = classify_outcome_type(world)
+    victor_summary = build_victor_history_summary(
+        world=world,
+        phase_analyses=phase_analyses,
+        standings=standings,
+        outcome_type=outcome_type,
+    )
+    paragraph = generate_victor_history(victor_summary)
+    if paragraph is not None:
+        return [paragraph]
+    return [build_victor_history_fallback(world, standings, outcome_type, phase_analyses)]
+
+
 def build_chronicle(world, max_key_events=10):
     """Builds a readable chronicle of the simulation."""
     lines = []
@@ -1509,5 +1653,14 @@ def build_chronicle(world, max_key_events=10):
 
     for line in summarize_final_standings(world):
         lines.append(line)
+
+    victor_history_lines = summarize_victor_history(world)
+    if victor_history_lines:
+        lines.append("")
+        lines.append("Victor's History")
+        lines.append("")
+
+        for line in victor_history_lines:
+            lines.append(line)
 
     return "\n".join(lines)
