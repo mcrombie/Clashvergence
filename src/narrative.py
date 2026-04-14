@@ -1,9 +1,11 @@
 from src.event_analysis import (
     build_initial_opening_state,
+    ensure_event_importance_scores,
     get_faction_event_counts,
     get_final_standings,
     get_key_events,
     get_opening_phase_summary,
+    get_scored_major_events,
 )
 from src.metrics import get_faction_metrics_history
 
@@ -137,8 +139,18 @@ def get_phase_dominant_action(event_counts):
     return "attacks shaped the phase"
 
 
-def summarize_phase_turns(world, phase_name, start_turn, end_turn):
-    """Builds a concise strategic summary for one simulation phase."""
+def get_alive_factions_from_metrics(snapshot):
+    """Returns factions still holding territory in a metrics snapshot."""
+    return [
+        faction_name
+        for faction_name, metrics in snapshot["factions"].items()
+        if metrics["regions"] > 0
+    ]
+
+
+def analyze_phase(world, phase_name, start_turn, end_turn):
+    """Builds structured phase analysis for later summary sections."""
+    ensure_event_importance_scores(world)
     phase_snapshots = [snapshot for snapshot in world.metrics if start_turn <= snapshot["turn"] <= end_turn]
 
     if not phase_snapshots:
@@ -154,7 +166,7 @@ def summarize_phase_turns(world, phase_name, start_turn, end_turn):
     successful_attacks = 0
     attack_shifted_regions = set()
     expansion_regions = set()
-    turning_points = []
+    notable_expansions = []
 
     for event in phase_events:
         if event.type in event_counts:
@@ -165,8 +177,12 @@ def summarize_phase_turns(world, phase_name, start_turn, end_turn):
                 attack_shifted_regions.add(event.region)
         if event.type == "expand" and event.region is not None:
             expansion_regions.add(event.region)
-        if event.type == "expand" and event.get("is_turning_point", False):
-            turning_points.append(event)
+            if (
+                event.get("strategic_role") == "junction"
+                or event.get("is_turning_point", False)
+                or event.get("importance_score", 0) >= 5
+            ):
+                notable_expansions.append(event)
 
     end_snapshot = phase_snapshots[-1]
     rankings = get_rankings_from_snapshot(end_snapshot)
@@ -197,62 +213,122 @@ def summarize_phase_turns(world, phase_name, start_turn, end_turn):
     }
     biggest_gain = max(region_deltas, key=lambda name: region_deltas[name])
     biggest_loss = min(region_deltas, key=lambda name: region_deltas[name])
+    alive_factions = get_alive_factions_from_metrics(end_snapshot)
+    end_regions = [metrics["regions"] for _name, metrics in rankings]
+    top_regions = rankings[0][1]["regions"]
+    second_regions = rankings[1][1]["regions"] if len(rankings) > 1 else top_regions
+    region_spread = max(end_regions) - min(end_regions) if end_regions else 0
+    close_contest = len(alive_factions) >= 3 and region_spread <= 2
+    stable_board = (
+        successful_attacks == 0
+        and event_counts["expand"] == 0
+        and max(abs(delta) for delta in region_deltas.values()) <= 1
+    )
 
+    return {
+        "phase_name": phase_name,
+        "start_turn": start_turn,
+        "end_turn": end_turn,
+        "events": phase_events,
+        "rankings": rankings,
+        "strongest": strongest,
+        "end_snapshot": end_snapshot,
+        "event_counts": event_counts,
+        "successful_attacks": successful_attacks,
+        "attack_shifted_regions": attack_shifted_regions,
+        "expansion_regions": expansion_regions,
+        "biggest_gain": biggest_gain,
+        "biggest_loss": biggest_loss,
+        "biggest_rise": biggest_rise,
+        "region_deltas": region_deltas,
+        "treasury_deltas": treasury_deltas,
+        "alive_factions": alive_factions,
+        "region_spread": region_spread,
+        "lead_region_margin": top_regions - second_regions,
+        "close_contest": close_contest,
+        "stable_board": stable_board,
+        "notable_expansion": max(
+            notable_expansions,
+            key=lambda event: event.get("importance_score", event.get("score", 0)),
+            default=None,
+        ),
+    }
+
+
+def summarize_phase_turns(phase_analysis):
+    """Builds a concise strategic summary for one analyzed phase."""
+    rankings = phase_analysis["rankings"]
+    strongest = phase_analysis["strongest"]
     lead_name, lead_metrics = rankings[0]
+    phase_name = phase_analysis["phase_name"]
+    start_turn = phase_analysis["start_turn"]
+    end_turn = phase_analysis["end_turn"]
+    region_deltas = phase_analysis["region_deltas"]
+    biggest_gain = phase_analysis["biggest_gain"]
+    biggest_loss = phase_analysis["biggest_loss"]
+
     lead_summary = (
         f"{format_subject_verb(strongest, 'was', 'were')} strongest by the end of turns {start_turn}-{end_turn}, "
         f"with {lead_name} on {lead_metrics['treasury']} treasury and {format_count_noun(lead_metrics['regions'], 'region')}"
     )
 
-    action_details = []
-    if successful_attacks or event_counts["expand"] or event_counts["invest"]:
-        if successful_attacks:
-            action_details.append(
-                f"{successful_attacks} successful attacks flipped {format_count_noun(len(attack_shifted_regions), 'region')}"
-            )
-        if event_counts["expand"]:
-            action_details.append(
-                f"{format_count_noun(event_counts['expand'], 'expansion')} added {format_count_noun(len(expansion_regions), 'new region')}"
-            )
-        if event_counts["invest"]:
-            action_details.append(f"{format_count_noun(event_counts['invest'], 'investment')} improved existing holdings")
+    details = []
+    if phase_analysis["stable_board"]:
+        details.append(
+            f"The board stabilized after turn {start_turn} with little territorial change"
+        )
     else:
-        action_details.append("the board stayed stable with no expansions, investments, or successful attacks")
+        if phase_analysis["close_contest"]:
+            details.append(
+                f"No faction pulled clear; {format_count_noun(len(phase_analysis['alive_factions']), 'faction')} remained within a {phase_analysis['region_spread']}-region spread"
+            )
+        if phase_analysis["successful_attacks"] > 0:
+            details.append(
+                f"{phase_analysis['successful_attacks']} successful attacks shifted control of {format_count_noun(len(phase_analysis['attack_shifted_regions']), 'region')}"
+            )
+        if phase_analysis["event_counts"]["expand"] > 0:
+            details.append(
+                f"{format_count_noun(phase_analysis['event_counts']['expand'], 'expansion')} added {format_count_noun(len(phase_analysis['expansion_regions']), 'new region')}"
+            )
+        if phase_analysis["event_counts"]["invest"] > 0:
+            details.append(
+                f"{format_count_noun(phase_analysis['event_counts']['invest'], 'investment')} improved existing holdings"
+            )
 
-    shift_details = []
-    if region_deltas[biggest_gain] > 0:
-        shift_details.append(
+    shifts = []
+    if region_deltas[biggest_gain] > 0 and region_deltas[biggest_loss] < 0:
+        shifts.append(
+            f"{biggest_gain} gained {format_count_noun(region_deltas[biggest_gain], 'region')} while {biggest_loss} lost {format_count_noun(abs(region_deltas[biggest_loss]), 'region')}"
+        )
+    elif region_deltas[biggest_gain] > 0:
+        shifts.append(
             f"{biggest_gain} gained {format_count_noun(region_deltas[biggest_gain], 'region')}"
         )
-    if region_deltas[biggest_loss] < 0:
-        shift_details.append(
-            f"{biggest_loss} lost {format_count_noun(abs(region_deltas[biggest_loss]), 'region')}"
+
+    if phase_analysis["biggest_rise"] is not None and phase_analysis["biggest_rise"] not in {biggest_gain, biggest_loss}:
+        shifts.append(
+            f"{phase_analysis['biggest_rise']} improved its standing most during the phase"
         )
 
-    if turning_points:
-        notable = max(turning_points, key=lambda event: event.get("score", 0))
-        shift_details.append(
-            f"{notable.faction}'s push into {notable.region} was the phase's clearest turning point"
-        )
-    elif biggest_rise is not None:
-        shift_details.append(
-            f"{biggest_rise} improved its standing most during the phase"
-        )
-
-    sentence = f"{phase_name} phase: {lead_summary}. " + "; ".join(action_details).capitalize() + "."
-    if shift_details:
-        sentence += " " + ". ".join(shift_details) + "."
-
+    sentence = f"{phase_name} phase: {lead_summary}."
+    if details:
+        sentence += " " + ". ".join(details) + "."
+    if shifts:
+        sentence += " " + ". ".join(shifts) + "."
     return sentence
 
 
 def summarize_phases(world):
     """Returns phase-based summaries for the full simulation."""
-    return [
-        summary
-        for phase in get_phase_ranges(len(world.metrics))
-        if (summary := summarize_phase_turns(world, *phase)) is not None
-    ]
+    analyses = []
+    summaries = []
+    for phase_name, start_turn, end_turn in get_phase_ranges(len(world.metrics)):
+        phase_analysis = analyze_phase(world, phase_name, start_turn, end_turn)
+        if phase_analysis is None:
+            continue
+        analyses.append(phase_analysis)
+        summaries.append(summarize_phase_turns(phase_analysis))
+    return analyses, summaries
 
 
 def describe_early_posture(early_history):
@@ -308,23 +384,57 @@ def describe_midgame(mid_history):
     return f"plateaued mid-game at {format_count_noun(end_regions, 'region')}"
 
 
-def get_map_structure_comment(world):
-    """Returns a grounded comment about map scale and connectivity."""
+def get_map_profile(world):
+    """Returns grounded structural labels about the map."""
     region_count = len(world.regions)
     average_degree = sum(len(region.neighbors) for region in world.regions.values()) / region_count
     max_degree = max(len(region.neighbors) for region in world.regions.values())
+    initial_counts = get_initial_region_counts(world)
+    populated_counts = [count for count in initial_counts.values() if count > 0]
+    symmetric_starts = len(set(populated_counts)) <= 1 if populated_counts else True
 
     if region_count <= 13:
-        return f"On this compact {region_count}-region map, early contact came quickly"
-    if region_count >= 30 and average_degree >= 4:
-        return f"On this larger {region_count}-region layout, the wider front and multiple routes delayed a clean break"
+        size_label = "compact"
+    elif region_count >= 30:
+        size_label = "large"
+    else:
+        size_label = "mid_size"
+
     if max_degree >= 8:
+        topology_label = "central_hub"
+    elif average_degree >= 4:
+        topology_label = "well_connected"
+    else:
+        topology_label = "lane_driven"
+
+    return {
+        "region_count": region_count,
+        "average_degree": average_degree,
+        "max_degree": max_degree,
+        "symmetric_starts": symmetric_starts,
+        "size_label": size_label,
+        "topology_label": topology_label,
+    }
+
+
+def get_map_structure_comment(world):
+    """Returns a grounded comment about map scale and connectivity."""
+    profile = get_map_profile(world)
+    region_count = profile["region_count"]
+
+    if profile["size_label"] == "compact":
+        return f"On this compact {region_count}-region map, early contact came quickly"
+    if profile["size_label"] == "large" and profile["symmetric_starts"]:
+        return f"On this larger {region_count}-region layout, the wider front and multiple routes delayed a clean break"
+    if profile["topology_label"] == "central_hub":
         return "A highly connected center kept several factions in contention before one side pulled clear"
     return f"On this {region_count}-region map, control of the best-connected routes mattered more than raw expansion count"
 
 
 def describe_end_state(final_snapshot, final_rank, total_factions):
     """Returns a concrete ending-state phrase."""
+    if final_rank == 1 and final_snapshot["regions"] == 0:
+        return f"and finished first on treasury despite ending without territory at {final_snapshot['treasury']} treasury"
     if final_rank == 1:
         return (
             f"and finished dominant with {format_count_noun(final_snapshot['regions'], 'region')} and "
@@ -438,6 +548,13 @@ def format_subject_verb(faction_names, singular_verb, plural_verb):
     return f"{names} {verb}"
 
 
+def sentence_case(text):
+    """Uppercases the first character without lowercasing the rest."""
+    if not text:
+        return text
+    return text[0].upper() + text[1:]
+
+
 def summarize_opening_phase(world):
     """Returns a short summary of opening-phase patterns."""
     opening = get_opening_phase_summary(world)
@@ -519,6 +636,9 @@ def get_faction_trajectory_sentence(world, faction_name):
         mid_start, mid_end = phase_ranges[1][1], phase_ranges[1][2]
         mid_history = history[mid_start - 1:mid_end]
     final_snapshot = history[-1]
+    peak_snapshot = max(history, key=lambda entry: (entry["regions"], entry["treasury"]))
+    total_attacks = sum(entry["attacks"] for entry in history)
+    treasury_gain = final_snapshot["treasury"] - history[0]["treasury"]
 
     final_rank = next(
         index + 1
@@ -526,9 +646,36 @@ def get_faction_trajectory_sentence(world, faction_name):
         if standing["faction"] == faction_name
     )
     early_posture = describe_early_posture(early_history)
-    midgame = describe_midgame(mid_history)
-    end_state = describe_end_state(final_snapshot, final_rank, len(world.factions))
-    return f"{faction_name} {early_posture}, {midgame}, {end_state}."
+    if peak_snapshot["regions"] > final_snapshot["regions"] + 1:
+        midgame = (
+            f"peaked at {format_count_noun(peak_snapshot['regions'], 'region')} on turn {peak_snapshot['turn']} "
+            f"before slipping to {format_count_noun(final_snapshot['regions'], 'region')}"
+        )
+    elif final_snapshot["regions"] > early_history[-1]["regions"]:
+        midgame = (
+            f"built steadily past the opening, reaching {format_count_noun(final_snapshot['regions'], 'region')} "
+            f"by turn {final_snapshot['turn']}"
+        )
+    else:
+        midgame = describe_midgame(mid_history)
+
+    if final_rank == 1 and final_snapshot["regions"] > 0:
+        ending = (
+            f"and finished first with {format_count_noun(final_snapshot['regions'], 'region')}, "
+            f"{final_snapshot['treasury']} treasury, and {total_attacks} total attacks"
+        )
+    elif final_snapshot["regions"] == 0:
+        ending = (
+            f"and closed on {final_snapshot['treasury']} treasury without territory after {total_attacks} attacks"
+        )
+    else:
+        ending = (
+            f"and finished rank {final_rank} on {final_snapshot['treasury']} treasury with "
+            f"{format_count_noun(final_snapshot['regions'], 'region')}"
+        )
+        if treasury_gain > 0:
+            ending += f" after gaining {treasury_gain} treasury overall"
+    return f"{faction_name} {early_posture}, {midgame}, {ending}."
 
 
 def summarize_faction_trajectories(world):
@@ -548,16 +695,585 @@ def summarize_final_standings(world):
         winner = standings[0]
         lines.append(
             f"{winner['faction']} finished first with a treasury of {winner['treasury']} "
-            f"and control of {winner['owned_regions']} regions."
+            f"and control of {format_count_noun(winner['owned_regions'], 'region')}."
         )
 
     for standing in standings[1:]:
         lines.append(
             f"{standing['faction']} ended with a treasury of {standing['treasury']} "
-            f"and {standing['owned_regions']} regions."
+            f"and {format_count_noun(standing['owned_regions'], 'region')}."
         )
 
     return lines
+
+
+def get_turning_point_event_line(event):
+    """Returns a concise turning-point sentence for one scored event."""
+    phase_name = event.get("phase_name", "mid").capitalize()
+    reasons = set(event.get("importance_reasons", []))
+
+    if event["type"] == "attack":
+        defender = event.get("defender") or event.get("owner_before")
+
+        if "triggered rival elimination" in reasons and defender:
+            return (
+                f"{phase_name} collapse: {event['faction']}'s capture of {event['region']} "
+                f"eliminated {defender}'s last territorial hold."
+            )
+
+        if "shifted leaderboard" in reasons:
+            return (
+                f"{phase_name} lead swing: {event['faction']}'s attack on {event['region']} "
+                f"shifted the leaderboard."
+            )
+
+        if event.get("success", False):
+            return (
+                f"{phase_name} border swing: {event['faction']}'s capture of {event['region']} "
+                f"flipped an important frontline region."
+            )
+
+    if event["type"] == "expand":
+        if "captured key junction" in reasons:
+            return (
+                f"{phase_name} corridor swing: {event['faction']}'s move into {event['region']} "
+                f"secured a key junction and opened multiple follow-up routes."
+            )
+
+        return (
+            f"{phase_name} expansion swing: {event['faction']}'s move into {event['region']} "
+            f"created a meaningful territorial edge."
+        )
+
+    if event["type"] == "invest":
+        if "strengthened economic lead" in reasons or "shifted leaderboard" in reasons:
+            return (
+                f"{phase_name} economic pivot: {event['faction']}'s investment in {event['region']} "
+                f"strengthened a key holding and improved its overall position."
+            )
+
+        return (
+            f"{phase_name} development swing: {event['faction']}'s investment in {event['region']} "
+            f"reinforced an important region."
+        )
+
+    return None
+
+
+def get_turning_point_event_key(event):
+    """Returns a dedupe key so turning points favor distinct decisive moments."""
+    reasons = set(event.get("importance_reasons", []))
+
+    if event["type"] == "attack":
+        defender = event.get("defender") or event.get("owner_before")
+        if "triggered rival elimination" in reasons:
+            return ("elimination", defender)
+        if "shifted leaderboard" in reasons:
+            return ("leader_shift", event["faction"], event.get("phase_name"))
+        return ("attack", event["faction"], event["region"])
+
+    if event["type"] == "expand":
+        if "captured key junction" in reasons:
+            return ("junction", event["region"])
+        return ("expand", event["faction"], event["region"])
+
+    if event["type"] == "invest":
+        return ("invest", event["faction"], event["region"])
+
+    return ("event", event["faction"], event["region"], event["type"])
+
+
+def get_phase_break_tier(analysis):
+    """Returns a simple tier for a phase break candidate."""
+    gain_value = analysis["region_deltas"][analysis["biggest_gain"]]
+    loss_value = abs(analysis["region_deltas"][analysis["biggest_loss"]])
+
+    if gain_value >= 6 or analysis["lead_region_margin"] >= 5:
+        return "HIGH", 3
+    if gain_value >= 3 or loss_value >= 3 or analysis["lead_region_margin"] >= 3:
+        return "HIGH", 3
+    return "MEDIUM", 2
+
+
+def get_phase_break_entry(analysis):
+    """Returns a ranked turning-point entry for one phase break."""
+    biggest_gain = analysis["biggest_gain"]
+    biggest_loss = analysis["biggest_loss"]
+    gain_value = analysis["region_deltas"][biggest_gain]
+    loss_value = analysis["region_deltas"][biggest_loss]
+    tier_label, tier_rank = get_phase_break_tier(analysis)
+    score = gain_value + max(0, -loss_value) + analysis["lead_region_margin"]
+
+    return {
+        "tier_label": tier_label,
+        "tier_rank": tier_rank,
+        "score": score,
+        "line": (
+            f"{analysis['phase_name']} phase break: {biggest_gain} gained {format_count_noun(gain_value, 'region')} while "
+            f"{biggest_loss} lost {format_count_noun(abs(loss_value), 'region')}."
+            if loss_value < 0 else
+            f"{analysis['phase_name']} phase break: {biggest_gain} gained {format_count_noun(gain_value, 'region')}."
+        ),
+        "dedupe_key": ("phase_break", analysis["phase_name"], biggest_gain, biggest_loss),
+        "kind": "phase_break",
+        "phase_name": analysis["phase_name"],
+        "winner": biggest_gain,
+    }
+
+
+def get_event_turning_point_entry(event):
+    """Returns a ranked turning-point entry for one scored event."""
+    line = get_turning_point_event_line(event)
+    if line is None:
+        return None
+
+    tier_label = event.get("analysis_importance_tier", "LOW")
+    tier_rank = event.get("analysis_importance_rank", 1)
+    score = event["importance_score"]
+
+    if event["type"] == "attack" and event.get("success", False):
+        score += 1.0
+    if "triggered rival elimination" in event.get("importance_reasons", []):
+        score += 1.5
+    if "shifted leaderboard" in event.get("importance_reasons", []):
+        score += 0.8
+
+    return {
+        "tier_label": tier_label,
+        "tier_rank": tier_rank,
+        "score": score,
+        "line": line,
+        "dedupe_key": get_turning_point_event_key(event),
+        "kind": "event",
+        "event": event,
+    }
+
+
+def get_selected_turning_point_entries(world, phase_analyses):
+    """Returns the top 1-2 distinct turning-point entries."""
+    ensure_event_importance_scores(world)
+    candidates = []
+
+    for index, analysis in enumerate(phase_analyses):
+        biggest_gain = analysis["biggest_gain"]
+        biggest_loss = analysis["biggest_loss"]
+        gain_value = analysis["region_deltas"][biggest_gain]
+        loss_value = analysis["region_deltas"][biggest_loss]
+
+        if gain_value >= 3:
+            candidates.append(get_phase_break_entry(analysis))
+
+        if analysis["notable_expansion"] is not None:
+            event = analysis["notable_expansion"]
+            role = event.get("strategic_role")
+            if role == "junction":
+                candidates.append({
+                    "tier_label": "MEDIUM",
+                    "tier_rank": 2,
+                    "score": event.get("importance_score", event.get("score", 0)),
+                    "line": f"{analysis['phase_name']} corridor swing: {event.faction}'s move into {event.region} secured a key junction and opened multiple follow-up routes.",
+                    "dedupe_key": ("event", event.faction, event.region, analysis["phase_name"]),
+                    "kind": "event",
+                    "event": {
+                        "type": "expand",
+                        "faction": event.faction,
+                        "region": event.region,
+                        "phase_name": analysis["phase_name"].lower(),
+                    },
+                })
+
+        if analysis["stable_board"] and index > 0:
+            candidates.append({
+                "tier_label": "LOW",
+                "tier_rank": 1,
+                "score": 2,
+                "line": f"{analysis['phase_name']} stabilization: after turn {analysis['start_turn']}, territorial control changed very little.",
+                "dedupe_key": ("stabilization", analysis["phase_name"], analysis["start_turn"]),
+                "kind": "stabilization",
+            })
+
+        if index > 0:
+            previous = phase_analyses[index - 1]
+            if previous["close_contest"] and not analysis["close_contest"] and analysis["lead_region_margin"] >= 3:
+                leader = analysis["rankings"][0][0]
+                candidates.append({
+                    "tier_label": "HIGH",
+                    "tier_rank": 3,
+                    "score": analysis["lead_region_margin"] + 2,
+                    "line": f"{analysis['phase_name']} separation: a close board broke open when {leader} finished the phase {format_count_noun(analysis['lead_region_margin'], 'region')} clear of the next faction.",
+                    "dedupe_key": ("separation", analysis["phase_name"], leader),
+                    "kind": "phase_break",
+                    "phase_name": analysis["phase_name"],
+                    "winner": leader,
+                })
+
+    for event in get_scored_major_events(world, minimum_score=4.0):
+        entry = get_event_turning_point_entry(event)
+        if entry is not None:
+            candidates.append(entry)
+
+    ranked_candidates = sorted(
+        candidates,
+        key=lambda item: (item["tier_rank"], item["score"]),
+        reverse=True,
+    )
+
+    very_high = [entry for entry in ranked_candidates if entry["tier_rank"] >= 4]
+    high = [entry for entry in ranked_candidates if entry["tier_rank"] == 3]
+    medium = [entry for entry in ranked_candidates if entry["tier_rank"] == 2]
+    low = [entry for entry in ranked_candidates if entry["tier_rank"] <= 1]
+
+    if very_high and high:
+        candidate_pool = very_high + high
+    elif very_high:
+        candidate_pool = very_high
+    elif high:
+        candidate_pool = high
+    elif medium:
+        candidate_pool = medium
+    else:
+        candidate_pool = low
+
+    selected = []
+    used_keys = set()
+
+    for entry in candidate_pool:
+        if entry["dedupe_key"] in used_keys:
+            continue
+        if selected and selected[0]["tier_rank"] >= 3 and entry["tier_rank"] < 3:
+            continue
+        if (
+            entry["kind"] == "event"
+            and entry["tier_rank"] <= 2
+            and any(existing["kind"] == "phase_break" for existing in selected)
+        ):
+            continue
+        selected.append(entry)
+        used_keys.add(entry["dedupe_key"])
+        if len(selected) == 2:
+            break
+
+    return selected
+
+
+def summarize_turning_points(world, phase_analyses):
+    """Returns 1-2 concise lines describing decisive shifts in the run."""
+    return [entry["line"] for entry in get_selected_turning_point_entries(world, phase_analyses)]
+
+
+def classify_outcome_type(world):
+    """Classifies the completed simulation into one outcome type."""
+    standings = get_final_standings(world)
+    if not standings:
+        return "balanced_contest"
+
+    total_regions = len(world.regions)
+    winner = standings[0]["faction"]
+    winner_regions = standings[0]["owned_regions"]
+    max_final_regions = max(standing["owned_regions"] for standing in standings)
+    other_regions = [standing["owned_regions"] for standing in standings[1:]]
+    alive_end = [standing for standing in standings if standing["owned_regions"] > 0]
+    nonzero_regions = [standing["owned_regions"] for standing in standings if standing["owned_regions"] > 0]
+    region_spread_alive = (
+        max(nonzero_regions) - min(nonzero_regions) if len(nonzero_regions) >= 2 else 0
+    )
+
+    phase_analyses, _phase_summaries = summarize_phases(world)
+    early_analysis = phase_analyses[0] if len(phase_analyses) > 0 else None
+    mid_analysis = phase_analyses[1] if len(phase_analyses) > 1 else None
+    late_analysis = phase_analyses[2] if len(phase_analyses) > 2 else None
+
+    if (
+        winner_regions >= max(1, int(total_regions * 0.9))
+        and all(region_count == 0 for region_count in other_regions)
+    ):
+        return "full_domination"
+
+    if winner_regions < max_final_regions:
+        return "economic_win"
+
+    if (
+        len(alive_end) >= 3
+        and region_spread_alive <= 3
+        and all(
+            analysis["lead_region_margin"] <= 2 and not analysis["stable_board"]
+            for analysis in phase_analyses
+            if analysis is not None
+        )
+    ):
+        return "balanced_contest"
+
+    if early_analysis is not None:
+        early_winner = early_analysis["rankings"][0][0]
+        early_runaway = (
+            early_winner == winner
+            and early_analysis["lead_region_margin"] >= 3
+            and early_analysis["region_deltas"].get(winner, 0) >= 3
+        )
+        sustained_control = all(
+            analysis is None
+            or (
+                analysis["rankings"][0][0] == winner
+                and analysis["lead_region_margin"] >= 2
+                and not analysis["close_contest"]
+            )
+            for analysis in (mid_analysis, late_analysis)
+        )
+        if early_runaway and sustained_control:
+            return "early_snowball"
+
+    if mid_analysis is not None and early_analysis is not None:
+        early_balanced = early_analysis["close_contest"] or early_analysis["lead_region_margin"] <= 2
+        mid_break = (
+            mid_analysis["rankings"][0][0] == winner
+            and (
+                mid_analysis["lead_region_margin"] >= 3
+                or mid_analysis["region_deltas"].get(winner, 0) >= 3
+            )
+        )
+        late_confirmed = late_analysis is None or late_analysis["rankings"][0][0] == winner
+        if early_balanced and mid_break and late_confirmed:
+            return "midgame_break"
+
+    if late_analysis is not None and early_analysis is not None:
+        early_competitive = early_analysis["close_contest"] or early_analysis["lead_region_margin"] <= 2
+        mid_competitive = (
+            mid_analysis is None
+            or mid_analysis["close_contest"]
+            or mid_analysis["lead_region_margin"] <= 2
+        )
+        late_break = (
+            late_analysis["rankings"][0][0] == winner
+            and (
+                late_analysis["lead_region_margin"] >= 3
+                or late_analysis["region_deltas"].get(winner, 0) >= 3
+            )
+        )
+        if early_competitive and mid_competitive and late_break:
+            return "late_snowball"
+
+    if len(alive_end) >= 3 and region_spread_alive <= 3:
+        return "balanced_contest"
+
+    if mid_analysis is not None and mid_analysis["rankings"][0][0] == winner:
+        return "midgame_break"
+
+    if early_analysis is not None and early_analysis["rankings"][0][0] == winner:
+        return "early_snowball"
+
+    return "late_snowball"
+
+
+def summarize_outcome_type(world):
+    """Returns a short outcome type line for the completed simulation."""
+    return [f"Outcome type: {classify_outcome_type(world)}."]
+
+
+def get_winner_decisive_events(winner_events):
+    """Returns winner-linked collapse and break signals for interpretation."""
+    collapse_events = [
+        event
+        for event in winner_events
+        if event.get("analysis_importance_tier") == "VERY_HIGH"
+        and any(
+            reason in event.get("importance_reasons", [])
+            for reason in ("triggered rival elimination", "triggered rival collapse")
+        )
+    ]
+    return collapse_events
+
+
+def get_outcome_specific_setup_line(
+    outcome_type,
+    winner,
+    alive_end,
+    final_region_spread,
+    early_analysis,
+    mid_analysis,
+    late_analysis,
+):
+    """Returns the opening interpretation line for one outcome type."""
+    if outcome_type == "full_domination":
+        return "One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition."
+    if outcome_type == "midgame_break" and mid_analysis is not None:
+        return (
+            f"The opening stayed contested, but {winner} broke the game open in the middle turns "
+            f"and built a durable territorial edge."
+        )
+    if outcome_type == "late_snowball" and late_analysis is not None:
+        return (
+            f"No faction controlled the run early, but {winner} stayed close until the late phase "
+            f"and then separated decisively."
+        )
+    if outcome_type == "economic_win":
+        return (
+            f"Territory alone did not decide this run; {winner} finished first on treasury "
+            f"without holding the largest empire at the end."
+        )
+    if outcome_type == "balanced_contest":
+        return (
+            f"No faction broke the map open. The run stayed competitive to the end, with "
+            f"{format_count_noun(len(alive_end), 'faction')} still alive and only {final_region_spread}-region variation across the final board."
+        )
+    if outcome_type == "early_snowball" and early_analysis is not None:
+        return (
+            f"The map tilted early when {winner} established an opening lead and never gave the field a clean chance to recover."
+        )
+    return None
+
+
+def build_outcome_specific_driver_line(
+    world,
+    winner,
+    outcome_type,
+    phase_analyses,
+    standings,
+):
+    """Builds an outcome-specific cause-and-effect explanation."""
+    winner_events = [
+        event for event in get_scored_major_events(world, minimum_score=0.0)
+        if event["faction"] == winner
+    ]
+    collapse_events = get_winner_decisive_events(winner_events)
+    phase_breaks = [
+        entry for entry in get_selected_turning_point_entries(world, phase_analyses)
+        if entry.get("kind") == "phase_break" and entry.get("winner") == winner
+    ]
+    winner_regions = standings[0]["owned_regions"]
+    winner_treasury = standings[0]["treasury"]
+    runner_up = standings[1] if len(standings) > 1 else None
+    max_regions = max(standing["owned_regions"] for standing in standings) if standings else 0
+    larger_rivals = [
+        standing["faction"]
+        for standing in standings[1:]
+        if standing["owned_regions"] > winner_regions
+    ]
+    alive_end = [standing for standing in standings if standing["owned_regions"] > 0]
+    mid_analysis = phase_analyses[1] if len(phase_analyses) > 1 else None
+    late_analysis = phase_analyses[2] if len(phase_analyses) > 2 else None
+
+    if outcome_type == "full_domination":
+        if collapse_events:
+            rival = collapse_events[0].get("defender") or collapse_events[0].get("owner_before") or "a key rival"
+            phase_name = collapse_events[0].get("phase_name", "mid")
+            return (
+                f"{winner} eliminated {rival} in the {phase_name} phase, reduced the competitive field, "
+                f"converted that advantage into control of the board, and then consolidated into full domination."
+            )
+        if phase_breaks:
+            phase_name = phase_breaks[0]["phase_name"].lower()
+            return (
+                f"{winner} created the decisive break in the {phase_name} phase, turned that lead into control of the board, "
+                f"and then consolidated the map."
+            )
+        return (
+            f"{winner} took control of the board, removed the remaining rivals from contention, "
+            f"and finished on {format_count_noun(winner_regions, 'region')} with full domination."
+        )
+
+    if outcome_type == "midgame_break":
+        if mid_analysis is not None:
+            return (
+                f"{winner} turned the contested opening into a decisive middle-phase swing, built a durable territorial lead, "
+                f"and carried that edge to the finish."
+            )
+        if phase_breaks:
+            return (
+                f"{winner} created the decisive break after an even opening, built a durable lead, "
+                f"and never let the field close the gap."
+            )
+        return (
+            f"{winner} found the decisive break in the middle portion of the run and converted it into a stable winning position."
+        )
+
+    if outcome_type == "late_snowball":
+        if late_analysis is not None:
+            return (
+                f"The board stayed crowded into the late phase, but {winner} separated only at the end, "
+                f"opened a decisive lead, and closed out the run."
+            )
+        return (
+            f"No early leader held control for long; {winner} stayed within reach and separated only in the closing turns."
+        )
+
+    if outcome_type == "economic_win":
+        if larger_rivals:
+            return (
+                f"{winner} did not win on map share. It finished first on treasury while "
+                f"{format_faction_list(larger_rivals)} held more territory but failed to turn that size into enough net income."
+            )
+        if runner_up is not None and runner_up["owned_regions"] >= winner_regions:
+            return (
+                f"{winner} won on treasury rather than territory, edging out rivals that matched or exceeded its map share."
+            )
+        return (
+            f"{winner} kept the stronger treasury position, and the larger empires never converted their territory into a better economic finish."
+        )
+
+    if outcome_type == "balanced_contest":
+        return (
+            f"No decisive collapse or phase break separated the field. {winner} edged ahead in a finish that remained close across "
+            f"{format_count_noun(len(alive_end), 'surviving faction')}."
+        )
+
+    if outcome_type == "early_snowball":
+        return (
+            f"{winner} established the early lead, denied the field a meaningful recovery window, and converted that start into a lasting win."
+        )
+
+    if runner_up is not None:
+        return (
+            f"{winner} finished ahead of {runner_up['faction']} by turning a narrow lead into the stronger final position on treasury and territory."
+        )
+
+    return None
+
+
+def build_outcome_specific_result_line(outcome_type, standings):
+    """Returns a concise outcome-specific result line."""
+    if not standings:
+        return None
+
+    winner = standings[0]["faction"]
+    winner_regions = standings[0]["owned_regions"]
+    winner_treasury = standings[0]["treasury"]
+    runner_up = standings[1] if len(standings) > 1 else None
+
+    if outcome_type == "full_domination":
+        return (
+            f"By the finish, {winner} held {format_count_noun(winner_regions, 'region')} and {winner_treasury} treasury while every rival had been reduced to zero territory."
+        )
+    if outcome_type == "economic_win":
+        max_regions = max(standing["owned_regions"] for standing in standings)
+        return (
+            f"{winner} finished first on {winner_treasury} treasury with {format_count_noun(winner_regions, 'region')}, "
+            f"while the largest empire finished on {format_count_noun(max_regions, 'region')}."
+        )
+    if outcome_type == "balanced_contest" and runner_up is not None:
+        treasury_margin = winner_treasury - runner_up["treasury"]
+        return (
+            f"The final margin stayed narrow: {winner} beat {runner_up['faction']} by {treasury_margin} treasury."
+        )
+    if outcome_type in {"midgame_break", "late_snowball", "early_snowball"} and runner_up is not None:
+        return (
+            f"That break left {winner} ahead at the finish with {format_count_noun(winner_regions, 'region')} and {winner_treasury} treasury."
+        )
+    return None
+
+
+def build_causal_chain(world, winner, outcome_type, phase_analyses):
+    """Builds a short cause-and-effect summary for the winner's path."""
+    standings = get_final_standings(world)
+    line = build_outcome_specific_driver_line(
+        world=world,
+        winner=winner,
+        outcome_type=outcome_type,
+        phase_analyses=phase_analyses,
+        standings=standings,
+    )
+    if line is None:
+        return None
+    return sentence_case(line)
 
 
 def summarize_strategic_interpretation(world):
@@ -567,76 +1283,47 @@ def summarize_strategic_interpretation(world):
         return []
 
     winner = standings[0]["faction"]
-    winner_history = get_faction_metrics_history(world, winner)
-    total_events = {"expand": 0, "invest": 0, "attack": 0}
-    successful_attacks = 0
-    expanded_regions = set()
-    collapsed_factions = [
-        standing["faction"] for standing in standings[1:]
-        if standing["owned_regions"] == 0
-    ]
-
-    for event in world.events:
-        if event.type in total_events:
-            total_events[event.type] += 1
-        if event.type == "attack" and event.get("success", False):
-            successful_attacks += 1
-        if event.type == "expand" and event.region is not None:
-            expanded_regions.add(event.region)
-
-    opening = get_opening_phase_summary(world)
-    winner_attacks = sum(entry["attacks"] for entry in winner_history)
-    winner_expansions = sum(entry["expansions"] for entry in winner_history)
-    winner_investments = sum(entry["investments"] for entry in winner_history)
-    winner_final = winner_history[-1]
-    winner_opening_regions = winner_history[min(max(0, len(winner_history) // 3 - 1), len(winner_history) - 1)]["regions"]
+    phase_analyses, _phase_summaries = summarize_phases(world)
     runner_up = standings[1] if len(standings) > 1 else None
+    outcome_type = classify_outcome_type(world)
+    alive_end = [standing for standing in standings if standing["owned_regions"] > 0]
+    final_region_values = [standing["owned_regions"] for standing in standings]
+    final_region_spread = max(final_region_values) - min(final_region_values) if final_region_values else 0
+    early_analysis = phase_analyses[0] if len(phase_analyses) > 0 else None
+    mid_analysis = phase_analyses[1] if len(phase_analyses) > 1 else None
+    late_analysis = phase_analyses[2] if len(phase_analyses) > 2 else None
+    causal_chain = build_causal_chain(world, winner, outcome_type, phase_analyses)
 
     lines = []
     lines.append(get_map_structure_comment(world) + ".")
 
-    driver_line = None
-    if collapsed_factions and winner_final["regions"] >= max(1, len(world.regions) // 2):
-        driver_line = (
-            f"The decisive shift was rival collapse: {format_faction_list(collapsed_factions)} finished without territory while "
-            f"{winner} expanded to {format_count_noun(winner_final['regions'], 'region')}."
-        )
-    elif winner in opening["treasury_leaders"]["leaders"] or winner_opening_regions >= 3:
-        driver_line = (
-            f"The outcome was heavily shaped by early position: {winner} carried its opening foothold into "
-            f"{format_count_noun(winner_final['regions'], 'region')} and never surrendered the economic lead for long."
-        )
-    elif winner_investments >= winner_attacks and winner_final["treasury"] > winner_history[0]["treasury"] * 5:
-        driver_line = (
-            f"Economic scaling was the key difference: {winner} turned development and income into a late treasury climb, "
-            f"finishing on {winner_final['treasury']}."
-        )
-    elif successful_attacks >= max(6, total_events["expand"]):
-        driver_line = (
-            f"Combat was the main driver: {successful_attacks} successful attacks changed control, compared with "
-            f"{total_events['expand']} expansion actions over the run."
-        )
+    setup_line = get_outcome_specific_setup_line(
+        outcome_type=outcome_type,
+        winner=winner,
+        alive_end=alive_end,
+        final_region_spread=final_region_spread,
+        early_analysis=early_analysis,
+        mid_analysis=mid_analysis,
+        late_analysis=late_analysis,
+    )
+    if setup_line is not None:
+        lines.append(setup_line)
+
+    if causal_chain is not None:
+        driver_line = causal_chain
     else:
-        driver_line = (
-            f"Expansion and upkeep balance decided the result more than raw combat volume, with {len(expanded_regions)} regions claimed by expansion over the run."
+        driver_line = build_outcome_specific_driver_line(
+            world=world,
+            winner=winner,
+            outcome_type=outcome_type,
+            phase_analyses=phase_analyses,
+            standings=standings,
         )
     lines.append(driver_line)
 
-    if winner_attacks > winner_expansions and winner_attacks > winner_investments:
-        winner_style = (
-            f"won through repeated border contests, recording {winner_attacks} attack attempts"
-        )
-    elif winner_expansions > winner_attacks and winner_expansions >= winner_investments:
-        winner_style = (
-            f"won by securing space early and holding {format_count_noun(winner_final['regions'], 'region')}"
-        )
-    else:
-        winner_style = (
-            f"won by compounding income and finishing with {winner_final['treasury']} treasury"
-        )
-    lines.append(
-        f"{winner} succeeded because it {winner_style}, finishing with {format_count_noun(winner_final['regions'], 'region')}, {winner_final['treasury']} treasury, and rank 1."
-    )
+    result_line = build_outcome_specific_result_line(outcome_type, standings)
+    if result_line is not None:
+        lines.append(result_line)
 
     standings_by_strategy = [
         f"{standing['faction']} ({world.factions[standing['faction']].strategy})"
@@ -677,13 +1364,31 @@ def build_chronicle(world, max_key_events=10):
         for line in opening_phase_lines:
             lines.append(line)
 
-    phase_lines = summarize_phases(world)
+    phase_analyses, phase_lines = summarize_phases(world)
     if phase_lines:
         lines.append("")
         lines.append("Phase Summaries")
         lines.append("")
 
         for line in phase_lines:
+            lines.append(line)
+
+    turning_point_lines = summarize_turning_points(world, phase_analyses)
+    if turning_point_lines:
+        lines.append("")
+        lines.append("Turning Points")
+        lines.append("")
+
+        for line in turning_point_lines:
+            lines.append(line)
+
+    outcome_type_lines = summarize_outcome_type(world)
+    if outcome_type_lines:
+        lines.append("")
+        lines.append("Outcome Type")
+        lines.append("")
+
+        for line in outcome_type_lines:
             lines.append(line)
 
     trajectory_lines = summarize_faction_trajectories(world)
