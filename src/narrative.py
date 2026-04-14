@@ -1,12 +1,16 @@
 from src.ai_interpretation import generate_ai_interpretation, generate_victor_history
 from src.event_analysis import (
+    apply_event_to_replay_state,
     build_initial_opening_state,
+    build_replay_state,
+    clone_replay_state,
     ensure_event_importance_scores,
     get_faction_event_counts,
     get_final_standings,
     get_key_events,
     get_opening_phase_summary,
     get_scored_major_events,
+    summarize_major_event,
 )
 from src.metrics import get_faction_metrics_history
 
@@ -708,249 +712,697 @@ def summarize_final_standings(world):
     return lines
 
 
-def get_turning_point_event_line(event):
-    """Returns a concise turning-point sentence for one scored event."""
-    phase_name = event.get("phase_name", "mid").capitalize()
-    reasons = set(event.get("importance_reasons", []))
+TURNING_POINT_BASE_SCORE = {
+    "collapse": 100,
+    "phase_break": 80,
+    "leader_change": 65,
+    "economic_shift": 55,
+    "border_swing": 35,
+}
 
-    if event["type"] == "attack":
-        defender = event.get("defender") or event.get("owner_before")
+TURNING_POINT_MIN_THRESHOLD = {
+    "full_domination": 70,
+    "midgame_break": 65,
+    "late_snowball": 65,
+    "economic_win": 55,
+    "balanced_contest": 60,
+}
 
-        if "triggered rival elimination" in reasons and defender:
-            return (
-                f"{phase_name} collapse: {event['faction']}'s capture of {event['region']} "
-                f"eliminated {defender}'s last territorial hold."
-            )
-
-        if "shifted leaderboard" in reasons:
-            return (
-                f"{phase_name} lead swing: {event['faction']}'s attack on {event['region']} "
-                f"shifted the leaderboard."
-            )
-
-        if event.get("success", False):
-            return (
-                f"{phase_name} border swing: {event['faction']}'s capture of {event['region']} "
-                f"flipped an important frontline region."
-            )
-
-    if event["type"] == "expand":
-        if "captured key junction" in reasons:
-            return (
-                f"{phase_name} corridor swing: {event['faction']}'s move into {event['region']} "
-                f"secured a key junction and opened multiple follow-up routes."
-            )
-
-        return (
-            f"{phase_name} expansion swing: {event['faction']}'s move into {event['region']} "
-            f"created a meaningful territorial edge."
-        )
-
-    if event["type"] == "invest":
-        if "strengthened economic lead" in reasons or "shifted leaderboard" in reasons:
-            return (
-                f"{phase_name} economic pivot: {event['faction']}'s investment in {event['region']} "
-                f"strengthened a key holding and improved its overall position."
-            )
-
-        return (
-            f"{phase_name} development swing: {event['faction']}'s investment in {event['region']} "
-            f"reinforced an important region."
-        )
-
-    return None
+TURNING_POINT_NEAR_THRESHOLD_DELTA = 10
+BALANCED_CONTEST_STRONG_THRESHOLD = 85
+ECONOMIC_WIN_STRONG_THRESHOLD = 65
 
 
-def get_turning_point_event_key(event):
-    """Returns a dedupe key so turning points favor distinct decisive moments."""
-    reasons = set(event.get("importance_reasons", []))
-
-    if event["type"] == "attack":
-        defender = event.get("defender") or event.get("owner_before")
-        if "triggered rival elimination" in reasons:
-            return ("elimination", defender)
-        if "shifted leaderboard" in reasons:
-            return ("leader_shift", event["faction"], event.get("phase_name"))
-        return ("attack", event["faction"], event["region"])
-
-    if event["type"] == "expand":
-        if "captured key junction" in reasons:
-            return ("junction", event["region"])
-        return ("expand", event["faction"], event["region"])
-
-    if event["type"] == "invest":
-        return ("invest", event["faction"], event["region"])
-
-    return ("event", event["faction"], event["region"], event["type"])
-
-
-def get_phase_break_tier(analysis):
-    """Returns a simple tier for a phase break candidate."""
-    gain_value = analysis["region_deltas"][analysis["biggest_gain"]]
-    loss_value = abs(analysis["region_deltas"][analysis["biggest_loss"]])
-
-    if gain_value >= 6 or analysis["lead_region_margin"] >= 5:
-        return "HIGH", 3
-    if gain_value >= 3 or loss_value >= 3 or analysis["lead_region_margin"] >= 3:
-        return "HIGH", 3
-    return "MEDIUM", 2
-
-
-def get_phase_break_entry(analysis):
-    """Returns a ranked turning-point entry for one phase break."""
-    biggest_gain = analysis["biggest_gain"]
-    biggest_loss = analysis["biggest_loss"]
-    gain_value = analysis["region_deltas"][biggest_gain]
-    loss_value = analysis["region_deltas"][biggest_loss]
-    tier_label, tier_rank = get_phase_break_tier(analysis)
-    score = gain_value + max(0, -loss_value) + analysis["lead_region_margin"]
-
-    return {
-        "tier_label": tier_label,
-        "tier_rank": tier_rank,
-        "score": score,
-        "line": (
-            f"{analysis['phase_name']} phase break: {biggest_gain} gained {format_count_noun(gain_value, 'region')} while "
-            f"{biggest_loss} lost {format_count_noun(abs(loss_value), 'region')}."
-            if loss_value < 0 else
-            f"{analysis['phase_name']} phase break: {biggest_gain} gained {format_count_noun(gain_value, 'region')}."
-        ),
-        "dedupe_key": ("phase_break", analysis["phase_name"], biggest_gain, biggest_loss),
-        "kind": "phase_break",
-        "phase_name": analysis["phase_name"],
-        "winner": biggest_gain,
-    }
-
-
-def get_event_turning_point_entry(event):
-    """Returns a ranked turning-point entry for one scored event."""
-    line = get_turning_point_event_line(event)
-    if line is None:
-        return None
-
-    tier_label = event.get("analysis_importance_tier", "LOW")
-    tier_rank = event.get("analysis_importance_rank", 1)
-    score = event["importance_score"]
-
-    if event["type"] == "attack" and event.get("success", False):
-        score += 1.0
-    if "triggered rival elimination" in event.get("importance_reasons", []):
-        score += 1.5
-    if "shifted leaderboard" in event.get("importance_reasons", []):
-        score += 0.8
-
-    return {
-        "tier_label": tier_label,
-        "tier_rank": tier_rank,
-        "score": score,
-        "line": line,
-        "dedupe_key": get_turning_point_event_key(event),
-        "kind": "event",
-        "event": event,
-    }
-
-
-def get_selected_turning_point_entries(world, phase_analyses):
-    """Returns the top 1-2 distinct turning-point entries."""
-    ensure_event_importance_scores(world)
-    candidates = []
-
-    for index, analysis in enumerate(phase_analyses):
-        biggest_gain = analysis["biggest_gain"]
-        biggest_loss = analysis["biggest_loss"]
-        gain_value = analysis["region_deltas"][biggest_gain]
-        loss_value = analysis["region_deltas"][biggest_loss]
-
-        if gain_value >= 3:
-            candidates.append(get_phase_break_entry(analysis))
-
-        if analysis["notable_expansion"] is not None:
-            event = analysis["notable_expansion"]
-            role = event.get("strategic_role")
-            if role == "junction":
-                candidates.append({
-                    "tier_label": "MEDIUM",
-                    "tier_rank": 2,
-                    "score": event.get("importance_score", event.get("score", 0)),
-                    "line": f"{analysis['phase_name']} corridor swing: {event.faction}'s move into {event.region} secured a key junction and opened multiple follow-up routes.",
-                    "dedupe_key": ("event", event.faction, event.region, analysis["phase_name"]),
-                    "kind": "event",
-                    "event": {
-                        "type": "expand",
-                        "faction": event.faction,
-                        "region": event.region,
-                        "phase_name": analysis["phase_name"].lower(),
-                    },
-                })
-
-        if analysis["stable_board"] and index > 0:
-            candidates.append({
-                "tier_label": "LOW",
-                "tier_rank": 1,
-                "score": 2,
-                "line": f"{analysis['phase_name']} stabilization: after turn {analysis['start_turn']}, territorial control changed very little.",
-                "dedupe_key": ("stabilization", analysis["phase_name"], analysis["start_turn"]),
-                "kind": "stabilization",
-            })
-
-        if index > 0:
-            previous = phase_analyses[index - 1]
-            if previous["close_contest"] and not analysis["close_contest"] and analysis["lead_region_margin"] >= 3:
-                leader = analysis["rankings"][0][0]
-                candidates.append({
-                    "tier_label": "HIGH",
-                    "tier_rank": 3,
-                    "score": analysis["lead_region_margin"] + 2,
-                    "line": f"{analysis['phase_name']} separation: a close board broke open when {leader} finished the phase {format_count_noun(analysis['lead_region_margin'], 'region')} clear of the next faction.",
-                    "dedupe_key": ("separation", analysis["phase_name"], leader),
-                    "kind": "phase_break",
-                    "phase_name": analysis["phase_name"],
-                    "winner": leader,
-                })
-
-    for event in get_scored_major_events(world, minimum_score=4.0):
-        entry = get_event_turning_point_entry(event)
-        if entry is not None:
-            candidates.append(entry)
-
-    ranked_candidates = sorted(
-        candidates,
-        key=lambda item: (item["tier_rank"], item["score"]),
+def get_state_rankings(state):
+    """Returns faction standings for a replay state."""
+    return sorted(
+        state["treasuries"].items(),
+        key=lambda item: (item[1], state["region_counts"].get(item[0], 0)),
         reverse=True,
     )
 
-    very_high = [entry for entry in ranked_candidates if entry["tier_rank"] >= 4]
-    high = [entry for entry in ranked_candidates if entry["tier_rank"] == 3]
-    medium = [entry for entry in ranked_candidates if entry["tier_rank"] == 2]
-    low = [entry for entry in ranked_candidates if entry["tier_rank"] <= 1]
 
-    if very_high and high:
-        candidate_pool = very_high + high
-    elif very_high:
-        candidate_pool = very_high
-    elif high:
-        candidate_pool = high
-    elif medium:
-        candidate_pool = medium
+def get_active_faction_count_from_state(state):
+    """Returns how many factions still hold territory in a replay state."""
+    return sum(1 for regions in state["region_counts"].values() if regions > 0)
+
+
+def get_unique_metric_leader(primary_values, secondary_values):
+    """Returns the sole leader for one metric map, or None on ties."""
+    rankings = sorted(
+        primary_values.items(),
+        key=lambda item: (item[1], secondary_values.get(item[0], 0)),
+        reverse=True,
+    )
+    if not rankings:
+        return None
+    if len(rankings) == 1:
+        return rankings[0][0]
+    if rankings[0][1] == rankings[1][1]:
+        return None
+    return rankings[0][0]
+
+
+def get_unique_treasury_leader_from_state(state):
+    """Returns the sole treasury leader for a replay state."""
+    return get_unique_metric_leader(state["treasuries"], state["region_counts"])
+
+
+def get_unique_region_leader_from_state(state):
+    """Returns the sole region leader for a replay state."""
+    return get_unique_metric_leader(state["region_counts"], state["treasuries"])
+
+
+def get_metric_margin(values):
+    """Returns the top-two margin for one metric map."""
+    ranked_values = sorted(values.values(), reverse=True)
+    if not ranked_values:
+        return 0
+    if len(ranked_values) == 1:
+        return ranked_values[0]
+    return ranked_values[0] - ranked_values[1]
+
+
+def get_snapshot_by_turn(world, turn_number):
+    """Returns the metrics snapshot for one one-based turn, if present."""
+    for snapshot in world.metrics:
+        if snapshot["turn"] == turn_number:
+            return snapshot
+    return None
+
+
+def get_metric_leader_from_snapshot(snapshot, metric_name):
+    """Returns the sole leader for a snapshot metric, or None."""
+    if snapshot is None:
+        return None
+    values = {
+        faction_name: faction_metrics[metric_name]
+        for faction_name, faction_metrics in snapshot["factions"].items()
+    }
+    if metric_name == "treasury":
+        secondary = {
+            faction_name: faction_metrics["regions"]
+            for faction_name, faction_metrics in snapshot["factions"].items()
+        }
     else:
-        candidate_pool = low
+        secondary = {
+            faction_name: faction_metrics["treasury"]
+            for faction_name, faction_metrics in snapshot["factions"].items()
+        }
+    return get_unique_metric_leader(values, secondary)
 
-    selected = []
-    used_keys = set()
 
-    for entry in candidate_pool:
-        if entry["dedupe_key"] in used_keys:
+def leader_persists_for_two_turns(world, turn_number, faction_name, metric_name):
+    """Returns whether a new leader remains clear for the next two turns."""
+    future_turns = [turn_number + 1, turn_number + 2]
+    checked = 0
+    for future_turn in future_turns:
+        snapshot = get_snapshot_by_turn(world, future_turn)
+        if snapshot is None:
             continue
-        if selected and selected[0]["tier_rank"] >= 3 and entry["tier_rank"] < 3:
-            continue
+        checked += 1
+        if get_metric_leader_from_snapshot(snapshot, metric_name) != faction_name:
+            return False
+    return checked > 0
+
+
+def winner_never_led_in_regions(world, winner):
+    """Returns whether the eventual winner never held a sole region lead."""
+    for snapshot in world.metrics:
+        if get_metric_leader_from_snapshot(snapshot, "regions") == winner:
+            return False
+    return True
+
+
+def get_phase_name_for_turn(turn_number, phase_analyses):
+    """Returns the phase containing one one-based turn number."""
+    for analysis in phase_analyses:
+        if analysis["start_turn"] <= turn_number <= analysis["end_turn"]:
+            return analysis["phase_name"].lower()
+    return "late"
+
+
+def get_phase_leader(analysis):
+    """Returns the sole region leader at the end of a phase, if one exists."""
+    return get_metric_leader_from_snapshot(analysis["end_snapshot"], "regions")
+
+
+def get_phase_break_candidate(analysis, previous_analysis, final_winner, phase_analyses):
+    """Builds one deterministic phase-break candidate when warranted."""
+    biggest_gain = analysis["biggest_gain"]
+    biggest_loss = analysis["biggest_loss"]
+    gain_value = analysis["region_deltas"][biggest_gain]
+    loss_value = abs(min(0, analysis["region_deltas"][biggest_loss]))
+    region_swing = max(gain_value, loss_value)
+    leader = get_phase_leader(analysis)
+
+    if region_swing < 3 and analysis["lead_region_margin"] < 3:
+        return None
+
+    clear_leader_before = get_phase_leader(previous_analysis) if previous_analysis is not None else None
+    created_new_clear_leader = leader is not None and leader != clear_leader_before
+    lead_persisted = (
+        leader is not None
+        and leader == final_winner
+        and all(
+            get_phase_leader(later_analysis) in {None, leader}
+            for later_analysis in phase_analyses
+            if later_analysis["start_turn"] >= analysis["start_turn"]
+        )
+    )
+    followed_close_early = previous_analysis is not None and previous_analysis["close_contest"]
+
+    score = TURNING_POINT_BASE_SCORE["phase_break"] + (8 * region_swing)
+    if created_new_clear_leader:
+        score += 10
+    if lead_persisted:
+        score += 10
+    if followed_close_early:
+        score += 5
+
+    if loss_value > 0:
+        line = (
+            f"{analysis['phase_name']} phase break: {biggest_gain} gained {format_count_noun(gain_value, 'region')} "
+            f"while {biggest_loss} lost {format_count_noun(loss_value, 'region')}."
+        )
+    else:
+        line = (
+            f"{analysis['phase_name']} phase break: {biggest_gain} gained {format_count_noun(gain_value, 'region')} "
+            f"and opened the clearest territorial swing of the run."
+        )
+
+    return {
+        "turn": analysis["end_turn"],
+        "faction": biggest_gain,
+        "factions": tuple(dict.fromkeys([biggest_gain, biggest_loss])),
+        "region": None,
+        "event_class": "phase_break",
+        "importance_score": score,
+        "line": line,
+        "phase_name": analysis["phase_name"].lower(),
+        "kind": "phase_break",
+        "winner": biggest_gain,
+        "leader_metric": "regions",
+        "created_new_clear_leader": created_new_clear_leader,
+        "lead_persisted": lead_persisted,
+    }
+
+
+def get_turning_point_line(entry):
+    """Returns the final user-facing line for a turning-point entry."""
+    phase_name = entry.get("phase_name", "mid").capitalize()
+    event_class = entry["event_class"]
+
+    if event_class == "collapse":
+        defender = entry.get("defender") or "a rival"
+        return (
+            f"{phase_name} collapse: {entry['faction']}'s capture of {entry['region']} "
+            f"eliminated {defender}'s last territorial hold."
+        )
+    if event_class == "phase_break":
+        return entry["line"]
+    if event_class == "leader_change":
+        if entry.get("leader_metric") == "treasury":
+            return f"{phase_name} leader change: {entry['faction']} took the treasury lead."
+        return f"{phase_name} leader change: {entry['faction']} took the territorial lead."
+    if event_class == "economic_shift":
+        return (
+            f"{phase_name} economic shift: {entry['faction']} created a treasury edge "
+            f"that became central to the finish."
+        )
+    if event_class == "border_swing":
+        return (
+            f"{phase_name} border swing: {entry['faction']}'s capture of {entry['region']} "
+            f"flipped an important frontline region."
+        )
+    return None
+
+
+def get_event_candidate(world, event, event_summary, before_state, after_state, final_winner, outcome_type, phase_analyses):
+    """Classifies one major event into a deterministic turning-point candidate."""
+    actor = event_summary["faction"]
+    region = event_summary["region"]
+    defender = event_summary.get("defender") or event_summary.get("owner_before")
+    before_rankings = get_state_rankings(before_state)
+    before_treasury_leader = get_unique_treasury_leader_from_state(before_state)
+    after_treasury_leader = get_unique_treasury_leader_from_state(after_state)
+    before_region_leader = get_unique_region_leader_from_state(before_state)
+    after_region_leader = get_unique_region_leader_from_state(after_state)
+    phase_name = event_summary.get("phase_name") or get_phase_name_for_turn(
+        format_turn(event_summary["turn"]),
+        phase_analyses,
+    )
+    event_class = None
+    score = 0
+    leader_metric = None
+    triggered_leader_change = False
+    defender_rank_before = None
+
+    if (
+        event_summary["type"] == "attack"
+        and event_summary.get("success", False)
+        and defender in before_state["region_counts"]
+        and before_state["region_counts"][defender] > 0
+        and after_state["region_counts"].get(defender, 0) == 0
+    ):
+        event_class = "collapse"
+        score = TURNING_POINT_BASE_SCORE["collapse"]
+        eliminated_regions = before_state["region_counts"][defender]
+        score += 15 * eliminated_regions
+        defender_rank_before = next(
+            (
+                index + 1
+                for index, (faction_name, _treasury) in enumerate(before_rankings)
+                if faction_name == defender
+            ),
+            None,
+        )
+        if defender_rank_before in {1, 2}:
+            score += 10
+        if get_active_faction_count_from_state(after_state) < get_active_faction_count_from_state(before_state):
+            score += 8
+        if actor == final_winner:
+            score += 8
+    else:
+        if after_treasury_leader != before_treasury_leader and after_treasury_leader == actor:
+            event_class = "leader_change"
+            leader_metric = "treasury"
+        elif after_region_leader != before_region_leader and after_region_leader == actor:
+            event_class = "leader_change"
+            leader_metric = "regions"
+        else:
+            before_treasury_margin = get_metric_margin(before_state["treasuries"])
+            after_treasury_margin = get_metric_margin(after_state["treasuries"])
+            if (
+                after_treasury_leader == actor
+                and after_treasury_margin > before_treasury_margin
+                and (
+                    event_summary["type"] == "invest"
+                    or "strengthened economic lead" in event_summary.get("importance_reasons", [])
+                    or after_treasury_margin >= 3
+                )
+            ):
+                event_class = "economic_shift"
+
+        if event_class == "leader_change":
+            score = TURNING_POINT_BASE_SCORE["leader_change"]
+            if actor == final_winner:
+                score += 12
+            if leader_persists_for_two_turns(world, format_turn(event_summary["turn"]), actor, leader_metric):
+                score += 8
+            triggered_leader_change = True
+        elif event_class == "economic_shift":
+            score = TURNING_POINT_BASE_SCORE["economic_shift"]
+            if outcome_type == "economic_win":
+                score += 10
+            if actor == final_winner and after_treasury_leader == actor:
+                score += 8
+            if actor == final_winner and winner_never_led_in_regions(world, final_winner):
+                score += 6
+        elif event_summary["type"] == "attack" and event_summary.get("success", False):
+            event_class = "border_swing"
+            score = TURNING_POINT_BASE_SCORE["border_swing"]
+            if region in world.regions and len(world.regions[region].neighbors) >= 4:
+                score += 8
+            if after_treasury_leader != before_treasury_leader or after_region_leader != before_region_leader:
+                score += 8
+                triggered_leader_change = True
+
+    if event_class is None:
+        return None
+
+    line = get_turning_point_line(
+        {
+            "event_class": event_class,
+            "phase_name": phase_name,
+            "faction": actor,
+            "defender": defender,
+            "region": region,
+            "leader_metric": leader_metric,
+        }
+    )
+
+    return {
+        "turn": format_turn(event_summary["turn"]),
+        "faction": actor,
+        "factions": tuple(dict.fromkeys(name for name in [actor, defender] if name)),
+        "region": region,
+        "event_class": event_class,
+        "importance_score": score,
+        "line": line,
+        "phase_name": phase_name,
+        "kind": event_class,
+        "winner": actor,
+        "defender": defender,
+        "defender_rank_before": defender_rank_before if event_class == "collapse" else None,
+        "leader_metric": leader_metric,
+        "triggered_leader_change": triggered_leader_change,
+    }
+
+
+def get_turning_point_priority(entry, outcome_type, final_winner):
+    """Returns the outcome-specific selection priority for one candidate."""
+    event_class = entry["event_class"]
+    phase_name = entry.get("phase_name")
+    winner_aligned = entry.get("faction") == final_winner
+    winner_bonus = 0 if winner_aligned else 2
+
+    if outcome_type == "full_domination":
+        order = {"collapse": 0, "phase_break": 1, "leader_change": 2, "economic_shift": 3, "border_swing": 4}
+        return order[event_class] + winner_bonus
+
+    if outcome_type == "midgame_break":
+        if event_class == "phase_break" and phase_name == "mid":
+            return 0 if winner_aligned else 2
+        if event_class in {"collapse", "leader_change"}:
+            return 1 if winner_aligned else 3
+        if event_class == "phase_break":
+            return 2 if winner_aligned else 4
+        if event_class == "economic_shift":
+            return 3 if winner_aligned else 5
+        return 6
+
+    if outcome_type == "late_snowball":
+        if event_class == "phase_break" and phase_name == "late":
+            return 0 if winner_aligned else 2
+        if event_class in {"collapse", "leader_change"} and phase_name == "late":
+            return 1 if winner_aligned else 3
+        if event_class == "phase_break":
+            return 2 if winner_aligned else 4
+        if event_class in {"collapse", "leader_change"}:
+            return 3 if winner_aligned else 5
+        if event_class == "economic_shift":
+            return 4 if winner_aligned else 6
+        return 7
+
+    if outcome_type == "economic_win":
+        if event_class == "economic_shift":
+            return 0 if winner_aligned else 2
+        if event_class == "leader_change" and entry.get("leader_metric") == "treasury":
+            return 1 if winner_aligned else 3
         if (
-            entry["kind"] == "event"
-            and entry["tier_rank"] <= 2
-            and any(existing["kind"] == "phase_break" for existing in selected)
+            event_class == "collapse"
+            and entry["winner"] == entry["faction"]
+            and entry.get("defender_rank_before") in {1, 2}
         ):
+            return 2 if winner_aligned else 4
+        return 6
+
+    if outcome_type == "balanced_contest":
+        if event_class in {"leader_change", "economic_shift"} and phase_name == "late":
+            return 0 if winner_aligned else 1
+        if event_class in {"leader_change", "economic_shift"}:
+            return 1 if winner_aligned else 2
+        if event_class == "collapse":
+            return 2 if winner_aligned else 3
+        if event_class == "phase_break":
+            return 3 if winner_aligned else 4
+        return 5
+
+    return 6
+
+
+def entries_conflict(entry, other_entry):
+    """Returns whether two turning points are redundant or contradictory."""
+    same_region = (
+        entry.get("region") is not None
+        and other_entry.get("region") is not None
+        and entry.get("region") == other_entry.get("region")
+    )
+    turn_gap = abs(entry["turn"] - other_entry["turn"])
+    same_class = entry["event_class"] == other_entry["event_class"]
+    shared_factions = set(entry.get("factions", ())) & set(other_entry.get("factions", ()))
+
+    if same_region and turn_gap <= 2:
+        return True
+    if turn_gap <= 2 and (same_region or shared_factions):
+        return True
+    if turn_gap <= 2 and same_class and shared_factions:
+        return True
+    return False
+
+
+def select_non_conflicting_entries(entries):
+    """Returns entries with lower-scoring conflicts removed."""
+    selected = []
+    for entry in sorted(
+        entries,
+        key=lambda item: (-item["importance_score"], item["turn"], item["event_class"], item["faction"]),
+    ):
+        if any(entries_conflict(entry, existing) for existing in selected):
             continue
         selected.append(entry)
-        used_keys.add(entry["dedupe_key"])
+    return selected
+
+
+def dedupe_collapse_candidates(entries):
+    """Keeps at most one collapse per eliminated faction."""
+    best_by_defender = {}
+    non_collapse_entries = []
+
+    for entry in entries:
+        if entry["event_class"] != "collapse" or not entry.get("defender"):
+            non_collapse_entries.append(entry)
+            continue
+
+        defender = entry["defender"]
+        current_best = best_by_defender.get(defender)
+        if current_best is None or (
+            entry["importance_score"],
+            -entry["turn"],
+            entry["faction"],
+        ) > (
+            current_best["importance_score"],
+            -current_best["turn"],
+            current_best["faction"],
+        ):
+            best_by_defender[defender] = entry
+
+    return non_collapse_entries + list(best_by_defender.values())
+
+
+def are_same_causal_chain(entry, other_entry):
+    """Returns whether two entries are alternate versions of the same story beat."""
+    if abs(entry["turn"] - other_entry["turn"]) > 2:
+        return False
+
+    same_winner = entry.get("faction") == other_entry.get("faction")
+    same_defender = entry.get("defender") and entry.get("defender") == other_entry.get("defender")
+    same_region = entry.get("region") and entry.get("region") == other_entry.get("region")
+    shared_factions = set(entry.get("factions", ())) & set(other_entry.get("factions", ()))
+
+    if entry["event_class"] == "collapse" and other_entry["event_class"] == "collapse":
+        return same_defender or (same_winner and shared_factions)
+
+    if same_winner and (same_defender or same_region):
+        return True
+
+    if (
+        same_winner
+        and entry["event_class"] in {"leader_change", "border_swing", "economic_shift"}
+        and other_entry["event_class"] in {"leader_change", "border_swing", "economic_shift"}
+    ):
+        return True
+
+    return False
+
+
+def dedupe_same_chain_entries(entries):
+    """Collapses nearby same-chain candidates down to one representative."""
+    selected = []
+    for entry in sorted(
+        entries,
+        key=lambda item: (-item["importance_score"], item["turn"], item["event_class"], item["faction"]),
+    ):
+        if any(are_same_causal_chain(entry, existing) for existing in selected):
+            continue
+        selected.append(entry)
+    return selected
+
+
+def is_treasury_relevant_entry(entry, final_winner):
+    """Returns whether an entry materially helps explain an economic win."""
+    if entry["event_class"] == "economic_shift":
+        return True
+    if entry["event_class"] == "leader_change":
+        return entry.get("leader_metric") == "treasury"
+    if entry["event_class"] == "collapse":
+        return (
+            entry.get("faction") == final_winner
+            and entry.get("defender_rank_before") in {1, 2}
+        )
+    return False
+
+
+def get_selected_turning_point_entries(world, phase_analyses):
+    """Returns the top 0-2 deterministic turning-point entries."""
+    ensure_event_importance_scores(world)
+    standings = get_final_standings(world)
+    if not standings:
+        return []
+
+    outcome_type = classify_outcome_type(world)
+    final_winner = standings[0]["faction"]
+    threshold = TURNING_POINT_MIN_THRESHOLD[outcome_type]
+    candidates = []
+
+    for index, analysis in enumerate(phase_analyses):
+        previous_analysis = phase_analyses[index - 1] if index > 0 else None
+        candidate = get_phase_break_candidate(
+            analysis=analysis,
+            previous_analysis=previous_analysis,
+            final_winner=final_winner,
+            phase_analyses=phase_analyses,
+        )
+        if candidate is not None:
+            candidates.append(candidate)
+
+    replay_state = build_replay_state(world)
+    for event in world.events:
+        before_state = clone_replay_state(replay_state)
+        after_state = apply_event_to_replay_state(event, replay_state)
+        if event.type in {"expand", "attack", "invest"}:
+            event_summary = summarize_major_event(event, world=world)
+            candidate = get_event_candidate(
+                world=world,
+                event=event,
+                event_summary=event_summary,
+                before_state=before_state,
+                after_state=after_state,
+                final_winner=final_winner,
+                outcome_type=outcome_type,
+                phase_analyses=phase_analyses,
+            )
+            if candidate is not None:
+                candidates.append(candidate)
+        replay_state = after_state
+
+    collapse_candidates_all = [
+        candidate for candidate in candidates
+        if candidate["event_class"] == "collapse"
+    ]
+    for candidate in candidates:
+        if candidate["event_class"] != "border_swing":
+            continue
+        if any(
+            0 < collapse["turn"] - candidate["turn"] <= 1
+            and (
+                candidate.get("region") == collapse.get("region")
+                or set(candidate.get("factions", ())) & set(collapse.get("factions", ()))
+            )
+            for collapse in collapse_candidates_all
+        ):
+            candidate["importance_score"] += 10
+
+    thresholded_candidates = [
+        candidate for candidate in candidates
+        if candidate["importance_score"] >= threshold
+    ]
+
+    if not thresholded_candidates:
+        if outcome_type in {"balanced_contest", "economic_win"}:
+            return []
+        if not candidates:
+            return []
+        best_candidate = max(
+            candidates,
+            key=lambda item: (item["importance_score"], -item["turn"]),
+        )
+        if threshold - best_candidate["importance_score"] > TURNING_POINT_NEAR_THRESHOLD_DELTA:
+            return []
+        thresholded_candidates = [best_candidate]
+
+    thresholded_candidates = dedupe_collapse_candidates(thresholded_candidates)
+    thresholded_candidates = dedupe_same_chain_entries(thresholded_candidates)
+
+    if outcome_type == "balanced_contest":
+        thresholded_candidates = [
+            candidate for candidate in thresholded_candidates
+            if candidate["importance_score"] >= BALANCED_CONTEST_STRONG_THRESHOLD
+            and (
+                candidate["event_class"] == "collapse"
+                or (
+                    candidate["event_class"] in {"leader_change", "economic_shift"}
+                    and candidate.get("phase_name") == "late"
+                )
+            )
+        ]
+        if not thresholded_candidates:
+            return []
+
+    if outcome_type == "economic_win":
+        treasury_relevant_candidates = [
+            candidate for candidate in thresholded_candidates
+            if is_treasury_relevant_entry(candidate, final_winner)
+        ]
+        if not treasury_relevant_candidates:
+            return []
+        thresholded_candidates = [
+            candidate for candidate in treasury_relevant_candidates
+            if candidate["importance_score"] >= ECONOMIC_WIN_STRONG_THRESHOLD
+        ]
+        if not thresholded_candidates:
+            return []
+
+    collapse_candidates = [
+        candidate for candidate in thresholded_candidates
+        if candidate["event_class"] == "collapse"
+    ]
+    filtered_candidates = []
+    for candidate in thresholded_candidates:
+        if (
+            outcome_type == "economic_win"
+            and candidate["event_class"] == "collapse"
+            and candidate["faction"] != final_winner
+        ):
+            continue
+        if (
+            collapse_candidates
+            and candidate["event_class"] == "border_swing"
+            and not candidate.get("triggered_leader_change", False)
+            and any(
+                abs(candidate["turn"] - collapse["turn"]) <= 2
+                and (
+                    candidate.get("region") == collapse.get("region")
+                    or set(candidate.get("factions", ())) & set(collapse.get("factions", ()))
+                )
+                for collapse in collapse_candidates
+            )
+        ):
+            continue
+        if outcome_type == "full_domination" and collapse_candidates and candidate["event_class"] == "border_swing":
+            continue
+        filtered_candidates.append(candidate)
+
+    clustered_candidates = select_non_conflicting_entries(filtered_candidates)
+
+    ranked_candidates = sorted(
+        clustered_candidates,
+        key=lambda item: (
+            get_turning_point_priority(item, outcome_type, final_winner),
+            -item["importance_score"],
+            item["turn"],
+            item["event_class"],
+            item["faction"],
+        ),
+    )
+
+    selected = []
+    for candidate in ranked_candidates:
+        if (
+            outcome_type in {"full_domination", "midgame_break", "late_snowball"}
+            and candidate["event_class"] == "phase_break"
+            and candidate["faction"] != final_winner
+            and any(
+                existing["event_class"] in {"phase_break", "collapse", "leader_change"}
+                and existing["faction"] == final_winner
+                for existing in selected
+            )
+        ):
+            continue
+        if any(entries_conflict(candidate, existing) for existing in selected):
+            continue
+        selected.append(candidate)
         if len(selected) == 2:
             break
 
@@ -958,7 +1410,7 @@ def get_selected_turning_point_entries(world, phase_analyses):
 
 
 def summarize_turning_points(world, phase_analyses):
-    """Returns 1-2 concise lines describing decisive shifts in the run."""
+    """Returns 0-2 concise lines describing decisive shifts in the run."""
     return [entry["line"] for entry in get_selected_turning_point_entries(world, phase_analyses)]
 
 

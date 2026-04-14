@@ -33,11 +33,6 @@ Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with 
 Mid phase: Faction1 and Faction4 were strongest by the end of turns 2-3, with Faction1 on 12 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 4 successful attacks shifted control of 2 regions. 4 expansions added 4 new regions. Faction1 gained 1 region.
 Late phase: Faction4 was strongest by the end of turns 4-5, with Faction4 on 22 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 4 successful attacks shifted control of 3 regions. 1 expansion added 1 new region. Faction1 gained 1 region while Faction2 lost 1 region.
 
-Turning Points
-
-Mid border swing: Faction1's capture of E flipped an important frontline region.
-Mid border swing: Faction2's capture of E flipped an important frontline region.
-
 Outcome Type
 
 Outcome type: balanced_contest.
@@ -51,7 +46,7 @@ Faction4 spent the opening consolidating its start with 1 investment, built stea
 
 Strategic Interpretation
 
-Faction4’s opportunist timing mattered because the board never separated cleanly, so a 3-treasury edge decided a 3-region tie rather than any territorial lead. After Faction1’s early and midgame control stabilized the map, the late shift to Faction4 meant the final swing came from exploiting a contested board, which prevented Faction1’s small regional gains from becoming decisive.
+Faction4’s opportunist timing mattered because the board never separated by territory, so the result was decided by a small treasury edge rather than map control. After Faction1 stabilized early and stayed strongest in the midgame, it could not convert that position into a region lead, which meant the late contest still left both sides tied at three regions. Faction4’s late strength therefore won by efficiency in a balanced contest, because the 3-treasury margin was enough once territorial separation failed to appear.
 The closest challenger was Faction1 (expansionist) at 19 treasury and 3 regions.
 
 Final Standings
@@ -63,7 +58,7 @@ Faction2 ended with a treasury of 12 and 1 region.
 
 Victor's History
 
-Faction4’s victory was not a matter of spectacle but of timing, realism, and steady exploitation of a contested board. While Faction1 set the early pace and even gained ground in the middle, the final balance favored the faction that held its nerve and made its moves count in a narrow multi-faction finish. Faction4 ended first with 3 regions, 22 treasury, and 3 total attacks, showing a coherence that outlasted the stronger opening claims of its rivals. In the end, the contest rewarded judgment that matched the board as it actually was, not as others hoped it would become.
+Faction4 prevailed because its opportunist doctrine fit the shape of this contest: timing, realism, and a clear sense of where the board was still open. In an asymmetric frontier and a balanced contest, the field remained contested throughout, and while Faction1 was strongest early and again in the midgame, it could not convert that lead into the finish. Faction4’s steadier accumulation of position and treasury, ending with 3 regions, 22 treasury, and 3 total attacks, proved the more coherent answer to a narrow multi-faction struggle. Faction1’s expansion was substantial, but in the end it was Faction4 that judged the moment best and held together when the contest tightened.
 
 ========================================================================
 
@@ -100,7 +95,7 @@ Late phase: Faction1 was strongest by the end of turns 7-10, with Faction1 on 55
 
 Turning Points
 
-Mid collapse: Faction4's capture of H eliminated Faction3's last territorial hold.
+Mid phase break: Faction1 gained 3 regions while Faction2 lost 2 regions.
 Early collapse: Faction1's capture of E eliminated Faction2's last territorial hold.
 
 Outcome Type
@@ -116,7 +111,7 @@ Faction4 opened with 1 claim and grew to 3 regions by the end of the opening pha
 
 Strategic Interpretation
 
-After a contested opening, Faction1’s expansionist push created the midgame break because its gain of 3 regions coincided with Faction2 losing 2, which shifted the board away from parity. That mattered because Faction1’s capture of E removed Faction2’s last territorial hold, so the main rival could no longer recover map position while Faction4’s earlier strength had not yet translated into lasting control. By the late phase, Faction1 had turned that break into a 3-region lead because the board was already destabilized, while Faction4’s mid collapse at H only eliminated Faction3’s final hold without reversing Faction1’s advantage.
+After a contested opening, Faction1’s expansionist push created the midgame break because gaining 3 regions while Faction2 lost 2 shifted the board from parity to separation. That mattered because Faction1’s capture of E eliminated Faction2’s last territorial hold, which removed the only immediate check on further growth. Faction4 had been strongest early, but it could not convert that position into recovery because the map had already tilted toward Faction1’s sustained territorial advantage.
 The closest challenger was Faction4 (opportunist) at 28 treasury and 4 regions.
 
 Final Standings
@@ -128,7 +123,7 @@ Faction3 ended with a treasury of 7 and 0 regions.
 
 Victor's History
 
-In the end, Faction1’s victory was the natural result of bold initiative and rightful growth on an asymmetric frontier that rewarded those willing to press advantage. After a cautious opening in which the board remained contested, Faction1 created the decisive middle-phase break, seized the initiative, and never surrendered it, finishing with 7 regions and 55 treasury. Faction4’s early strength and later rise to 6 regions showed real capacity, but its momentum could not be sustained, and it closed second after slipping back to 4 regions. The record is clear: Faction1’s expansion was steadier, more coherent, and ultimately more durable than the rival claims that briefly challenged it.
+In the end, Faction1 prevailed by the logic of bold initiative and rightful growth, turning a modest opening into the decisive middle-phase break that settled the contest. After the early board remained contested and Faction4 briefly led, Faction1’s steady advance through the midgame—especially the gain of three regions while Faction2 lost two—gave the campaign its clear shape. The capture of E, which removed Faction2’s last territorial hold, marked the point at which the balance could no longer be restored. By turn 10, Faction1 stood first with 7 regions and 55 treasury, while the runner-up’s earlier strength had already begun to ebb.
 
 ========================================================================
 
@@ -165,8 +160,8 @@ Late phase: Faction4 was strongest by the end of turns 14-20, with Faction4 on 2
 
 Turning Points
 
-Mid collapse: Faction4's capture of E eliminated Faction2's last territorial hold.
 Early collapse: Faction4's capture of H eliminated Faction3's last territorial hold.
+Mid collapse: Faction4's capture of E eliminated Faction2's last territorial hold.
 
 Outcome Type
 
@@ -181,7 +176,7 @@ Faction4 opened with 1 claim and grew to 5 regions by the end of the opening pha
 
 Strategic Interpretation
 
-Faction4’s opportunist timing mattered because it converted a strong early position into elimination pressure, first removing Faction3’s last hold and then Faction2’s last hold, which left no recovery path for the remaining rivals. After that midgame collapse, the board stopped being contested and Faction4 could stabilize territorial control, so the final 12-region and 168-treasury margins reflected consolidation rather than a late race. Faction1’s early expansionist gains did not convert because Faction4’s mid-phase swing reversed them and isolated the only remaining competitor, which made the outcome a full domination rather than a close contest.
+Faction4’s opportunist timing mattered because it converted a strong early position into elimination pressure, first removing Faction3’s last hold and then Faction2’s, which left no recovery path on an asymmetric frontier. After the midgame break, Faction4’s 7-region gain and Faction1’s 3-region loss created a 12-region gap, so the board stopped being contested and control could stabilize. Faction1’s early expansionist gains were not enough because they did not survive the collapse of the other territorial anchors, while Faction4’s late consolidation turned map control into complete domination.
 The closest challenger was Faction1 (expansionist) at 61 treasury and 0 regions.
 
 Final Standings
@@ -193,7 +188,7 @@ Faction3 ended with a treasury of 10 and 0 regions.
 
 Victor's History
 
-In the end, Faction4’s victory was not a matter of spectacle but of timing, realism, and a clear reading of weakness. It opened with one claim, expanded to five regions by the end of the opening phase, and then built steadily until it held twelve regions and the field was fully reduced. The early removal of Faction3’s last hold and the mid-game elimination of Faction2’s final territory show how decisively Faction4 converted openings into durable control. By contrast, Faction1’s early growth never held, and the other factions were left without territory, which is the plain measure of whose judgment proved soundest.
+Faction4’s victory was not a matter of spectacle but of timing and judgment: it opened with one claim, expanded to five regions by the end of the opening phase, and then built steadily to complete territorial control by turn 20. The decisive captures of H and later E removed Faction3’s and Faction2’s last holdings, after which the field stabilized in Faction4’s favor. By contrast, Faction1’s early growth never held, and its eventual loss of all territory after repeated attacks showed the limits of initiative without durability. In the end, the outcome reflected a disciplined opportunism that read the frontier correctly and finished what the others could not sustain.
 
 ========================================================================
 
@@ -230,8 +225,8 @@ Late phase: Faction1 was strongest by the end of turns 27-40, with Faction1 on 5
 
 Turning Points
 
-Early collapse: Faction4's capture of H eliminated Faction3's last territorial hold.
 Early collapse: Faction1's capture of E eliminated Faction2's last territorial hold.
+Mid collapse: Faction1's capture of C eliminated Faction4's last territorial hold.
 
 Outcome Type
 
@@ -246,7 +241,7 @@ Faction4 opened with 1 claim and grew to 6 regions by the end of the opening pha
 
 Strategic Interpretation
 
-Faction1’s expansionist push created the separation because it kept adding territory while the board was still being cleared, so the midgame swing left it far ahead on an asymmetric frontier. Faction4’s early gains mattered less because they did not convert into a durable position, and once Faction1 eliminated Faction2’s last hold, the remaining competition collapsed into a one-sided map. By the late phase, Faction1 was 12 regions clear with a huge treasury lead, which meant no rival had a path to recover or contest the finish.
+Faction1’s expansionist push created the separation because it converted early strength into elimination pressure, first removing Faction2’s last hold and then stripping Faction4’s final territory. That midgame collapse mattered because once the board lost its remaining rivals, Faction1 could keep scaling while Faction4’s early gains could not recover into a territorial base. By the late phase, Faction1 was already strongest and finished 12 regions clear, so the result was decided by control of the map rather than a narrow endgame margin.
 The closest challenger was Faction4 (opportunist) at 85 treasury and 0 regions.
 
 Final Standings
@@ -258,7 +253,7 @@ Faction2 ended with a treasury of 7 and 0 regions.
 
 Victor's History
 
-Faction1’s victory was the natural result of bold initiative and rightful growth on an asymmetric frontier. It opened with a single claim, expanded to 4 regions by the end of the opening phase, and then built steadily until it held 12 regions at the close, finishing with 536 treasury and 17 total attacks. The field narrowed early as Faction4 removed Faction3’s last hold and Faction1 removed Faction2’s, but only Faction1 sustained the expansion needed to turn advantage into full domination. Faction4’s early rise to 6 regions proved temporary, and its later loss of territory showed the limits of a position that could not endure Faction1’s steadier advance.
+Faction1’s victory was not accidental but the natural result of bold initiative and rightful growth on an asymmetric frontier. It opened with one claim, expanded to four regions by the end of the opening phase, and then continued steadily until it held 12 regions and complete territorial control by turn 40, with a treasury of 536 and 17 total attacks. The decisive captures of E and later C removed Faction2 and Faction4 from the map, while the other factions never recovered territory after their collapses. In the end, the record shows a coherent expansionist campaign that set the pace from the start and never surrendered it.
 
 ========================================================================
 
@@ -295,7 +290,7 @@ Late phase: Faction4 was strongest by the end of turns 54-80, with Faction4 on 1
 
 Turning Points
 
-Early collapse: Faction1's capture of H eliminated Faction3's last territorial hold.
+Early collapse: Faction4's capture of C eliminated Faction1's last territorial hold.
 Early collapse: Faction4's capture of G eliminated Faction2's last territorial hold.
 
 Outcome Type
@@ -311,7 +306,7 @@ Faction4 opened with 1 claim and grew to 12 regions by the end of the opening ph
 
 Strategic Interpretation
 
-Faction4’s opportunist timing mattered because it converted an early opening into immediate elimination pressure, and its capture of G removed Faction2’s last territorial hold while Faction1 did the same to Faction3. That early collapse left the board with no recovery paths for the other factions, so Faction4 could stabilize control and finish 12 regions clear. The result was full domination because the contest ended as soon as the last rivals lost their footholds, which prevented any later counterplay.
+Faction4’s opportunist timing created full domination because its early captures of C and G removed Faction1 and Faction2’s last territorial holds, eliminating any path for recovery before the map could settle. That early collapse mattered because Faction4 then stabilized control across the midgame and late game, so the contest never reopened and the final 12-region, 1397-treasury margin was locked in by the absence of remaining rivals.
 The closest challenger was Faction1 (expansionist) at 66 treasury and 0 regions.
 
 Final Standings
@@ -323,7 +318,7 @@ Faction2 ended with a treasury of 5 and 0 regions.
 
 Victor's History
 
-Faction4’s victory on the asymmetric frontier was not a matter of spectacle but of timing and realism: with only one early claim, it steadily expanded to 12 regions by the end of the opening phase and then held that position through the middle and late turns. Its 13 total attacks were enough to reduce the field and secure full domination, while the early collapses of Faction3 and Faction2 left no durable opposition. By contrast, Faction1’s aggressive opening produced brief gains but no lasting structure, and the other factions ended with no regions and little treasury. The record shows a disciplined opportunism that matched the shape of the contest and finished with complete territorial control.
+In the end, Faction4’s victory was not a matter of reckless reach, but of timing, realism, and a clear eye for weakness. It opened with a single claim, expanded to 12 regions by the close of the opening phase, and then held that position steadily through the middle and late turns, finishing with full territorial control and a treasury of 1463. By contrast, Faction1’s early aggression peaked briefly before collapsing to nothing, and the other factions likewise lost their last holdings, showing that initiative without durability could not withstand Faction4’s more exact judgment.
 
 ========================================================================
 
@@ -360,8 +355,8 @@ Late phase: Faction1 was strongest by the end of turns 107-160, with Faction1 on
 
 Turning Points
 
+Early collapse: Faction1's capture of E eliminated Faction4's last territorial hold.
 Early collapse: Faction1's capture of E eliminated Faction2's last territorial hold.
-Early collapse: Faction4's capture of H eliminated Faction3's last territorial hold.
 
 Outcome Type
 
@@ -376,7 +371,7 @@ Faction4 opened with 20 attack attempts and contested neighboring borders immedi
 
 Strategic Interpretation
 
-Faction1’s expansionist push created immediate separation because it gained 8 regions early and finished 12 regions clear, so the map stopped being contested before rivals could recover. The early collapse of Faction2 and Faction3’s last territorial holds removed the only remaining checks on control, which meant Faction4 had no territorial base left and ended on 0 regions. With territorial dominance already locked in and the board stabilized midgame, Faction1’s lead could not be reversed because the remaining factions lacked any path to rebuild influence.
+Faction1’s expansionist push created immediate separation because its early gains removed Faction4 and Faction2’s last territorial holds, which eliminated any path for them to recover on the map. That early collapse mattered because the board stopped being contested so quickly that Faction1 could stabilize control through the midgame and late game without facing a territorial challenge. Faction4’s economic position was irrelevant because 51 treasury could not offset having no regions, so the result was decided by elimination and territory rather than resource efficiency.
 The closest challenger was Faction4 (opportunist) at 51 treasury and 0 regions.
 
 Final Standings
@@ -388,7 +383,7 @@ Faction2 ended with a treasury of 6 and 0 regions.
 
 Victor's History
 
-Faction1’s victory was the product of bold initiative carried through with unusual consistency: it opened with a single claim, expanded to 12 regions by the end of the opening phase, and then held that position steadily through the middle and late turns. In an asymmetric frontier, that kind of early growth mattered, and Faction1’s capture of E ended Faction2’s last hold before the field could recover. The other factions showed activity, but their efforts did not translate into durable control; Faction4’s early pressure and brief peak were not enough to sustain its position, and the rest were reduced to no regions. In the end, the record is clear: Faction1 combined expansion with stability, and complete territorial control was the natural result.
+Faction1’s victory was the product of bold initiative and steady consolidation: it opened with a single claim, grew to 12 regions by the end of the opening phase, and then held that position through the middle and late turns. The early capture of E removed the last territorial holds of both Faction4 and Faction2, and from that point the field narrowed decisively around Faction1’s control. By the end, the standings confirmed what the turn record had already made plain: complete territorial dominance, 12 regions, and a treasury of 3039. Faction4’s early aggression and brief peak at 9 regions could not be sustained, while the other rivals ended with no territory at all.
 
 ========================================================================
 
@@ -423,11 +418,6 @@ Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with 
 Mid phase: Faction1 and Faction2 were strongest by the end of turns 2-3, with Faction1 on 10 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 8 expansions added 8 new regions. Faction1 gained 2 regions.
 Late phase: Faction3 was strongest by the end of turns 4-5, with Faction3 on 15 treasury and 4 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 2 successful attacks shifted control of 1 region. 5 expansions added 5 new regions. Faction4 gained 2 regions. Faction3 improved its standing most during the phase.
 
-Turning Points
-
-Late border swing: Faction3's capture of C flipped an important frontline region.
-Late border swing: Faction4's capture of C flipped an important frontline region.
-
 Outcome Type
 
 Outcome type: economic_win.
@@ -441,7 +431,7 @@ Faction4 spent the opening consolidating its start with 1 investment, built stea
 
 Strategic Interpretation
 
-Because the board stayed contested on a symmetric map, Faction3’s economic approach mattered more than raw territory, and the 1-treasury edge decided a 4-region tie. Faction1’s early territorial strength and midgame gains stabilized control but did not create separation, which meant those regions could not convert into a lasting lead. The late border swings around C shifted frontline control, but they were not enough to overcome Faction3’s tighter resource position, so the result turned on efficiency rather than expansion.
+Because the board stayed contested on a symmetric multi-ring map, territory never separated enough to decide the game, so the result came down to treasury and Faction3’s one-point edge. Faction3’s economic approach mattered in the late phase because it converted a tied 4-region position into the higher income needed to finish ahead, while Faction1’s early territorial strength and midgame gains did not translate into a lasting resource lead.
 The closest challenger was Faction1 (expansionist) at 14 treasury and 4 regions.
 
 Final Standings
@@ -453,7 +443,7 @@ Faction4 ended with a treasury of 13 and 5 regions.
 
 Victor's History
 
-In the end, Faction3 prevailed not by chasing every border, but by converting discipline into advantage and preserving its strength through the contest. Its economic approach proved the soundest on a multi-ring map that remained contested, and by turn 5 it had matched the leading territorial totals while finishing with the strongest treasury at 15. Faction1 showed real early and midgame force, but its expansionist push did not translate into the final margin, while Faction4’s late gains could not alter the balance. The result was a clear vindication of stewardship over mere reach: the faction that managed its resources best won the day.
+Faction3’s victory was not a matter of spectacle but of discipline, efficiency, and sound stewardship. While Faction1 set the early pace and later matched the same four-region footprint, its expansionist push did not translate into the final margin; the contest remained close, but not decisive. In the end, Faction3’s economic approach produced the superior conversion, finishing first with 4 regions, 15 treasury, and only 1 total attacks, a steadier result than rivals could sustain.
 
 ========================================================================
 
@@ -488,11 +478,6 @@ Early phase: Faction1 and Faction2 were strongest by the end of turns 1-3, with 
 Mid phase: Faction1 was strongest by the end of turns 4-6, with Faction1 on 18 treasury and 4 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 5 successful attacks shifted control of 1 region. 6 expansions added 6 new regions. Faction2 gained 2 regions. Faction4 improved its standing most during the phase.
 Late phase: Faction3 was strongest by the end of turns 7-10, with Faction3 on 18 treasury and 4 regions. 9 successful attacks shifted control of 8 regions. 4 expansions added 4 new regions. Faction1 gained 3 regions while Faction2 lost 1 region. Faction3 improved its standing most during the phase.
 
-Turning Points
-
-Late border swing: Faction1's capture of I6 flipped an important frontline region.
-Late border swing: Faction2's capture of M6 flipped an important frontline region.
-
 Outcome Type
 
 Outcome type: economic_win.
@@ -506,7 +491,7 @@ Faction4 opened with 2 claims and grew to 3 regions by the end of the opening ph
 
 Strategic Interpretation
 
-Faction3’s economic approach won because treasury, not territory, decided a board that never fully separated, and the 1-point treasury edge outweighed Faction1’s 3-region lead. After a contested early and midgame, Faction1’s expansionist pressure built the largest map position, but it did not convert into enough income, which meant late border swings could change frontlines without changing the final resource balance. Faction3’s steadier accumulation mattered because the multi-ring symmetry kept the map contested, so territorial gains by the runner-up could not overcome the winner’s superior treasury efficiency.
+Faction3’s economic approach won because treasury, not territory, decided a board that never fully separated, and the 1-point cash edge outweighed Faction1’s 7-region lead. On the multi-ring symmetry map, Faction1’s expansionist pressure created more regions but could not convert that spread into enough income, which meant the contested midgame and late board state still left room for a resource-based finish. Faction3’s stronger late economy mattered because it produced the only margin that held when map control remained split.
 The closest challenger was Faction1 (expansionist) at 17 treasury and 7 regions.
 
 Final Standings
@@ -518,7 +503,7 @@ Faction4 ended with a treasury of 14 and 7 regions.
 
 Victor's History
 
-Faction3’s victory was a clear vindication of discipline, efficiency, and sound stewardship: it finished first on treasury despite conceding map share, and that restraint proved more durable than raw expansion. While Faction1 pressed hardest in the opening and ultimately reached 7 regions, its gains did not translate into the decisive advantage its strategy promised. The late border swings only confirmed that the contest remained contested, but Faction3’s steadier course carried it to the top with 4 regions, 18 treasury, and only 2 total attacks.
+Faction3’s victory was a clear vindication of discipline, efficiency, and sound stewardship. While others pressed for broader map share, Faction3 kept its course steady and finished first on treasury despite conceding ground, proving that measured management could outlast more expansive ambitions. Faction1 did build the largest realm and remained strongest in the early and mid phases, but it could not convert that reach into the decisive advantage at the end. In the final accounting, the contest belonged to the faction that governed its resources best.
 
 ========================================================================
 
@@ -556,7 +541,7 @@ Late phase: Faction2 was strongest by the end of turns 14-20, with Faction2 on 1
 Turning Points
 
 Late phase break: Faction2 gained 7 regions while Faction4 lost 2 regions.
-Mid border swing: Faction3's capture of I4 flipped an important frontline region.
+Late leader change: Faction2 took the territorial lead.
 
 Outcome Type
 
@@ -571,7 +556,7 @@ Faction4 opened with 3 claims and grew to 4 regions by the end of the opening ph
 
 Strategic Interpretation
 
-After a contested opening, Faction2’s balanced approach created the late separation because it converted midgame gains into a stronger finish rather than leaving the board tied. The decisive break came in the late phase, when Faction2 added 7 regions while Faction4 lost 2, which widened the map gap enough to make recovery impossible for the others. Faction3’s early strength and the I4 frontline swing mattered because they kept the board contested for a while, but they did not produce the sustained growth needed to match Faction2’s late snowball.
+After a contested opening, Faction2’s balanced approach created the late separation because it converted midgame gains into a stronger finish instead of letting the board stay split. The decisive break came in the late phase, when Faction2 gained 7 regions while Faction4 lost 2 regions, which allowed Faction2 to take the territorial lead and finish 10 regions clear. Faction3’s early strength and Faction1’s midgame gains did not convert into control because the late swing changed the map state from contested to one-sided, so the final margin was decided by timing and sustained territorial growth rather than early position.
 The closest challenger was Faction3 (economic) at 8 treasury and 3 regions.
 
 Final Standings
@@ -583,7 +568,7 @@ Faction1 ended with a treasury of 1 and 8 regions.
 
 Victor's History
 
-Faction2’s victory was not born of spectacle but of prudence, adaptability, and steadier judgment. On a multi-ring symmetry map, it remained close through the opening, then built steadily until the late phase, when it separated decisively and finished 10 regions clear with 13 regions and 12 treasury. Faction3 began strongest and even reached 7 regions before slipping back, while Faction4’s late losses and Faction1’s thinner treasury left them unable to match Faction2’s coherence. In the end, the record favors the faction that kept its course and let the contest come to it.
+In the end, Faction2’s victory was the product of prudence and steadier judgment rather than any reckless bid for early dominance. While Faction3 set the pace at the outset and even reached a peak before slipping back, Faction2 remained close, built methodically, and separated only when the late phase rewarded consistency over fluctuation. The decisive break came when Faction2 gained 7 regions in the closing stretch and took the territorial lead, finishing 10 regions clear with 13 regions and a healthy treasury of 12. On this map, the result favored the faction that kept its course and let the contest come to it.
 
 ========================================================================
 
@@ -620,8 +605,8 @@ Late phase: Faction2 was strongest by the end of turns 27-40, with Faction2 on 1
 
 Turning Points
 
-Late collapse: Faction2's capture of O8 eliminated Faction3's last territorial hold.
-Late phase break: Faction2 gained 11 regions while Faction3 lost 4 regions.
+Mid phase break: Faction2 gained 5 regions while Faction3 lost 2 regions.
+Mid leader change: Faction2 took the territorial lead.
 
 Outcome Type
 
@@ -636,7 +621,7 @@ Faction4 opened with 4 claims and grew to 7 regions by the end of the opening ph
 
 Strategic Interpretation
 
-After a contested opening, Faction2’s balanced approach created the midgame break because it turned a small territorial edge into a sustained lead while Faction3 began losing ground. The late capture of O8 mattered because it removed Faction3’s last territorial hold, which prevented any recovery and let Faction2 finish 17 regions clear. Faction1’s early strength did not convert into the result because the board shifted before it could separate, so the decisive advantage came from Faction2’s mid-to-late consolidation rather than early control.
+Faction2’s balanced approach mattered because the multi-ring symmetry kept the board contested early, so the win depended on a midgame break rather than opening separation. The decisive shift came when Faction2 took the territorial lead and gained 5 regions while Faction3 lost 2, which created a gap that the late game only widened. Faction3’s early strength did not convert because the contest stayed tight long enough for Faction2 to stabilize first, and that midphase advantage then carried into a 17-region finish.
 The closest challenger was Faction1 (expansionist) at 22 treasury and 5 regions.
 
 Final Standings
@@ -648,7 +633,7 @@ Faction4 ended with a treasury of 11 and 5 regions.
 
 Victor's History
 
-Faction2’s victory was not the product of spectacle but of steadier judgment, and the record shows that its balanced approach created the decisive middle-phase break. It opened with four claims, grew to six regions by the end of the opening phase, and then continued to build without losing coherence, finishing with 22 regions and a treasury of 148. By contrast, Faction3’s early strength could not endure, and its last territorial hold fell when Faction2 captured O8, while Faction1’s expansionist surge never translated into a lasting challenge. In a multi-ring symmetry map, the faction that advanced with prudence and adaptability proved the most durable.
+In the end, Faction2’s victory was the product of prudence and steadier judgment, not spectacle. It opened with 4 claims, held to a measured course through the contested early board, and then made the decisive middle-phase break that carried it into the lead. From there it continued to build with discipline, finishing on 22 regions and 148 treasury, while Faction3’s early strength proved less durable and Faction1’s expansion never translated into a lasting advantage.
 
 ========================================================================
 
@@ -686,7 +671,7 @@ Late phase: Faction4 was strongest by the end of turns 54-80, with Faction4 on 1
 Turning Points
 
 Mid collapse: Faction4's capture of O2 eliminated Faction1's last territorial hold.
-Mid collapse: Faction4's capture of I1 eliminated Faction2's last territorial hold.
+Mid collapse: Faction4's capture of O12 eliminated Faction3's last territorial hold.
 
 Outcome Type
 
@@ -701,7 +686,7 @@ Faction4 opened with 3 claims and grew to 15 regions by the end of the opening p
 
 Strategic Interpretation
 
-Faction4’s opportunist timing mattered because its midgame captures removed Faction1 and Faction2’s last territorial holds, which eliminated the only remaining paths to recovery on a multi-ring symmetry map. After that collapse, the board stopped being contested and Faction4 could convert its early and midgame territorial lead into full domination, finishing 37 regions ahead because no rival retained a foothold. The late phase mattered less for expansion than for consolidation, because Faction4 had already broken the structure of resistance before the endgame.
+Faction4’s opportunist timing mattered because the midgame captures of O2 and O12 removed Faction1 and Faction3’s last territorial holds, which turned a contested board into a one-sided map. That collapse mattered because once the remaining rivals were eliminated, there was no recovery path, so Faction4 could convert its earlier territorial lead into full domination. The late phase then only confirmed the separation, because Faction4 was already strongest and the final 37-region gap reflected control rather than a close race.
 The closest challenger was Faction2 (balanced) at 237 treasury and 0 regions.
 
 Final Standings
@@ -713,7 +698,7 @@ Faction1 ended with a treasury of 5 and 0 regions.
 
 Victor's History
 
-The record of this contest is plain: Faction4 won by timing, realism, and a clear eye for weakness, reducing the field until complete territorial control was secured. It began with only 3 claims, yet by the end of the opening phase it had reached 15 regions, then pressed its advantage through the middle turns to 37 regions by turn 80, finishing with 1630 in treasury and 47 attacks. The decisive captures of O2 and I1 ended the last territorial holds of Faction1 and Faction2, and from that point the outcome was no longer in doubt. By contrast, the other factions could not sustain their positions once pressure mounted, while Faction4 remained the one force able to convert opportunity into lasting control.
+In the end, Faction4’s victory was not a matter of spectacle but of timing, realism, and the steady exploitation of weakness. It opened with only 3 claims, yet by the close of the opening phase it had reached 15 regions, then pressed its advantage through the middle turns until the field narrowed around it and full territorial control was secured. The decisive captures of O2 and O12 ended the last holdings of Faction1 and Faction3, while Faction2’s early claims and brief peak could not survive the pressure of a stronger, more coherent campaign. By turn 80, Faction4 stood with 37 regions and a treasury of 1630, a result that reflects disciplined opportunism rather than chance.
 
 ========================================================================
 
@@ -750,8 +735,8 @@ Late phase: Faction1 was strongest by the end of turns 107-160, with Faction1 on
 
 Turning Points
 
+Early collapse: Faction1's capture of O2 eliminated Faction2's last territorial hold.
 Mid collapse: Faction1's capture of I1 eliminated Faction3's last territorial hold.
-Mid collapse: Faction1's capture of O6 eliminated Faction4's last territorial hold.
 
 Outcome Type
 
@@ -766,7 +751,7 @@ Faction4 opened with 4 claims and grew to 2 regions by the end of the opening ph
 
 Strategic Interpretation
 
-Faction1’s expansionist push created early separation because it gained 20 regions in the opening and was already 18 regions clear, which meant the map never settled into a stable contest. The decisive break came in the midgame because Faction1 captured Faction3’s and Faction4’s last territorial holds, which removed the only remaining recovery paths and turned territorial advantage into full domination. After that collapse, control stabilized because no rival retained a foothold, so Faction1 could finish with a 37-region lead and a massive treasury edge.
+Faction1’s expansionist push created early separation because it rapidly converted the symmetric map into a one-sided board, and that mattered because the first collapse removed Faction2’s last territorial hold. The midgame then decided the outcome because Faction1’s capture of I1 eliminated Faction3’s last hold, which left no recovery path and turned territorial control into full domination. Once the board stabilized late, Faction1 already had 37 regions and a huge treasury lead, so the remaining turns only confirmed an advantage that had become structurally irreversible.
 The closest challenger was Faction3 (economic) at 121 treasury and 0 regions.
 
 Final Standings
@@ -778,7 +763,7 @@ Faction4 ended with a treasury of 1 and 0 regions.
 
 Victor's History
 
-Faction1’s victory was the plain result of bold initiative and rightful growth carried through with consistency from the opening to the end. It began with 4 claims, reached 24 regions by the close of the opening phase, and continued to build until it held 37 regions and 4931 treasury by turn 160, finishing first with full territorial control. The decisive captures of I1 and O6 ended the last territorial holds of Faction3 and Faction4, and the field then stabilized under Faction1’s command. By contrast, the other factions could not convert their early positions into durable control, while Faction1’s expansion remained coherent and cumulative throughout.
+Faction1’s victory was the product of bold initiative and rightful growth, not mere accumulation. It opened with 4 claims, reached 24 regions by the end of the opening phase, and by turn 160 held 37 regions with a treasury of 4931, while the field steadily contracted around it. The decisive captures of O2 and later I1 removed Faction2 and Faction3 from territorial contention, and the late phase simply confirmed a control that had already become structural. Faction3’s brief rise to 13 regions and its 30 attacks could not overcome the loss of territory, and the other factions never recovered from their early collapse.
 
 ========================================================================
 
@@ -813,7 +798,6 @@ Late phase: Faction4 was strongest by the end of turns 4-5, with Faction4 on 16 
 Turning Points
 
 Mid collapse: Faction2's capture of Q eliminated Faction3's last territorial hold.
-Mid border swing: Faction1's capture of Q flipped an important frontline region.
 
 Outcome Type
 
@@ -828,7 +812,7 @@ Faction4 spent the opening consolidating its start with 1 investment, built stea
 
 Strategic Interpretation
 
-Faction4’s opportunist timing mattered because the seventeen-region ring stayed contested until late, so no faction could build an unassailable territorial lead and the result was decided by a small 3-treasury edge rather than regions. Midgame shifts mattered because Faction2’s capture of Q eliminated Faction3’s last hold and Faction1’s later capture of Q flipped the frontline, which kept the board unstable and prevented any early leader from converting control into separation. While Faction1 was strongest early, Faction4 became strongest late, which meant the winner’s late positioning was enough to edge a balanced contest where the runner-up finished level in regions but behind in treasury.
+Faction4’s opportunist timing mattered because the board stayed contested throughout, so the win was decided by a small treasury edge rather than territorial separation. The midgame collapse of Faction3’s last hold removed one rival’s recovery path, which kept the map unstable and allowed Faction4 to finish with 16 treasury against Faction1’s 13 despite both ending on 2 regions. While Faction1 and Faction2 showed stronger territorial moments, they could not convert them into a decisive lead because the ring map preserved parity and prevented any lasting breakaway.
 The closest challenger was Faction1 (expansionist) at 13 treasury and 2 regions.
 
 Final Standings
@@ -840,7 +824,7 @@ Faction3 ended with a treasury of 7 and 0 regions.
 
 Victor's History
 
-Faction4’s victory was not the product of spectacle, but of timing, realism, and a clear reading of a narrow multi-faction contest. While Faction1 led early and later forced a key border swing at Q, and Faction2 briefly held the strongest position midgame, Faction4 remained the steadiest beneficiary of the board’s shifting balance and finished first with 2 regions, 16 treasury, and 4 total attacks. The runner-up’s expansion was real, but it never translated into the decisive edge; in a balanced contest, Faction4 proved better at waiting for openings and converting them when they appeared.
+In the end, Faction4 prevailed because it judged the contest correctly: in a narrow, contested finish, timing and realism mattered more than grand claims. It held together best under pressure, finishing first with 2 regions, 16 treasury, and 4 total attacks, a record that speaks to disciplined opportunism rather than wasteful overreach. Faction1 remained the strongest rival for much of the game and reached 2 regions as well, but its expansionist course did not convert early strength into the lead. Faction3’s loss of its last territorial hold in the midgame marked the clearest structural failure, while Faction2’s brief strength never became lasting control.
 
 ========================================================================
 
@@ -876,8 +860,8 @@ Late phase: Faction1 was strongest by the end of turns 7-10, with Faction1 on 58
 
 Turning Points
 
-Mid collapse: Faction1's capture of Q eliminated Faction3's last territorial hold.
-Early collapse: Faction2's capture of Q eliminated Faction4's last territorial hold.
+Late phase break: Faction1 gained 4 regions and opened the clearest territorial swing of the run.
+Early collapse: Faction1's capture of Q eliminated Faction3's last territorial hold.
 
 Outcome Type
 
@@ -892,7 +876,7 @@ Faction4 spent the opening consolidating its start with 1 investment, lost groun
 
 Strategic Interpretation
 
-After a contested opening, Faction1’s expansionist push mattered because it turned a narrow board into a widening territorial lead, and the midgame capture of Q removed Faction3’s last hold so the remaining rivals had less room to recover. Faction2 was strongest early, but its advantage did not convert into lasting separation because the board stayed contested and its own early capture of Q only eliminated Faction4 rather than creating a durable gap. By the late phase, Faction1 had compounded that territorial edge into a 3-region and 39-treasury margin, which meant the snowball was decided by sustained growth rather than a single swing.
+After a contested opening, Faction1’s expansionist push created the late separation because the board had stayed tight early and Faction2 had been strongest then. The decisive break came in the late phase, when Faction1 gained 4 regions and opened the clearest territorial swing, which mattered because the 17-region ring left little room for recovery once one side pulled ahead. Faction1’s capture of Q also removed Faction3’s last territorial hold, which reduced the number of active rivals and helped turn the lead into a 3-region win with a large treasury edge.
 The closest challenger was Faction2 (balanced) at 19 treasury and 4 regions.
 
 Final Standings
@@ -904,7 +888,7 @@ Faction4 ended with a treasury of 4 and 0 regions.
 
 Victor's History
 
-From the record, Faction1’s victory was not a matter of luck but of bold initiative sustained long enough to become decisive. It began by contesting the neighboring borders immediately, stayed close through the opening, and then separated late, finishing with 7 regions and 58 treasury on a seventeen-region ring. The early and mid phases still belonged at moments to others, but Faction1’s expansion proved the more durable structure, while Faction2’s steadier start could not hold once the contest sharpened. In the end, the outcome confirmed that rightful growth, pursued with consistency, outlasted caution and left the field to the faction best able to turn pressure into reach.
+Faction1’s victory was the product of bold initiative and rightful growth, not mere fortune. Though Faction2 began strongest and contested the board early, Faction1 stayed close, then separated in the late phase with a clear territorial swing that left it three regions ahead at the finish. The capture of Q also ended Faction3’s last hold, while Faction4’s loss of a region in midgame showed how quickly weaker positions could unravel. By turn 10, Faction1 had reached 7 regions and 58 treasury, a decisive and coherent outcome for an expansionist campaign.
 
 ========================================================================
 
@@ -940,8 +924,8 @@ Late phase: Faction1 was strongest by the end of turns 14-20, with Faction1 on 1
 
 Turning Points
 
-Early collapse: Faction2's capture of Q eliminated Faction3's last territorial hold.
-Early collapse: Faction4's capture of Q eliminated Faction2's last territorial hold.
+Early collapse: Faction1's capture of Q eliminated Faction4's last territorial hold.
+Mid collapse: Faction1's capture of H eliminated Faction3's last territorial hold.
 
 Outcome Type
 
@@ -956,7 +940,7 @@ Faction4 opened with 4 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-Faction1’s expansionist push created the decisive separation because it was already strongest early and then widened the gap through midgame and late gains, which turned a contested ring into a one-sided board. The early collapse of Faction3 and then Faction2 removed the only remaining territorial checks, which meant Faction1 faced shrinking resistance while others lost their last footholds. Faction2’s brief early growth did not convert into recovery because it ended with no regions, so the final 17-region and 94-treasury margins reflected complete control rather than a close contest.
+Faction1’s expansionist push created early separation because it converted pressure into territory faster than the others could respond, and that mattered on a ring map where control could compound quickly. The midgame break came when Faction1 removed Faction3’s last hold after already eliminating Faction4, which prevented any recovery path and turned a contested board into a shrinking field of rivals. From there, the late surge mattered because Faction1 kept adding regions while Faction2 lost ground, so the gap widened into full domination rather than a narrow territorial lead.
 The closest challenger was Faction2 (balanced) at 47 treasury and 0 regions.
 
 Final Standings
@@ -968,7 +952,7 @@ Faction4 ended with a treasury of 5 and 0 regions.
 
 Victor's History
 
-In the end, Faction1’s victory was the plain result of bold initiative and rightful growth carried through without hesitation. It opened with five attack attempts, contested neighboring borders at once, and then built steadily until it held all 17 regions of the ring by turn 20, finishing with 141 treasury and 13 total attacks. The others never recovered from the early reversals that stripped them of territory, while Faction1 kept adding ground through the middle and late phases, widening the gap until full domination was complete.
+In the end, Faction1’s victory was the natural result of bold initiative and rightful growth carried through with consistency. It began by contesting neighboring borders at once, then built steadily through the opening and midgame until the ring was fully brought under its control, finishing with 17 regions and a treasury of 141. The other factions never recovered from losing territorial footing: Faction4 was stripped of its last hold early, and Faction3 met the same fate in the middle phase, while Faction2’s brief rise to 5 regions could not be sustained. What remains most evident is that Faction1 understood the map’s demands better than its rivals and converted early pressure into complete domination.
 
 ========================================================================
 
@@ -1004,8 +988,8 @@ Late phase: Faction2 was strongest by the end of turns 27-40, with Faction2 on 4
 
 Turning Points
 
-Early collapse: Faction1's capture of Q eliminated Faction4's last territorial hold.
-Early collapse: Faction2's capture of Q eliminated Faction1's last territorial hold.
+Early collapse: Faction2's capture of J eliminated Faction3's last territorial hold.
+Mid phase break: Faction2 gained 9 regions while Faction1 lost 4 regions.
 
 Outcome Type
 
@@ -1020,7 +1004,7 @@ Faction4 opened with 6 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-Faction2’s balanced approach mattered because it turned an early contested opening into a midgame collapse, and the capture of Q removed Faction1’s last territorial hold so that no recovery path remained. Once Faction2 reached a 17-region lead, the ring map stopped being competitive because the remaining factions had no board position left to convert into a challenge. Faction1’s early gains were not enough because they were erased by the same elimination sequence that left Faction2 with uncontested control and a huge treasury edge.
+Faction2’s balanced approach produced the decisive midgame break because it turned an early lead into a 17-region gap while Faction1’s 4-region gain never translated into a durable challenge. The capture of J eliminated Faction3’s last hold, which removed one rival from the board, and the later 9-region swing against Faction1 created the separation that the ring map could not reverse. Once control stabilized late, Faction2’s 472-treasury finish versus Faction1’s 31 showed that territorial dominance and resource accumulation reinforced each other, which prevented any recovery path.
 The closest challenger was Faction1 (expansionist) at 31 treasury and 0 regions.
 
 Final Standings
@@ -1032,7 +1016,7 @@ Faction3 ended with a treasury of 4 and 0 regions.
 
 Victor's History
 
-Faction2’s victory was the product of prudence and steadier judgment: it contested the neighboring borders at once, then built its position without losing coherence as the contest narrowed. By the end of forty turns, it held all 17 regions of the ring and a treasury of 472, while the field around it had been reduced to nothing. Faction1’s early reach and brief peak could not endure once its territorial hold was broken, and the other factions never recovered from their own losses. In this outcome, the stronger course was not the most aggressive, but the one that remained consistent enough to turn early pressure into complete domination.
+Faction2’s victory was not a matter of spectacle but of prudence, adaptability, and steadier judgment. It opened with immediate pressure, then built methodically until the field narrowed around it, and by turn 40 it held all 17 regions with a treasury of 472. The early collapse of Faction3 and the mid-phase loss of ground by Faction1 show how less coherent approaches could not withstand sustained control. In the end, the result was full domination earned through balance and disciplined execution.
 
 ========================================================================
 
@@ -1068,8 +1052,8 @@ Late phase: Faction1 was strongest by the end of turns 54-80, with Faction1 on 1
 
 Turning Points
 
-Early collapse: Faction4's capture of Q eliminated Faction3's last territorial hold.
-Early collapse: Faction2's capture of Q eliminated Faction4's last territorial hold.
+Early collapse: Faction1's capture of Q eliminated Faction2's last territorial hold.
+Early collapse: Faction1's capture of J eliminated Faction3's last territorial hold.
 
 Outcome Type
 
@@ -1084,7 +1068,7 @@ Faction4 opened with 4 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-Faction1’s expansionist push created immediate separation because it gained 13 regions early and finished 17 regions clear, so the board never developed a durable contest. The early collapse of Faction3 and then Faction4 removed the only remaining territorial holds for those factions, which meant Faction1 faced shrinking resistance while its control stabilized through midgame and late game. Faction2’s runner-up position with only 20 treasury and no regions could not convert into a challenge because the decisive advantage was territorial domination, not a resource race.
+Faction1’s expansionist push created immediate separation because its early gains removed both Faction2 and Faction3’s last territorial holds, which eliminated any path to recovery on a seventeen-region ring. That early collapse mattered because the board stopped being contested and Faction1 could stabilize control through the midgame and late game without facing a surviving territorial rival. Faction2’s small treasury could not matter because it had no regions left to convert into a comeback, so the result became full domination rather than a close territorial race.
 The closest challenger was Faction2 (balanced) at 20 treasury and 0 regions.
 
 Final Standings
@@ -1096,7 +1080,7 @@ Faction4 ended with a treasury of 5 and 0 regions.
 
 Victor's History
 
-In the end, Faction1’s victory was not accidental but the natural result of bold initiative and rightful growth. It opened with six claims, reached 17 regions by the end of the opening phase, and then held that command steadily through the middle and late turns, showing a coherence the others never matched. By contrast, Faction2’s brief peak at four regions gave way to complete loss of territory, while Faction3 and Faction4 were removed from the map in the early collapses that followed the struggle for Q. The record is clear: Faction1 reduced the field, maintained control, and finished with full domination, 17 regions, and a substantial treasury.
+In the end, Faction1’s victory was not accidental but the natural result of bold initiative and rightful growth. It opened with six claims, reached 17 regions by the end of the opening phase, and then held that position steadily through the middle and late turns, showing a coherence the others never matched. The early loss of Faction2’s and Faction3’s last holdings at Q and J marked the collapse of rival resistance, while the runner-up’s brief peak and later fall to zero regions showed the limits of a more cautious course. By the close, Faction1 stood with complete territorial control, 17 regions, and a treasury of 1599, having reduced the field and finished the contest on its own terms.
 
 ========================================================================
 
@@ -1133,8 +1117,8 @@ Late phase: Faction1 was strongest by the end of turns 107-160, with Faction1 on
 
 Turning Points
 
+Early collapse: Faction1's capture of J eliminated Faction3's last territorial hold.
 Early collapse: Faction1's capture of Q eliminated Faction4's last territorial hold.
-Early collapse: Faction3's capture of F eliminated Faction2's last territorial hold.
 
 Outcome Type
 
@@ -1149,7 +1133,7 @@ Faction4 opened with 2 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-Faction1’s expansionist push created immediate separation because it gained 13 regions early and finished 17 regions clear, so the map never recovered from the opening break. The early collapses of Faction4 and Faction2 removed the last territorial holds for the other factions, which meant the contest shrank quickly into a one-sided board with no recovery path. Once that control stabilized in midgame and late game, Faction1 could convert territory into a 3647 treasury lead because no rival retained enough presence to challenge the lead.
+Faction1’s expansionist push decided the game early because its 13-region gain and captures of J and Q removed Faction3 and Faction4’s last territorial holds, which eliminated the only remaining rivals before they could recover. That early collapse mattered because the seventeen-region ring then stabilized under one side, so the rest of the match became consolidation rather than a contest. With Faction3 ending on 0 regions and only 15 treasury, no opponent had a board position left to convert into a comeback, which made the final 17-region and 3632-treasury margin overwhelming.
 The closest challenger was Faction3 (economic) at 15 treasury and 0 regions.
 
 Final Standings
@@ -1161,7 +1145,7 @@ Faction2 ended with a treasury of 2 and 0 regions.
 
 Victor's History
 
-In the end, Faction1’s victory was the plain result of bold initiative and rightful growth carried through with consistency. It opened with six claims, reached 17 regions by the end of the opening phase, and then held that position steadily through the middle and late turns, showing a command of the map that the others never matched. The field narrowed quickly as Faction1’s capture of Q removed Faction4’s last hold, while Faction3’s own early gains proved temporary and left it with treasury but no territory. By the close, full domination had been achieved: 17 regions, 3647 treasury, and a finish that reflected not luck, but coherent expansion.
+In the end, Faction1’s victory was not a matter of accident but of bold initiative carried through with consistency. It opened with six claims, reached 17 regions by the end of the opening phase, and then held that control steadily through the middle and late turns until the map was fully dominated. The other factions never recovered from the early losses of their last territorial holds, and Faction3’s brief peak before slipping away only underscored the difference between temporary consolidation and sustained expansion. Faction1 finished with 17 regions and a substantial treasury, a clear record of rightful growth made durable by discipline in execution.
 
 ========================================================================
 
@@ -1194,11 +1178,6 @@ Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with 
 Mid phase: Faction3 was strongest by the end of turns 2-3, with Faction3 on 11 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 5 successful attacks shifted control of 1 region. 1 expansion added 1 new region. Faction3 gained 1 region.
 Late phase: Faction3 was strongest by the end of turns 4-5, with Faction3 on 21 treasury and 2 regions. 3 successful attacks shifted control of 3 regions. 1 expansion added 1 new region. Faction4 gained 2 regions while Faction2 lost 1 region.
 
-Turning Points
-
-Mid collapse: Faction3's capture of M eliminated Faction2's last territorial hold.
-Mid border swing: Faction2's capture of M flipped an important frontline region.
-
 Outcome Type
 
 Outcome type: economic_win.
@@ -1212,7 +1191,7 @@ Faction4 spent the opening consolidating its start with 1 investment, built stea
 
 Strategic Interpretation
 
-Faction3’s economic approach won because treasury outweighed territory on a contested thirteen-region ring, and its 21 treasury beat Faction4’s 15 even though Faction4 held more regions. The midgame mattered most because Faction3’s capture of M removed Faction2’s last territorial hold, which reduced the number of active rivals and let a small map lead translate into a resource lead. Early stabilization and the later border swing did not overturn that because the board stayed contested, so larger regional holdings never converted into enough income to catch up.
+Faction3’s economic approach won because treasury outpaced territory, with 21 resources against Faction4’s 15 even though Faction3 finished behind on regions. The board stayed contested through the midgame, so territorial swings did not create separation, which meant Faction4’s 3-region lead could not overcome the income gap. Early stabilization and later regional gains mattered less because they did not convert into enough treasury to match Faction3’s efficiency.
 The closest challenger was Faction4 (opportunist) at 15 treasury and 3 regions.
 
 Final Standings
@@ -1224,7 +1203,7 @@ Faction2 ended with a treasury of 7 and 0 regions.
 
 Victor's History
 
-Faction3’s victory was the clearest proof that discipline and sound stewardship could outweigh mere breadth of control. It began by consolidating its start with one investment, then built steadily through the contest, finishing first on treasury with 21 despite holding only 2 regions at the end. Faction4 made a respectable run and reached 3 regions, but its opportunism could not match the steadier accumulation that decided the outcome. In the end, the board rewarded efficiency over expansion, and Faction3’s measured approach proved the more durable form of strength.
+Faction3’s victory was a clear vindication of discipline, efficiency, and sound stewardship. While others chased broader map positions, Faction3 kept its course steady, finishing first on treasury with 21 despite conceding map share and ending with 2 regions. The contest remained contested throughout, but the final order shows that careful consolidation and measured investment outlasted the more uneven gains of its rivals. Faction4’s late rise to 3 regions was respectable, yet it could not match the stronger economic foundation that carried Faction3 to the top.
 
 ========================================================================
 
@@ -1258,11 +1237,6 @@ Early phase: Faction1 was strongest by the end of turns 1-3, with Faction1 on 11
 Mid phase: Faction1 was strongest by the end of turns 4-6, with Faction1 on 26 treasury and 3 regions. 5 successful attacks shifted control of 5 regions. 2 expansions added 2 new regions. 1 investment improved existing holdings. Faction2 gained 3 regions while Faction3 lost 1 region.
 Late phase: Faction1 was strongest by the end of turns 7-10, with Faction1 on 44 treasury and 2 regions. 4 successful attacks shifted control of 3 regions. 1 expansion added 1 new region. Faction2 gained 3 regions while Faction1 lost 1 region.
 
-Turning Points
-
-Early collapse: Faction2's capture of M eliminated Faction4's last territorial hold.
-Late collapse: Faction2's capture of E eliminated Faction3's last territorial hold.
-
 Outcome Type
 
 Outcome type: economic_win.
@@ -1276,7 +1250,7 @@ Faction4 spent the opening consolidating its start with 1 investment, lost groun
 
 Strategic Interpretation
 
-Faction1’s expansionist push mattered because it kept the board contested early, but the result was decided by treasury rather than territory since Faction1 finished with 44 to Faction2’s 43 despite trailing 5 regions. Faction2’s larger territorial footprint did not convert into a win because its late gains came after the map had already been thinned by eliminations, which limited how much board control could still translate into advantage. Faction1 won by holding the strongest economy through a prolonged contest, while Faction2’s opportunist-style captures removed rivals but did not create enough economic separation to overcome the final margin.
+Faction1’s expansionist push mattered because it produced the highest treasury at 44, so the win came from resource efficiency rather than territory on a thirteen-region ring. The board stayed contested throughout, which meant Faction2’s larger 7-region position could not convert into a lead and its late gains only narrowed the gap to a 1-treasury margin. Faction1 remained strongest across phases, which allowed a small economic edge to outweigh the -5 region deficit and decide the result.
 The closest challenger was Faction2 (balanced) at 43 treasury and 7 regions.
 
 Final Standings
@@ -1288,7 +1262,7 @@ Faction4 ended with a treasury of 4 and 0 regions.
 
 Victor's History
 
-Faction1’s victory was a clear vindication of bold initiative and rightful growth: it opened aggressively, contested the neighboring borders at once, and finished first on treasury despite conceding map share. Though it peaked at four regions before settling back to two, its campaign remained coherent and effective across the ten turns, with nine total attacks and enough discipline to stay ahead at the end. Faction2 built steadily and reached seven regions, but its late gains could not overturn Faction1’s superior timing and overall command of the contest. The other factions were reduced to zero regions, and their collapse only sharpened the contrast between Faction1’s decisive advance and the limits of the field around it.
+Faction1’s victory was the clearest proof that bold initiative could still prevail on a contested thirteen-region ring. It began by pressing the borders immediately, and though its map share later narrowed, the faction kept its effort coherent and finished first on treasury with 44, ahead of Faction2’s steadier but ultimately second-place 43. Faction2 built respectably and reached 7 regions, yet the final measure favored the side that combined early pressure with enough discipline to convert action into lasting advantage.
 
 ========================================================================
 
@@ -1324,8 +1298,8 @@ Late phase: Faction4 was strongest by the end of turns 14-20, with Faction4 on 9
 
 Turning Points
 
-Early collapse: Faction2's capture of M eliminated Faction1's last territorial hold.
-Early collapse: Faction3's capture of M eliminated Faction2's last territorial hold.
+Mid phase break: Faction4 gained 3 regions and opened the clearest territorial swing of the run.
+Early collapse: Faction4's capture of M eliminated Faction1's last territorial hold.
 
 Outcome Type
 
@@ -1340,7 +1314,7 @@ Faction4 opened with 5 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-After a contested opening, Faction4’s opportunist timing created the midgame break because its gains in the middle phase turned a tied ring into a one-sided board. That mattered because the early collapses removed Faction1 and then Faction2’s last territorial holds, which prevented the strongest early faction from converting its position into recovery or counterplay. Faction4 then finished with an expansionist-style surge in regions, so the late board state was already too lopsided for Faction3’s small hold and treasury to matter.
+Faction4’s opportunist timing mattered because the board was still contested early, so its midgame gain of 3 regions created the first clear territorial break and shifted the map out of parity. That swing mattered because Faction1’s last hold was eliminated, which reduced recovery paths and let Faction4 convert the opening into a late 10-region lead. Faction2’s early strength did not convert because it only gained 2 regions while the contest remained open, so it never matched the decisive mid-phase separation.
 The closest challenger was Faction3 (economic) at 40 treasury and 1 region.
 
 Final Standings
@@ -1352,7 +1326,7 @@ Faction1 ended with a treasury of 17 and 0 regions.
 
 Victor's History
 
-In the end, Faction4 prevailed not by reckless overreach, but by timing, realism, and a clear sense of where the board could be broken. The opening remained contested, and while Faction2 briefly looked strongest, Faction4’s opportunist pressure in the middle phase created the decisive break that carried it to 11 regions by turn 20. The early collapses of Faction1 and Faction2 showed how quickly territorial positions could unravel when they could not be sustained, and Faction3’s later rise to second place never displaced Faction4’s advantage. With 95 treasury and the widest territorial hold on the thirteen-region ring, Faction4’s victory was the product of disciplined opportunism applied at the right moment.
+In the end, Faction4 prevailed not by reckless advance but by timing, realism, and a clear reading of when the board could be turned. The opening was contested, and even after early losses, Faction4 recovered into the decisive middle-phase break, where its gain of 3 regions set the course of the run. From there it built steadily to 11 regions and 95 treasury, finishing 10 regions clear and first on a thirteen-region ring. The others never matched that coherence: Faction3’s careful economy could not hold its peak, while Faction2 and Faction1 were left without territory.
 
 ========================================================================
 
@@ -1387,8 +1361,8 @@ Late phase: Faction4 was strongest by the end of turns 27-40, with Faction4 on 6
 
 Turning Points
 
-Early collapse: Faction2's capture of M eliminated Faction3's last territorial hold.
-Early collapse: Faction4's capture of M eliminated Faction1's last territorial hold.
+Early collapse: Faction4's capture of M eliminated Faction3's last territorial hold.
+Mid collapse: Faction4's capture of C eliminated Faction2's last territorial hold.
 
 Outcome Type
 
@@ -1403,7 +1377,7 @@ Faction4 opened with 12 attack attempts and contested neighboring borders immedi
 
 Strategic Interpretation
 
-Faction4’s opportunist timing mattered because it converted an early contested ring into a collapse of the remaining rivals, and the capture of M removed the last territorial holds of Faction3 and Faction1. After that early break, Faction4’s expansion created a 13-region lead and 605 treasury, which meant the board stopped offering any recovery path for Faction2, whose 0 regions and 85 treasury left it unable to convert its position.
+Faction4’s opportunist timing mattered because its early and midgame captures eliminated Faction3 and then Faction2’s last territorial holds, which removed every recovery path on a thirteen-region ring. After a contested opening, that collapse created a one-sided board state so that Faction4 could convert control into a 13-region, 520-treasury lead while Faction2 was left with no regions and only 85 treasury. The late phase then stabilized because the decisive separation had already been locked in by those eliminations, not by a gradual margin.
 The closest challenger was Faction2 (balanced) at 85 treasury and 0 regions.
 
 Final Standings
@@ -1415,7 +1389,7 @@ Faction1 ended with a treasury of 13 and 0 regions.
 
 Victor's History
 
-In retrospect, Faction4’s victory was less a matter of spectacle than of timing, realism, and disciplined exploitation of weakness. It opened with immediate pressure on neighboring borders, built steadily through the middle turns, and by turn 40 had secured all 13 regions of the ring with a treasury of 605. The other factions never recovered from the early losses that stripped them of their last territorial holds, and even Faction2’s brief rise to 4 regions proved unsustainable. The record is clear: Faction4 read the situation correctly, acted decisively, and converted a contested map into full domination.
+In retrospect, Faction4’s victory was not a matter of spectacle but of timing, realism, and steady pressure applied where the field was weakest. It began by contesting neighboring borders immediately, then built past the opening until it held 13 regions by turn 40, while the other factions steadily lost their footing. The early capture of M removed Faction3’s last territorial hold, and the later capture of C ended Faction2’s resistance; from there, territorial control stabilized under Faction4’s hand. The result was full domination, with 13 regions and a treasury of 605, a clear record of a faction that understood when to press and when the situation had already turned.
 
 ========================================================================
 
@@ -1451,8 +1425,8 @@ Late phase: Faction3 was strongest by the end of turns 54-80, with Faction3 on 1
 
 Turning Points
 
-Early collapse: Faction1's capture of M eliminated Faction4's last territorial hold.
 Early collapse: Faction3's capture of M eliminated Faction2's last territorial hold.
+Early collapse: Faction3's capture of L eliminated Faction1's last territorial hold.
 
 Outcome Type
 
@@ -1467,7 +1441,7 @@ Faction4 opened with 9 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-Faction3’s economic approach mattered because it converted an early territorial break into an overwhelming resource lead, finishing with 1,315 more treasury than Faction1 while also holding 13 regions. The decisive shift came early, when Faction3’s capture of M eliminated Faction2’s last territorial hold, which shrank the field and left the board effectively under one side’s control. Faction1’s own early elimination of Faction4’s last hold did not create a comparable path back because the map stabilized afterward, so the remaining contest was decided by Faction3’s superior accumulation rather than by territory alone.
+Faction3’s economic approach decided the game because its early expansion removed both rivals’ last territorial holds, which eliminated any path to recovery before the map could stabilize. That early collapse mattered on a thirteen-region ring because Faction3 then controlled the board outright, so the later phase only confirmed a separation that had already become irreversible. While Faction1 ended with some treasury, it had no regions left to convert that wealth into pressure, which meant the final margin was total domination rather than a close resource race.
 The closest challenger was Faction1 (expansionist) at 52 treasury and 0 regions.
 
 Final Standings
@@ -1479,7 +1453,7 @@ Faction4 ended with a treasury of 19 and 0 regions.
 
 Victor's History
 
-Faction3’s victory was not a matter of spectacle but of discipline, efficiency, and sound stewardship. It opened with a single claim, expanded to 13 regions by the end of the opening phase, and then held that position steadily through the middle and late turns, finishing with complete territorial control and a treasury of 1367. By contrast, the more aggressive challengers spent their energy on early contests without securing durable holdings, and in the end their gains could not survive the steadier structure Faction3 maintained.
+Faction3’s victory was not a matter of spectacle but of discipline, efficiency, and sound stewardship. It opened with a single claim, expanded to 13 regions by the end of the opening phase, and then held that position steadily through the middle and late turns, finishing with complete territorial control and a treasury of 1367. By contrast, the more aggressive challengers spent their strength without securing permanence: Faction1 peaked at 5 regions before falling to 0, and the others never recovered from losing their last holdings. In the end, the record shows that measured administration and sustained control proved more durable than hurried contest.
 
 ========================================================================
 
@@ -1516,7 +1490,7 @@ Late phase: Faction1 was strongest by the end of turns 107-160, with Faction1 on
 
 Turning Points
 
-Early collapse: Faction3's capture of M eliminated Faction2's last territorial hold.
+Early collapse: Faction1's capture of F eliminated Faction2's last territorial hold.
 Early collapse: Faction1's capture of M eliminated Faction3's last territorial hold.
 
 Outcome Type
@@ -1532,7 +1506,7 @@ Faction4 opened with 3 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-Faction1’s expansionist push created immediate separation because it gained 9 regions early and finished 13 regions clear, which meant the ring map stopped being contested before rivals could stabilize. The decisive break came in the opening collapse, because Faction3 removed Faction2’s last hold and then Faction1 removed Faction3’s last hold, which eliminated recovery paths and left Faction1 alone to consolidate control. With territorial competition gone and the board stabilized midgame and late, Faction1’s lead became uncatchable because no remaining faction had a base to convert into a comeback.
+Faction1’s expansionist push created an early break because capturing F and M removed Faction2 and Faction3’s last territorial holds, so the ring stopped being a multi-sided contest and became a one-faction board. That early collapse mattered because Faction1 finished 13 regions clear and then stabilized control, which prevented any recovery path for the remaining rival. Faction2’s tiny treasury could not offset having zero regions, so the result was decided by elimination and sustained territorial dominance rather than late resource competition.
 The closest challenger was Faction2 (balanced) at 37 treasury and 0 regions.
 
 Final Standings
@@ -1544,7 +1518,7 @@ Faction4 ended with a treasury of 1 and 0 regions.
 
 Victor's History
 
-In the end, Faction1’s victory was the plain result of bold initiative and rightful growth carried through without hesitation. It opened with a single claim, reached 13 regions by the close of the opening phase, and then held that position steadily through the middle and late turns, finishing with complete territorial control, 3283 in treasury, and 12 total attacks. The others never recovered from the loss of their last holdings, and even Faction2’s brief peak at 3 regions proved too fragile to endure. On a thirteen-region ring, Faction1 showed the clearest judgment: to expand early, consolidate cleanly, and leave no opening for the rest.
+In the end, Faction1’s victory was the plain result of bold initiative and rightful growth carried through with consistency. It opened with a single claim, surged to 13 regions by the end of the opening phase, and then held that control steady through the middle and late turns, finishing with complete territorial dominance and a substantial treasury of 3283. The early collapse of Faction2 and Faction3, each stripped of its last territorial hold by Faction1’s captures of F and M, showed how quickly weaker positions could be broken once the contest turned decisive. Faction1 did not merely outlast the field; it reduced the field, and that is the clearest measure of competence in a ring of thirteen regions.
 
 ========================================================================
 
@@ -1579,11 +1553,6 @@ Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with 
 Mid phase: Faction1 and Faction2 were strongest by the end of turns 2-3, with Faction1 on 11 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 8 expansions added 8 new regions. Faction1 gained 2 regions.
 Late phase: Faction4 was strongest by the end of turns 4-5, with Faction4 on 21 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 6 successful attacks shifted control of 2 regions. 2 expansions added 2 new regions. Faction2 gained 1 region. Faction4 improved its standing most during the phase.
 
-Turning Points
-
-Late border swing: Faction3's capture of C flipped an important frontline region.
-Late border swing: Faction4's capture of C flipped an important frontline region.
-
 Outcome Type
 
 Outcome type: economic_win.
@@ -1597,7 +1566,7 @@ Faction4 spent the opening consolidating its start with 1 investment, built stea
 
 Strategic Interpretation
 
-Faction4’s opportunist timing mattered because the board stayed contested until late, so the win was decided by a small treasury edge rather than by territory. While Faction1 and Faction3 each held stronger regional positions at different points, neither converted that control into a decisive lead, which left the final margin at 3 regions to 4 but 21 treasury to 19. The late border swings around C mattered because they shifted the frontline at the moment when separation was still possible, allowing Faction4 to finish with the economic advantage that the others could not secure.
+After a contested opening, Faction4’s opportunist timing mattered because the board never produced a clean territorial break, so the win was decided by treasury rather than regions. Faction3 held more regions, but that larger footprint did not convert into enough income, which meant Faction4’s 21 treasury beat 19 despite trailing 3 regions to 4. Faction1’s midgame territorial gain stabilized control without ending the contest, which prevented any faction from locking the map before the late resource edge settled the result.
 The closest challenger was Faction3 (economic) at 19 treasury and 4 regions.
 
 Final Standings
@@ -1609,7 +1578,7 @@ Faction2 ended with a treasury of 18 and 4 regions.
 
 Victor's History
 
-Faction4’s victory was not a matter of broad conquest, but of timing and realism applied with discipline. It began by consolidating its position, then built steadily through the opening and finished first on treasury with 21, despite conceding map share and ending with 3 regions. The late capture of C marked the decisive border swing, and the contest’s final shape shows that Faction4 judged the board more accurately than its rivals, especially as the struggle remained contested to the end.
+In the end, Faction4 prevailed by timing its moves with realism and exploiting weakness where the board allowed it, finishing first on treasury despite conceding map share. The record shows a disciplined opening, steady development, and only two total attacks, enough to secure 21 treasury and 3 regions by turn 5. Others made their own claims—Faction3 consolidated efficiently to 4 regions, while Faction1 briefly led the field—but neither matched Faction4’s ability to convert a contested map into the highest return. On a thirty-seven-region ring, that was the decisive measure: not breadth alone, but the judgment to take what could be held and profit from it.
 
 ========================================================================
 
@@ -1644,11 +1613,6 @@ Early phase: Faction1 and Faction2 were strongest by the end of turns 1-3, with 
 Mid phase: Faction2 was strongest by the end of turns 4-6, with Faction2 on 22 treasury and 4 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 6 successful attacks shifted control of 3 regions. 2 expansions added 2 new regions. Faction2 gained 1 region. Faction3 improved its standing most during the phase.
 Late phase: Faction3 was strongest by the end of turns 7-10, with Faction3 on 29 treasury and 4 regions. 11 successful attacks shifted control of 6 regions. 2 expansions added 2 new regions. Faction1 gained 2 regions while Faction4 lost 2 regions. Faction3 improved its standing most during the phase.
 
-Turning Points
-
-Late border swing: Faction2's capture of I8 flipped an important frontline region.
-Mid border swing: Faction1's capture of I6 flipped an important frontline region.
-
 Outcome Type
 
 Outcome type: economic_win.
@@ -1662,7 +1626,7 @@ Faction4 opened with 2 claims and grew to 3 regions by the end of the opening ph
 
 Strategic Interpretation
 
-Faction3’s economic approach won because treasury, not territory, decided a board that never fully separated, and the 1-point cash edge outweighed Faction2’s 5-to-4 region lead. After a contested opening and midgame, the late phase mattered because Faction3 became strongest while rivals were still trading frontline regions, which prevented anyone from converting map control into a decisive gap. Faction1 and Faction2 both used expansionist pressure to flip border regions, but that only kept the ring contested, which meant their territorial gains did not translate into enough economic separation.
+Faction3’s economic approach won because treasury, not territory, decided the result: it finished with 29 against Faction2’s 28 even while trailing 4 regions to 5. The board stayed contested through the early and midgame, which meant larger regional holdings never translated into a decisive lead, and Faction2’s balanced position could not convert its strongest midgame into a margin that mattered. Faction3’s late strength mattered because it produced the final resource edge after a prolonged parity, while Faction1’s early expansion and Faction4’s losses did not alter the underlying income race.
 The closest challenger was Faction2 (balanced) at 28 treasury and 5 regions.
 
 Final Standings
@@ -1674,7 +1638,7 @@ Faction1 ended with a treasury of 25 and 5 regions.
 
 Victor's History
 
-Faction3’s victory was a plain demonstration of discipline, efficiency, and sound stewardship: it finished first on treasury despite conceding map share, and that is the measure by which the contest was decided. It opened with 2 claims, reached 3 regions by the end of the opening phase, and then built steadily to 4 regions by turn 10 while keeping its attacks to 6 in total. Others could point to larger holdings at moments in the game, but Faction2’s steadiness and Faction1’s early strength did not translate into the final balance of power. In the end, the winning course was not the broadest or the flashiest, but the most economical and coherent.
+Faction3’s victory was a clear vindication of discipline, efficiency, and sound stewardship. On a contested thirty-seven-region ring, it did not chase map share for its own sake; it built steadily from 2 claims to 4 regions while finishing first in treasury with 29, enough to outlast rivals who held more land but less balance. Faction2’s steady rise to 5 regions and 28 treasury was respectable, yet it remained a step behind in the measure that decided the contest. In the end, the result favored the faction that managed its resources most coherently and kept its course when the board remained unsettled.
 
 ========================================================================
 
@@ -1709,11 +1673,6 @@ Early phase: Faction3 was strongest by the end of turns 1-6, with Faction3 on 24
 Mid phase: Faction1 was strongest by the end of turns 7-13, with Faction1 on 36 treasury and 5 regions. 15 successful attacks shifted control of 9 regions. 4 expansions added 4 new regions. Faction3 gained 4 regions while Faction2 lost 4 regions. Faction1 improved its standing most during the phase.
 Late phase: Faction2 was strongest by the end of turns 14-20, with Faction2 on 25 treasury and 0 regions. 12 successful attacks shifted control of 10 regions. 7 expansions added 7 new regions. Faction1 gained 7 regions while Faction3 lost 2 regions. Faction2 improved its standing most during the phase.
 
-Turning Points
-
-Mid collapse: Faction1's capture of M4 eliminated Faction2's last territorial hold.
-Late border swing: Faction1's capture of I2 flipped an important frontline region.
-
 Outcome Type
 
 Outcome type: economic_win.
@@ -1727,7 +1686,7 @@ Faction4 opened with 2 claims and grew to 3 regions by the end of the opening ph
 
 Strategic Interpretation
 
-Faction2’s balanced approach won because treasury, not territory, decided a board that never fully separated, and its 25 to 22 cash edge outweighed Faction1’s 12-region lead. The midgame collapse of Faction2’s last territorial hold mattered because it removed map control as a winning path, so the result shifted to who could preserve resources while the ring stayed contested. Faction1’s late territorial surge and frontline flip were not enough because they improved position without converting it into the income advantage needed to overcome Faction2’s economic finish.
+Faction2’s balanced approach won because treasury, not territory, decided the result: it finished with 25 against Faction1’s 22 even though it held 12 fewer regions, so map control never translated into a durable lead. The board stayed contested through the midgame and late shifts, which prevented any faction from converting temporary regional strength into enough income to pull clear. Faction1’s late territorial surge mattered less because it expanded on a ring map without closing the treasury gap, while Faction3’s early and midgame strength did not hold long enough to shape the final balance.
 The closest challenger was Faction1 (expansionist) at 22 treasury and 12 regions.
 
 Final Standings
@@ -1739,7 +1698,7 @@ Faction3 ended with a treasury of 7 and 5 regions.
 
 Victor's History
 
-Faction2’s victory was a study in prudence and steadier judgment: it finished first on treasury despite conceding the map, and that balance proved more durable than raw territorial reach. The contest on the thirty-seven-region ring shifted repeatedly, but Faction2 remained the clearest example of disciplined adaptation, while Faction1’s expansion carried it to 12 regions and second place without securing the final measure of success. Even after Faction2 slipped from 4 regions to none, its position on 25 treasury held, and the result confirmed that coherence of method mattered more than the breadth of holdings.
+In the end, Faction2 prevailed not by grasping for the map, but by keeping faith with prudence, adaptability, and steadier judgment. It opened with three claims, held its ground through the early contest, and finished first on treasury with 25 despite conceding all territory after four attacks. Faction1’s expansion was real and substantial, but its 12 regions could not match the cleaner economic result; the record shows that disciplined balance, not mere breadth, proved the more durable measure of success.
 
 ========================================================================
 
@@ -1776,8 +1735,8 @@ Late phase: Faction2 was strongest by the end of turns 27-40, with Faction2 on 1
 
 Turning Points
 
-Early collapse: Faction3's capture of M8 eliminated Faction4's last territorial hold.
-Late phase break: Faction2 gained 13 regions while Faction1 lost 10 regions.
+Late leader change: Faction2 took the territorial lead.
+Early leader change: Faction2 took the territorial lead.
 
 Outcome Type
 
@@ -1792,7 +1751,7 @@ Faction4 opened with 9 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-After a contested opening, Faction2’s balanced approach mattered because it turned a small midgame edge into a decisive break, finishing 14 regions ahead and far stronger in treasury as the board opened up. Faction1’s early expansionist gain of 7 regions did not convert into lasting control because Faction2 only lost 1 region in the midgame, which kept the map from separating and preserved room for a later swing. The late phase then decided the result because Faction2 gained 13 regions while Faction1 lost 10, which created the final territorial gap and prevented any recovery.
+After a contested opening, Faction2’s balanced approach created the midgame break because it turned a small early lead into a 5-region advantage by midphase, which meant the board stopped being evenly shared. Faction1’s early expansionist gain of 7 regions did not convert into control because Faction2 later took the territorial lead and then widened it to 14 regions, which prevented any recovery path. The late swing mattered because Faction2 finished strongest and the map state shifted from contest to separation, so the final margin was decided by sustained territorial conversion rather than the opening race.
 The closest challenger was Faction1 (expansionist) at 24 treasury and 4 regions.
 
 Final Standings
@@ -1804,7 +1763,7 @@ Faction3 ended with a treasury of 1 and 11 regions.
 
 Victor's History
 
-Faction2’s victory was the product of prudence, adaptability, and steadier judgment, not the flash of an early surge. It opened with 7 claims, settled into a measured build, and by the end of the opening phase had 6 regions before extending that advantage to 18 regions and 195 treasury by turn 40. The decisive middle-phase break showed the value of balance: while Faction2 held its course, Faction1’s expansionist rise to 15 regions could not be sustained, and its later loss of 10 regions left it far behind. In a thirty-seven-region ring, the result was clear enough—steady management outlasted ambition.
+Faction2’s victory was not the product of spectacle but of steadier judgment: it opened with 7 claims, held the strongest position early, and then used the middle phase to create the decisive break. By turn 40 it had reached 18 regions and 195 treasury, finishing first with a margin that the final standings make plain. Faction1’s expansion was real, peaking at 15 regions, but its gains proved less durable, and the late slide to 4 regions left it unable to contest the lead. On this ring map, the outcome favored the faction that combined prudence with adaptability, and Faction2 did so with clear consistency.
 
 ========================================================================
 
@@ -1841,8 +1800,8 @@ Late phase: Faction4 was strongest by the end of turns 54-80, with Faction4 on 1
 
 Turning Points
 
-Late collapse: Faction4's capture of I1 eliminated Faction2's last territorial hold.
-Mid collapse: Faction2's capture of O3 eliminated Faction1's last territorial hold.
+Mid collapse: Faction4's capture of O10 eliminated Faction3's last territorial hold.
+Mid phase break: Faction4 gained 21 regions while Faction3 lost 6 regions.
 
 Outcome Type
 
@@ -1857,7 +1816,7 @@ Faction4 opened with 2 claims and grew to 14 regions by the end of the opening p
 
 Strategic Interpretation
 
-Faction4’s opportunist timing mattered because it turned a strong early lead into irreversible control, first widening the gap in midgame and then finishing the board once rivals were already weakened. The mid collapse, when Faction2 removed Faction1’s last hold, and the late capture of I1, which eliminated Faction2’s final territory, meant the contest stopped being about margins and became about survival. Because Faction4 kept converting openings into eliminations while others lost their last footholds, no rival had a recovery path, so the 37-region ring ended in full domination.
+Faction4’s opportunist timing mattered because the midgame break turned a contested ring into a one-sided board, and its capture of O10 eliminated Faction3’s last territorial hold. That collapse mattered because it removed the only meaningful check on Faction4’s expansion, so the 21-region mid-phase gain created separation that could not be reversed. Although Faction4 was already strongest early, the late phase only consolidated control because the remaining rivals had no territorial base left to convert into a recovery.
 The closest challenger was Faction2 (balanced) at 199 treasury and 0 regions.
 
 Final Standings
@@ -1869,7 +1828,7 @@ Faction1 ended with a treasury of 16 and 0 regions.
 
 Victor's History
 
-Faction4’s victory was not a matter of reckless advance but of timing, realism, and a clear reading of weakness. It opened modestly with 2 claims, then built steadily past the opening to 14 regions, widened its lead through the middle phase, and by turn 80 held all 37 regions of the ring with a treasury of 1504. Faction2’s balanced approach proved unable to preserve its early gains, slipping from a peak of 12 regions to none after 27 attacks, while the other factions were reduced to no territory as well. The result was full domination, and it reflects a faction that understood when to press and when the field had already begun to break.
+In the end, Faction4 prevailed not by reckless reach, but by timing, realism, and a clear eye for weakness. It opened modestly with 2 claims, then built steadily to 14 regions by the end of the opening phase and widened that lead through the middle, where its capture of O10 removed Faction3’s last territorial hold and helped drive a 21-region gain against 6 lost by its rival. By turn 80, Faction4 had completed full domination of the thirty-seven-region ring with 37 regions and a treasury of 1504, while the other factions were left without territory. The record suggests a disciplined opportunism: Faction4 waited, struck where the structure of resistance had already thinned, and finished the contest with complete territorial control.
 
 ========================================================================
 
@@ -1906,8 +1865,8 @@ Late phase: Faction1 was strongest by the end of turns 107-160, with Faction1 on
 
 Turning Points
 
-Mid collapse: Faction1's capture of M8 eliminated Faction4's last territorial hold.
-Early collapse: Faction1's capture of M4 eliminated Faction2's last territorial hold.
+Early collapse: Faction1's capture of O3 eliminated Faction2's last territorial hold.
+Early phase break: Faction1 gained 26 regions and opened the clearest territorial swing of the run.
 
 Outcome Type
 
@@ -1922,7 +1881,7 @@ Faction4 opened with 47 attack attempts and contested neighboring borders immedi
 
 Strategic Interpretation
 
-Faction1’s expansionist push created early separation because it gained 26 regions and finished 30 regions clear, which meant the map stopped being contestable before rivals could stabilize. The decisive break came in the midgame because Faction1’s captures of M4 and M8 removed Faction2 and Faction4’s last territorial holds, which eliminated recovery paths and left only a shrinking field behind. Once territorial control stabilized, Faction1 could convert that lead into full domination because no opponent retained a base from which to rebuild.
+Faction1’s expansionist push created the decisive separation early, because gaining 26 regions and taking O3 removed Faction2’s last territorial hold and opened the clearest swing of the run. That mattered because the thirty-seven-region ring then became structurally one-sided, so later play only stabilized Faction1’s control rather than giving rivals a recovery path. Faction3’s 0-region finish and small treasury could not matter, because the contest had already collapsed into full domination before the late phase.
 The closest challenger was Faction3 (economic) at 49 treasury and 0 regions.
 
 Final Standings
@@ -1934,7 +1893,7 @@ Faction4 ended with a treasury of 1 and 0 regions.
 
 Victor's History
 
-Faction1’s victory was the natural result of bold initiative and rightful growth: it opened with 6 claims, reached 30 regions by the end of the opening phase, and continued to 37 by turn 160. The field narrowed quickly under that pressure, with Faction2 losing its last territorial hold early and Faction4’s final hold ending in the midgame, while territorial control then stabilized in Faction1’s hands. Even Faction3’s energetic opening and brief peak at 12 regions could not sustain a position against a stronger expansion. In the end, the record is plain: 37 regions, 4792 treasury, and full domination.
+The record of this contest is plain: Faction1’s bold initiative and rightful growth reduced the field until only its control remained, and by turn 160 it held all 37 regions with a treasury of 4792. It opened with 6 claims, reached 30 regions by the end of the opening phase, and then added the final gains with steady purpose, while the early capture of O3 ended Faction2’s last territorial hold. Faction3 showed activity and even peaked at 12 regions, but its 29 attacks did not translate into durable control, and it closed with no territory; the others never recovered from the structural weakness exposed in the opening swing.
 
 ========================================================================
 
