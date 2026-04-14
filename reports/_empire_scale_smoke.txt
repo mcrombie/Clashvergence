@@ -1,0 +1,21 @@
+Map Strategy Comparison
+
+Seed: 12345
+Configured factions: 4
+
+Map: multi_ring_symmetry
+Turns: 5
+Simulations: 3
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions  Attacks     Income      Scale      Maint        Net
+----------------------------------------------------------------------------------------------------------------------
+Faction1   expansionist   33.33%   0.00%     20.000    4.333    1.000     45.667      0.667     14.333     30.667
+Faction2   balanced        0.00%  33.33%     20.000    4.667    0.667     46.333      1.333     14.667     30.333
+Faction3   economic       33.33%   0.00%     20.000    4.000    0.667     45.000      0.000     14.000     31.000
+Faction4   opportunist     0.00%  33.33%     19.333    4.000    0.667     45.000      0.000     14.000     31.000

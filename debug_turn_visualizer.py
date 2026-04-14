@@ -221,6 +221,8 @@ def get_faction_turn_summary(snapshot, faction_name):
         "regions": metrics["regions"],
         "treasury_delta": treasury_delta,
         "income": metrics.get("income", 0),
+        "empire_penalty": metrics.get("empire_penalty", 0),
+        "effective_income": metrics.get("effective_income", 0),
         "maintenance": metrics.get("maintenance", 0),
         "net_income": metrics.get("net_income", 0),
         "attacks": metrics.get("attacks", 0),
@@ -280,6 +282,8 @@ def format_metrics_text(snapshot, world):
         )
         lines.append(
             f"  Economy: income +${summary['income']} | upkeep -${summary['maintenance']} | "
+            f"scale -${summary['empire_penalty']} | "
+            f"effective +${summary['effective_income']} | "
             f"net {'+' if summary['net_income'] >= 0 else ''}${summary['net_income']}"
         )
         lines.append(f"  Action: {summary['action_summary']}")

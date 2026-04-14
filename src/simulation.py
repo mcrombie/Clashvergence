@@ -1,17 +1,23 @@
 from src.agents import choose_action
 from src.actions import attack, expand, invest
-from src.config import REGION_MAINTENANCE_COST
+from src.config import (
+    EMPIRE_FREE_REGIONS,
+    EMPIRE_SCALE_COST,
+    REGION_MAINTENANCE_COST,
+)
 from src.metrics import record_turn_metrics
 from src.models import Event
 import random
 
 
 def get_faction_economy_snapshot(world):
-    """Returns per-faction owned regions, income, maintenance, and net change."""
+    """Returns per-faction owned regions, income, penalties, and net change."""
     snapshot = {
         faction_name: {
             "owned_regions": 0,
-            "income": 0,
+            "base_income": 0,
+            "empire_penalty": 0,
+            "effective_income": 0,
             "maintenance": 0,
             "net": 0,
         }
@@ -21,11 +27,16 @@ def get_faction_economy_snapshot(world):
     for region in world.regions.values():
         if region.owner is not None:
             snapshot[region.owner]["owned_regions"] += 1
-            snapshot[region.owner]["income"] += region.resources
+            snapshot[region.owner]["base_income"] += region.resources
 
     for faction_name, data in snapshot.items():
+        data["empire_penalty"] = max(
+            0,
+            data["owned_regions"] - EMPIRE_FREE_REGIONS,
+        ) * EMPIRE_SCALE_COST
+        data["effective_income"] = data["base_income"] - data["empire_penalty"]
         data["maintenance"] = data["owned_regions"] * REGION_MAINTENANCE_COST
-        data["net"] = data["income"] - data["maintenance"]
+        data["net"] = data["effective_income"] - data["maintenance"]
 
     return snapshot
 
@@ -38,13 +49,15 @@ def apply_turn_economy(world):
         faction = world.factions[faction_name]
         treasury_before = faction.treasury
 
-        faction.treasury += data["income"]
+        faction.treasury += data["base_income"]
         world.events.append(Event(
             turn=world.turn,
             type="income",
             faction=faction_name,
             details={
-                "income": data["income"],
+                "income": data["base_income"],
+                "base_income": data["base_income"],
+                "effective_income": data["effective_income"],
                 "owned_regions": data["owned_regions"],
             },
             context={
@@ -52,10 +65,34 @@ def apply_turn_economy(world):
             },
             impact={
                 "treasury_after": faction.treasury,
-                "treasury_change": data["income"],
+                "treasury_change": data["base_income"],
             },
             tags=["economy", "income"],
-            significance=float(data["income"]),
+            significance=float(data["base_income"]),
+        ))
+
+        treasury_before_scale = faction.treasury
+        faction.treasury -= data["empire_penalty"]
+        world.events.append(Event(
+            turn=world.turn,
+            type="empire_scale",
+            faction=faction_name,
+            details={
+                "empire_free_regions": EMPIRE_FREE_REGIONS,
+                "empire_scale_cost": EMPIRE_SCALE_COST,
+                "owned_regions": data["owned_regions"],
+                "empire_penalty": data["empire_penalty"],
+            },
+            context={
+                "treasury_before": treasury_before_scale,
+            },
+            impact={
+                "treasury_after": faction.treasury,
+                "treasury_change": -data["empire_penalty"],
+                "effective_income": data["effective_income"],
+            },
+            tags=["economy", "empire_scale"],
+            significance=float(data["empire_penalty"]),
         ))
 
         treasury_before_maintenance = faction.treasury
@@ -75,6 +112,9 @@ def apply_turn_economy(world):
             impact={
                 "treasury_after": faction.treasury,
                 "treasury_change": -data["maintenance"],
+                "base_income": data["base_income"],
+                "empire_penalty": data["empire_penalty"],
+                "effective_income": data["effective_income"],
                 "net_income": data["net"],
             },
             tags=["economy", "maintenance"],
@@ -135,7 +175,9 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
         for faction_name in turn_order:
             data = economy_snapshot[faction_name]
             print(
-                f"{faction_name} economy: income={data['income']}, "
+                f"{faction_name} economy: base_income={data['base_income']}, "
+                f"scale_penalty={data['empire_penalty']}, "
+                f"effective_income={data['effective_income']}, "
                 f"maintenance={data['maintenance']}, net={data['net']}, "
                 f"treasury={world.factions[faction_name].treasury}"
             )

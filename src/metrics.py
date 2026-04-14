@@ -25,6 +25,8 @@ def build_turn_metrics(world):
         expansions = 0
         investments = 0
         income = 0
+        empire_penalty = 0
+        effective_income = 0
         maintenance = 0
 
         for event in turn_events:
@@ -39,8 +41,13 @@ def build_turn_metrics(world):
                 investments += 1
             elif event.type == "income":
                 income += event.get("income", 0)
+            elif event.type == "empire_scale":
+                empire_penalty += event.get("empire_penalty", 0)
+                effective_income += event.get("effective_income", 0)
             elif event.type == "maintenance":
                 maintenance += event.get("maintenance", 0)
+                if effective_income == 0:
+                    effective_income += event.get("effective_income", 0)
 
         faction_metrics[faction_name] = {
             "treasury": faction.treasury,
@@ -49,8 +56,10 @@ def build_turn_metrics(world):
             "expansions": expansions,
             "investments": investments,
             "income": income,
+            "empire_penalty": empire_penalty,
+            "effective_income": effective_income,
             "maintenance": maintenance,
-            "net_income": income - maintenance,
+            "net_income": effective_income - maintenance,
         }
 
     return {

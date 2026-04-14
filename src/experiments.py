@@ -17,11 +17,15 @@ def summarize_world(world):
     """Returns a summary dictionary for the final state of the world."""
     owned_region_counts = count_owned_regions(world)
     total_income = {faction_name: 0 for faction_name in world.factions}
+    total_empire_penalty = {faction_name: 0 for faction_name in world.factions}
+    total_effective_income = {faction_name: 0 for faction_name in world.factions}
     total_maintenance = {faction_name: 0 for faction_name in world.factions}
 
     for snapshot in world.metrics:
         for faction_name, faction_metrics in snapshot["factions"].items():
             total_income[faction_name] += faction_metrics.get("income", 0)
+            total_empire_penalty[faction_name] += faction_metrics.get("empire_penalty", 0)
+            total_effective_income[faction_name] += faction_metrics.get("effective_income", 0)
             total_maintenance[faction_name] += faction_metrics.get("maintenance", 0)
 
     summary = {
@@ -34,8 +38,10 @@ def summarize_world(world):
             "treasury": faction.treasury,
             "owned_regions": owned_region_counts[faction_name],
             "total_income": total_income[faction_name],
+            "total_empire_penalty": total_empire_penalty[faction_name],
+            "total_effective_income": total_effective_income[faction_name],
             "total_maintenance": total_maintenance[faction_name],
-            "net_income": total_income[faction_name] - total_maintenance[faction_name],
+            "net_income": total_effective_income[faction_name] - total_maintenance[faction_name],
         }
 
     return summary
@@ -71,6 +77,8 @@ def aggregate_summaries(summaries):
         "average_treasury": {faction_name: 0 for faction_name in faction_names},
         "average_owned_regions": {faction_name: 0 for faction_name in faction_names},
         "average_total_income": {faction_name: 0 for faction_name in faction_names},
+        "average_total_empire_penalty": {faction_name: 0 for faction_name in faction_names},
+        "average_total_effective_income": {faction_name: 0 for faction_name in faction_names},
         "average_total_maintenance": {faction_name: 0 for faction_name in faction_names},
         "average_net_income": {faction_name: 0 for faction_name in faction_names},
     }
@@ -83,6 +91,8 @@ def aggregate_summaries(summaries):
             aggregate["average_treasury"][faction_name] += summary["factions"][faction_name]["treasury"]
             aggregate["average_owned_regions"][faction_name] += summary["factions"][faction_name]["owned_regions"]
             aggregate["average_total_income"][faction_name] += summary["factions"][faction_name]["total_income"]
+            aggregate["average_total_empire_penalty"][faction_name] += summary["factions"][faction_name]["total_empire_penalty"]
+            aggregate["average_total_effective_income"][faction_name] += summary["factions"][faction_name]["total_effective_income"]
             aggregate["average_total_maintenance"][faction_name] += summary["factions"][faction_name]["total_maintenance"]
             aggregate["average_net_income"][faction_name] += summary["factions"][faction_name]["net_income"]
 
@@ -90,6 +100,8 @@ def aggregate_summaries(summaries):
         aggregate["average_treasury"][faction_name] /= len(summaries)
         aggregate["average_owned_regions"][faction_name] /= len(summaries)
         aggregate["average_total_income"][faction_name] /= len(summaries)
+        aggregate["average_total_empire_penalty"][faction_name] /= len(summaries)
+        aggregate["average_total_effective_income"][faction_name] /= len(summaries)
         aggregate["average_total_maintenance"][faction_name] /= len(summaries)
         aggregate["average_net_income"][faction_name] /= len(summaries)
 
@@ -113,6 +125,7 @@ def format_aggregate_summary(aggregate, map_name, label):
             f"avg_treasury={aggregate['average_treasury'][faction_name]:.2f}, "
             f"avg_owned_regions={aggregate['average_owned_regions'][faction_name]:.2f}, "
             f"avg_income={aggregate['average_total_income'][faction_name]:.2f}, "
+            f"avg_scale={aggregate['average_total_empire_penalty'][faction_name]:.2f}, "
             f"avg_maintenance={aggregate['average_total_maintenance'][faction_name]:.2f}, "
             f"avg_net_income={aggregate['average_net_income'][faction_name]:.2f}"
         )
@@ -168,6 +181,8 @@ def run_multiple_batches(
         "average_treasury": {faction_name: 0 for faction_name in faction_names},
         "average_owned_regions": {faction_name: 0 for faction_name in faction_names},
         "average_total_income": {faction_name: 0 for faction_name in faction_names},
+        "average_total_empire_penalty": {faction_name: 0 for faction_name in faction_names},
+        "average_total_effective_income": {faction_name: 0 for faction_name in faction_names},
         "average_total_maintenance": {faction_name: 0 for faction_name in faction_names},
         "average_net_income": {faction_name: 0 for faction_name in faction_names},
     }
@@ -178,6 +193,8 @@ def run_multiple_batches(
             overall["average_treasury"][faction_name] += batch_aggregate["average_treasury"][faction_name]
             overall["average_owned_regions"][faction_name] += batch_aggregate["average_owned_regions"][faction_name]
             overall["average_total_income"][faction_name] += batch_aggregate["average_total_income"][faction_name]
+            overall["average_total_empire_penalty"][faction_name] += batch_aggregate["average_total_empire_penalty"][faction_name]
+            overall["average_total_effective_income"][faction_name] += batch_aggregate["average_total_effective_income"][faction_name]
             overall["average_total_maintenance"][faction_name] += batch_aggregate["average_total_maintenance"][faction_name]
             overall["average_net_income"][faction_name] += batch_aggregate["average_net_income"][faction_name]
 
@@ -186,6 +203,8 @@ def run_multiple_batches(
         overall["average_treasury"][faction_name] /= num_batches
         overall["average_owned_regions"][faction_name] /= num_batches
         overall["average_total_income"][faction_name] /= num_batches
+        overall["average_total_empire_penalty"][faction_name] /= num_batches
+        overall["average_total_effective_income"][faction_name] /= num_batches
         overall["average_total_maintenance"][faction_name] /= num_batches
         overall["average_net_income"][faction_name] /= num_batches
 
@@ -213,6 +232,7 @@ def run_multiple_batches(
     for faction_name in faction_names:
         overall_lines.append(
             f"  {faction_name}: income={overall['average_total_income'][faction_name]:.2f}, "
+            f"scale={overall['average_total_empire_penalty'][faction_name]:.2f}, "
             f"maintenance={overall['average_total_maintenance'][faction_name]:.2f}, "
             f"net={overall['average_net_income'][faction_name]:.2f}"
         )
@@ -274,6 +294,8 @@ def run_turn_horizon_comparison(
             "average_treasury": {faction_name: 0 for faction_name in faction_names},
             "average_owned_regions": {faction_name: 0 for faction_name in faction_names},
             "average_total_income": {faction_name: 0 for faction_name in faction_names},
+            "average_total_empire_penalty": {faction_name: 0 for faction_name in faction_names},
+            "average_total_effective_income": {faction_name: 0 for faction_name in faction_names},
             "average_total_maintenance": {faction_name: 0 for faction_name in faction_names},
             "average_net_income": {faction_name: 0 for faction_name in faction_names},
         }
@@ -284,6 +306,8 @@ def run_turn_horizon_comparison(
                 overall["average_treasury"][faction_name] += batch_aggregate["average_treasury"][faction_name]
                 overall["average_owned_regions"][faction_name] += batch_aggregate["average_owned_regions"][faction_name]
                 overall["average_total_income"][faction_name] += batch_aggregate["average_total_income"][faction_name]
+                overall["average_total_empire_penalty"][faction_name] += batch_aggregate["average_total_empire_penalty"][faction_name]
+                overall["average_total_effective_income"][faction_name] += batch_aggregate["average_total_effective_income"][faction_name]
                 overall["average_total_maintenance"][faction_name] += batch_aggregate["average_total_maintenance"][faction_name]
                 overall["average_net_income"][faction_name] += batch_aggregate["average_net_income"][faction_name]
 
@@ -292,6 +316,8 @@ def run_turn_horizon_comparison(
             overall["average_treasury"][faction_name] /= num_batches
             overall["average_owned_regions"][faction_name] /= num_batches
             overall["average_total_income"][faction_name] /= num_batches
+            overall["average_total_empire_penalty"][faction_name] /= num_batches
+            overall["average_total_effective_income"][faction_name] /= num_batches
             overall["average_total_maintenance"][faction_name] /= num_batches
             overall["average_net_income"][faction_name] /= num_batches
 
@@ -319,6 +345,7 @@ def run_turn_horizon_comparison(
         for faction_name in faction_names:
             overall_lines.append(
                 f"  {faction_name}: income={overall['average_total_income'][faction_name]:.2f}, "
+                f"scale={overall['average_total_empire_penalty'][faction_name]:.2f}, "
                 f"maintenance={overall['average_total_maintenance'][faction_name]:.2f}, "
                 f"net={overall['average_net_income'][faction_name]:.2f}"
             )

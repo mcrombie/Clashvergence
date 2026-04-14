@@ -88,20 +88,26 @@ def count_owned_regions(world):
 
 def summarize_economy(world):
     total_income = {faction_name: 0 for faction_name in world.factions}
+    total_empire_penalty = {faction_name: 0 for faction_name in world.factions}
+    total_effective_income = {faction_name: 0 for faction_name in world.factions}
     total_maintenance = {faction_name: 0 for faction_name in world.factions}
     total_attacks = {faction_name: 0 for faction_name in world.factions}
 
     for snapshot in get_metrics_log(world):
         for faction_name, faction_metrics in snapshot["factions"].items():
             total_income[faction_name] += faction_metrics.get("income", 0)
+            total_empire_penalty[faction_name] += faction_metrics.get("empire_penalty", 0)
+            total_effective_income[faction_name] += faction_metrics.get("effective_income", 0)
             total_maintenance[faction_name] += faction_metrics.get("maintenance", 0)
             total_attacks[faction_name] += faction_metrics.get("attacks", 0)
 
     return {
         faction_name: {
             "income": total_income[faction_name],
+            "empire_penalty": total_empire_penalty[faction_name],
+            "effective_income": total_effective_income[faction_name],
             "maintenance": total_maintenance[faction_name],
-            "net_income": total_income[faction_name] - total_maintenance[faction_name],
+            "net_income": total_effective_income[faction_name] - total_maintenance[faction_name],
             "attacks": total_attacks[faction_name],
         }
         for faction_name in world.factions
@@ -148,6 +154,8 @@ def run_comparison_setting(map_name, num_turns, runs, num_factions):
     average_treasury = {faction_name: [] for faction_name in faction_names}
     average_regions = {faction_name: [] for faction_name in faction_names}
     average_income = {faction_name: [] for faction_name in faction_names}
+    average_empire_penalty = {faction_name: [] for faction_name in faction_names}
+    average_effective_income = {faction_name: [] for faction_name in faction_names}
     average_maintenance = {faction_name: [] for faction_name in faction_names}
     average_net_income = {faction_name: [] for faction_name in faction_names}
     average_attacks = {faction_name: [] for faction_name in faction_names}
@@ -179,6 +187,8 @@ def run_comparison_setting(map_name, num_turns, runs, num_factions):
             average_treasury[faction_name].append(final_treasuries[faction_name])
             average_regions[faction_name].append(final_regions[faction_name])
             average_income[faction_name].append(final_economy[faction_name]["income"])
+            average_empire_penalty[faction_name].append(final_economy[faction_name]["empire_penalty"])
+            average_effective_income[faction_name].append(final_economy[faction_name]["effective_income"])
             average_maintenance[faction_name].append(final_economy[faction_name]["maintenance"])
             average_net_income[faction_name].append(final_economy[faction_name]["net_income"])
             average_attacks[faction_name].append(final_economy[faction_name]["attacks"])
@@ -209,6 +219,14 @@ def run_comparison_setting(map_name, num_turns, runs, num_factions):
             faction_name: mean(average_income[faction_name])
             for faction_name in faction_names
         },
+        "average_empire_penalty": {
+            faction_name: mean(average_empire_penalty[faction_name])
+            for faction_name in faction_names
+        },
+        "average_effective_income": {
+            faction_name: mean(average_effective_income[faction_name])
+            for faction_name in faction_names
+        },
         "average_maintenance": {
             faction_name: mean(average_maintenance[faction_name])
             for faction_name in faction_names
@@ -236,9 +254,9 @@ def format_result_table(result):
     lines.append("")
     lines.append(
         f"{'Faction':<10} {'Strategy':<13} {'Win':>8} {'Shared':>8} "
-        f"{'Treasury':>10} {'Regions':>8} {'Attacks':>8} {'Income':>10} {'Maint':>10} {'Net':>10}"
+        f"{'Treasury':>10} {'Regions':>8} {'Attacks':>8} {'Income':>10} {'Scale':>10} {'Maint':>10} {'Net':>10}"
     )
-    lines.append("-" * 107)
+    lines.append("-" * 118)
 
     for faction_name in result["factions"]:
         lines.append(
@@ -250,6 +268,7 @@ def format_result_table(result):
             f"{result['average_regions'][faction_name]:>8.3f} "
             f"{result['average_attacks'][faction_name]:>8.3f} "
             f"{result['average_income'][faction_name]:>10.3f} "
+            f"{result['average_empire_penalty'][faction_name]:>10.3f} "
             f"{result['average_maintenance'][faction_name]:>10.3f} "
             f"{result['average_net_income'][faction_name]:>10.3f}"
         )

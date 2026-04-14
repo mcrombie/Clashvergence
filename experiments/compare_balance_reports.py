@@ -69,13 +69,21 @@ def parse_report(path: Path):
             if len(values) == 7:
                 entry["attacks"] = 0.0
                 entry["income"] = values[4]
+                entry["scale"] = 0.0
                 entry["maintenance"] = values[5]
                 entry["net"] = values[6]
+            elif len(values) == 8:
+                entry["attacks"] = values[4]
+                entry["income"] = values[5]
+                entry["scale"] = 0.0
+                entry["maintenance"] = values[6]
+                entry["net"] = values[7]
             else:
                 entry["attacks"] = values[4]
                 entry["income"] = values[5]
-                entry["maintenance"] = values[6]
-                entry["net"] = values[7]
+                entry["scale"] = values[6]
+                entry["maintenance"] = values[7]
+                entry["net"] = values[8]
 
             results[(current_map, current_turns)][faction_name] = entry
 

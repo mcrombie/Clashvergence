@@ -64,6 +64,34 @@ def format_event(event):
             f"treasury_after={event.get('treasury_after', 0)})"
         )
 
+    if event["type"] == "income":
+        return (
+            f"Turn {event['turn'] + 1}: {event['faction']} collected base income "
+            f"(base_income={event.get('base_income', event.get('income', 0))}, "
+            f"owned_regions={event.get('owned_regions', 0)}, "
+            f"treasury_after={event.get('treasury_after', 0)})"
+        )
+
+    if event["type"] == "empire_scale":
+        return (
+            f"Turn {event['turn'] + 1}: {event['faction']} paid empire scale penalty "
+            f"(owned_regions={event.get('owned_regions', 0)}, "
+            f"free_regions={event.get('empire_free_regions', 0)}, "
+            f"scale_cost={event.get('empire_scale_cost', 0)}, "
+            f"empire_penalty={event.get('empire_penalty', 0)}, "
+            f"effective_income={event.get('effective_income', 0)}, "
+            f"treasury_after={event.get('treasury_after', 0)})"
+        )
+
+    if event["type"] == "maintenance":
+        return (
+            f"Turn {event['turn'] + 1}: {event['faction']} paid maintenance "
+            f"(maintenance={event.get('maintenance', 0)}, "
+            f"owned_regions={event.get('owned_regions', 0)}, "
+            f"net_income={event.get('net_income', 0)}, "
+            f"treasury_after={event.get('treasury_after', 0)})"
+        )
+
     return f"Turn {event['turn'] + 1}: {event}"
 
 
@@ -95,7 +123,12 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
                 f"regions={faction_metrics['regions']}, "
                 f"attacks={faction_metrics['attacks']}, "
                 f"expansions={faction_metrics['expansions']}, "
-                f"investments={faction_metrics['investments']}"
+                f"investments={faction_metrics['investments']}, "
+                f"base_income={faction_metrics['income']}, "
+                f"scale_penalty={faction_metrics.get('empire_penalty', 0)}, "
+                f"effective_income={faction_metrics.get('effective_income', 0)}, "
+                f"maintenance={faction_metrics['maintenance']}, "
+                f"net={faction_metrics['net_income']}"
             )
         lines.append("")
 
