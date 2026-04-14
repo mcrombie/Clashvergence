@@ -57,7 +57,11 @@ def parse_args():
         type=int,
         help="Number of factions to include. Defaults to the number of factions with starting regions on the map.",
     )
-    parser.add_argument("--seed", type=int, default=12345, help="Random seed for reproducible playback.")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        help="Optional random seed for reproducible playback. If omitted, a random seed is generated.",
+    )
     parser.add_argument(
         "--hide-connectivity",
         action="store_true",
@@ -545,8 +549,10 @@ def main():
     args = parse_args()
     validate_map(args.map)
     num_factions = args.num_factions or infer_num_factions(args.map)
+    seed = args.seed if args.seed is not None else random.randrange(0, 2**32)
 
-    world = create_debug_world(args.map, args.turns, args.seed, num_factions=num_factions)
+    print(f"Using seed: {seed}")
+    world = create_debug_world(args.map, args.turns, seed, num_factions=num_factions)
     save_path = args.save if args.save is not None else None
     render_playback(
         world,
