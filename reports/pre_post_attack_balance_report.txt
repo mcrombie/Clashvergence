@@ -4,331 +4,331 @@ Before: maintenance_strategy_comparison.txt
 After: combat_strategy_comparison.txt
 
 Map: asymmetric_frontier | Turns: 5
-Leader shift: Faction4 (85.00%) -> Faction4 (62.00%)
-Largest win-rate swing: Faction4 (-23.00 pts)
-Largest treasury swing: Faction3 (-16.52)
+Leader shift: Faction4 (85.00%) -> Faction4 (47.50%)
+Largest win-rate swing: Faction4 (-37.50 pts)
+Largest treasury swing: Faction3 (-17.08)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +14.00     -3.12    +1.20     -2.79      2.89
-Faction2   balanced        +3.50    -10.69    -2.17    -11.18      1.07
-Faction3   economic        +3.00    -16.52    -1.29    -13.69      0.53
-Faction4   opportunist    -23.00     -0.30    +1.35     -1.42      3.00
+Faction1   expansionist   +23.00    -10.58    +0.77     -4.76      2.75
+Faction2   balanced       +12.50    -12.29    -1.90    -10.15      1.63
+Faction3   economic        +4.50    -17.08    -1.00    -12.39      1.15
+Faction4   opportunist    -37.50     -9.46    +0.69     -4.52      2.92
 
 Map: asymmetric_frontier | Turns: 10
-Leader shift: Faction2 (54.00%) -> Faction4 (56.00%)
-Largest win-rate swing: Faction2 (-49.00 pts)
-Largest treasury swing: Faction3 (-68.20)
+Leader shift: Faction2 (54.00%) -> Faction4 (51.00%)
+Largest win-rate swing: Faction2 (-46.00 pts)
+Largest treasury swing: Faction2 (-71.05)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +33.50    +10.26    +1.90    +12.66      5.96
-Faction2   balanced       -49.00    -66.41    -2.90    -65.90      1.76
-Faction3   economic        +1.50    -68.20    -2.56    -64.90      0.93
-Faction4   opportunist    +14.00    +13.47    +3.17    +15.94      7.86
+Faction1   expansionist   +32.50     -9.98    +1.60     +4.31      5.84
+Faction2   balanced       -46.00    -71.05    -2.70    -66.31      2.40
+Faction3   economic        +3.00    -63.86    -2.06    -56.87      1.79
+Faction4   opportunist     +9.00    -11.52    +2.49     +4.48      7.10
 
 Map: asymmetric_frontier | Turns: 20
-Leader shift: Faction2 (54.50%) -> Faction4 (59.50%)
-Largest win-rate swing: Faction2 (-48.50 pts)
-Largest treasury swing: Faction2 (-187.67)
+Leader shift: Faction2 (54.50%) -> Faction4 (47.50%)
+Largest win-rate swing: Faction2 (-43.50 pts)
+Largest treasury swing: Faction2 (-173.59)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +31.00    +28.58    +1.07    +31.88      7.32
-Faction2   balanced       -48.50   -187.67    -2.85   -187.24      2.00
-Faction3   economic        +1.50   -177.30    -2.65   -173.58      1.10
-Faction4   opportunist    +16.00   +153.38    +4.34   +159.46     11.97
+Faction1   expansionist   +35.00    +22.19    +1.55    +42.83      8.14
+Faction2   balanced       -43.50   -173.59    -2.25   -166.44      3.19
+Faction3   economic        +4.50   -162.87    -2.26   -154.87      2.00
+Faction4   opportunist     +4.00    +60.28    +2.87    +88.21     11.09
 
 Map: asymmetric_frontier | Turns: 40
-Leader shift: Faction2 (53.00%) -> Faction4 (61.00%)
-Largest win-rate swing: Faction2 (-48.50 pts)
-Largest treasury swing: Faction4 (+526.13)
+Leader shift: Faction2 (53.00%) -> Faction4 (49.50%)
+Largest win-rate swing: Faction2 (-40.50 pts)
+Largest treasury swing: Faction3 (-368.69)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +30.00    +94.41    +1.00    +98.28      7.66
-Faction2   balanced       -48.50   -432.21    -2.99   -431.66      2.13
-Faction3   economic        +1.50   -378.68    -2.54   -375.08      1.08
-Faction4   opportunist    +17.00   +526.13    +4.53   +533.01     12.38
+Faction1   expansionist   +33.00   +115.82    +1.36   +134.37      7.25
+Faction2   balanced       -40.50   -329.70    -2.03   -322.43      3.31
+Faction3   economic        +2.00   -368.69    -2.48   -361.19      1.85
+Faction4   opportunist     +5.50   +326.80    +3.15   +353.97     10.77
 
 Map: asymmetric_frontier | Turns: 80
-Leader shift: Faction2 (54.00%) -> Faction4 (54.50%)
+Leader shift: Faction2 (54.00%) -> Faction4 (48.50%)
 Largest win-rate swing: Faction2 (-48.00 pts)
-Largest treasury swing: Faction4 (+1011.91)
+Largest treasury swing: Faction2 (-861.99)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +35.50   +450.10    +1.70   +453.98      7.91
-Faction2   balanced       -48.00   -867.09    -2.82   -866.44      2.14
-Faction3   economic        +2.00   -788.62    -2.56   -784.89      1.17
-Faction4   opportunist    +10.50  +1011.91    +3.67  +1018.73     12.04
+Faction1   expansionist   +37.00   +467.01    +1.89   +487.35      8.04
+Faction2   balanced       -48.00   -861.99    -2.82   -856.47      2.69
+Faction3   economic        +6.50   -633.84    -2.02   -625.38      2.04
+Faction4   opportunist     +4.50   +776.24    +2.95   +803.97     10.94
 
 Map: asymmetric_frontier | Turns: 160
-Leader shift: Faction2 (53.50%) -> Faction4 (60.00%)
-Largest win-rate swing: Faction2 (-50.00 pts)
-Largest treasury swing: Faction4 (+2609.94)
+Leader shift: Faction2 (53.50%) -> Faction4 (49.00%)
+Largest win-rate swing: Faction2 (-40.00 pts)
+Largest treasury swing: Faction4 (+1782.15)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +31.00   +643.68    +1.12   +647.19      7.70
-Faction2   balanced       -50.00  -1939.99    -3.12  -1939.37      1.75
-Faction3   economic        +3.50  -1501.68    -2.38  -1498.16      1.27
-Faction4   opportunist    +15.50  +2609.94    +4.38  +2616.54     12.10
+Faction1   expansionist   +29.50   +518.26    +0.94   +536.41      7.18
+Faction2   balanced       -40.00  -1229.96    -1.92  -1222.41      3.42
+Faction3   economic        +6.00  -1320.18    -2.08  -1311.49      2.21
+Faction4   opportunist     +4.50  +1782.15    +3.05  +1809.09     10.68
 
 Map: multi_ring_symmetry | Turns: 5
-Leader shift: Faction1 (0.00%) -> Faction4 (37.00%)
-Largest win-rate swing: Faction4 (+37.00 pts)
-Largest treasury swing: Faction1 (+1.03)
+Leader shift: Faction1 (0.00%) -> Faction4 (32.00%)
+Largest win-rate swing: Faction4 (+32.00 pts)
+Largest treasury swing: Faction1 (-0.58)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +36.00     +1.03    -0.64     -0.64      0.79
-Faction2   balanced       +11.50     +0.36    -0.50     -0.50      0.36
-Faction3   economic       +12.00     +0.40    -0.44     -0.44      0.37
-Faction4   opportunist    +37.00     +0.95    -0.61     -0.61      0.68
+Faction1   expansionist   +20.50     -0.58    -0.79     -0.80      0.72
+Faction2   balanced       +24.50     -0.56    -0.75     -0.75      0.78
+Faction3   economic       +23.00     -0.50    -0.77     -0.77      0.76
+Faction4   opportunist    +32.00     -0.36    -0.68     -0.68      0.74
 
 Map: multi_ring_symmetry | Turns: 10
-Leader shift: Faction2 (27.00%) -> Faction4 (38.00%)
-Largest win-rate swing: Faction4 (+33.50 pts)
-Largest treasury swing: Faction3 (-17.76)
+Leader shift: Faction2 (27.00%) -> Faction1 (29.50%)
+Largest win-rate swing: Faction4 (+19.00 pts)
+Largest treasury swing: Faction4 (-23.03)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +20.00     -4.11    -1.96    -12.52      4.30
-Faction2   balanced       -13.50    -14.22    -2.96    -18.16      2.69
-Faction3   economic        +2.00    -17.76    -3.83    -21.11      2.08
-Faction4   opportunist    +33.50     -4.44    -3.17    -15.59      5.72
+Faction1   expansionist   +13.00    -17.25    -2.79    -16.97      4.42
+Faction2   balanced        -9.50    -22.20    -3.10    -20.48      3.18
+Faction3   economic       +16.50    -18.19    -3.02    -17.81      3.13
+Faction4   opportunist    +19.00    -23.03    -4.60    -22.15      5.70
 
 Map: multi_ring_symmetry | Turns: 20
-Leader shift: Faction1 (19.50%) -> Faction4 (35.00%)
-Largest win-rate swing: Faction4 (+15.50 pts)
-Largest treasury swing: Faction3 (-242.36)
+Leader shift: Faction1 (19.50%) -> Faction2 (27.50%)
+Largest win-rate swing: Faction3 (+12.50 pts)
+Largest treasury swing: Faction4 (-252.75)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +10.50   -157.09    +0.06   -155.48      9.46
-Faction2   balanced        +5.00   -193.58    -1.47   -192.56      7.76
-Faction3   economic        +1.50   -242.36    -5.26   -239.95      4.69
-Faction4   opportunist    +15.50   -152.74    -0.16   -156.16     14.81
+Faction1   expansionist    +6.50   -207.09    -1.27   -186.95      9.06
+Faction2   balanced       +11.00   -206.21    -0.59   -186.93      9.06
+Faction3   economic       +12.50   -219.30    -1.80   -201.40      8.18
+Faction4   opportunist     +2.00   -252.75    -3.99   -231.22     12.52
 
 Map: multi_ring_symmetry | Turns: 40
-Leader shift: Faction4 (36.00%) -> Faction4 (44.00%)
-Largest win-rate swing: Faction3 (-19.50 pts)
-Largest treasury swing: Faction3 (-805.42)
+Leader shift: Faction4 (36.00%) -> Faction1 (28.00%)
+Largest win-rate swing: Faction1 (+8.00 pts)
+Largest treasury swing: Faction2 (-633.00)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +11.50   -434.76    +1.38   -425.34     15.72
-Faction2   balanced        +1.50   -648.99    -3.88   -642.98     10.38
-Faction3   economic       -19.50   -805.42    -5.45   -798.49      7.22
-Faction4   opportunist     +8.00   -201.69    +5.42   -195.74     28.13
+Faction1   expansionist    +8.00   -525.68    +0.22   -485.09     15.56
+Faction2   balanced        +6.50   -633.00    -2.39   -600.04     12.38
+Faction3   economic        -5.00   -606.74    -0.55   -571.84     13.32
+Faction4   opportunist     -8.00   -573.11    +0.14   -523.19     22.64
 
 Map: multi_ring_symmetry | Turns: 80
-Leader shift: Faction4 (41.00%) -> Faction4 (43.50%)
-Largest win-rate swing: Faction3 (-13.50 pts)
-Largest treasury swing: Faction3 (-1713.05)
+Leader shift: Faction4 (41.00%) -> Faction2 (26.00%)
+Largest win-rate swing: Faction2 (+16.00 pts)
+Largest treasury swing: Faction3 (-985.85)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    +6.00   -615.72    +0.73   -602.10     15.70
-Faction2   balanced        +7.50  -1188.73    -2.55  -1181.51     11.84
-Faction3   economic       -13.50  -1713.05    -4.86  -1705.39      7.86
-Faction4   opportunist     +2.50   +654.34    +6.68   +664.62     30.41
+Faction1   expansionist    +4.50   -747.57    +0.18   -702.74     16.14
+Faction2   balanced       +16.00   -694.82    +0.59   -654.58     14.81
+Faction3   economic        -3.00   -985.85    -0.98   -946.64     13.82
+Faction4   opportunist    -15.00   -688.94    +0.21   -638.23     22.57
 
 Map: multi_ring_symmetry | Turns: 160
-Leader shift: Faction4 (40.50%) -> Faction4 (38.50%)
-Largest win-rate swing: Faction3 (-11.50 pts)
-Largest treasury swing: Faction3 (-3075.45)
+Leader shift: Faction4 (40.50%) -> Faction3 (26.50%)
+Largest win-rate swing: Faction2 (+17.50 pts)
+Largest treasury swing: Faction4 (-1184.66)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    +4.50   -112.78    +1.46    -98.37     15.67
-Faction2   balanced       +11.00  -1585.81    -1.79  -1578.20     13.33
-Faction3   economic       -11.50  -3075.45    -4.49  -3067.53      8.11
-Faction4   opportunist     -2.00  +1887.44    +4.80  +1897.71     29.52
+Faction1   expansionist    +0.00   -894.59    -0.20   -853.13     14.57
+Faction2   balanced       +17.50   -434.62    +0.62   -393.15     15.62
+Faction3   economic        +2.00   -598.86    +0.51   -559.15     14.10
+Faction4   opportunist    -17.50  -1184.66    -0.93  -1133.04     22.84
 
 Map: seventeen_region_ring | Turns: 5
-Leader shift: Faction4 (24.00%) -> Faction4 (27.50%)
-Largest win-rate swing: Faction1 (+24.50 pts)
-Largest treasury swing: Faction3 (-6.43)
+Leader shift: Faction4 (24.00%) -> Faction3 (26.00%)
+Largest win-rate swing: Faction1 (+23.50 pts)
+Largest treasury swing: Faction4 (-13.27)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +24.50     -2.58    -2.00     -7.70      2.56
-Faction2   balanced       +24.00     -3.51    -1.71     -7.11      1.97
-Faction3   economic        +7.00     -6.43    -1.17     -8.01      1.57
-Faction4   opportunist     +3.50     -5.68    -1.83     -9.70      2.83
+Faction1   expansionist   +23.50     -8.87    -2.61     -8.91      3.37
+Faction2   balanced       +22.00     -8.32    -2.48     -8.41      2.88
+Faction3   economic       +12.50    -10.11    -1.82     -9.16      2.47
+Faction4   opportunist     -5.50    -13.27    -2.57    -11.96      3.25
 
 Map: seventeen_region_ring | Turns: 10
-Leader shift: Faction1 (0.00%) -> Faction4 (32.50%)
-Largest win-rate swing: Faction4 (+32.50 pts)
-Largest treasury swing: Faction3 (-54.35)
+Leader shift: Faction1 (0.00%) -> Faction2 (30.00%)
+Largest win-rate swing: Faction2 (+30.00 pts)
+Largest treasury swing: Faction4 (-71.21)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +24.50    -46.31    -0.61    -46.66      4.34
-Faction2   balanced       +27.50    -43.26    -0.58    -42.80      3.84
-Faction3   economic       +15.50    -54.35    -1.20    -52.10      2.67
-Faction4   opportunist    +32.50    -45.65    -0.77    -45.97      6.48
+Faction1   expansionist   +22.50    -65.34    -1.48    -56.77      5.18
+Faction2   balanced       +30.00    -58.53    -0.79    -49.27      4.85
+Faction3   economic       +28.50    -61.74    -0.61    -51.25      4.35
+Faction4   opportunist    +19.00    -71.21    -2.17    -62.30      5.86
 
 Map: seventeen_region_ring | Turns: 20
-Leader shift: Faction2 (27.50%) -> Faction4 (30.50%)
-Largest win-rate swing: Faction4 (+20.00 pts)
-Largest treasury swing: Faction3 (-146.63)
+Leader shift: Faction2 (27.50%) -> Faction3 (32.00%)
+Largest win-rate swing: Faction3 (+22.50 pts)
+Largest treasury swing: Faction4 (-168.65)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    +0.50   -109.63    -0.52   -106.41      6.29
-Faction2   balanced        -0.50    -96.12    -0.23    -92.73      6.00
-Faction3   economic        +8.50   -146.63    -1.40   -143.65      4.17
-Faction4   opportunist    +20.00    -69.21    +1.14    -64.23     11.10
+Faction1   expansionist    +0.00   -148.73    -0.55   -131.06      7.39
+Faction2   balanced        -1.50   -141.37    -0.33   -123.29      6.99
+Faction3   economic       +22.50   -125.26    +0.58   -106.47      6.70
+Faction4   opportunist     +7.50   -168.65    -1.15   -151.51      8.41
 
 Map: seventeen_region_ring | Turns: 40
-Leader shift: Faction1 (28.00%) -> Faction2 (28.00%)
-Largest win-rate swing: Faction3 (+11.00 pts)
-Largest treasury swing: Faction3 (-181.87)
+Leader shift: Faction1 (28.00%) -> Faction2 (29.50%)
+Largest win-rate swing: Faction3 (+14.00 pts)
+Largest treasury swing: Faction1 (-262.73)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    -1.50   -117.59    -0.03   -113.16      6.82
-Faction2   balanced        +5.00    -92.70    +0.29    -89.00      6.91
-Faction3   economic       +11.00   -181.87    -0.24   -176.46      5.18
-Faction4   opportunist    +10.50   -131.69    -0.03   -124.44     11.54
+Faction1   expansionist    -7.00   -262.73    -0.96   -244.72      6.93
+Faction2   balanced        +6.50   -124.11    +0.55   -102.75      8.28
+Faction3   economic       +14.00   -158.32    +0.27   -137.49      6.86
+Faction4   opportunist    +11.50   -157.00    +0.14   -135.27      9.81
 
 Map: seventeen_region_ring | Turns: 80
-Leader shift: Faction1 (24.50%) -> Faction1 (35.00%)
-Largest win-rate swing: Faction1 (+10.50 pts)
-Largest treasury swing: Faction3 (-407.37)
+Leader shift: Faction1 (24.50%) -> Faction3 (30.00%)
+Largest win-rate swing: Faction3 (+18.50 pts)
+Largest treasury swing: Faction1 (-420.28)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +10.50   +246.12    +1.44   +251.07      8.31
-Faction2   balanced        +4.00   -165.92    -0.17   -161.84      6.33
-Faction3   economic        +6.50   -407.37    -1.01   -402.87      4.41
-Faction4   opportunist     +8.50   -184.37    -0.26   -178.13     10.98
+Faction1   expansionist    -4.00   -420.28    -1.03   -402.28      7.05
+Faction2   balanced        +4.00   -225.20    -0.17   -206.63      6.95
+Faction3   economic       +18.50    +69.96    +1.03    +91.90      7.28
+Faction4   opportunist    +11.00   -119.66    +0.17    -97.83      9.98
 
 Map: seventeen_region_ring | Turns: 160
-Leader shift: Faction2 (19.00%) -> Faction1 (28.50%)
-Largest win-rate swing: Faction1 (+11.00 pts)
-Largest treasury swing: Faction2 (-311.08)
+Leader shift: Faction2 (19.00%) -> Faction3 (29.50%)
+Largest win-rate swing: Faction3 (+16.00 pts)
+Largest treasury swing: Faction1 (-615.78)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +11.00    +66.70    +0.34    +71.39      7.98
-Faction2   balanced        +5.50   -311.08    -0.33   -306.31      6.34
-Faction3   economic        +9.50   -277.68    -0.21   -273.08      5.34
-Faction4   opportunist     +7.50     -8.66    +0.20     -2.49     11.33
+Faction1   expansionist    +4.50   -615.78    -0.76   -596.82      7.70
+Faction2   balanced        +4.50   -465.00    -0.50   -444.94      7.26
+Faction3   economic       +16.00   +320.90    +0.89   +343.18      7.50
+Faction4   opportunist     +8.50    +46.14    +0.37    +67.14      9.69
 
 Map: thirteen_region_ring | Turns: 5
-Leader shift: Faction1 (0.00%) -> Faction1 (27.00%)
-Largest win-rate swing: Faction1 (+27.00 pts)
-Largest treasury swing: Faction3 (-12.15)
+Leader shift: Faction1 (0.00%) -> Faction1 (28.00%)
+Largest win-rate swing: Faction1 (+28.00 pts)
+Largest treasury swing: Faction4 (-17.86)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +27.00     -8.17    -0.95    -10.27      2.60
-Faction2   balanced       +26.50     -8.53    -0.65     -9.84      2.15
-Faction3   economic       +20.00    -12.15    -0.72    -11.82      1.71
-Faction4   opportunist    +23.00    -11.86    -0.96    -12.69      2.75
+Faction1   expansionist   +28.00    -14.46    -1.60    -11.97      3.31
+Faction2   balanced       +16.50    -15.12    -1.47    -11.94      2.83
+Faction3   economic       +28.00    -16.15    -1.05    -12.45      2.43
+Faction4   opportunist    +20.00    -17.86    -1.41    -13.45      3.29
 
 Map: thirteen_region_ring | Turns: 10
-Leader shift: Faction1 (30.50%) -> Faction1 (28.50%)
-Largest win-rate swing: Faction4 (+17.00 pts)
-Largest treasury swing: Faction3 (-46.67)
+Leader shift: Faction1 (30.50%) -> Faction3 (28.50%)
+Largest win-rate swing: Faction3 (+13.50 pts)
+Largest treasury swing: Faction4 (-60.52)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    -2.00    -32.83    +0.09    -31.51      4.65
-Faction2   balanced        -7.50    -39.61    -0.50    -37.94      3.73
-Faction3   economic        +7.00    -46.67    -0.98    -44.78      3.15
-Faction4   opportunist    +17.00    -39.33    -0.02    -37.10      6.50
+Faction1   expansionist    -4.50    -55.95    -0.50    -44.80      5.54
+Faction2   balanced        -7.00    -55.83    -0.59    -44.45      4.37
+Faction3   economic       +13.50    -53.40    -0.42    -42.45      4.62
+Faction4   opportunist    +10.50    -60.52    -1.08    -48.68      5.96
 
 Map: thirteen_region_ring | Turns: 20
-Leader shift: Faction1 (28.50%) -> Faction2 (33.50%)
-Largest win-rate swing: Faction4 (+16.00 pts)
-Largest treasury swing: Faction3 (-114.36)
+Leader shift: Faction1 (28.50%) -> Faction3 (28.00%)
+Largest win-rate swing: Faction4 (+10.50 pts)
+Largest treasury swing: Faction2 (-111.65)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    -5.50    -71.12    -0.46    -67.60      6.22
-Faction2   balanced        +9.50    -31.75    +0.86    -28.87      6.46
-Faction3   economic        -1.50   -114.36    -1.08   -110.47      3.89
-Faction4   opportunist    +16.00    -50.54    +0.58    -43.96      9.48
+Faction1   expansionist    -1.00    -92.25    +0.06    -73.92      7.42
+Faction2   balanced        -0.50   -111.65    -0.39    -94.75      6.37
+Faction3   economic        +9.50    -90.16    +0.35    -72.60      6.27
+Faction4   opportunist    +10.50   -107.00    -0.25    -86.68      8.61
 
 Map: thirteen_region_ring | Turns: 40
-Leader shift: Faction1 (30.50%) -> Faction2 (29.50%)
-Largest win-rate swing: Faction4 (+10.50 pts)
-Largest treasury swing: Faction3 (-134.58)
+Leader shift: Faction1 (30.50%) -> Faction3 (29.50%)
+Largest win-rate swing: Faction3 (+13.50 pts)
+Largest treasury swing: Faction1 (-150.77)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    -6.50   -111.36    -0.31   -107.88      5.95
-Faction2   balanced       +10.00     -9.51    +0.50     -6.22      6.05
-Faction3   economic        +5.00   -134.58    -0.50   -130.94      4.55
-Faction4   opportunist    +10.50    -35.77    +0.31    -28.36      9.94
+Faction1   expansionist    -7.50   -150.77    -0.44   -133.65      6.70
+Faction2   balanced        +7.00    -93.50    +0.11    -76.24      6.46
+Faction3   economic       +13.50    -42.87    +0.60    -25.14      6.24
+Faction4   opportunist     +6.00   -126.69    -0.27   -108.12      8.21
 
 Map: thirteen_region_ring | Turns: 80
-Leader shift: Faction1 (26.50%) -> Faction1 (31.00%)
-Largest win-rate swing: Faction4 (+7.00 pts)
-Largest treasury swing: Faction4 (-149.56)
+Leader shift: Faction1 (26.50%) -> Faction2 (26.50%)
+Largest win-rate swing: Faction4 (+11.50 pts)
+Largest treasury swing: Faction1 (-249.23)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    +4.50    +98.24    +0.60   +101.43      7.12
-Faction2   balanced        +4.50   -102.44    -0.12    -98.36      5.92
-Faction3   economic        +4.50   -140.12    -0.21   -136.35      4.86
-Faction4   opportunist     +7.00   -149.56    -0.27   -141.24      9.71
+Faction1   expansionist    -4.50   -249.23    -0.58   -232.53      6.58
+Faction2   balanced        +6.00    -84.82    +0.08    -66.89      6.72
+Faction3   economic        +7.50    -67.06    +0.17    -49.26      6.17
+Faction4   opportunist    +11.50    -18.79    +0.32     +2.32      9.05
 
 Map: thirteen_region_ring | Turns: 160
-Leader shift: Faction1 (35.00%) -> Faction1 (29.00%)
-Largest win-rate swing: Faction4 (+13.00 pts)
-Largest treasury swing: Faction3 (-264.10)
+Leader shift: Faction1 (35.00%) -> Faction3 (27.00%)
+Largest win-rate swing: Faction1 (-13.50 pts)
+Largest treasury swing: Faction1 (-521.93)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    -6.00   +103.07    +0.28   +106.08      6.42
-Faction2   balanced        +3.50   -230.21    -0.27   -226.33      5.33
-Faction3   economic        +5.50   -264.10    -0.31   -260.60      4.37
-Faction4   opportunist    +13.00   +111.88    +0.30   +118.99      9.81
+Faction1   expansionist   -13.50   -521.93    -0.70   -505.27      6.79
+Faction2   balanced        +6.50    -38.17    +0.11    -20.51      6.55
+Faction3   economic       +10.50    +95.43    +0.34   +114.56      6.68
+Faction4   opportunist    +12.50    +42.00    +0.23    +63.97      9.27
 
 Map: thirty_seven_region_ring | Turns: 5
-Leader shift: Faction1 (0.00%) -> Faction1 (31.50%)
-Largest win-rate swing: Faction1 (+31.50 pts)
-Largest treasury swing: Faction4 (+1.82)
+Leader shift: Faction1 (0.00%) -> Faction2 (24.00%)
+Largest win-rate swing: Faction2 (+24.00 pts)
+Largest treasury swing: Faction4 (-1.95)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +31.50     +1.27    -1.20     -1.79      1.38
-Faction2   balanced       +13.50     +0.43    -1.04     -1.57      0.81
-Faction3   economic       +15.00     +0.13    -1.23     -1.84      0.85
-Faction4   opportunist    +29.50     +1.82    -1.29     -1.85      1.72
+Faction1   expansionist   +23.50     -1.80    -1.48     -2.18      1.52
+Faction2   balanced       +24.00     -1.61    -1.33     -2.05      1.38
+Faction3   economic       +20.00     -1.68    -1.40     -2.20      1.10
+Faction4   opportunist    +22.00     -1.95    -1.56     -2.33      1.76
 
 Map: thirty_seven_region_ring | Turns: 10
-Leader shift: Faction2 (30.00%) -> Faction1 (37.00%)
-Largest win-rate swing: Faction1 (+21.50 pts)
-Largest treasury swing: Faction3 (-25.23)
+Leader shift: Faction2 (30.00%) -> Faction3 (28.00%)
+Largest win-rate swing: Faction4 (+19.50 pts)
+Largest treasury swing: Faction2 (-26.73)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist   +21.50     -3.83    -2.13    -13.03      4.58
-Faction2   balanced       -11.50    -16.90    -3.29    -23.02      3.51
-Faction3   economic        +3.50    -25.23    -5.38    -31.75      2.67
-Faction4   opportunist    +20.50     -8.82    -4.50    -21.89      6.46
+Faction1   expansionist    +4.50    -22.49    -3.54    -22.14      4.39
+Faction2   balanced        -7.00    -26.73    -3.69    -26.09      4.16
+Faction3   economic       +17.50    -24.94    -4.30    -25.78      3.88
+Faction4   opportunist    +19.50    -25.38    -5.07    -26.27      6.35
 
 Map: thirty_seven_region_ring | Turns: 20
-Leader shift: Faction1 (25.00%) -> Faction4 (31.50%)
-Largest win-rate swing: Faction4 (+15.50 pts)
-Largest treasury swing: Faction3 (-260.39)
+Leader shift: Faction1 (25.00%) -> Faction2 (31.00%)
+Largest win-rate swing: Faction2 (+14.00 pts)
+Largest treasury swing: Faction4 (-253.90)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    +4.00   -186.33    -1.45   -184.33      8.68
-Faction2   balanced        +6.50   -204.77    -1.52   -203.67      7.68
-Faction3   economic        -5.50   -260.39    -4.86   -261.48      5.21
-Faction4   opportunist    +15.50   -170.53    -0.94   -177.82     14.99
+Faction1   expansionist    -1.50   -215.88    -1.44   -194.61      8.88
+Faction2   balanced       +14.00   -223.06    -1.35   -205.48      9.09
+Faction3   economic        +3.00   -243.16    -2.70   -228.01      7.67
+Faction4   opportunist     +5.00   -253.90    -3.88   -236.79     12.44
 
 Map: thirty_seven_region_ring | Turns: 40
-Leader shift: Faction3 (35.50%) -> Faction4 (31.00%)
-Largest win-rate swing: Faction3 (-22.50 pts)
-Largest treasury swing: Faction3 (-830.03)
+Leader shift: Faction3 (35.50%) -> Faction2 (28.50%)
+Largest win-rate swing: Faction2 (+19.00 pts)
+Largest treasury swing: Faction3 (-729.02)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    +9.50   -536.08    -0.29   -524.48     13.32
-Faction2   balanced       +18.00   -512.48    +0.17   -506.18     14.03
-Faction3   economic       -22.50   -830.03    -4.87   -825.73      7.04
-Faction4   opportunist     -4.00   -440.15    +1.42   -432.47     28.43
+Faction1   expansionist    +8.50   -546.08    +0.12   -505.25     13.95
+Faction2   balanced       +19.00   -542.69    +0.53   -507.04     14.55
+Faction3   economic       -15.50   -729.02    -2.58   -701.25     10.39
+Faction4   opportunist    -11.00   -653.69    -1.29   -607.21     22.38
 
 Map: thirty_seven_region_ring | Turns: 80
-Leader shift: Faction4 (36.00%) -> Faction1 (30.50%)
-Largest win-rate swing: Faction2 (+13.00 pts)
-Largest treasury swing: Faction3 (-1374.22)
+Leader shift: Faction4 (36.00%) -> Faction2 (31.00%)
+Largest win-rate swing: Faction2 (+20.50 pts)
+Largest treasury swing: Faction4 (-1306.89)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    +6.50   -518.84    +2.00   -502.22     15.24
-Faction2   balanced       +13.00   -845.13    -0.27   -836.12     13.01
-Faction3   economic        -9.00  -1374.22    -2.83  -1366.54      9.48
-Faction4   opportunist     -7.50   -472.22    +1.11   -465.32     26.50
+Faction1   expansionist    +6.50   -582.12    +2.00   -536.21     15.68
+Faction2   balanced       +20.50   -403.13    +2.51   -359.16     16.66
+Faction3   economic        -5.50  -1190.79    -1.54  -1157.97     10.77
+Faction4   opportunist    -18.50  -1306.89    -2.96  -1255.07     23.32
 
 Map: thirty_seven_region_ring | Turns: 160
-Leader shift: Faction4 (41.50%) -> Faction1 (29.50%)
-Largest win-rate swing: Faction2 (+15.50 pts)
-Largest treasury swing: Faction3 (-2716.79)
+Leader shift: Faction4 (41.50%) -> Faction1 (27.50%)
+Largest win-rate swing: Faction4 (-14.00 pts)
+Largest treasury swing: Faction3 (-1680.52)
 Faction    Strategy       WinDiff  TreasDiff  RegDiff   NetDiff  AtkAfter
 --------------------------------------------------------------------------
-Faction1   expansionist    +2.00    -61.55    +1.59    -45.98     14.96
-Faction2   balanced       +15.50   -358.31    +0.98   -348.53     14.04
-Faction3   economic        -3.50  -2716.79    -3.65  -2709.86      7.92
-Faction4   opportunist    -13.00   -136.40    +1.06   -127.84     28.48
+Faction1   expansionist    +0.00   -438.03    +0.86   -395.09     14.81
+Faction2   balanced       +13.00   -777.51    +0.06   -738.06     14.78
+Faction3   economic        +2.00  -1680.52    -1.61  -1644.86     11.73
+Faction4   opportunist    -14.00   -415.20    +0.70   -366.99     23.00

@@ -1,6 +1,12 @@
 import random
 
-from src.config import ATTACK_FAILURE_PENALTY, EXPANSION_COST, MAX_RESOURCES, INVEST_AMOUNT
+from src.config import (
+    ATTACK_COST,
+    ATTACK_FAILURE_PENALTY,
+    EXPANSION_COST,
+    MAX_RESOURCES,
+    INVEST_AMOUNT,
+)
 from src.models import Event
 
 
@@ -333,17 +339,23 @@ def attack(faction_name, target_region_name, world):
     if defender_name is None or defender_name == faction_name:
         return False
 
+    if attacker.treasury < ATTACK_COST:
+        return False
+
     score_components = get_attack_target_score_components(target_region_name, faction_name, world)
     treasury_before = attacker.treasury
+    attacker.treasury -= ATTACK_COST
     success_roll = random.random()
     succeeded = success_roll < score_components["success_chance"]
-    treasury_change = 0
+    treasury_change = -ATTACK_COST
+    actual_failure_penalty = 0
 
     if succeeded:
         target_region.owner = faction_name
     else:
-        treasury_change = -min(ATTACK_FAILURE_PENALTY, attacker.treasury)
-        attacker.treasury += treasury_change
+        actual_failure_penalty = min(ATTACK_FAILURE_PENALTY, attacker.treasury)
+        treasury_change -= actual_failure_penalty
+        attacker.treasury -= actual_failure_penalty
 
     world.events.append(Event(
         turn=world.turn,
@@ -353,7 +365,8 @@ def attack(faction_name, target_region_name, world):
         details={
             "defender": defender_name,
             "success": succeeded,
-            "failure_penalty": ATTACK_FAILURE_PENALTY,
+            "attack_cost": ATTACK_COST,
+            "failure_penalty": actual_failure_penalty,
             "success_chance": round(score_components["success_chance"], 3),
             "attack_strength": score_components["attacker_strength"],
             "defense_strength": score_components["defender_strength"],
