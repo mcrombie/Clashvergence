@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import random
+import sys
 from pathlib import Path
 from statistics import mean
 
@@ -16,6 +17,7 @@ DEFAULT_TURNS = [5, 10, 20, 40, 80, 160]
 DEFAULT_RUNS = 200
 DEFAULT_SEED = 12345
 DEFAULT_OUTPUT = Path("reports/maintenance_strategy_comparison.txt")
+DEFAULT_INVALID_MAP_POLICY = "skip"
 
 
 def parse_args():
@@ -53,6 +55,12 @@ def parse_args():
         default=DEFAULT_OUTPUT,
         help="Report file path.",
     )
+    parser.add_argument(
+        "--invalid-map-policy",
+        choices=["skip", "fail"],
+        default=DEFAULT_INVALID_MAP_POLICY,
+        help="How to handle maps where one or more configured factions lack a starting region.",
+    )
     return parser.parse_args()
 
 
@@ -82,6 +90,44 @@ def summarize_economy(world):
             "net_income": total_income[faction_name] - total_maintenance[faction_name],
         }
         for faction_name in world.factions
+    }
+
+
+def get_starting_region_counts(world):
+    counts = {faction_name: 0 for faction_name in world.factions}
+
+    for region in world.regions.values():
+        if region.owner in counts:
+            counts[region.owner] += 1
+
+    return counts
+
+
+def validate_map_faction_starts(map_name):
+    template_world = create_world(map_name=map_name)
+    starting_region_counts = get_starting_region_counts(template_world)
+    missing_factions = [
+        faction_name
+        for faction_name, count in starting_region_counts.items()
+        if count == 0
+    ]
+
+    if not missing_factions:
+        return {
+            "valid": True,
+            "reason": None,
+            "starting_region_counts": starting_region_counts,
+        }
+
+    missing_text = ", ".join(missing_factions)
+    reason = (
+        f"Map '{map_name}' is invalid for this comparison because these configured factions "
+        f"have no starting region: {missing_text}."
+    )
+    return {
+        "valid": False,
+        "reason": reason,
+        "starting_region_counts": starting_region_counts,
     }
 
 
@@ -217,6 +263,23 @@ def build_report(results, seed):
     return "\n".join(lines)
 
 
+def build_report_with_skips(results, skipped_maps, seed):
+    lines = [build_report(results, seed)]
+
+    if skipped_maps:
+        lines.append("")
+        lines.append("=" * 66)
+        lines.append("")
+        lines.append("Skipped Maps")
+        lines.append("")
+        for skipped in skipped_maps:
+            lines.append(f"Map: {skipped['map_name']}")
+            lines.append(f"Reason: {skipped['reason']}")
+            lines.append("")
+
+    return "\n".join(lines).rstrip()
+
+
 def validate_maps(map_names):
     invalid_maps = [map_name for map_name in map_names if map_name not in MAPS]
     if invalid_maps:
@@ -233,7 +296,22 @@ def main():
     random.seed(args.seed)
 
     results = []
+    skipped_maps = []
     for map_name in args.maps:
+        validation = validate_map_faction_starts(map_name)
+        if not validation["valid"]:
+            if args.invalid_map_policy == "fail":
+                raise ValueError(validation["reason"])
+
+            print(f"WARNING: Skipping. {validation['reason']}", file=sys.stderr)
+            skipped_maps.append(
+                {
+                    "map_name": map_name,
+                    "reason": validation["reason"],
+                }
+            )
+            continue
+
         for num_turns in args.turns:
             results.append(
                 run_comparison_setting(
@@ -243,7 +321,7 @@ def main():
                 )
             )
 
-    report_text = build_report(results, seed=args.seed)
+    report_text = build_report_with_skips(results, skipped_maps, seed=args.seed)
     print(report_text)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
