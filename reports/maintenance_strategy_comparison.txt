@@ -1,0 +1,799 @@
+Map Strategy Comparison
+
+Seed: 12345
+
+Map: asymmetric_frontier
+Turns: 5
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    9.50%   5.50%     32.530    2.530     46.180     10.060     36.120
+Faction2   balanced        0.00%   2.00%     25.925    3.565     45.750     13.130     32.620
+Faction3   economic        0.00%   0.00%     31.100    3.055     48.375     12.110     36.265
+Faction4   opportunist    85.00%   3.50%     34.040    2.850     50.140     11.550     38.590
+
+==================================================================
+
+Map: asymmetric_frontier
+Turns: 10
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    0.00%   0.00%     82.920    2.520    109.120     22.640     86.480
+Faction2   balanced       54.00%   0.00%     95.535    3.540    132.935     30.780    102.155
+Faction3   economic        4.00%   0.00%     91.875    3.060    124.475     27.420     97.055
+Faction4   opportunist    42.00%   0.00%     91.735    2.880    122.415     26.040     96.375
+
+==================================================================
+
+Map: asymmetric_frontier
+Turns: 20
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    0.00%   0.00%    184.330    2.530    235.930     48.010    187.920
+Faction2   balanced       54.50%   0.00%    237.475    3.545    310.375     66.265    244.110
+Faction3   economic        2.00%   0.00%    213.905    3.050    276.905     57.850    219.055
+Faction4   opportunist    43.50%   0.00%    206.605    2.875    265.980     54.750    211.230
+
+==================================================================
+
+Map: asymmetric_frontier
+Turns: 40
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    0.00%   0.00%    396.600    2.600    501.600    101.200    400.400
+Faction2   balanced       53.00%   0.00%    519.555    3.530    662.755    136.610    526.145
+Faction3   economic        3.00%   0.00%    461.105    3.075    586.105    119.775    466.330
+Faction4   opportunist    44.00%   0.00%    425.185    2.795    538.780    109.210    429.570
+
+==================================================================
+
+Map: asymmetric_frontier
+Turns: 80
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    0.00%   0.00%    799.055    2.555   1004.455    201.735    802.720
+Faction2   balanced       54.00%   0.00%   1086.750    3.540   1371.950    278.580   1093.370
+Faction3   economic        2.00%   0.00%    941.585    3.035   1186.385    239.695    946.690
+Faction4   opportunist    44.00%   0.00%    895.105    2.870   1126.575    226.860    899.715
+
+==================================================================
+
+Map: asymmetric_frontier
+Turns: 160
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    0.00%   0.00%   1644.600    2.600   2061.600    413.200   1648.400
+Faction2   balanced       53.50%   0.00%   2216.675    3.535   2784.275    560.995   2223.280
+Faction3   economic        2.00%   0.00%   1915.935    3.040   2404.335    483.280   1921.055
+Faction4   opportunist    44.50%   0.00%   1785.425    2.825   2239.250    449.350   1789.900
+
+==================================================================
+
+Map: multi_ring_symmetry
+Turns: 5
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    0.00% 100.00%     21.000    5.000     47.000     15.000     32.000
+Faction2   balanced        0.00% 100.00%     21.000    5.000     47.000     15.000     32.000
+Faction3   economic        0.00% 100.00%     21.000    5.000     47.000     15.000     32.000
+Faction4   opportunist     0.00% 100.00%     21.000    5.000     47.000     15.000     32.000
+
+==================================================================
+
+Map: multi_ring_symmetry
+Turns: 10
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   16.50%  14.00%     73.535    9.230    151.455     54.230     97.225
+Faction2   balanced       27.00%  29.50%     74.950    9.020    151.930     53.920     98.010
+Faction3   economic        9.50%  29.50%     73.265    9.345    151.645     54.345     97.300
+Faction4   opportunist     4.50%  20.00%     72.420    9.405    151.040     54.405     96.635
+
+==================================================================
+
+Map: multi_ring_symmetry
+Turns: 20
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   19.50%   7.50%    380.220    9.230    550.440    146.530    403.910
+Faction2   balanced       16.50%  25.00%    381.920    9.060    549.690    144.590    405.100
+Faction3   economic       12.00%  26.50%    380.995    9.310    552.335    147.410    404.925
+Faction4   opportunist    19.50%  17.50%    380.515    9.400    553.115    148.400    404.715
+
+==================================================================
+
+Map: multi_ring_symmetry
+Turns: 40
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   20.00%   1.50%   1119.280    9.235   1474.270    331.285   1142.985
+Faction2   balanced       12.50%   0.00%   1104.750    9.030   1452.675    324.835   1127.840
+Faction3   economic       30.00%   1.50%   1126.760    9.325   1484.810    334.075   1150.735
+Faction4   opportunist    36.00%   0.00%   1132.575    9.410   1493.515    336.710   1156.805
+
+==================================================================
+
+Map: multi_ring_symmetry
+Turns: 80
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   21.00%   2.50%   2603.115    9.260   3329.355    702.460   2626.895
+Faction2   balanced       10.00%   0.00%   2548.155    9.025   3256.930    685.700   2571.230
+Faction3   economic       25.50%   2.50%   2613.855    9.305   3343.425    705.655   2637.770
+Faction4   opportunist    41.00%   0.00%   2638.480    9.410   3375.820    713.110   2662.710
+
+==================================================================
+
+Map: multi_ring_symmetry
+Turns: 160
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   24.50%   2.00%   5569.120    9.265   7036.930   1444.015   5592.915
+Faction2   balanced        8.50%   0.00%   5423.115    9.000   6850.030   1403.915   5446.115
+Faction3   economic       24.50%   2.00%   5585.710    9.295   7058.140   1448.545   5609.595
+Faction4   opportunist    40.50%   0.00%   5665.530    9.440   7160.290   1470.440   5689.850
+
+==================================================================
+
+Map: seven_region_ring
+Turns: 5
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    0.00% 100.00%     31.000    2.305     43.830      9.915     33.915
+Faction2   balanced        0.00% 100.00%     31.000    2.555     45.330     10.665     34.665
+Faction3   economic        0.00% 100.00%     31.000    2.140     42.840      9.420     33.420
+Faction4   opportunist     0.00%   0.00%      1.000    0.000      0.000      0.000      0.000
+
+==================================================================
+
+Map: seven_region_ring
+Turns: 10
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   34.50%   0.00%     77.900    2.345    102.695     21.760     80.935
+Faction2   balanced       47.00%   0.00%     80.400    2.470    106.570     22.760     83.810
+Faction3   economic       18.50%   0.00%     74.700    2.185     97.735     20.480     77.255
+Faction4   opportunist     0.00%   0.00%      1.000    0.000      0.000      0.000      0.000
+
+==================================================================
+
+Map: seven_region_ring
+Turns: 20
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   36.00%   0.00%    172.600    2.360    221.160     45.480    175.680
+Faction2   balanced       46.00%   0.00%    178.600    2.460    229.260     47.280    181.980
+Faction3   economic       18.00%   0.00%    161.800    2.180    206.580     42.240    164.340
+Faction4   opportunist     0.00%   0.00%      1.000    0.000      0.000      0.000      0.000
+
+==================================================================
+
+Map: seven_region_ring
+Turns: 40
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   37.00%   0.00%    362.800    2.370    458.970     93.060    365.910
+Faction2   balanced       42.00%   0.00%    369.800    2.420    468.020     94.960    373.060
+Faction3   economic       21.00%   0.00%    340.400    2.210    430.010     86.980    343.030
+Faction4   opportunist     0.00%   0.00%      1.000    0.000      0.000      0.000      0.000
+
+==================================================================
+
+Map: seven_region_ring
+Turns: 80
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   35.00%   0.00%    736.000    2.350    925.350    186.300    739.050
+Faction2   balanced       46.50%   0.00%    770.500    2.465    969.165    195.270    773.895
+Faction3   economic       18.50%   0.00%    686.500    2.185    862.485    173.430    689.055
+Faction4   opportunist     0.00%   0.00%      1.000    0.000      0.000      0.000      0.000
+
+==================================================================
+
+Map: seven_region_ring
+Turns: 160
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   33.00%   0.00%   1475.600    2.330   1849.730    371.140   1478.590
+Faction2   balanced       45.00%   0.00%   1550.000    2.450   1943.450    390.100   1553.350
+Faction3   economic       22.00%   0.00%   1407.400    2.220   1763.820    353.760   1410.060
+Faction4   opportunist     0.00%   0.00%      1.000    0.000      0.000      0.000      0.000
+
+==================================================================
+
+Map: seventeen_region_ring
+Turns: 5
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    0.00%  47.00%     21.925    4.415     45.585     14.415     31.170
+Faction2   balanced        0.00%  47.00%     21.775    4.445     45.555     14.445     31.110
+Faction3   economic       10.00%  57.50%     23.700    4.100     46.000     14.000     32.000
+Faction4   opportunist    21.00%  55.50%     24.695    3.945     46.265     13.735     32.530
+
+==================================================================
+
+Map: seventeen_region_ring
+Turns: 10
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    0.00%  94.00%    100.400    4.475    146.615     36.790    109.825
+Faction2   balanced        0.00%  99.00%    100.900    4.590    148.200     37.530    110.670
+Faction3   economic        0.00%  89.50%     99.950    4.135    143.060     34.705    108.355
+Faction4   opportunist     0.00%  70.00%     98.000    3.800    137.900     32.500    105.400
+
+==================================================================
+
+Map: seventeen_region_ring
+Turns: 20
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   25.00%  23.00%    282.150    4.545    374.440     82.655    291.785
+Faction2   balanced       21.50%  25.00%    279.900    4.475    370.915     81.590    289.325
+Faction3   economic       12.50%  13.00%    265.700    4.145    350.345     76.210    274.135
+Faction4   opportunist     9.00%   3.00%    251.550    3.835    330.130     71.075    259.055
+
+==================================================================
+
+Map: seventeen_region_ring
+Turns: 40
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   24.00%  20.00%    643.150    4.525    825.540    172.815    652.725
+Faction2   balanced       25.00%  21.50%    639.000    4.485    819.895    171.440    648.455
+Faction3   economic       12.50%   9.50%    589.850    4.085    755.030    156.925    598.105
+Faction4   opportunist    11.50%   3.00%    567.200    3.905    725.255    150.340    574.915
+
+==================================================================
+
+Map: seventeen_region_ring
+Turns: 80
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   25.50%  27.50%   1392.350    4.615   1762.850    360.655   1402.195
+Faction2   balanced       19.00%  29.00%   1359.450    4.495   1720.540    351.605   1368.935
+Faction3   economic       11.00%  11.50%   1240.500    4.075   1568.275    319.550   1248.725
+Faction4   opportunist    10.00%   1.00%   1166.250    3.815   1473.340    299.645   1173.695
+
+==================================================================
+
+Map: seventeen_region_ring
+Turns: 160
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   29.50%  22.00%   2851.300    4.585   3586.245    725.190   2861.055
+Faction2   balanced       21.50%  22.50%   2782.700    4.470   3499.400    707.290   2792.110
+Faction3   economic       10.00%  10.00%   2569.150    4.115   3229.350    651.855   2577.495
+Faction4   opportunist    10.50%   2.50%   2396.000    3.830   3010.670    607.180   2403.490
+
+==================================================================
+
+Map: ten_region_ring
+Turns: 5
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    0.00%  44.00%     27.080    3.560     46.880     13.120     33.760
+Faction2   balanced        0.00%  69.50%     28.865    3.305     47.390     12.610     34.780
+Faction3   economic        4.50%  77.50%     29.740    3.135     47.370     12.225     35.145
+Faction4   opportunist     0.00%   0.00%      1.000    0.000      0.000      0.000      0.000
+
+==================================================================
+
+Map: ten_region_ring
+Turns: 10
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   46.00%   6.00%     96.200    3.520    133.400     30.640    102.760
+Faction2   balanced       31.00%   6.00%     94.700    3.370    130.400     29.590    100.810
+Faction3   economic       17.00%   0.00%     91.500    3.110    124.540     27.710     96.830
+Faction4   opportunist     0.00%   0.00%      1.000    0.000      0.000      0.000      0.000
+
+==================================================================
+
+Map: ten_region_ring
+Turns: 20
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   35.50%   6.00%    231.750    3.415    302.050     64.055    237.995
+Faction2   balanced       36.00%   6.00%    232.000    3.420    302.400     64.140    238.260
+Faction3   economic       22.50%   0.00%    218.650    3.165    283.890     59.745    224.145
+Faction4   opportunist     0.00%   0.00%      1.000    0.000      0.000      0.000      0.000
+
+==================================================================
+
+Map: ten_region_ring
+Turns: 40
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   38.00%   6.00%    508.200    3.440    647.800    133.280    514.520
+Faction2   balanced       36.50%   6.00%    506.250    3.425    645.250    132.725    512.525
+Faction3   economic       19.50%   0.00%    467.950    3.135    595.290    121.935    473.355
+Faction4   opportunist     0.00%   0.00%      1.000    0.000      0.000      0.000      0.000
+
+==================================================================
+
+Map: ten_region_ring
+Turns: 80
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   44.00%   4.00%   1070.200    3.480   1350.600    273.960   1076.640
+Faction2   balanced       32.50%   4.00%   1036.850    3.365   1308.050    265.105   1042.945
+Faction3   economic       19.50%   0.00%    975.550    3.155   1229.910    248.895    981.015
+Faction4   opportunist     0.00%   0.00%      1.000    0.000      0.000      0.000      0.000
+
+==================================================================
+
+Map: ten_region_ring
+Turns: 160
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   47.00%   2.50%   2192.950    3.495   2754.150    554.715   2199.435
+Faction2   balanced       28.50%   2.50%   2080.100    3.310   2611.700    525.670   2086.030
+Faction3   economic       22.00%   0.00%   2009.700    3.195   2522.875    507.590   2015.285
+Faction4   opportunist     0.00%   0.00%      1.000    0.000      0.000      0.000      0.000
+
+==================================================================
+
+Map: thirteen_region_ring
+Turns: 5
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    0.00%  52.00%     27.640    3.480     47.040     12.960     34.080
+Faction2   balanced        0.00%  59.00%     28.130    3.410     47.180     12.820     34.360
+Faction3   economic        0.00%  78.00%     29.460    3.185     47.350     12.335     35.015
+Faction4   opportunist     0.00%  91.50%     30.405    2.925     46.870     11.690     35.180
+
+==================================================================
+
+Map: thirteen_region_ring
+Turns: 10
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   33.50%  13.00%     95.650    3.465    132.300     30.255    102.045
+Faction2   balanced       25.50%  11.00%     94.650    3.365    130.300     29.555    100.745
+Faction3   economic       15.00%   7.00%     92.600    3.190    126.470     28.300     98.170
+Faction4   opportunist    10.50%   0.00%     89.550    2.980    121.225     26.735     94.490
+
+==================================================================
+
+Map: thirteen_region_ring
+Turns: 20
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   35.00%  12.50%    234.750    3.475    306.250     65.075    241.175
+Faction2   balanced       24.50%   9.00%    227.750    3.335    296.450     62.695    233.755
+Faction3   economic       16.00%   4.50%    219.450    3.175    284.920     59.945    224.975
+Faction4   opportunist    11.50%   0.00%    210.750    3.015    272.950     57.155    215.795
+
+==================================================================
+
+Map: thirteen_region_ring
+Turns: 40
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   29.00%  14.50%    507.550    3.435    646.950    133.095    513.855
+Faction2   balanced       22.00%  14.50%    498.450    3.365    635.050    130.505    504.545
+Faction3   economic       14.00%  11.00%    475.800    3.195    605.545    124.160    481.385
+Faction4   opportunist    15.00%   0.00%    450.200    3.005    572.255    117.040    455.215
+
+==================================================================
+
+Map: thirteen_region_ring
+Turns: 80
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   32.50%  11.50%   1058.600    3.440   1335.800    270.880   1064.920
+Faction2   balanced       28.00%  12.00%   1047.000    3.400   1321.000    267.800   1053.200
+Faction3   economic       14.50%   4.50%    980.100    3.170   1235.680    250.070    985.610
+Faction4   opportunist    11.00%   0.00%    926.900    2.990   1167.980    236.110    931.870
+
+==================================================================
+
+Map: thirteen_region_ring
+Turns: 160
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   35.00%  14.50%   2192.950    3.495   2754.150    554.715   2199.435
+Faction2   balanced       23.50%  13.50%   2116.700    3.370   2657.900    535.090   2122.810
+Faction3   economic       12.50%   8.00%   1997.450    3.175   2507.420    504.445   2002.975
+Faction4   opportunist    11.00%   0.00%   1865.100    2.960   2340.550    470.570   1869.980
+
+==================================================================
+
+Map: thirty_seven_region_ring
+Turns: 5
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist    0.00%  99.00%     22.000    5.000     48.000     15.000     33.000
+Faction2   balanced        1.00%  99.00%     22.010    5.000     48.010     15.000     33.010
+Faction3   economic        0.00%  99.00%     22.000    5.000     48.000     15.000     33.000
+Faction4   opportunist     0.00%  99.00%     22.000    5.000     48.000     15.000     33.000
+
+==================================================================
+
+Map: thirty_seven_region_ring
+Turns: 10
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   18.00%  12.50%     74.570    9.230    152.485     54.225     98.260
+Faction2   balanced       28.50%  24.00%     76.685    8.980    153.500     53.875     99.625
+Faction3   economic       11.50%  21.50%     74.225    9.300    152.410     54.285     98.125
+Faction4   opportunist     6.50%  18.00%     72.965    9.480    151.885     54.480     97.405
+
+==================================================================
+
+Map: thirty_seven_region_ring
+Turns: 20
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   26.00%  11.50%    382.295    9.260    552.915    146.840    406.075
+Faction2   balanced       15.50%  19.50%    383.960    8.970    550.440    143.570    406.870
+Faction3   economic       16.00%  14.50%    380.840    9.310    552.175    147.405    404.770
+Faction4   opportunist    18.00%  10.50%    379.410    9.460    552.840    149.050    403.790
+
+==================================================================
+
+Map: thirty_seven_region_ring
+Turns: 40
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   25.00%   3.00%   1125.060    9.295   1482.085    333.140   1148.945
+Faction2   balanced        7.00%   0.00%   1099.195    8.950   1444.370    322.325   1122.045
+Faction3   economic       25.50%   3.00%   1125.985    9.300   1483.175    333.290   1149.885
+Faction4   opportunist    39.00%   1.00%   1136.300    9.455   1498.755    338.090   1160.665
+
+==================================================================
+
+Map: thirty_seven_region_ring
+Turns: 80
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   23.00%   2.00%   2607.790    9.275   3335.135    703.520   2631.615
+Faction2   balanced        8.00%   0.00%   2538.845    8.980   3244.265    682.480   2561.785
+Faction3   economic       30.50%   1.50%   2618.605    9.320   3349.265    706.700   2642.565
+Faction4   opportunist    36.00%   1.50%   2641.590    9.425   3380.040    714.175   2665.865
+
+==================================================================
+
+Map: thirty_seven_region_ring
+Turns: 160
+Simulations: 200
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions     Income      Maint        Net
+--------------------------------------------------------------------------------------------------
+Faction1   expansionist   23.50%   5.00%   5574.600    9.275   7043.925   1445.500   5598.425
+Faction2   balanced        7.50%   0.00%   5387.605    8.935   6804.450   1394.040   5410.410
+Faction3   economic       23.50%   4.50%   5590.000    9.300   7063.195   1449.295   5613.900
+Faction4   opportunist    40.00%   1.50%   5694.035    9.490   7196.490   1477.985   5718.505
