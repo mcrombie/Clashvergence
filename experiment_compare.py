@@ -17,7 +17,7 @@ DEFAULT_MAPS = sorted(MAPS)
 DEFAULT_TURNS = [5, 10, 20, 40, 80, 160]
 DEFAULT_RUNS = 200
 DEFAULT_SEED = 12345
-DEFAULT_OUTPUT = Path("reports/maintenance_strategy_comparison.txt")
+DEFAULT_OUTPUT = Path("reports/combat_strategy_comparison.txt")
 DEFAULT_INVALID_MAP_POLICY = "skip"
 DEFAULT_NUM_FACTIONS = 4
 
@@ -85,17 +85,20 @@ def count_owned_regions(world):
 def summarize_economy(world):
     total_income = {faction_name: 0 for faction_name in world.factions}
     total_maintenance = {faction_name: 0 for faction_name in world.factions}
+    total_attacks = {faction_name: 0 for faction_name in world.factions}
 
     for snapshot in get_metrics_log(world):
         for faction_name, faction_metrics in snapshot["factions"].items():
             total_income[faction_name] += faction_metrics.get("income", 0)
             total_maintenance[faction_name] += faction_metrics.get("maintenance", 0)
+            total_attacks[faction_name] += faction_metrics.get("attacks", 0)
 
     return {
         faction_name: {
             "income": total_income[faction_name],
             "maintenance": total_maintenance[faction_name],
             "net_income": total_income[faction_name] - total_maintenance[faction_name],
+            "attacks": total_attacks[faction_name],
         }
         for faction_name in world.factions
     }
@@ -143,6 +146,7 @@ def run_comparison_setting(map_name, num_turns, runs, num_factions):
     average_income = {faction_name: [] for faction_name in faction_names}
     average_maintenance = {faction_name: [] for faction_name in faction_names}
     average_net_income = {faction_name: [] for faction_name in faction_names}
+    average_attacks = {faction_name: [] for faction_name in faction_names}
 
     for _ in range(runs):
         world = create_world(map_name=map_name, num_factions=num_factions)
@@ -173,6 +177,7 @@ def run_comparison_setting(map_name, num_turns, runs, num_factions):
             average_income[faction_name].append(final_economy[faction_name]["income"])
             average_maintenance[faction_name].append(final_economy[faction_name]["maintenance"])
             average_net_income[faction_name].append(final_economy[faction_name]["net_income"])
+            average_attacks[faction_name].append(final_economy[faction_name]["attacks"])
 
     return {
         "map_name": map_name,
@@ -208,6 +213,10 @@ def run_comparison_setting(map_name, num_turns, runs, num_factions):
             faction_name: mean(average_net_income[faction_name])
             for faction_name in faction_names
         },
+        "average_attacks": {
+            faction_name: mean(average_attacks[faction_name])
+            for faction_name in faction_names
+        },
     }
 
 
@@ -223,9 +232,9 @@ def format_result_table(result):
     lines.append("")
     lines.append(
         f"{'Faction':<10} {'Strategy':<13} {'Win':>8} {'Shared':>8} "
-        f"{'Treasury':>10} {'Regions':>8} {'Income':>10} {'Maint':>10} {'Net':>10}"
+        f"{'Treasury':>10} {'Regions':>8} {'Attacks':>8} {'Income':>10} {'Maint':>10} {'Net':>10}"
     )
-    lines.append("-" * 98)
+    lines.append("-" * 107)
 
     for faction_name in result["factions"]:
         lines.append(
@@ -235,6 +244,7 @@ def format_result_table(result):
             f"{result['shared_first_rate'][faction_name]:>7.2%} "
             f"{result['average_treasury'][faction_name]:>10.3f} "
             f"{result['average_regions'][faction_name]:>8.3f} "
+            f"{result['average_attacks'][faction_name]:>8.3f} "
             f"{result['average_income'][faction_name]:>10.3f} "
             f"{result['average_maintenance'][faction_name]:>10.3f} "
             f"{result['average_net_income'][faction_name]:>10.3f}"

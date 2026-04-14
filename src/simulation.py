@@ -1,5 +1,5 @@
 from src.agents import choose_action
-from src.actions import expand, invest
+from src.actions import attack, expand, invest
 from src.config import REGION_MAINTENANCE_COST
 from src.metrics import record_turn_metrics
 from src.models import Event
@@ -109,6 +109,14 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
                     print(f"{faction_name} expanded into {target_region_name}")
                 else:
                     print(f"{faction_name} failed to expand into {target_region_name}")
+
+        elif action_name == "attack":
+            success = attack(faction_name, target_region_name, world)
+            if verbose:
+                if success:
+                    print(f"{faction_name} attacked and captured {target_region_name}")
+                else:
+                    print(f"{faction_name} attacked {target_region_name} but failed")
 
         elif action_name == "invest":
             success = invest(faction_name, target_region_name, world)

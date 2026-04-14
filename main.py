@@ -46,6 +46,18 @@ def format_event(event):
             f"new_resources={event.get('new_resources', 0)})"
         )
 
+    if event["type"] == "attack":
+        defender = event.get("defender", "Unknown")
+        outcome = "captured" if event.get("success", False) else "failed against"
+        return (
+            f"Turn {event['turn'] + 1}: {event['faction']} attacked {defender} in {event['region']} "
+            f"and {outcome} the region "
+            f"(success_chance={event.get('success_chance', 0):.3f}, "
+            f"attack_strength={event.get('attack_strength', 0)}, "
+            f"defense_strength={event.get('defense_strength', 0)}, "
+            f"treasury_after={event.get('treasury_after', 0)})"
+        )
+
     return f"Turn {event['turn'] + 1}: {event}"
 
 
@@ -75,6 +87,7 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
             lines.append(
                 f"  {faction_name}: treasury={faction_metrics['treasury']}, "
                 f"regions={faction_metrics['regions']}, "
+                f"attacks={faction_metrics['attacks']}, "
                 f"expansions={faction_metrics['expansions']}, "
                 f"investments={faction_metrics['investments']}"
             )

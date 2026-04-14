@@ -19,6 +19,17 @@ from src.world import create_world
 
 
 DEFAULT_OUTPUT = Path("reports/debug_turn_playback.gif")
+COLOR_NAME_BY_HEX = {
+    "#d1495b": "crimson",
+    "#edae49": "amber",
+    "#00798c": "teal",
+    "#30638e": "blue",
+    "#6a4c93": "purple",
+    "#2b9348": "green",
+    "#ff7f51": "coral",
+    "#8d99ae": "slate",
+    "#d9d9d9": "light gray",
+}
 
 
 def import_matplotlib():
@@ -81,15 +92,35 @@ def infer_num_factions(map_name):
     return len(get_map_starting_region_counts(map_name))
 
 
+def get_color_label(faction_name):
+    color = get_faction_color(faction_name)
+    return COLOR_NAME_BY_HEX.get(color.lower(), color)
+
+
 def build_snapshot(world, turn_number, regions_state):
     turn_events = [event for event in world.events if event.turn == turn_number - 1]
-    newly_claimed = []
+    expanded_regions = []
+    conquered_regions = []
     invested_regions = []
+    failed_attacks = []
 
     for event in turn_events:
         if event.type == "expand" and event.region is not None:
             regions_state[event.region]["owner"] = event.faction
-            newly_claimed.append(event.region)
+            expanded_regions.append(event.region)
+        elif (
+            event.type == "attack"
+            and event.region is not None
+            and event.get("success", False)
+        ):
+            regions_state[event.region]["owner"] = event.faction
+            conquered_regions.append(event.region)
+        elif (
+            event.type == "attack"
+            and event.region is not None
+            and not event.get("success", False)
+        ):
+            failed_attacks.append(event.region)
         elif event.type == "invest" and event.region is not None:
             new_resources = event.impact.get("new_resources", event.new_resources)
             if new_resources is not None:
@@ -100,8 +131,10 @@ def build_snapshot(world, turn_number, regions_state):
     return {
         "turn": turn_number,
         "regions": copy.deepcopy(regions_state),
-        "newly_claimed": newly_claimed,
+        "expanded_regions": expanded_regions,
+        "conquered_regions": conquered_regions,
         "invested_regions": invested_regions,
+        "failed_attacks": failed_attacks,
         "metrics": metrics,
         "events": turn_events,
     }
@@ -122,8 +155,10 @@ def reconstruct_turn_snapshots(world, map_name):
     snapshots = [{
         "turn": 0,
         "regions": copy.deepcopy(regions_state),
-        "newly_claimed": [],
+        "expanded_regions": [],
+        "conquered_regions": [],
         "invested_regions": [],
+        "failed_attacks": [],
         "metrics": None,
         "events": [],
     }]
@@ -138,33 +173,44 @@ def get_faction_turn_summary(snapshot, faction_name):
     metrics = snapshot["metrics"]["factions"][faction_name]
     faction_events = [event for event in snapshot["events"] if event.faction == faction_name]
     treasury_delta = 0
-    event_lines = []
-    claims = []
-    investments = []
+    action_summary = "none"
+    economy_summary = None
+    result_summary = "no action result"
 
     for event in faction_events:
         treasury_delta += event.get("treasury_change", 0)
 
         if event.type == "expand" and event.region is not None:
-            claims.append(event.region)
             cost = event.get("cost", 0)
-            event_lines.append(f"  expand {event.region} (-${cost})")
+            action_summary = f"expand into {event.region}"
+            result_summary = f"region acquired by expansion, cost -${cost}"
+        elif event.type == "attack" and event.region is not None:
+            defender = event.get("defender", "Unknown")
+            success_chance = event.get("success_chance", 0)
+            action_summary = f"attack {event.region} held by {defender}"
+            if event.get("success", False):
+                result_summary = f"region acquired by conquest, success chance {success_chance:.0%}"
+            else:
+                penalty = abs(event.get("treasury_change", 0))
+                result_summary = f"attack failed, penalty -${penalty}, success chance {success_chance:.0%}"
         elif event.type == "invest" and event.region is not None:
             change = event.get("resource_change", 0)
             new_resources = event.get("new_resources")
-            investments.append(event.region)
+            action_summary = f"invest in {event.region}"
             if new_resources is not None:
-                event_lines.append(f"  invest {event.region} (+{change}R -> R{new_resources})")
+                result_summary = f"resources +{change}, now R{new_resources}"
             else:
-                event_lines.append(f"  invest {event.region} (+{change}R)")
+                result_summary = f"resources +{change}"
         elif event.type == "income":
             income = event.get("income", 0)
-            owned_regions = event.get("owned_regions", 0)
-            event_lines.append(f"  income +${income} from {owned_regions} regions")
+            economy_summary = f"income +${income}"
         elif event.type == "maintenance":
             maintenance = event.get("maintenance", 0)
-            owned_regions = event.get("owned_regions", 0)
-            event_lines.append(f"  upkeep -${maintenance} on {owned_regions} regions")
+            if economy_summary is None:
+                economy_summary = ""
+            if economy_summary:
+                economy_summary += " | "
+            economy_summary += f"upkeep -${maintenance}"
 
     return {
         "treasury": metrics["treasury"],
@@ -173,15 +219,16 @@ def get_faction_turn_summary(snapshot, faction_name):
         "income": metrics.get("income", 0),
         "maintenance": metrics.get("maintenance", 0),
         "net_income": metrics.get("net_income", 0),
+        "attacks": metrics.get("attacks", 0),
         "expansions": metrics["expansions"],
         "investments": metrics["investments"],
-        "claims": claims,
-        "invested_regions": investments,
-        "event_lines": event_lines,
+        "action_summary": action_summary,
+        "result_summary": result_summary,
+        "economy_summary": economy_summary or "income +$0 | upkeep -$0",
     }
 
 
-def format_metrics_text(snapshot):
+def format_metrics_text(snapshot, world):
     faction_names = sorted(
         {
             *(snapshot["metrics"]["factions"].keys() if snapshot["metrics"] is not None else []),
@@ -197,15 +244,19 @@ def format_metrics_text(snapshot):
     if snapshot["metrics"] is None:
         lines = ["Initial state", "", "Ownership Colors"]
         for faction_name in faction_names:
-            lines.append(f"{faction_name}: {get_faction_color(faction_name)}")
-        lines.append(f"Unclaimed: {get_faction_color(None)}")
+            lines.append(
+                f"{faction_name}: {get_color_label(faction_name)} | strategy={world.factions[faction_name].strategy}"
+            )
+        lines.append(f"Unclaimed: {get_color_label(None)}")
         lines.extend(["", "Faction Activity", "No turn events yet."])
         return "\n".join(lines)
 
     lines = ["Ownership Colors"]
     for faction_name in faction_names:
-        lines.append(f"{faction_name}: {get_faction_color(faction_name)}")
-    lines.append(f"Unclaimed: {get_faction_color(None)}")
+        lines.append(
+            f"{faction_name}: {get_color_label(faction_name)} | strategy={world.factions[faction_name].strategy}"
+        )
+    lines.append(f"Unclaimed: {get_color_label(None)}")
     lines.extend(["", "Faction Activity"])
 
     for faction_name in sorted(snapshot["metrics"]["factions"]):
@@ -213,47 +264,45 @@ def format_metrics_text(snapshot):
         delta_prefix = "+" if summary["treasury_delta"] >= 0 else ""
         lines.append("")
         lines.append(
-            f"{faction_name}: ${summary['treasury']} "
-            f"({delta_prefix}{summary['treasury_delta']} this turn)"
+            f"{faction_name} [{world.factions[faction_name].strategy}]"
         )
         lines.append(
-            f"  regions={summary['regions']} | "
-            f"income=+${summary['income']} | "
-            f"upkeep=-${summary['maintenance']} | "
-            f"net=+${summary['net_income']}"
-            if summary["net_income"] >= 0
-            else f"  regions={summary['regions']} | "
-                 f"income=+${summary['income']} | "
-                 f"upkeep=-${summary['maintenance']} | "
-                 f"net=${summary['net_income']}"
+            f"  Treasury: ${summary['treasury']} ({delta_prefix}{summary['treasury_delta']} this turn)"
         )
         lines.append(
-            f"  gains: +{summary['expansions']} claim | +{summary['investments']} invest"
+            f"  Position: {summary['regions']} regions | "
+            f"{summary['attacks']} attacks | {summary['expansions']} expansions | "
+            f"{summary['investments']} investments"
         )
+        lines.append(
+            f"  Economy: income +${summary['income']} | upkeep -${summary['maintenance']} | "
+            f"net {'+' if summary['net_income'] >= 0 else ''}${summary['net_income']}"
+        )
+        lines.append(f"  Action: {summary['action_summary']}")
+        lines.append(f"  Result: {summary['result_summary']}")
 
-        if summary["claims"]:
-            lines.append(
-                "  claimed: " + ", ".join(sorted(summary["claims"], key=natural_sort_key))
-            )
-        if summary["invested_regions"]:
-            lines.append(
-                "  invested: " + ", ".join(sorted(summary["invested_regions"], key=natural_sort_key))
-            )
-        if summary["event_lines"]:
-            lines.append("  events:")
-            lines.extend(summary["event_lines"])
-        else:
-            lines.append("  events: none")
-
-    if snapshot["newly_claimed"] or snapshot["invested_regions"]:
+    if (
+        snapshot["expanded_regions"]
+        or snapshot["conquered_regions"]
+        or snapshot["invested_regions"]
+        or snapshot["failed_attacks"]
+    ):
         lines.append("")
-        if snapshot["newly_claimed"]:
+        if snapshot["expanded_regions"]:
             lines.append(
-                "Map claims: " + ", ".join(sorted(snapshot["newly_claimed"], key=natural_sort_key))
+                "Expansion gains: " + ", ".join(sorted(snapshot["expanded_regions"], key=natural_sort_key))
+            )
+        if snapshot["conquered_regions"]:
+            lines.append(
+                "Conquest gains: " + ", ".join(sorted(snapshot["conquered_regions"], key=natural_sort_key))
             )
         if snapshot["invested_regions"]:
             lines.append(
                 "Map invests: " + ", ".join(sorted(snapshot["invested_regions"], key=natural_sort_key))
+            )
+        if snapshot["failed_attacks"]:
+            lines.append(
+                "Failed attacks: " + ", ".join(sorted(snapshot["failed_attacks"], key=natural_sort_key))
             )
 
     return "\n".join(lines)
@@ -293,12 +342,16 @@ def draw_snapshot(
         region = snapshot["regions"][region_name]
         x, y = positions[region_name]
         fill = get_faction_color(region["owner"])
-        is_new = region_name in snapshot["newly_claimed"]
+        is_expanded = region_name in snapshot["expanded_regions"]
+        is_conquered = region_name in snapshot["conquered_regions"]
         is_invested = region_name in snapshot["invested_regions"]
 
         edge_color = "#222222"
         line_width = 1.2
-        if is_new:
+        if is_conquered:
+            edge_color = "#7c2d12"
+            line_width = 3.4
+        elif is_expanded:
             edge_color = "#111827"
             line_width = 3.0
         elif is_invested:
@@ -376,10 +429,10 @@ def render_playback(world, map_name, save_path=None, fps=2, show_connectivity=Tr
         ax_side.text(
             0,
             1,
-            format_metrics_text(snapshot),
+            format_metrics_text(snapshot, world),
             va="top",
             ha="left",
-            fontsize=9.5,
+            fontsize=8.8,
             family="monospace",
         )
         fig.canvas.draw_idle()
@@ -403,10 +456,10 @@ def render_playback(world, map_name, save_path=None, fps=2, show_connectivity=Tr
             ax_side.text(
                 0,
                 1,
-                format_metrics_text(snapshot),
+                format_metrics_text(snapshot, world),
                 va="top",
                 ha="left",
-                fontsize=9.5,
+                fontsize=8.8,
                 family="monospace",
             )
 

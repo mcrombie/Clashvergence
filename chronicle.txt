@@ -1,31 +1,38 @@
 Simulation Chronicle
 
-On turn 2, Faction1 made its first expansion into M.
-On turn 2, Faction2 made its first expansion into D.
-On turn 2, Faction3 made its first expansion into F.
-On turn 2, Faction1 seized M, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes.
+On turn 2, Faction4 made its first expansion into K.
+On turn 2, Faction1 made its first expansion into C.
+On turn 2, Faction3 made its first expansion into H.
+On turn 2, Faction2 made its first expansion into E.
+On turn 2, Faction4 seized K, a frontier foothold that mattered because it opened new directions for future expansion and later strengthened its income base.
+On turn 2, Faction1 seized C, a frontier foothold that mattered because it opened new directions for future expansion and later strengthened its income base.
+On turn 2, Faction3 seized H, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into G.
+On turn 2, Faction2 seized E, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into B.
 
 Opening Phase
 
-The strongest early land grab was Faction1's claim of M on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Faction1, Faction2, and Faction3 led expansion with 1 claim(s).
-Across the first 5 turns, Faction1, Faction2, and Faction3 invested most often with 1 investment(s).
-By the end of turn 5, Faction1, Faction2, and Faction3 held the opening treasury lead at 31.
+The strongest early land grab was Faction4's claim of K on turn 2, a frontier foothold that stood out because it opened new directions for future expansion.
+In the first 3 turns, Faction3 led expansion with 2 claim(s).
+Across the first 5 turns, Faction2 invested most often with 2 investment(s).
+By the end of turn 5, Faction1 held the opening treasury lead at 41.
 
 Faction Trajectories
 
-Faction1 grew steadily from the opening and converted that position into first place with 2 regions and 7 treasury.
-Faction2 opened well but faded in the later turns, finishing with 2 regions and 7 treasury.
-Faction3 opened well but faded in the later turns, finishing with 2 regions and 7 treasury.
+Faction1 grew steadily from the opening and converted that position into first place with 5 regions and 89 treasury.
+Faction2 remained competitive without taking control, ending on 0 regions and 6 treasury.
+Faction3 remained competitive without taking control, ending on 0 regions and 9 treasury.
+Faction4 opened well but faded in the later turns, finishing with 7 regions and 87 treasury.
 
 Faction Behavior
 
 Faction1 expanded 1 times and invested 1 times, and generally balanced expansion and development evenly.
-Faction2 expanded 1 times and invested 1 times, and generally balanced expansion and development evenly.
-Faction3 expanded 1 times and invested 1 times, and generally balanced expansion and development evenly.
+Faction2 expanded 2 times and invested 2 times, and generally balanced expansion and development evenly.
+Faction3 expanded 4 times and invested 2 times, and generally favored expansion over development.
+Faction4 expanded 1 times and invested 1 times, and generally balanced expansion and development evenly.
 
 Final Standings
 
-Faction1 finished first with a treasury of 7 and control of 2 regions.
-Faction2 ended with a treasury of 7 and 2 regions.
-Faction3 ended with a treasury of 7 and 2 regions.
+Faction1 finished first with a treasury of 89 and control of 5 regions.
+Faction4 ended with a treasury of 87 and 7 regions.
+Faction3 ended with a treasury of 9 and 0 regions.
+Faction2 ended with a treasury of 6 and 0 regions.

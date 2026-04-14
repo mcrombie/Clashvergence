@@ -21,6 +21,7 @@ def build_turn_metrics(world):
     faction_metrics = {}
 
     for faction_name, faction in world.factions.items():
+        attacks = 0
         expansions = 0
         investments = 0
         income = 0
@@ -30,7 +31,9 @@ def build_turn_metrics(world):
             if event.faction != faction_name:
                 continue
 
-            if event.type == "expand":
+            if event.type == "attack":
+                attacks += 1
+            elif event.type == "expand":
                 expansions += 1
             elif event.type == "invest":
                 investments += 1
@@ -42,6 +45,7 @@ def build_turn_metrics(world):
         faction_metrics[faction_name] = {
             "treasury": faction.treasury,
             "regions": owned_region_counts[faction_name],
+            "attacks": attacks,
             "expansions": expansions,
             "investments": investments,
             "income": income,

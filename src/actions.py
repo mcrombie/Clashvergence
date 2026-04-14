@@ -1,4 +1,6 @@
-from src.config import EXPANSION_COST, MAX_RESOURCES, INVEST_AMOUNT
+import random
+
+from src.config import ATTACK_FAILURE_PENALTY, EXPANSION_COST, MAX_RESOURCES, INVEST_AMOUNT
 from src.models import Event
 
 
@@ -15,6 +17,51 @@ def get_expandable_regions(faction_name, world):
                     expandable_regions.add(neighbor_name)
 
     return sorted(expandable_regions)
+
+
+def get_attackable_regions(faction_name, world):
+    """Returns adjacent enemy-owned regions the faction can attack."""
+
+    attackable_regions: set[str] = set()
+
+    for region in world.regions.values():
+        if region.owner != faction_name:
+            continue
+
+        for neighbor_name in region.neighbors:
+            neighbor = world.regions[neighbor_name]
+            if neighbor.owner is not None and neighbor.owner != faction_name:
+                attackable_regions.add(neighbor_name)
+
+    return sorted(attackable_regions)
+
+
+def get_attack_target_score_components(region_name, faction_name, world):
+    """Returns a simple attack score and combat stats for an enemy region."""
+
+    region = world.regions[region_name]
+    defender_name = region.owner
+    staging_regions = [
+        world.regions[neighbor_name]
+        for neighbor_name in region.neighbors
+        if world.regions[neighbor_name].owner == faction_name
+    ]
+    staging_resources = max((staging_region.resources for staging_region in staging_regions), default=0)
+    attacker_strength = world.factions[faction_name].treasury + staging_resources
+    defender_strength = world.factions[defender_name].treasury + region.resources
+    success_chance = 0.5 + ((attacker_strength - defender_strength) * 0.05)
+    success_chance = max(0.2, min(0.8, success_chance))
+    score = int(success_chance * 100) + (region.resources * 3)
+
+    return {
+        "defender": defender_name,
+        "target_resources": region.resources,
+        "staging_resources": staging_resources,
+        "attacker_strength": attacker_strength,
+        "defender_strength": defender_strength,
+        "success_chance": success_chance,
+        "score": score,
+    }
 
 
 def get_expand_target_score_components(region_name, world):
@@ -268,6 +315,64 @@ def expand(faction_name, target_region_name, world):
     ))
 
     return True
+
+
+def attack(faction_name, target_region_name, world):
+    """Attempts a simple attack on an adjacent enemy-held region."""
+
+    if target_region_name not in world.regions:
+        return False
+
+    if target_region_name not in get_attackable_regions(faction_name, world):
+        return False
+
+    attacker = world.factions[faction_name]
+    target_region = world.regions[target_region_name]
+    defender_name = target_region.owner
+
+    if defender_name is None or defender_name == faction_name:
+        return False
+
+    score_components = get_attack_target_score_components(target_region_name, faction_name, world)
+    treasury_before = attacker.treasury
+    success_roll = random.random()
+    succeeded = success_roll < score_components["success_chance"]
+    treasury_change = 0
+
+    if succeeded:
+        target_region.owner = faction_name
+    else:
+        treasury_change = -min(ATTACK_FAILURE_PENALTY, attacker.treasury)
+        attacker.treasury += treasury_change
+
+    world.events.append(Event(
+        turn=world.turn,
+        type="attack",
+        faction=faction_name,
+        region=target_region_name,
+        details={
+            "defender": defender_name,
+            "success": succeeded,
+            "failure_penalty": ATTACK_FAILURE_PENALTY,
+            "success_chance": round(score_components["success_chance"], 3),
+            "attack_strength": score_components["attacker_strength"],
+            "defense_strength": score_components["defender_strength"],
+        },
+        context={
+            "treasury_before": treasury_before,
+            "owner_before": defender_name,
+        },
+        impact={
+            "owner_after": faction_name if succeeded else defender_name,
+            "treasury_after": attacker.treasury,
+            "treasury_change": treasury_change,
+            "success": succeeded,
+        },
+        tags=["combat", "attack", "success" if succeeded else "failure"],
+        significance=score_components["success_chance"],
+    ))
+
+    return succeeded
 
 
 def get_investable_regions(faction_name, world):
