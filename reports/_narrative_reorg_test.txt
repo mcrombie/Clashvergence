@@ -1,0 +1,58 @@
+Narrative Comparison Report
+
+Base seed: 12345
+
+Map: asymmetric_frontier
+Turns: 5
+Seed: 12345
+Configured factions: 4
+
+Strategies:
+  Faction1: expansionist
+  Faction2: balanced
+  Faction3: economic
+  Faction4: opportunist
+
+Simulation Chronicle
+
+On turn 2, Faction4 made its first expansion into K.
+On turn 2, Faction1 made its first expansion into C.
+On turn 2, Faction2 made its first expansion into E.
+On turn 2, Faction3 made its first expansion into H.
+On turn 2, Faction4 seized K, a frontier foothold that mattered because it opened new directions for future expansion and later strengthened its income base.
+On turn 2, Faction1 seized C, a frontier foothold that mattered because it opened new directions for future expansion and later strengthened its income base.
+On turn 2, Faction2 seized E, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes.
+On turn 2, Faction3 seized H, an important gain that mattered because it provided a straightforward territorial gain.
+
+Opening Phase
+
+The strongest early land grab was Faction2's claim of E on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 1 claim(s).
+Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
+By the end of turn 5, Faction4 held the opening treasury lead at 22.
+
+Phase Summaries
+
+Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1. Investment led the phase.
+Mid phase: Faction1 and Faction4 were strongest by the end of turns 2-3. Activity was mixed across expansion, investment, and attacks. 4 successful attacks produced most of the control changes.
+Late phase: Faction4 was strongest by the end of turns 4-5. Attacks shaped the phase. 4 successful attacks produced most of the control changes.
+
+Faction Trajectories
+
+Faction1 started cautiously, leaning on 1 investment actions before wider expansion, plateaued at 2 regions through the middle turns, and closed competitive in rank 2 with 3 regions and 19 treasury.
+Faction2 started cautiously, leaning on 1 investment actions before wider expansion, plateaued at 2 regions through the middle turns, and ended weakened in rank 4 with 1 region and 12 treasury.
+Faction3 started cautiously, leaning on 1 investment actions before wider expansion, plateaued at 2 regions through the middle turns, and ended weakened in rank 3 with 2 regions and 14 treasury.
+Faction4 started cautiously, leaning on 1 investment actions before wider expansion, plateaued at 2 regions through the middle turns, and finished dominant with 3 regions and 22 treasury.
+
+Strategic Interpretation
+
+Aggression mattered throughout the run: 8 successful attacks reshaped ownership more often than any other single action pattern.
+Faction4 succeeded because it kept pressure on adjacent rivals, finishing with 3 regions, 22 treasury, and rank 1.
+The strongest finishing strategies in this run were Faction4 (opportunist) and Faction1 (expansionist).
+
+Final Standings
+
+Faction4 finished first with a treasury of 22 and control of 3 regions.
+Faction1 ended with a treasury of 19 and 3 regions.
+Faction3 ended with a treasury of 14 and 2 regions.
+Faction2 ended with a treasury of 12 and 1 regions.

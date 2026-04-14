@@ -6,6 +6,10 @@ import sys
 from pathlib import Path
 from statistics import mean
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from src.factions import get_map_starting_region_counts
 from src.maps import MAPS
 from src.metrics import get_metrics_log
@@ -17,7 +21,7 @@ DEFAULT_MAPS = sorted(MAPS)
 DEFAULT_TURNS = [5, 10, 20, 40, 80, 160]
 DEFAULT_RUNS = 200
 DEFAULT_SEED = 12345
-DEFAULT_OUTPUT = Path("reports/combat_strategy_comparison.txt")
+DEFAULT_OUTPUT = ROOT / "reports/combat_strategy_comparison.txt"
 DEFAULT_INVALID_MAP_POLICY = "skip"
 DEFAULT_NUM_FACTIONS = 4
 

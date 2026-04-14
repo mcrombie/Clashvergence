@@ -1,10 +1,16 @@
 import argparse
+from pathlib import Path
 
 from src.world import create_world
 from src.simulation import run_simulation
 from src.narrative import build_chronicle
 from src.event_analysis import get_event_log
 from src.metrics import get_metrics_log
+
+
+REPORTS_DIR = Path("reports")
+RESULTS_OUTPUT = REPORTS_DIR / "results.txt"
+CHRONICLE_OUTPUT = REPORTS_DIR / "chronicle.txt"
 
 
 def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
@@ -142,10 +148,11 @@ def main():
     results = build_results_report(world, map_name, num_turns, starting_treasuries)
     print(results)
 
-    with open("results.txt", "w") as file:
+    RESULTS_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    with open(RESULTS_OUTPUT, "w") as file:
         file.write(results)
 
-    with open("chronicle.txt", "w") as file:
+    with open(CHRONICLE_OUTPUT, "w") as file:
         file.write(chronicle)
 
 

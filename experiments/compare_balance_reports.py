@@ -3,10 +3,11 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
 
-DEFAULT_BEFORE = Path("reports/maintenance_strategy_comparison.txt")
-DEFAULT_AFTER = Path("reports/combat_strategy_comparison.txt")
-DEFAULT_OUTPUT = Path("reports/pre_post_attack_balance_report.txt")
+DEFAULT_BEFORE = ROOT / "reports/maintenance_strategy_comparison.txt"
+DEFAULT_AFTER = ROOT / "reports/combat_strategy_comparison.txt"
+DEFAULT_OUTPUT = ROOT / "reports/pre_post_attack_balance_report.txt"
 
 
 def parse_numeric(token):
