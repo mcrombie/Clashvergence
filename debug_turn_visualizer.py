@@ -5,7 +5,13 @@ import copy
 import random
 from pathlib import Path
 
-from src.map_visualization import FACTION_COLORS, build_map_layout, get_map_edges, natural_sort_key
+from src.factions import get_map_starting_region_counts
+from src.map_visualization import (
+    build_map_layout,
+    get_faction_color,
+    get_map_edges,
+    natural_sort_key,
+)
 from src.maps import MAPS
 from src.metrics import get_turn_metrics
 from src.simulation import run_simulation
@@ -13,13 +19,6 @@ from src.world import create_world
 
 
 DEFAULT_OUTPUT = Path("reports/debug_turn_playback.gif")
-DEBUG_FACTION_COLORS = {
-    "Faction1": "#e63946",
-    "Faction2": "#2a9d8f",
-    "Faction3": "#457b9d",
-    "Faction4": "#f4a261",
-    None: "#ffffff",
-}
 
 
 def import_matplotlib():
@@ -42,6 +41,11 @@ def parse_args():
     )
     parser.add_argument("--map", default="thirteen_region_ring", help="Map name to simulate.")
     parser.add_argument("--turns", type=int, default=20, help="Number of turns to simulate.")
+    parser.add_argument(
+        "--num-factions",
+        type=int,
+        help="Number of factions to include. Defaults to the number of factions with starting regions on the map.",
+    )
     parser.add_argument("--seed", type=int, default=12345, help="Random seed for reproducible playback.")
     parser.add_argument(
         "--hide-connectivity",
@@ -71,6 +75,10 @@ def validate_map(map_name):
     if map_name not in MAPS:
         available_maps = ", ".join(sorted(MAPS))
         raise ValueError(f"Unknown map: {map_name}. Available maps: {available_maps}")
+
+
+def infer_num_factions(map_name):
+    return len(get_map_starting_region_counts(map_name))
 
 
 def build_snapshot(world, turn_number, regions_state):
@@ -174,29 +182,31 @@ def get_faction_turn_summary(snapshot, faction_name):
 
 
 def format_metrics_text(snapshot):
-    if snapshot["metrics"] is None:
-        return (
-            "Initial state\n\n"
-            "Ownership Colors\n"
-            "Faction1: red\n"
-            "Faction2: teal\n"
-            "Faction3: blue\n"
-            "Faction4: orange\n"
-            "Unclaimed: white\n\n"
-            "Faction Activity\n"
-            "No turn events yet."
-        )
+    faction_names = sorted(
+        {
+            *(snapshot["metrics"]["factions"].keys() if snapshot["metrics"] is not None else []),
+            *{
+                region["owner"]
+                for region in snapshot["regions"].values()
+                if region["owner"] is not None
+            },
+        },
+        key=natural_sort_key,
+    )
 
-    lines = [
-        "Ownership Colors",
-        "Faction1: red",
-        "Faction2: teal",
-        "Faction3: blue",
-        "Faction4: orange",
-        "Unclaimed: white",
-        "",
-        "Faction Activity",
-    ]
+    if snapshot["metrics"] is None:
+        lines = ["Initial state", "", "Ownership Colors"]
+        for faction_name in faction_names:
+            lines.append(f"{faction_name}: {get_faction_color(faction_name)}")
+        lines.append(f"Unclaimed: {get_faction_color(None)}")
+        lines.extend(["", "Faction Activity", "No turn events yet."])
+        return "\n".join(lines)
+
+    lines = ["Ownership Colors"]
+    for faction_name in faction_names:
+        lines.append(f"{faction_name}: {get_faction_color(faction_name)}")
+    lines.append(f"Unclaimed: {get_faction_color(None)}")
+    lines.extend(["", "Faction Activity"])
 
     for faction_name in sorted(snapshot["metrics"]["factions"]):
         summary = get_faction_turn_summary(snapshot, faction_name)
@@ -249,9 +259,9 @@ def format_metrics_text(snapshot):
     return "\n".join(lines)
 
 
-def create_debug_world(map_name, num_turns, seed):
+def create_debug_world(map_name, num_turns, seed, num_factions):
     random.seed(seed)
-    world = create_world(map_name=map_name)
+    world = create_world(map_name=map_name, num_factions=num_factions)
     return run_simulation(world, num_turns=num_turns, verbose=False)
 
 
@@ -282,7 +292,7 @@ def draw_snapshot(
     for region_name in sorted(snapshot["regions"], key=natural_sort_key):
         region = snapshot["regions"][region_name]
         x, y = positions[region_name]
-        fill = DEBUG_FACTION_COLORS.get(region["owner"], DEBUG_FACTION_COLORS[None])
+        fill = get_faction_color(region["owner"])
         is_new = region_name in snapshot["newly_claimed"]
         is_invested = region_name in snapshot["invested_regions"]
 
@@ -481,8 +491,9 @@ def render_playback(world, map_name, save_path=None, fps=2, show_connectivity=Tr
 def main():
     args = parse_args()
     validate_map(args.map)
+    num_factions = args.num_factions or infer_num_factions(args.map)
 
-    world = create_debug_world(args.map, args.turns, args.seed)
+    world = create_debug_world(args.map, args.turns, args.seed, num_factions=num_factions)
     save_path = args.save if args.save is not None else None
     render_playback(
         world,

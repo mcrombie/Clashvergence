@@ -1,3 +1,5 @@
+import argparse
+
 from src.world import create_world
 from src.simulation import run_simulation
 from src.narrative import build_chronicle
@@ -81,11 +83,43 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
     return "\n".join(lines).rstrip()
 
 
-def main():
-    map_name = "multi_ring_symmetry"
-    num_turns = 20
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Run one Clashvergence simulation."
+    )
+    parser.add_argument(
+        "--map",
+        dest="map_name",
+        default="multi_ring_symmetry",
+        help="Map name to simulate.",
+    )
+    parser.add_argument(
+        "--turns",
+        dest="num_turns",
+        type=int,
+        default=20,
+        help="Number of turns to simulate.",
+    )
+    parser.add_argument(
+        "--num-factions",
+        type=int,
+        default=4,
+        help="Number of factions to include in the simulation.",
+    )
+    return parser.parse_args()
 
-    world = create_world(map_name=map_name)
+
+def main():
+    args = parse_args()
+    map_name = args.map_name
+    num_turns = args.num_turns
+    num_factions = args.num_factions
+
+    try:
+        world = create_world(map_name=map_name, num_factions=num_factions)
+    except ValueError as error:
+        raise SystemExit(f"Error: {error}") from error
+
     starting_treasuries = {
         faction_name: faction.treasury
         for faction_name, faction in world.factions.items()

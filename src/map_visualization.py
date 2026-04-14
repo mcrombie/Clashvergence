@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import colorsys
 import math
 import re
 
@@ -12,6 +13,16 @@ FACTION_COLORS = {
     "Faction4": "#30638e",
     None: "#d9d9d9",
 }
+FACTION_COLOR_SEQUENCE = [
+    "#d1495b",
+    "#edae49",
+    "#00798c",
+    "#30638e",
+    "#6a4c93",
+    "#2b9348",
+    "#ff7f51",
+    "#8d99ae",
+]
 
 
 def natural_sort_key(name):
@@ -19,6 +30,48 @@ def natural_sort_key(name):
     if match:
         return (match.group(1), int(match.group(2)))
     return (name, -1)
+
+
+def get_faction_index(faction_name):
+    if faction_name is None:
+        return None
+
+    match = re.fullmatch(r"Faction(\d+)", faction_name)
+    if match:
+        return int(match.group(1))
+
+    return None
+
+
+def get_faction_color(faction_name):
+    if faction_name in FACTION_COLORS:
+        return FACTION_COLORS[faction_name]
+
+    faction_index = get_faction_index(faction_name)
+    if faction_index is None:
+        return "#7f8c8d"
+
+    sequence_index = faction_index - 1
+    if sequence_index < len(FACTION_COLOR_SEQUENCE):
+        return FACTION_COLOR_SEQUENCE[sequence_index]
+
+    hue = ((sequence_index * 0.61803398875) % 1.0)
+    saturation = 0.58
+    value = 0.78
+    red, green, blue = colorsys.hsv_to_rgb(hue, saturation, value)
+    return "#{:02x}{:02x}{:02x}".format(
+        int(red * 255),
+        int(green * 255),
+        int(blue * 255),
+    )
+
+
+def get_present_factions(regions):
+    faction_names = sorted(
+        {region_data["owner"] for region_data in regions.values() if region_data["owner"] is not None},
+        key=natural_sort_key,
+    )
+    return faction_names
 
 
 def get_map_edges(regions):
@@ -234,7 +287,7 @@ def render_graph_map_svg(map_name, map_definition, width=900, height=900):
     for region_name in sorted(regions, key=natural_sort_key):
         region_data = regions[region_name]
         x, y = positions[region_name]
-        fill = FACTION_COLORS.get(region_data["owner"], FACTION_COLORS[None])
+        fill = get_faction_color(region_data["owner"])
         svg_lines.append(
             f"<circle cx='{x:.1f}' cy='{y:.1f}' r='24' fill='{fill}' class='node' />"
         )
@@ -267,7 +320,7 @@ def render_ring_map_svg(map_name, map_definition, width=900, height=900):
         f"<svg viewBox='0 0 {width} {height}' role='img' aria-label='{html.escape(map_name)} map'>"
     )
 
-    center_fill = FACTION_COLORS.get(regions[center_name]["owner"], FACTION_COLORS[None])
+    center_fill = get_faction_color(regions[center_name]["owner"])
     center_polygon = build_annular_sector(
         center_x,
         center_y,
@@ -306,7 +359,7 @@ def render_ring_map_svg(map_name, map_definition, width=900, height=900):
             start_deg,
             end_deg,
         )
-        fill = FACTION_COLORS.get(regions[region_name]["owner"], FACTION_COLORS[None])
+        fill = get_faction_color(regions[region_name]["owner"])
         svg_lines.append(
             f"<polygon points='{polygon_to_points_text(polygon)}' fill='{fill}' class='territory' />"
         )
@@ -344,7 +397,7 @@ def render_multi_ring_map_svg(map_name, map_definition, width=900, height=900):
         360,
         steps=32,
     )
-    center_fill = FACTION_COLORS.get(regions["C"]["owner"], FACTION_COLORS[None])
+    center_fill = get_faction_color(regions["C"]["owner"])
     svg_lines.append(
         f"<polygon points='{polygon_to_points_text(center_polygon)}' fill='{center_fill}' class='territory' />"
     )
@@ -382,7 +435,7 @@ def render_multi_ring_map_svg(map_name, map_definition, width=900, height=900):
             start_deg,
             end_deg,
         )
-        fill = FACTION_COLORS.get(regions[region_name]["owner"], FACTION_COLORS[None])
+        fill = get_faction_color(regions[region_name]["owner"])
         svg_lines.append(
             f"<polygon points='{polygon_to_points_text(polygon)}' fill='{fill}' class='territory' />"
         )
@@ -412,7 +465,7 @@ def render_multi_ring_map_svg(map_name, map_definition, width=900, height=900):
             start_deg,
             end_deg,
         )
-        fill = FACTION_COLORS.get(regions[region_name]["owner"], FACTION_COLORS[None])
+        fill = get_faction_color(regions[region_name]["owner"])
         svg_lines.append(
             f"<polygon points='{polygon_to_points_text(polygon)}' fill='{fill}' class='territory' />"
         )
@@ -442,7 +495,7 @@ def render_multi_ring_map_svg(map_name, map_definition, width=900, height=900):
             start_deg,
             end_deg,
         )
-        fill = FACTION_COLORS.get(regions[region_name]["owner"], FACTION_COLORS[None])
+        fill = get_faction_color(regions[region_name]["owner"])
         svg_lines.append(
             f"<polygon points='{polygon_to_points_text(polygon)}' fill='{fill}' class='territory' />"
         )
@@ -481,9 +534,9 @@ def render_map_html(map_name, map_definition):
     border_svg = render_map_svg(map_name, map_definition) if has_exact_border_view else graph_svg
 
     legend_items = []
-    for faction_name in ["Faction1", "Faction2", "Faction3", "Faction4", None]:
+    for faction_name in [*get_present_factions(regions), None]:
         label = faction_name or "Unclaimed"
-        color = FACTION_COLORS[faction_name]
+        color = get_faction_color(faction_name)
         legend_items.append(
             f"<li><span class='swatch' style='background:{color}'></span>{html.escape(label)}</li>"
         )

@@ -1,5 +1,5 @@
 from src.metrics import get_turn_metrics
-from src.world import create_factions
+from src.factions import create_factions
 
 
 def get_expand_event_importance(event):
@@ -229,9 +229,10 @@ def build_initial_opening_state(world):
 def replay_opening_treasury_snapshots(world, opening_turns=5):
     """Replays the opening turns and returns treasury snapshots after each turn."""
     region_state = build_initial_opening_state(world)
+    num_factions = len(world.factions)
     treasuries = {
         faction_name: faction.treasury
-        for faction_name, faction in create_factions().items()
+        for faction_name, faction in create_factions(num_factions=num_factions).items()
         if faction_name in world.factions
     }
     snapshots = []

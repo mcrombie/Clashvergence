@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>thirteen_region_ring Visualization</title>
+  <style>
+    :root {
+      --bg: #f6f2e8;
+      --ink: #1f2933;
+      --panel: #fffdf8;
+      --line: #b8b2a6;
+      --grid: #e6dfd2;
+    }
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Georgia, "Times New Roman", serif;
+      background: linear-gradient(180deg, #f3ede0 0%, #faf7ef 100%);
+      color: var(--ink);
+    }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 34px;
+    }
+    .lede {
+      margin: 0 0 20px;
+      max-width: 70ch;
+      line-height: 1.5;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--grid);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(31, 41, 51, 0.08);
+    }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .toggle {
+      border: 1px solid #c9c1b2;
+      background: #f4efe4;
+      color: #1f2933;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .toggle.active {
+      background: #30638e;
+      color: white;
+      border-color: #30638e;
+    }
+    .map-view {
+      display: none;
+    }
+    .map-view.active {
+      display: block;
+    }
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.78), rgba(255,255,255,0.35)),
+        linear-gradient(180deg, rgba(233, 226, 210, 0.32), rgba(255, 255, 255, 0));
+      border-radius: 14px;
+    }
+    .territory {
+      stroke: #4b4138;
+      stroke-width: 2.2;
+      stroke-linejoin: round;
+      opacity: 0.96;
+    }
+    .edge {
+      stroke: var(--line);
+      stroke-width: 2;
+      opacity: 0.85;
+    }
+    .node {
+      stroke: #51463b;
+      stroke-width: 1.5;
+    }
+    .label {
+      font-size: 15px;
+      font-weight: 700;
+      fill: #111827;
+      pointer-events: none;
+    }
+    .resource {
+      font-size: 11px;
+      font-weight: 700;
+      fill: #243b53;
+      pointer-events: none;
+      letter-spacing: 0.04em;
+    }
+    .legend {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px;
+      display: grid;
+      gap: 8px;
+    }
+    .legend li {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .swatch {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid #51463b;
+      display: inline-block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--grid);
+      vertical-align: top;
+    }
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .note {
+      margin-top: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>thirteen_region_ring</h1>
+    <p class="lede">Thirteen regions with a twelve-region outer ring and one center region, designed for four factions.</p>
+    <div class="layout">
+      <section class="card">
+        <div class='toolbar'><button class='toggle active' type='button' data-view-target='borders'>Shared Borders</button><button class='toggle' type='button' data-view-target='graph'>Connection Lines</button></div><div class='map-view active' data-view='borders'><svg viewBox='0 0 900 900' role='img' aria-label='thirteen_region_ring map'>
+<polygon points='594.0,450.0 591.2,478.1 583.0,505.1 569.7,530.0 551.8,551.8 530.0,569.7 505.1,583.0 478.1,591.2 450.0,594.0 421.9,591.2 394.9,583.0 370.0,569.7 348.2,551.8 330.3,530.0 317.0,505.1 308.8,478.1 306.0,450.0 308.8,421.9 317.0,394.9 330.3,370.0 348.2,348.2 370.0,330.3 394.9,317.0 421.9,308.8 450.0,306.0 478.1,308.8 505.1,317.0 530.0,330.3 551.8,348.2 569.7,370.0 583.0,394.9 591.2,421.9 594.0,450.0 450.0,450.0' fill='#d9d9d9' class='territory' />
+<text x='450.0' y='442.0' text-anchor='middle' class='label'>M</text>
+<text x='450.0' y='462.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='340.5,41.4 367.5,35.1 394.8,30.6 422.3,27.9 450.0,27.0 477.7,27.9 505.2,30.6 532.5,35.1 559.5,41.4 487.3,310.9 478.1,308.8 468.8,307.2 459.4,306.3 450.0,306.0 440.6,306.3 431.2,307.2 421.9,308.8 412.7,310.9' fill='#d1495b' class='territory' />
+<text x='450.0' y='158.5' text-anchor='middle' class='label'>A</text>
+<text x='450.0' y='178.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='559.5,41.4 586.0,49.4 611.9,59.2 637.1,70.6 661.5,83.7 685.0,98.3 707.5,114.4 728.9,132.0 749.1,150.9 551.8,348.2 544.9,341.7 537.7,335.8 530.0,330.3 522.0,325.3 513.7,320.9 505.1,317.0 496.3,313.6 487.3,310.9' fill='#d9d9d9' class='territory' />
+<text x='591.8' y='196.5' text-anchor='middle' class='label'>B</text>
+<text x='591.8' y='216.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='749.1,150.9 768.0,171.1 785.6,192.5 801.7,215.0 816.3,238.5 829.4,262.9 840.8,288.1 850.6,314.0 858.6,340.5 589.1,412.7 586.4,403.7 583.0,394.9 579.1,386.3 574.7,378.0 569.7,370.0 564.2,362.3 558.3,355.1 551.8,348.2' fill='#d9d9d9' class='territory' />
+<text x='695.5' y='300.2' text-anchor='middle' class='label'>C</text>
+<text x='695.5' y='320.2' text-anchor='middle' class='resource'>R2</text>
+<polygon points='858.6,340.5 864.9,367.5 869.4,394.8 872.1,422.3 873.0,450.0 872.1,477.7 869.4,505.2 864.9,532.5 858.6,559.5 589.1,487.3 591.2,478.1 592.8,468.8 593.7,459.4 594.0,450.0 593.7,440.6 592.8,431.2 591.2,421.9 589.1,412.7' fill='#edae49' class='territory' />
+<text x='733.5' y='442.0' text-anchor='middle' class='label'>D</text>
+<text x='733.5' y='462.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='858.6,559.5 850.6,586.0 840.8,611.9 829.4,637.1 816.3,661.5 801.7,685.0 785.6,707.5 768.0,728.9 749.1,749.1 551.8,551.8 558.3,544.9 564.2,537.7 569.7,530.0 574.7,522.0 579.1,513.7 583.0,505.1 586.4,496.3 589.1,487.3' fill='#d9d9d9' class='territory' />
+<text x='695.5' y='583.8' text-anchor='middle' class='label'>E</text>
+<text x='695.5' y='603.8' text-anchor='middle' class='resource'>R2</text>
+<polygon points='749.1,749.1 728.9,768.0 707.5,785.6 685.0,801.7 661.5,816.3 637.1,829.4 611.9,840.8 586.0,850.6 559.5,858.6 487.3,589.1 496.3,586.4 505.1,583.0 513.7,579.1 522.0,574.7 530.0,569.7 537.7,564.2 544.9,558.3 551.8,551.8' fill='#d9d9d9' class='territory' />
+<text x='591.8' y='687.5' text-anchor='middle' class='label'>F</text>
+<text x='591.8' y='707.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='559.5,858.6 532.5,864.9 505.2,869.4 477.7,872.1 450.0,873.0 422.3,872.1 394.8,869.4 367.5,864.9 340.5,858.6 412.7,589.1 421.9,591.2 431.2,592.8 440.6,593.7 450.0,594.0 459.4,593.7 468.8,592.8 478.1,591.2 487.3,589.1' fill='#00798c' class='territory' />
+<text x='450.0' y='725.5' text-anchor='middle' class='label'>G</text>
+<text x='450.0' y='745.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='340.5,858.6 314.0,850.6 288.1,840.8 262.9,829.4 238.5,816.3 215.0,801.7 192.5,785.6 171.1,768.0 150.9,749.1 348.2,551.8 355.1,558.3 362.3,564.2 370.0,569.7 378.0,574.7 386.3,579.1 394.9,583.0 403.7,586.4 412.7,589.1' fill='#d9d9d9' class='territory' />
+<text x='308.3' y='687.5' text-anchor='middle' class='label'>H</text>
+<text x='308.3' y='707.5' text-anchor='middle' class='resource'>R2</text>
+<polygon points='150.9,749.1 132.0,728.9 114.4,707.5 98.3,685.0 83.7,661.5 70.6,637.1 59.2,611.9 49.4,586.0 41.4,559.5 310.9,487.3 313.6,496.3 317.0,505.1 320.9,513.7 325.3,522.0 330.3,530.0 335.8,537.7 341.7,544.9 348.2,551.8' fill='#d9d9d9' class='territory' />
+<text x='204.5' y='583.8' text-anchor='middle' class='label'>I</text>
+<text x='204.5' y='603.8' text-anchor='middle' class='resource'>R2</text>
+<polygon points='41.4,559.5 35.1,532.5 30.6,505.2 27.9,477.7 27.0,450.0 27.9,422.3 30.6,394.8 35.1,367.5 41.4,340.5 310.9,412.7 308.8,421.9 307.2,431.2 306.3,440.6 306.0,450.0 306.3,459.4 307.2,468.8 308.8,478.1 310.9,487.3' fill='#30638e' class='territory' />
+<text x='166.5' y='442.0' text-anchor='middle' class='label'>J</text>
+<text x='166.5' y='462.0' text-anchor='middle' class='resource'>R2</text>
+<polygon points='41.4,340.5 49.4,314.0 59.2,288.1 70.6,262.9 83.7,238.5 98.3,215.0 114.4,192.5 132.0,171.1 150.9,150.9 348.2,348.2 341.7,355.1 335.8,362.3 330.3,370.0 325.3,378.0 320.9,386.3 317.0,394.9 313.6,403.7 310.9,412.7' fill='#d9d9d9' class='territory' />
+<text x='204.5' y='300.2' text-anchor='middle' class='label'>K</text>
+<text x='204.5' y='320.2' text-anchor='middle' class='resource'>R2</text>
+<polygon points='150.9,150.9 171.1,132.0 192.5,114.4 215.0,98.3 238.5,83.7 262.9,70.6 288.1,59.2 314.0,49.4 340.5,41.4 412.7,310.9 403.7,313.6 394.9,317.0 386.3,320.9 378.0,325.3 370.0,330.3 362.3,335.8 355.1,341.7 348.2,348.2' fill='#d9d9d9' class='territory' />
+<text x='308.2' y='196.5' text-anchor='middle' class='label'>L</text>
+<text x='308.2' y='216.5' text-anchor='middle' class='resource'>R2</text>
+</svg></div><div class='map-view' data-view='graph'><svg viewBox='0 0 900 900' role='img' aria-label='thirteen_region_ring map'>
+<line x1='450.0' y1='144.0' x2='603.0' y2='185.0' class='edge' />
+<line x1='450.0' y1='144.0' x2='297.0' y2='185.0' class='edge' />
+<line x1='450.0' y1='144.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='603.0' y1='185.0' x2='715.0' y2='297.0' class='edge' />
+<line x1='603.0' y1='185.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='715.0' y1='297.0' x2='756.0' y2='450.0' class='edge' />
+<line x1='715.0' y1='297.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='756.0' y1='450.0' x2='715.0' y2='603.0' class='edge' />
+<line x1='756.0' y1='450.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='715.0' y1='603.0' x2='603.0' y2='715.0' class='edge' />
+<line x1='715.0' y1='603.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='603.0' y1='715.0' x2='450.0' y2='756.0' class='edge' />
+<line x1='603.0' y1='715.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='450.0' y1='756.0' x2='297.0' y2='715.0' class='edge' />
+<line x1='450.0' y1='756.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='297.0' y1='715.0' x2='185.0' y2='603.0' class='edge' />
+<line x1='297.0' y1='715.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='185.0' y1='603.0' x2='144.0' y2='450.0' class='edge' />
+<line x1='185.0' y1='603.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='144.0' y1='450.0' x2='185.0' y2='297.0' class='edge' />
+<line x1='144.0' y1='450.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='185.0' y1='297.0' x2='297.0' y2='185.0' class='edge' />
+<line x1='185.0' y1='297.0' x2='450.0' y2='450.0' class='edge' />
+<line x1='297.0' y1='185.0' x2='450.0' y2='450.0' class='edge' />
+<circle cx='450.0' cy='144.0' r='24' fill='#d1495b' class='node' />
+<text x='450.0' y='136.0' text-anchor='middle' class='label'>A</text>
+<text x='450.0' y='156.0' text-anchor='middle' class='resource'>R2</text>
+<circle cx='603.0' cy='185.0' r='24' fill='#d9d9d9' class='node' />
+<text x='603.0' y='177.0' text-anchor='middle' class='label'>B</text>
+<text x='603.0' y='197.0' text-anchor='middle' class='resource'>R2</text>
+<circle cx='715.0' cy='297.0' r='24' fill='#d9d9d9' class='node' />
+<text x='715.0' y='289.0' text-anchor='middle' class='label'>C</text>
+<text x='715.0' y='309.0' text-anchor='middle' class='resource'>R2</text>
+<circle cx='756.0' cy='450.0' r='24' fill='#edae49' class='node' />
+<text x='756.0' y='442.0' text-anchor='middle' class='label'>D</text>
+<text x='756.0' y='462.0' text-anchor='middle' class='resource'>R2</text>
+<circle cx='715.0' cy='603.0' r='24' fill='#d9d9d9' class='node' />
+<text x='715.0' y='595.0' text-anchor='middle' class='label'>E</text>
+<text x='715.0' y='615.0' text-anchor='middle' class='resource'>R2</text>
+<circle cx='603.0' cy='715.0' r='24' fill='#d9d9d9' class='node' />
+<text x='603.0' y='707.0' text-anchor='middle' class='label'>F</text>
+<text x='603.0' y='727.0' text-anchor='middle' class='resource'>R2</text>
+<circle cx='450.0' cy='756.0' r='24' fill='#00798c' class='node' />
+<text x='450.0' y='748.0' text-anchor='middle' class='label'>G</text>
+<text x='450.0' y='768.0' text-anchor='middle' class='resource'>R2</text>
+<circle cx='297.0' cy='715.0' r='24' fill='#d9d9d9' class='node' />
+<text x='297.0' y='707.0' text-anchor='middle' class='label'>H</text>
+<text x='297.0' y='727.0' text-anchor='middle' class='resource'>R2</text>
+<circle cx='185.0' cy='603.0' r='24' fill='#d9d9d9' class='node' />
+<text x='185.0' y='595.0' text-anchor='middle' class='label'>I</text>
+<text x='185.0' y='615.0' text-anchor='middle' class='resource'>R2</text>
+<circle cx='144.0' cy='450.0' r='24' fill='#30638e' class='node' />
+<text x='144.0' y='442.0' text-anchor='middle' class='label'>J</text>
+<text x='144.0' y='462.0' text-anchor='middle' class='resource'>R2</text>
+<circle cx='185.0' cy='297.0' r='24' fill='#d9d9d9' class='node' />
+<text x='185.0' y='289.0' text-anchor='middle' class='label'>K</text>
+<text x='185.0' y='309.0' text-anchor='middle' class='resource'>R2</text>
+<circle cx='297.0' cy='185.0' r='24' fill='#d9d9d9' class='node' />
+<text x='297.0' y='177.0' text-anchor='middle' class='label'>L</text>
+<text x='297.0' y='197.0' text-anchor='middle' class='resource'>R2</text>
+<circle cx='450.0' cy='450.0' r='24' fill='#d9d9d9' class='node' />
+<text x='450.0' y='442.0' text-anchor='middle' class='label'>M</text>
+<text x='450.0' y='462.0' text-anchor='middle' class='resource'>R2</text>
+</svg></div>
+      </section>
+      <aside class="card">
+        <h2>Legend</h2>
+        <ul class="legend">
+          <li><span class='swatch' style='background:#d1495b'></span>Faction1</li><li><span class='swatch' style='background:#edae49'></span>Faction2</li><li><span class='swatch' style='background:#00798c'></span>Faction3</li><li><span class='swatch' style='background:#30638e'></span>Faction4</li><li><span class='swatch' style='background:#d9d9d9'></span>Unclaimed</li>
+        </ul>
+        <h2>Regions</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Region</th>
+              <th>Owner</th>
+              <th>Res</th>
+              <th>Links</th>
+              <th>Neighbors</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>A</td><td>Faction1</td><td>2</td><td>3</td><td>B, L, M</td></tr><tr><td>B</td><td>Unclaimed</td><td>2</td><td>3</td><td>A, C, M</td></tr><tr><td>C</td><td>Unclaimed</td><td>2</td><td>3</td><td>B, D, M</td></tr><tr><td>D</td><td>Faction2</td><td>2</td><td>3</td><td>C, E, M</td></tr><tr><td>E</td><td>Unclaimed</td><td>2</td><td>3</td><td>D, F, M</td></tr><tr><td>F</td><td>Unclaimed</td><td>2</td><td>3</td><td>E, G, M</td></tr><tr><td>G</td><td>Faction3</td><td>2</td><td>3</td><td>F, H, M</td></tr><tr><td>H</td><td>Unclaimed</td><td>2</td><td>3</td><td>G, I, M</td></tr><tr><td>I</td><td>Unclaimed</td><td>2</td><td>3</td><td>H, J, M</td></tr><tr><td>J</td><td>Faction4</td><td>2</td><td>3</td><td>I, K, M</td></tr><tr><td>K</td><td>Unclaimed</td><td>2</td><td>3</td><td>J, L, M</td></tr><tr><td>L</td><td>Unclaimed</td><td>2</td><td>3</td><td>A, K, M</td></tr><tr><td>M</td><td>Unclaimed</td><td>2</td><td>12</td><td>A, B, C, D, E, F, G, H, I, J, K, L</td></tr>
+          </tbody>
+        </table>
+        <p class="note">
+          Use Shared Borders for the map-style view and Connection Lines for the explicit adjacency graph. The graph view is the ground-truth fallback whenever you want to inspect links directly.
+        </p>
+      </aside>
+    </div>
+  </div>
+  <script>
+    const buttons = document.querySelectorAll('[data-view-target]');
+    const views = document.querySelectorAll('[data-view]');
+
+    for (const button of buttons) {
+      button.addEventListener('click', () => {
+        const target = button.getAttribute('data-view-target');
+
+        for (const otherButton of buttons) {
+          otherButton.classList.toggle('active', otherButton === button);
+        }
+
+        for (const view of views) {
+          view.classList.toggle('active', view.getAttribute('data-view') === target);
+        }
+      });
+    }
+  </script>
+</body>
+</html>

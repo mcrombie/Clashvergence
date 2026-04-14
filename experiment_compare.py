@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from statistics import mean
 
+from src.factions import get_map_starting_region_counts
 from src.maps import MAPS
 from src.metrics import get_metrics_log
 from src.simulation import run_simulation
@@ -18,6 +19,7 @@ DEFAULT_RUNS = 200
 DEFAULT_SEED = 12345
 DEFAULT_OUTPUT = Path("reports/maintenance_strategy_comparison.txt")
 DEFAULT_INVALID_MAP_POLICY = "skip"
+DEFAULT_NUM_FACTIONS = 4
 
 
 def parse_args():
@@ -61,6 +63,12 @@ def parse_args():
         default=DEFAULT_INVALID_MAP_POLICY,
         help="How to handle maps where one or more configured factions lack a starting region.",
     )
+    parser.add_argument(
+        "--num-factions",
+        type=int,
+        default=DEFAULT_NUM_FACTIONS,
+        help="Number of factions to include in each simulation.",
+    )
     return parser.parse_args()
 
 
@@ -103,36 +111,25 @@ def get_starting_region_counts(world):
     return counts
 
 
-def validate_map_faction_starts(map_name):
-    template_world = create_world(map_name=map_name)
-    starting_region_counts = get_starting_region_counts(template_world)
-    missing_factions = [
-        faction_name
-        for faction_name, count in starting_region_counts.items()
-        if count == 0
-    ]
-
-    if not missing_factions:
+def validate_map_faction_starts(map_name, num_factions):
+    try:
+        template_world = create_world(map_name=map_name, num_factions=num_factions)
+    except ValueError as error:
         return {
-            "valid": True,
-            "reason": None,
-            "starting_region_counts": starting_region_counts,
+            "valid": False,
+            "reason": str(error),
+            "starting_region_counts": get_map_starting_region_counts(map_name),
         }
 
-    missing_text = ", ".join(missing_factions)
-    reason = (
-        f"Map '{map_name}' is invalid for this comparison because these configured factions "
-        f"have no starting region: {missing_text}."
-    )
     return {
-        "valid": False,
-        "reason": reason,
-        "starting_region_counts": starting_region_counts,
+        "valid": True,
+        "reason": None,
+        "starting_region_counts": get_starting_region_counts(template_world),
     }
 
 
-def run_comparison_setting(map_name, num_turns, runs):
-    template_world = create_world(map_name=map_name)
+def run_comparison_setting(map_name, num_turns, runs, num_factions):
+    template_world = create_world(map_name=map_name, num_factions=num_factions)
     faction_names = list(template_world.factions.keys())
     faction_strategies = {
         faction_name: faction.strategy
@@ -148,7 +145,7 @@ def run_comparison_setting(map_name, num_turns, runs):
     average_net_income = {faction_name: [] for faction_name in faction_names}
 
     for _ in range(runs):
-        world = create_world(map_name=map_name)
+        world = create_world(map_name=map_name, num_factions=num_factions)
         world = run_simulation(world, num_turns=num_turns, verbose=False)
 
         final_treasuries = {
@@ -251,7 +248,9 @@ def build_report(results, seed):
     lines.append("Map Strategy Comparison")
     lines.append("")
     lines.append(f"Seed: {seed}")
-    lines.append("")
+    if results:
+        lines.append(f"Configured factions: {len(results[0]['factions'])}")
+        lines.append("")
 
     for index, result in enumerate(results):
         if index > 0:
@@ -298,7 +297,7 @@ def main():
     results = []
     skipped_maps = []
     for map_name in args.maps:
-        validation = validate_map_faction_starts(map_name)
+        validation = validate_map_faction_starts(map_name, num_factions=args.num_factions)
         if not validation["valid"]:
             if args.invalid_map_policy == "fail":
                 raise ValueError(validation["reason"])
@@ -318,6 +317,7 @@ def main():
                     map_name=map_name,
                     num_turns=num_turns,
                     runs=args.runs,
+                    num_factions=args.num_factions,
                 )
             )
 
