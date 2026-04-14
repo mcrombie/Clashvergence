@@ -120,7 +120,7 @@ MAPS = {
             "I6": {"neighbors": ["I5", "I7", "M7", "M8", "M9", "C"], "owner": None, "resources": 3},
             "I7": {"neighbors": ["I6", "I8", "M9", "M10", "C"], "owner": None, "resources": 3},
             "I8": {"neighbors": ["I7", "I1", "M10", "M11", "M12", "C"], "owner": None, "resources": 3},
-            "C": {"neighbors": ["I1", "I2", "I3", "I4", "I5", "I6", "I7", "I8"], "owner": None, "resources": 3},
+            "C": {"neighbors": ["I1", "I2", "I3", "I4", "I5", "I6", "I7", "I8"], "owner": None, "resources": 2},
         },
     },
 

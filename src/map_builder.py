@@ -35,7 +35,7 @@ def build_multi_ring_symmetry():
     for region_name in inner_names:
         regions[region_name] = {"neighbors": [], "owner": None, "resources": 3}
 
-    regions[center_name] = {"neighbors": [], "owner": None, "resources": 3}
+    regions[center_name] = {"neighbors": [], "owner": None, "resources": 2}
 
     for ring_names in (outer_names, middle_names, inner_names):
         ring_size = len(ring_names)
