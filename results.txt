@@ -14,15 +14,15 @@ Faction Strategies:
 
 Simulation Chronicle
 
-On turn 2, Faction4 made its first expansion into M10.
-On turn 2, Faction2 made its first expansion into M4.
-On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction3 made its first expansion into M7.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M11.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M5.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M2.
+On turn 2, Faction1 made its first expansion into M1.
+On turn 2, Faction2 made its first expansion into M4.
+On turn 2, Faction4 made its first expansion into M10.
 On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M8.
-On turn 3, Faction4 seized M11, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
+On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M2.
+On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M5.
+On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M11.
+On turn 3, Faction2 seized M5, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I4.
 On turn 3, Faction1 seized M2, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
 
 Opening Phase
@@ -30,220 +30,380 @@ Opening Phase
 The strongest early land grab was Faction2's claim of C on turn 5, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction2 held the opening treasury lead at 37.
+By the end of turn 5, Faction2 held the opening treasury lead at 22.
 
 Faction Trajectories
 
-Faction1 opened well but faded in the later turns, finishing with 9 regions and 527 treasury.
-Faction2 grew steadily from the opening and converted that position into first place with 9 regions and 536 treasury.
-Faction3 opened well but faded in the later turns, finishing with 9 regions and 527 treasury.
-Faction4 opened well but faded in the later turns, finishing with 10 regions and 532 treasury.
+Faction1 opened well but faded in the later turns, finishing with 9 regions and 390 treasury.
+Faction2 grew steadily from the opening and converted that position into first place with 9 regions and 393 treasury.
+Faction3 opened well but faded in the later turns, finishing with 10 regions and 377 treasury.
+Faction4 opened well but faded in the later turns, finishing with 9 regions and 374 treasury.
 
 Faction Behavior
 
 Faction1 expanded 8 times and invested 9 times, and generally favored development over expansion.
 Faction2 expanded 8 times and invested 9 times, and generally favored development over expansion.
-Faction3 expanded 8 times and invested 9 times, and generally favored development over expansion.
-Faction4 expanded 9 times and invested 10 times, and generally favored development over expansion.
+Faction3 expanded 9 times and invested 10 times, and generally favored development over expansion.
+Faction4 expanded 8 times and invested 9 times, and generally favored development over expansion.
 
 Final Standings
 
-Faction2 finished first with a treasury of 536 and control of 9 regions.
-Faction4 ended with a treasury of 532 and 10 regions.
-Faction1 ended with a treasury of 527 and 9 regions.
-Faction3 ended with a treasury of 527 and 9 regions.
+Faction2 finished first with a treasury of 393 and control of 9 regions.
+Faction1 ended with a treasury of 390 and 9 regions.
+Faction3 ended with a treasury of 377 and 10 regions.
+Faction4 ended with a treasury of 374 and 9 regions.
 
 Event Log
 
 Turn 1: Faction2 invested in O5 (invest_amount=4, new_resources=5)
-Turn 1: Faction4 invested in O13 (invest_amount=4, new_resources=5)
 Turn 1: Faction3 invested in O9 (invest_amount=4, new_resources=5)
 Turn 1: Faction1 invested in O1 (invest_amount=4, new_resources=5)
-Turn 2: Faction4 expanded into M10 (score=17, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=3)
-Turn 2: Faction2 expanded into M4 (score=17, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=3)
-Turn 2: Faction1 expanded into M1 (score=17, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=3)
-Turn 2: Faction3 expanded into M7 (score=17, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=3)
-Turn 3: Faction4 expanded into M11 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=7)
-Turn 3: Faction1 expanded into M2 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=7)
-Turn 3: Faction3 expanded into M8 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=7)
-Turn 3: Faction2 expanded into M5 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=7)
-Turn 4: Faction1 expanded into I2 (score=19, resources=3, neighbors=5, unclaimed_neighbors=4, treasury_after=13)
-Turn 4: Faction3 expanded into I6 (score=19, resources=3, neighbors=5, unclaimed_neighbors=4, treasury_after=13)
-Turn 4: Faction2 expanded into I4 (score=19, resources=3, neighbors=5, unclaimed_neighbors=4, treasury_after=13)
-Turn 4: Faction4 expanded into I8 (score=19, resources=3, neighbors=5, unclaimed_neighbors=4, treasury_after=13)
-Turn 5: Faction2 expanded into C (score=22, resources=3, neighbors=8, unclaimed_neighbors=4, treasury_after=22)
-Turn 5: Faction4 expanded into O15 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=22)
-Turn 5: Faction1 expanded into O3 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=22)
-Turn 5: Faction3 expanded into O11 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=22)
-Turn 6: Faction2 expanded into O7 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=34)
-Turn 6: Faction1 expanded into M3 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=33)
-Turn 6: Faction3 expanded into M9 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=33)
-Turn 6: Faction4 expanded into M12 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=33)
-Turn 7: Faction1 expanded into I3 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=46)
-Turn 7: Faction2 expanded into M6 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=48)
-Turn 7: Faction3 expanded into I7 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=46)
-Turn 7: Faction4 expanded into I1 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=46)
-Turn 8: Faction1 expanded into O2 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=62)
-Turn 8: Faction2 expanded into I5 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=64)
-Turn 8: Faction3 expanded into O10 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=62)
-Turn 8: Faction4 expanded into O14 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=62)
-Turn 9: Faction1 expanded into O4 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=80)
-Turn 9: Faction3 expanded into O8 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=80)
-Turn 9: Faction2 expanded into O6 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=83)
-Turn 9: Faction4 expanded into O16 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=80)
-Turn 10: Faction4 expanded into O12 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=100)
+Turn 1: Faction4 invested in O13 (invest_amount=4, new_resources=5)
+Turn 1: Event(turn=0, type='income', faction='Faction1', region=None, details={'income': 5, 'owned_regions': 1}, context={'treasury_before': 1}, impact={'treasury_after': 6, 'treasury_change': 5}, tags=['economy', 'income'], significance=5.0)
+Turn 1: Event(turn=0, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 1, 'maintenance': 1}, context={'treasury_before': 6}, impact={'treasury_after': 5, 'treasury_change': -1, 'net_income': 4}, tags=['economy', 'maintenance'], significance=1.0)
+Turn 1: Event(turn=0, type='income', faction='Faction2', region=None, details={'income': 5, 'owned_regions': 1}, context={'treasury_before': 1}, impact={'treasury_after': 6, 'treasury_change': 5}, tags=['economy', 'income'], significance=5.0)
+Turn 1: Event(turn=0, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 1, 'maintenance': 1}, context={'treasury_before': 6}, impact={'treasury_after': 5, 'treasury_change': -1, 'net_income': 4}, tags=['economy', 'maintenance'], significance=1.0)
+Turn 1: Event(turn=0, type='income', faction='Faction3', region=None, details={'income': 5, 'owned_regions': 1}, context={'treasury_before': 1}, impact={'treasury_after': 6, 'treasury_change': 5}, tags=['economy', 'income'], significance=5.0)
+Turn 1: Event(turn=0, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 1, 'maintenance': 1}, context={'treasury_before': 6}, impact={'treasury_after': 5, 'treasury_change': -1, 'net_income': 4}, tags=['economy', 'maintenance'], significance=1.0)
+Turn 1: Event(turn=0, type='income', faction='Faction4', region=None, details={'income': 5, 'owned_regions': 1}, context={'treasury_before': 1}, impact={'treasury_after': 6, 'treasury_change': 5}, tags=['economy', 'income'], significance=5.0)
+Turn 1: Event(turn=0, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 1, 'maintenance': 1}, context={'treasury_before': 6}, impact={'treasury_after': 5, 'treasury_change': -1, 'net_income': 4}, tags=['economy', 'maintenance'], significance=1.0)
+Turn 2: Faction3 expanded into M7 (score=17, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=2)
+Turn 2: Faction1 expanded into M1 (score=17, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=2)
+Turn 2: Faction2 expanded into M4 (score=17, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=2)
+Turn 2: Faction4 expanded into M10 (score=17, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=2)
+Turn 2: Event(turn=1, type='income', faction='Faction1', region=None, details={'income': 7, 'owned_regions': 2}, context={'treasury_before': 2}, impact={'treasury_after': 9, 'treasury_change': 7}, tags=['economy', 'income'], significance=7.0)
+Turn 2: Event(turn=1, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 2, 'maintenance': 2}, context={'treasury_before': 9}, impact={'treasury_after': 7, 'treasury_change': -2, 'net_income': 5}, tags=['economy', 'maintenance'], significance=2.0)
+Turn 2: Event(turn=1, type='income', faction='Faction2', region=None, details={'income': 7, 'owned_regions': 2}, context={'treasury_before': 2}, impact={'treasury_after': 9, 'treasury_change': 7}, tags=['economy', 'income'], significance=7.0)
+Turn 2: Event(turn=1, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 2, 'maintenance': 2}, context={'treasury_before': 9}, impact={'treasury_after': 7, 'treasury_change': -2, 'net_income': 5}, tags=['economy', 'maintenance'], significance=2.0)
+Turn 2: Event(turn=1, type='income', faction='Faction3', region=None, details={'income': 7, 'owned_regions': 2}, context={'treasury_before': 2}, impact={'treasury_after': 9, 'treasury_change': 7}, tags=['economy', 'income'], significance=7.0)
+Turn 2: Event(turn=1, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 2, 'maintenance': 2}, context={'treasury_before': 9}, impact={'treasury_after': 7, 'treasury_change': -2, 'net_income': 5}, tags=['economy', 'maintenance'], significance=2.0)
+Turn 2: Event(turn=1, type='income', faction='Faction4', region=None, details={'income': 7, 'owned_regions': 2}, context={'treasury_before': 2}, impact={'treasury_after': 9, 'treasury_change': 7}, tags=['economy', 'income'], significance=7.0)
+Turn 2: Event(turn=1, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 2, 'maintenance': 2}, context={'treasury_before': 9}, impact={'treasury_after': 7, 'treasury_change': -2, 'net_income': 5}, tags=['economy', 'maintenance'], significance=2.0)
+Turn 3: Faction2 expanded into M5 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
+Turn 3: Faction1 expanded into M2 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
+Turn 3: Faction4 expanded into M11 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
+Turn 3: Faction3 expanded into M8 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
+Turn 3: Event(turn=2, type='income', faction='Faction1', region=None, details={'income': 9, 'owned_regions': 3}, context={'treasury_before': 4}, impact={'treasury_after': 13, 'treasury_change': 9}, tags=['economy', 'income'], significance=9.0)
+Turn 3: Event(turn=2, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 3, 'maintenance': 3}, context={'treasury_before': 13}, impact={'treasury_after': 10, 'treasury_change': -3, 'net_income': 6}, tags=['economy', 'maintenance'], significance=3.0)
+Turn 3: Event(turn=2, type='income', faction='Faction2', region=None, details={'income': 9, 'owned_regions': 3}, context={'treasury_before': 4}, impact={'treasury_after': 13, 'treasury_change': 9}, tags=['economy', 'income'], significance=9.0)
+Turn 3: Event(turn=2, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 3, 'maintenance': 3}, context={'treasury_before': 13}, impact={'treasury_after': 10, 'treasury_change': -3, 'net_income': 6}, tags=['economy', 'maintenance'], significance=3.0)
+Turn 3: Event(turn=2, type='income', faction='Faction3', region=None, details={'income': 9, 'owned_regions': 3}, context={'treasury_before': 4}, impact={'treasury_after': 13, 'treasury_change': 9}, tags=['economy', 'income'], significance=9.0)
+Turn 3: Event(turn=2, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 3, 'maintenance': 3}, context={'treasury_before': 13}, impact={'treasury_after': 10, 'treasury_change': -3, 'net_income': 6}, tags=['economy', 'maintenance'], significance=3.0)
+Turn 3: Event(turn=2, type='income', faction='Faction4', region=None, details={'income': 9, 'owned_regions': 3}, context={'treasury_before': 4}, impact={'treasury_after': 13, 'treasury_change': 9}, tags=['economy', 'income'], significance=9.0)
+Turn 3: Event(turn=2, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 3, 'maintenance': 3}, context={'treasury_before': 13}, impact={'treasury_after': 10, 'treasury_change': -3, 'net_income': 6}, tags=['economy', 'maintenance'], significance=3.0)
+Turn 4: Faction1 expanded into I2 (score=19, resources=3, neighbors=5, unclaimed_neighbors=4, treasury_after=7)
+Turn 4: Faction3 expanded into I6 (score=19, resources=3, neighbors=5, unclaimed_neighbors=4, treasury_after=7)
+Turn 4: Faction4 expanded into I8 (score=19, resources=3, neighbors=5, unclaimed_neighbors=4, treasury_after=7)
+Turn 4: Faction2 expanded into I4 (score=19, resources=3, neighbors=5, unclaimed_neighbors=4, treasury_after=7)
+Turn 4: Event(turn=3, type='income', faction='Faction1', region=None, details={'income': 12, 'owned_regions': 4}, context={'treasury_before': 7}, impact={'treasury_after': 19, 'treasury_change': 12}, tags=['economy', 'income'], significance=12.0)
+Turn 4: Event(turn=3, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 4, 'maintenance': 4}, context={'treasury_before': 19}, impact={'treasury_after': 15, 'treasury_change': -4, 'net_income': 8}, tags=['economy', 'maintenance'], significance=4.0)
+Turn 4: Event(turn=3, type='income', faction='Faction2', region=None, details={'income': 12, 'owned_regions': 4}, context={'treasury_before': 7}, impact={'treasury_after': 19, 'treasury_change': 12}, tags=['economy', 'income'], significance=12.0)
+Turn 4: Event(turn=3, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 4, 'maintenance': 4}, context={'treasury_before': 19}, impact={'treasury_after': 15, 'treasury_change': -4, 'net_income': 8}, tags=['economy', 'maintenance'], significance=4.0)
+Turn 4: Event(turn=3, type='income', faction='Faction3', region=None, details={'income': 12, 'owned_regions': 4}, context={'treasury_before': 7}, impact={'treasury_after': 19, 'treasury_change': 12}, tags=['economy', 'income'], significance=12.0)
+Turn 4: Event(turn=3, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 4, 'maintenance': 4}, context={'treasury_before': 19}, impact={'treasury_after': 15, 'treasury_change': -4, 'net_income': 8}, tags=['economy', 'maintenance'], significance=4.0)
+Turn 4: Event(turn=3, type='income', faction='Faction4', region=None, details={'income': 12, 'owned_regions': 4}, context={'treasury_before': 7}, impact={'treasury_after': 19, 'treasury_change': 12}, tags=['economy', 'income'], significance=12.0)
+Turn 4: Event(turn=3, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 4, 'maintenance': 4}, context={'treasury_before': 19}, impact={'treasury_after': 15, 'treasury_change': -4, 'net_income': 8}, tags=['economy', 'maintenance'], significance=4.0)
+Turn 5: Faction2 expanded into C (score=22, resources=3, neighbors=8, unclaimed_neighbors=4, treasury_after=12)
+Turn 5: Faction1 expanded into O3 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=12)
+Turn 5: Faction4 expanded into O15 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=12)
+Turn 5: Faction3 expanded into O11 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=12)
+Turn 5: Event(turn=4, type='income', faction='Faction1', region=None, details={'income': 14, 'owned_regions': 5}, context={'treasury_before': 12}, impact={'treasury_after': 26, 'treasury_change': 14}, tags=['economy', 'income'], significance=14.0)
+Turn 5: Event(turn=4, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 5, 'maintenance': 5}, context={'treasury_before': 26}, impact={'treasury_after': 21, 'treasury_change': -5, 'net_income': 9}, tags=['economy', 'maintenance'], significance=5.0)
+Turn 5: Event(turn=4, type='income', faction='Faction2', region=None, details={'income': 15, 'owned_regions': 5}, context={'treasury_before': 12}, impact={'treasury_after': 27, 'treasury_change': 15}, tags=['economy', 'income'], significance=15.0)
+Turn 5: Event(turn=4, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 5, 'maintenance': 5}, context={'treasury_before': 27}, impact={'treasury_after': 22, 'treasury_change': -5, 'net_income': 10}, tags=['economy', 'maintenance'], significance=5.0)
+Turn 5: Event(turn=4, type='income', faction='Faction3', region=None, details={'income': 14, 'owned_regions': 5}, context={'treasury_before': 12}, impact={'treasury_after': 26, 'treasury_change': 14}, tags=['economy', 'income'], significance=14.0)
+Turn 5: Event(turn=4, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 5, 'maintenance': 5}, context={'treasury_before': 26}, impact={'treasury_after': 21, 'treasury_change': -5, 'net_income': 9}, tags=['economy', 'maintenance'], significance=5.0)
+Turn 5: Event(turn=4, type='income', faction='Faction4', region=None, details={'income': 14, 'owned_regions': 5}, context={'treasury_before': 12}, impact={'treasury_after': 26, 'treasury_change': 14}, tags=['economy', 'income'], significance=14.0)
+Turn 5: Event(turn=4, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 5, 'maintenance': 5}, context={'treasury_before': 26}, impact={'treasury_after': 21, 'treasury_change': -5, 'net_income': 9}, tags=['economy', 'maintenance'], significance=5.0)
+Turn 6: Faction1 expanded into M3 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=18)
+Turn 6: Faction4 expanded into M9 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=18)
+Turn 6: Faction2 expanded into O7 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=19)
+Turn 6: Faction3 expanded into M6 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=18)
+Turn 6: Event(turn=5, type='income', faction='Faction1', region=None, details={'income': 16, 'owned_regions': 6}, context={'treasury_before': 18}, impact={'treasury_after': 34, 'treasury_change': 16}, tags=['economy', 'income'], significance=16.0)
+Turn 6: Event(turn=5, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 6, 'maintenance': 6}, context={'treasury_before': 34}, impact={'treasury_after': 28, 'treasury_change': -6, 'net_income': 10}, tags=['economy', 'maintenance'], significance=6.0)
+Turn 6: Event(turn=5, type='income', faction='Faction2', region=None, details={'income': 17, 'owned_regions': 6}, context={'treasury_before': 19}, impact={'treasury_after': 36, 'treasury_change': 17}, tags=['economy', 'income'], significance=17.0)
+Turn 6: Event(turn=5, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 6, 'maintenance': 6}, context={'treasury_before': 36}, impact={'treasury_after': 30, 'treasury_change': -6, 'net_income': 11}, tags=['economy', 'maintenance'], significance=6.0)
+Turn 6: Event(turn=5, type='income', faction='Faction3', region=None, details={'income': 16, 'owned_regions': 6}, context={'treasury_before': 18}, impact={'treasury_after': 34, 'treasury_change': 16}, tags=['economy', 'income'], significance=16.0)
+Turn 6: Event(turn=5, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 6, 'maintenance': 6}, context={'treasury_before': 34}, impact={'treasury_after': 28, 'treasury_change': -6, 'net_income': 10}, tags=['economy', 'maintenance'], significance=6.0)
+Turn 6: Event(turn=5, type='income', faction='Faction4', region=None, details={'income': 16, 'owned_regions': 6}, context={'treasury_before': 18}, impact={'treasury_after': 34, 'treasury_change': 16}, tags=['economy', 'income'], significance=16.0)
+Turn 6: Event(turn=5, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 6, 'maintenance': 6}, context={'treasury_before': 34}, impact={'treasury_after': 28, 'treasury_change': -6, 'net_income': 10}, tags=['economy', 'maintenance'], significance=6.0)
+Turn 7: Faction4 expanded into M12 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=25)
+Turn 7: Faction3 expanded into I7 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=25)
+Turn 7: Faction1 expanded into I3 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=25)
+Turn 7: Faction2 expanded into I5 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=27)
+Turn 7: Event(turn=6, type='income', faction='Faction1', region=None, details={'income': 19, 'owned_regions': 7}, context={'treasury_before': 25}, impact={'treasury_after': 44, 'treasury_change': 19}, tags=['economy', 'income'], significance=19.0)
+Turn 7: Event(turn=6, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 7, 'maintenance': 7}, context={'treasury_before': 44}, impact={'treasury_after': 37, 'treasury_change': -7, 'net_income': 12}, tags=['economy', 'maintenance'], significance=7.0)
+Turn 7: Event(turn=6, type='income', faction='Faction2', region=None, details={'income': 20, 'owned_regions': 7}, context={'treasury_before': 27}, impact={'treasury_after': 47, 'treasury_change': 20}, tags=['economy', 'income'], significance=20.0)
+Turn 7: Event(turn=6, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 7, 'maintenance': 7}, context={'treasury_before': 47}, impact={'treasury_after': 40, 'treasury_change': -7, 'net_income': 13}, tags=['economy', 'maintenance'], significance=7.0)
+Turn 7: Event(turn=6, type='income', faction='Faction3', region=None, details={'income': 19, 'owned_regions': 7}, context={'treasury_before': 25}, impact={'treasury_after': 44, 'treasury_change': 19}, tags=['economy', 'income'], significance=19.0)
+Turn 7: Event(turn=6, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 7, 'maintenance': 7}, context={'treasury_before': 44}, impact={'treasury_after': 37, 'treasury_change': -7, 'net_income': 12}, tags=['economy', 'maintenance'], significance=7.0)
+Turn 7: Event(turn=6, type='income', faction='Faction4', region=None, details={'income': 18, 'owned_regions': 7}, context={'treasury_before': 25}, impact={'treasury_after': 43, 'treasury_change': 18}, tags=['economy', 'income'], significance=18.0)
+Turn 7: Event(turn=6, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 7, 'maintenance': 7}, context={'treasury_before': 43}, impact={'treasury_after': 36, 'treasury_change': -7, 'net_income': 11}, tags=['economy', 'maintenance'], significance=7.0)
+Turn 8: Faction1 expanded into I1 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=34)
+Turn 8: Faction3 expanded into O10 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=34)
+Turn 8: Faction2 expanded into O6 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=37)
+Turn 8: Faction4 expanded into O14 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=33)
+Turn 8: Event(turn=7, type='income', faction='Faction1', region=None, details={'income': 22, 'owned_regions': 8}, context={'treasury_before': 34}, impact={'treasury_after': 56, 'treasury_change': 22}, tags=['economy', 'income'], significance=22.0)
+Turn 8: Event(turn=7, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 8, 'maintenance': 8}, context={'treasury_before': 56}, impact={'treasury_after': 48, 'treasury_change': -8, 'net_income': 14}, tags=['economy', 'maintenance'], significance=8.0)
+Turn 8: Event(turn=7, type='income', faction='Faction2', region=None, details={'income': 22, 'owned_regions': 8}, context={'treasury_before': 37}, impact={'treasury_after': 59, 'treasury_change': 22}, tags=['economy', 'income'], significance=22.0)
+Turn 8: Event(turn=7, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 8, 'maintenance': 8}, context={'treasury_before': 59}, impact={'treasury_after': 51, 'treasury_change': -8, 'net_income': 14}, tags=['economy', 'maintenance'], significance=8.0)
+Turn 8: Event(turn=7, type='income', faction='Faction3', region=None, details={'income': 21, 'owned_regions': 8}, context={'treasury_before': 34}, impact={'treasury_after': 55, 'treasury_change': 21}, tags=['economy', 'income'], significance=21.0)
+Turn 8: Event(turn=7, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 8, 'maintenance': 8}, context={'treasury_before': 55}, impact={'treasury_after': 47, 'treasury_change': -8, 'net_income': 13}, tags=['economy', 'maintenance'], significance=8.0)
+Turn 8: Event(turn=7, type='income', faction='Faction4', region=None, details={'income': 20, 'owned_regions': 8}, context={'treasury_before': 33}, impact={'treasury_after': 53, 'treasury_change': 20}, tags=['economy', 'income'], significance=20.0)
+Turn 8: Event(turn=7, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 8, 'maintenance': 8}, context={'treasury_before': 53}, impact={'treasury_after': 45, 'treasury_change': -8, 'net_income': 12}, tags=['economy', 'maintenance'], significance=8.0)
+Turn 9: Faction4 expanded into O16 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=42)
+Turn 9: Faction3 expanded into O8 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=44)
+Turn 9: Faction2 expanded into O4 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=48)
+Turn 9: Faction1 expanded into O2 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=45)
+Turn 9: Event(turn=8, type='income', faction='Faction1', region=None, details={'income': 24, 'owned_regions': 9}, context={'treasury_before': 45}, impact={'treasury_after': 69, 'treasury_change': 24}, tags=['economy', 'income'], significance=24.0)
+Turn 9: Event(turn=8, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 69}, impact={'treasury_after': 60, 'treasury_change': -9, 'net_income': 15}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 9: Event(turn=8, type='income', faction='Faction2', region=None, details={'income': 24, 'owned_regions': 9}, context={'treasury_before': 48}, impact={'treasury_after': 72, 'treasury_change': 24}, tags=['economy', 'income'], significance=24.0)
+Turn 9: Event(turn=8, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 72}, impact={'treasury_after': 63, 'treasury_change': -9, 'net_income': 15}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 9: Event(turn=8, type='income', faction='Faction3', region=None, details={'income': 23, 'owned_regions': 9}, context={'treasury_before': 44}, impact={'treasury_after': 67, 'treasury_change': 23}, tags=['economy', 'income'], significance=23.0)
+Turn 9: Event(turn=8, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 67}, impact={'treasury_after': 58, 'treasury_change': -9, 'net_income': 14}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 9: Event(turn=8, type='income', faction='Faction4', region=None, details={'income': 22, 'owned_regions': 9}, context={'treasury_before': 42}, impact={'treasury_after': 64, 'treasury_change': 22}, tags=['economy', 'income'], significance=22.0)
+Turn 9: Event(turn=8, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 64}, impact={'treasury_after': 55, 'treasury_change': -9, 'net_income': 13}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 10: Faction3 expanded into O12 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=55)
 Turn 10: Faction1 invested in M1 (invest_amount=4, new_resources=5)
+Turn 10: Faction4 invested in M10 (invest_amount=4, new_resources=5)
 Turn 10: Faction2 invested in M4 (invest_amount=4, new_resources=5)
-Turn 10: Faction3 invested in M7 (invest_amount=4, new_resources=5)
-Turn 11: Faction4 invested in M10 (invest_amount=4, new_resources=5)
-Turn 11: Faction1 invested in M2 (invest_amount=4, new_resources=5)
+Turn 10: Event(turn=9, type='income', faction='Faction1', region=None, details={'income': 27, 'owned_regions': 9}, context={'treasury_before': 60}, impact={'treasury_after': 87, 'treasury_change': 27}, tags=['economy', 'income'], significance=27.0)
+Turn 10: Event(turn=9, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 87}, impact={'treasury_after': 78, 'treasury_change': -9, 'net_income': 18}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 10: Event(turn=9, type='income', faction='Faction2', region=None, details={'income': 27, 'owned_regions': 9}, context={'treasury_before': 63}, impact={'treasury_after': 90, 'treasury_change': 27}, tags=['economy', 'income'], significance=27.0)
+Turn 10: Event(turn=9, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 90}, impact={'treasury_after': 81, 'treasury_change': -9, 'net_income': 18}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 10: Event(turn=9, type='income', faction='Faction3', region=None, details={'income': 25, 'owned_regions': 10}, context={'treasury_before': 55}, impact={'treasury_after': 80, 'treasury_change': 25}, tags=['economy', 'income'], significance=25.0)
+Turn 10: Event(turn=9, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 10, 'maintenance': 10}, context={'treasury_before': 80}, impact={'treasury_after': 70, 'treasury_change': -10, 'net_income': 15}, tags=['economy', 'maintenance'], significance=10.0)
+Turn 10: Event(turn=9, type='income', faction='Faction4', region=None, details={'income': 25, 'owned_regions': 9}, context={'treasury_before': 55}, impact={'treasury_after': 80, 'treasury_change': 25}, tags=['economy', 'income'], significance=25.0)
+Turn 10: Event(turn=9, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 80}, impact={'treasury_after': 71, 'treasury_change': -9, 'net_income': 16}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 11: Faction4 invested in M11 (invest_amount=4, new_resources=5)
 Turn 11: Faction2 invested in M5 (invest_amount=4, new_resources=5)
-Turn 11: Faction3 invested in M8 (invest_amount=4, new_resources=5)
-Turn 12: Faction2 invested in M6 (invest_amount=4, new_resources=5)
+Turn 11: Faction1 invested in M2 (invest_amount=4, new_resources=5)
+Turn 11: Faction3 invested in M6 (invest_amount=4, new_resources=5)
+Turn 11: Event(turn=10, type='income', faction='Faction1', region=None, details={'income': 30, 'owned_regions': 9}, context={'treasury_before': 78}, impact={'treasury_after': 108, 'treasury_change': 30}, tags=['economy', 'income'], significance=30.0)
+Turn 11: Event(turn=10, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 108}, impact={'treasury_after': 99, 'treasury_change': -9, 'net_income': 21}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 11: Event(turn=10, type='income', faction='Faction2', region=None, details={'income': 30, 'owned_regions': 9}, context={'treasury_before': 81}, impact={'treasury_after': 111, 'treasury_change': 30}, tags=['economy', 'income'], significance=30.0)
+Turn 11: Event(turn=10, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 111}, impact={'treasury_after': 102, 'treasury_change': -9, 'net_income': 21}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 11: Event(turn=10, type='income', faction='Faction3', region=None, details={'income': 28, 'owned_regions': 10}, context={'treasury_before': 70}, impact={'treasury_after': 98, 'treasury_change': 28}, tags=['economy', 'income'], significance=28.0)
+Turn 11: Event(turn=10, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 10, 'maintenance': 10}, context={'treasury_before': 98}, impact={'treasury_after': 88, 'treasury_change': -10, 'net_income': 18}, tags=['economy', 'maintenance'], significance=10.0)
+Turn 11: Event(turn=10, type='income', faction='Faction4', region=None, details={'income': 28, 'owned_regions': 9}, context={'treasury_before': 71}, impact={'treasury_after': 99, 'treasury_change': 28}, tags=['economy', 'income'], significance=28.0)
+Turn 11: Event(turn=10, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 99}, impact={'treasury_after': 90, 'treasury_change': -9, 'net_income': 19}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 12: Faction4 invested in M12 (invest_amount=4, new_resources=5)
+Turn 12: Faction2 invested in O4 (invest_amount=4, new_resources=5)
+Turn 12: Faction3 invested in M7 (invest_amount=4, new_resources=5)
 Turn 12: Faction1 invested in M3 (invest_amount=4, new_resources=5)
-Turn 12: Faction4 invested in M11 (invest_amount=4, new_resources=5)
-Turn 12: Faction3 invested in M9 (invest_amount=4, new_resources=5)
-Turn 13: Faction4 invested in M12 (invest_amount=4, new_resources=5)
-Turn 13: Faction3 invested in O10 (invest_amount=4, new_resources=5)
+Turn 12: Event(turn=11, type='income', faction='Faction1', region=None, details={'income': 33, 'owned_regions': 9}, context={'treasury_before': 99}, impact={'treasury_after': 132, 'treasury_change': 33}, tags=['economy', 'income'], significance=33.0)
+Turn 12: Event(turn=11, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 132}, impact={'treasury_after': 123, 'treasury_change': -9, 'net_income': 24}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 12: Event(turn=11, type='income', faction='Faction2', region=None, details={'income': 33, 'owned_regions': 9}, context={'treasury_before': 102}, impact={'treasury_after': 135, 'treasury_change': 33}, tags=['economy', 'income'], significance=33.0)
+Turn 12: Event(turn=11, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 135}, impact={'treasury_after': 126, 'treasury_change': -9, 'net_income': 24}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 12: Event(turn=11, type='income', faction='Faction3', region=None, details={'income': 31, 'owned_regions': 10}, context={'treasury_before': 88}, impact={'treasury_after': 119, 'treasury_change': 31}, tags=['economy', 'income'], significance=31.0)
+Turn 12: Event(turn=11, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 10, 'maintenance': 10}, context={'treasury_before': 119}, impact={'treasury_after': 109, 'treasury_change': -10, 'net_income': 21}, tags=['economy', 'maintenance'], significance=10.0)
+Turn 12: Event(turn=11, type='income', faction='Faction4', region=None, details={'income': 31, 'owned_regions': 9}, context={'treasury_before': 90}, impact={'treasury_after': 121, 'treasury_change': 31}, tags=['economy', 'income'], significance=31.0)
+Turn 12: Event(turn=11, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 121}, impact={'treasury_after': 112, 'treasury_change': -9, 'net_income': 22}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 13: Faction4 invested in M9 (invest_amount=4, new_resources=5)
+Turn 13: Faction3 invested in M8 (invest_amount=4, new_resources=5)
 Turn 13: Faction2 invested in O6 (invest_amount=4, new_resources=5)
 Turn 13: Faction1 invested in O2 (invest_amount=4, new_resources=5)
-Turn 14: Faction1 invested in O3 (invest_amount=4, new_resources=5)
-Turn 14: Faction3 invested in O11 (invest_amount=4, new_resources=5)
+Turn 13: Event(turn=12, type='income', faction='Faction1', region=None, details={'income': 36, 'owned_regions': 9}, context={'treasury_before': 123}, impact={'treasury_after': 159, 'treasury_change': 36}, tags=['economy', 'income'], significance=36.0)
+Turn 13: Event(turn=12, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 159}, impact={'treasury_after': 150, 'treasury_change': -9, 'net_income': 27}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 13: Event(turn=12, type='income', faction='Faction2', region=None, details={'income': 36, 'owned_regions': 9}, context={'treasury_before': 126}, impact={'treasury_after': 162, 'treasury_change': 36}, tags=['economy', 'income'], significance=36.0)
+Turn 13: Event(turn=12, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 162}, impact={'treasury_after': 153, 'treasury_change': -9, 'net_income': 27}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 13: Event(turn=12, type='income', faction='Faction3', region=None, details={'income': 34, 'owned_regions': 10}, context={'treasury_before': 109}, impact={'treasury_after': 143, 'treasury_change': 34}, tags=['economy', 'income'], significance=34.0)
+Turn 13: Event(turn=12, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 10, 'maintenance': 10}, context={'treasury_before': 143}, impact={'treasury_after': 133, 'treasury_change': -10, 'net_income': 24}, tags=['economy', 'maintenance'], significance=10.0)
+Turn 13: Event(turn=12, type='income', faction='Faction4', region=None, details={'income': 34, 'owned_regions': 9}, context={'treasury_before': 112}, impact={'treasury_after': 146, 'treasury_change': 34}, tags=['economy', 'income'], significance=34.0)
+Turn 13: Event(turn=12, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 146}, impact={'treasury_after': 137, 'treasury_change': -9, 'net_income': 25}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 14: Faction4 invested in O14 (invest_amount=4, new_resources=5)
 Turn 14: Faction2 invested in O7 (invest_amount=4, new_resources=5)
-Turn 14: Faction4 invested in O12 (invest_amount=4, new_resources=5)
-Turn 15: Faction4 invested in O14 (invest_amount=4, new_resources=5)
-Turn 15: Faction1 invested in O4 (invest_amount=4, new_resources=5)
+Turn 14: Faction3 invested in O10 (invest_amount=4, new_resources=5)
+Turn 14: Faction1 invested in O3 (invest_amount=4, new_resources=5)
+Turn 14: Event(turn=13, type='income', faction='Faction1', region=None, details={'income': 39, 'owned_regions': 9}, context={'treasury_before': 150}, impact={'treasury_after': 189, 'treasury_change': 39}, tags=['economy', 'income'], significance=39.0)
+Turn 14: Event(turn=13, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 189}, impact={'treasury_after': 180, 'treasury_change': -9, 'net_income': 30}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 14: Event(turn=13, type='income', faction='Faction2', region=None, details={'income': 39, 'owned_regions': 9}, context={'treasury_before': 153}, impact={'treasury_after': 192, 'treasury_change': 39}, tags=['economy', 'income'], significance=39.0)
+Turn 14: Event(turn=13, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 192}, impact={'treasury_after': 183, 'treasury_change': -9, 'net_income': 30}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 14: Event(turn=13, type='income', faction='Faction3', region=None, details={'income': 37, 'owned_regions': 10}, context={'treasury_before': 133}, impact={'treasury_after': 170, 'treasury_change': 37}, tags=['economy', 'income'], significance=37.0)
+Turn 14: Event(turn=13, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 10, 'maintenance': 10}, context={'treasury_before': 170}, impact={'treasury_after': 160, 'treasury_change': -10, 'net_income': 27}, tags=['economy', 'maintenance'], significance=10.0)
+Turn 14: Event(turn=13, type='income', faction='Faction4', region=None, details={'income': 37, 'owned_regions': 9}, context={'treasury_before': 137}, impact={'treasury_after': 174, 'treasury_change': 37}, tags=['economy', 'income'], significance=37.0)
+Turn 14: Event(turn=13, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 174}, impact={'treasury_after': 165, 'treasury_change': -9, 'net_income': 28}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 15: Faction1 invested in I1 (invest_amount=4, new_resources=5)
+Turn 15: Faction4 invested in O15 (invest_amount=4, new_resources=5)
+Turn 15: Faction3 invested in O11 (invest_amount=4, new_resources=5)
 Turn 15: Faction2 invested in C (invest_amount=4, new_resources=5)
-Turn 15: Faction3 invested in O8 (invest_amount=4, new_resources=5)
-Turn 16: Faction2 invested in I4 (invest_amount=4, new_resources=5)
+Turn 15: Event(turn=14, type='income', faction='Faction1', region=None, details={'income': 41, 'owned_regions': 9}, context={'treasury_before': 180}, impact={'treasury_after': 221, 'treasury_change': 41}, tags=['economy', 'income'], significance=41.0)
+Turn 15: Event(turn=14, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 221}, impact={'treasury_after': 212, 'treasury_change': -9, 'net_income': 32}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 15: Event(turn=14, type='income', faction='Faction2', region=None, details={'income': 41, 'owned_regions': 9}, context={'treasury_before': 183}, impact={'treasury_after': 224, 'treasury_change': 41}, tags=['economy', 'income'], significance=41.0)
+Turn 15: Event(turn=14, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 224}, impact={'treasury_after': 215, 'treasury_change': -9, 'net_income': 32}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 15: Event(turn=14, type='income', faction='Faction3', region=None, details={'income': 40, 'owned_regions': 10}, context={'treasury_before': 160}, impact={'treasury_after': 200, 'treasury_change': 40}, tags=['economy', 'income'], significance=40.0)
+Turn 15: Event(turn=14, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 10, 'maintenance': 10}, context={'treasury_before': 200}, impact={'treasury_after': 190, 'treasury_change': -10, 'net_income': 30}, tags=['economy', 'maintenance'], significance=10.0)
+Turn 15: Event(turn=14, type='income', faction='Faction4', region=None, details={'income': 40, 'owned_regions': 9}, context={'treasury_before': 165}, impact={'treasury_after': 205, 'treasury_change': 40}, tags=['economy', 'income'], significance=40.0)
+Turn 15: Event(turn=14, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 205}, impact={'treasury_after': 196, 'treasury_change': -9, 'net_income': 31}, tags=['economy', 'maintenance'], significance=9.0)
 Turn 16: Faction1 invested in I2 (invest_amount=4, new_resources=5)
-Turn 16: Faction4 invested in O15 (invest_amount=4, new_resources=5)
-Turn 16: Faction3 invested in I6 (invest_amount=4, new_resources=5)
+Turn 16: Faction3 invested in O12 (invest_amount=4, new_resources=5)
+Turn 16: Faction2 invested in I4 (invest_amount=4, new_resources=5)
+Turn 16: Faction4 invested in O16 (invest_amount=4, new_resources=5)
+Turn 16: Event(turn=15, type='income', faction='Faction1', region=None, details={'income': 43, 'owned_regions': 9}, context={'treasury_before': 212}, impact={'treasury_after': 255, 'treasury_change': 43}, tags=['economy', 'income'], significance=43.0)
+Turn 16: Event(turn=15, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 255}, impact={'treasury_after': 246, 'treasury_change': -9, 'net_income': 34}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 16: Event(turn=15, type='income', faction='Faction2', region=None, details={'income': 43, 'owned_regions': 9}, context={'treasury_before': 215}, impact={'treasury_after': 258, 'treasury_change': 43}, tags=['economy', 'income'], significance=43.0)
+Turn 16: Event(turn=15, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 258}, impact={'treasury_after': 249, 'treasury_change': -9, 'net_income': 34}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 16: Event(turn=15, type='income', faction='Faction3', region=None, details={'income': 43, 'owned_regions': 10}, context={'treasury_before': 190}, impact={'treasury_after': 233, 'treasury_change': 43}, tags=['economy', 'income'], significance=43.0)
+Turn 16: Event(turn=15, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 10, 'maintenance': 10}, context={'treasury_before': 233}, impact={'treasury_after': 223, 'treasury_change': -10, 'net_income': 33}, tags=['economy', 'maintenance'], significance=10.0)
+Turn 16: Event(turn=15, type='income', faction='Faction4', region=None, details={'income': 43, 'owned_regions': 9}, context={'treasury_before': 196}, impact={'treasury_after': 239, 'treasury_change': 43}, tags=['economy', 'income'], significance=43.0)
+Turn 16: Event(turn=15, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 239}, impact={'treasury_after': 230, 'treasury_change': -9, 'net_income': 34}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 17: Faction3 invested in O8 (invest_amount=4, new_resources=5)
 Turn 17: Faction1 invested in I3 (invest_amount=4, new_resources=5)
-Turn 17: Faction3 invested in I7 (invest_amount=4, new_resources=5)
 Turn 17: Faction2 invested in I5 (invest_amount=4, new_resources=5)
-Turn 17: Faction4 invested in O16 (invest_amount=4, new_resources=5)
-Turn 18: Faction4 invested in I1 (invest_amount=4, new_resources=5)
-Turn 19: Faction4 invested in I8 (invest_amount=4, new_resources=5)
+Turn 17: Faction4 invested in I8 (invest_amount=4, new_resources=5)
+Turn 17: Event(turn=16, type='income', faction='Faction1', region=None, details={'income': 45, 'owned_regions': 9}, context={'treasury_before': 246}, impact={'treasury_after': 291, 'treasury_change': 45}, tags=['economy', 'income'], significance=45.0)
+Turn 17: Event(turn=16, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 291}, impact={'treasury_after': 282, 'treasury_change': -9, 'net_income': 36}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 17: Event(turn=16, type='income', faction='Faction2', region=None, details={'income': 45, 'owned_regions': 9}, context={'treasury_before': 249}, impact={'treasury_after': 294, 'treasury_change': 45}, tags=['economy', 'income'], significance=45.0)
+Turn 17: Event(turn=16, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 294}, impact={'treasury_after': 285, 'treasury_change': -9, 'net_income': 36}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 17: Event(turn=16, type='income', faction='Faction3', region=None, details={'income': 46, 'owned_regions': 10}, context={'treasury_before': 223}, impact={'treasury_after': 269, 'treasury_change': 46}, tags=['economy', 'income'], significance=46.0)
+Turn 17: Event(turn=16, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 10, 'maintenance': 10}, context={'treasury_before': 269}, impact={'treasury_after': 259, 'treasury_change': -10, 'net_income': 36}, tags=['economy', 'maintenance'], significance=10.0)
+Turn 17: Event(turn=16, type='income', faction='Faction4', region=None, details={'income': 45, 'owned_regions': 9}, context={'treasury_before': 230}, impact={'treasury_after': 275, 'treasury_change': 45}, tags=['economy', 'income'], significance=45.0)
+Turn 17: Event(turn=16, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 275}, impact={'treasury_after': 266, 'treasury_change': -9, 'net_income': 36}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 18: Faction3 invested in I6 (invest_amount=4, new_resources=5)
+Turn 18: Event(turn=17, type='income', faction='Faction1', region=None, details={'income': 45, 'owned_regions': 9}, context={'treasury_before': 282}, impact={'treasury_after': 327, 'treasury_change': 45}, tags=['economy', 'income'], significance=45.0)
+Turn 18: Event(turn=17, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 327}, impact={'treasury_after': 318, 'treasury_change': -9, 'net_income': 36}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 18: Event(turn=17, type='income', faction='Faction2', region=None, details={'income': 45, 'owned_regions': 9}, context={'treasury_before': 285}, impact={'treasury_after': 330, 'treasury_change': 45}, tags=['economy', 'income'], significance=45.0)
+Turn 18: Event(turn=17, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 330}, impact={'treasury_after': 321, 'treasury_change': -9, 'net_income': 36}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 18: Event(turn=17, type='income', faction='Faction3', region=None, details={'income': 48, 'owned_regions': 10}, context={'treasury_before': 259}, impact={'treasury_after': 307, 'treasury_change': 48}, tags=['economy', 'income'], significance=48.0)
+Turn 18: Event(turn=17, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 10, 'maintenance': 10}, context={'treasury_before': 307}, impact={'treasury_after': 297, 'treasury_change': -10, 'net_income': 38}, tags=['economy', 'maintenance'], significance=10.0)
+Turn 18: Event(turn=17, type='income', faction='Faction4', region=None, details={'income': 45, 'owned_regions': 9}, context={'treasury_before': 266}, impact={'treasury_after': 311, 'treasury_change': 45}, tags=['economy', 'income'], significance=45.0)
+Turn 18: Event(turn=17, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 311}, impact={'treasury_after': 302, 'treasury_change': -9, 'net_income': 36}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 19: Faction3 invested in I7 (invest_amount=4, new_resources=5)
+Turn 19: Event(turn=18, type='income', faction='Faction1', region=None, details={'income': 45, 'owned_regions': 9}, context={'treasury_before': 318}, impact={'treasury_after': 363, 'treasury_change': 45}, tags=['economy', 'income'], significance=45.0)
+Turn 19: Event(turn=18, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 363}, impact={'treasury_after': 354, 'treasury_change': -9, 'net_income': 36}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 19: Event(turn=18, type='income', faction='Faction2', region=None, details={'income': 45, 'owned_regions': 9}, context={'treasury_before': 321}, impact={'treasury_after': 366, 'treasury_change': 45}, tags=['economy', 'income'], significance=45.0)
+Turn 19: Event(turn=18, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 366}, impact={'treasury_after': 357, 'treasury_change': -9, 'net_income': 36}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 19: Event(turn=18, type='income', faction='Faction3', region=None, details={'income': 50, 'owned_regions': 10}, context={'treasury_before': 297}, impact={'treasury_after': 347, 'treasury_change': 50}, tags=['economy', 'income'], significance=50.0)
+Turn 19: Event(turn=18, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 10, 'maintenance': 10}, context={'treasury_before': 347}, impact={'treasury_after': 337, 'treasury_change': -10, 'net_income': 40}, tags=['economy', 'maintenance'], significance=10.0)
+Turn 19: Event(turn=18, type='income', faction='Faction4', region=None, details={'income': 45, 'owned_regions': 9}, context={'treasury_before': 302}, impact={'treasury_after': 347, 'treasury_change': 45}, tags=['economy', 'income'], significance=45.0)
+Turn 19: Event(turn=18, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 347}, impact={'treasury_after': 338, 'treasury_change': -9, 'net_income': 36}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 20: Event(turn=19, type='income', faction='Faction1', region=None, details={'income': 45, 'owned_regions': 9}, context={'treasury_before': 354}, impact={'treasury_after': 399, 'treasury_change': 45}, tags=['economy', 'income'], significance=45.0)
+Turn 20: Event(turn=19, type='maintenance', faction='Faction1', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 399}, impact={'treasury_after': 390, 'treasury_change': -9, 'net_income': 36}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 20: Event(turn=19, type='income', faction='Faction2', region=None, details={'income': 45, 'owned_regions': 9}, context={'treasury_before': 357}, impact={'treasury_after': 402, 'treasury_change': 45}, tags=['economy', 'income'], significance=45.0)
+Turn 20: Event(turn=19, type='maintenance', faction='Faction2', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 402}, impact={'treasury_after': 393, 'treasury_change': -9, 'net_income': 36}, tags=['economy', 'maintenance'], significance=9.0)
+Turn 20: Event(turn=19, type='income', faction='Faction3', region=None, details={'income': 50, 'owned_regions': 10}, context={'treasury_before': 337}, impact={'treasury_after': 387, 'treasury_change': 50}, tags=['economy', 'income'], significance=50.0)
+Turn 20: Event(turn=19, type='maintenance', faction='Faction3', region=None, details={'maintenance_cost': 1, 'owned_regions': 10, 'maintenance': 10}, context={'treasury_before': 387}, impact={'treasury_after': 377, 'treasury_change': -10, 'net_income': 40}, tags=['economy', 'maintenance'], significance=10.0)
+Turn 20: Event(turn=19, type='income', faction='Faction4', region=None, details={'income': 45, 'owned_regions': 9}, context={'treasury_before': 338}, impact={'treasury_after': 383, 'treasury_change': 45}, tags=['economy', 'income'], significance=45.0)
+Turn 20: Event(turn=19, type='maintenance', faction='Faction4', region=None, details={'maintenance_cost': 1, 'owned_regions': 9, 'maintenance': 9}, context={'treasury_before': 383}, impact={'treasury_after': 374, 'treasury_change': -9, 'net_income': 36}, tags=['economy', 'maintenance'], significance=9.0)
 
 Per-Turn Metrics
 
 Turn 1
-  Faction1: treasury=6, regions=1, expansions=0, investments=1
-  Faction2: treasury=6, regions=1, expansions=0, investments=1
-  Faction3: treasury=6, regions=1, expansions=0, investments=1
-  Faction4: treasury=6, regions=1, expansions=0, investments=1
+  Faction1: treasury=5, regions=1, expansions=0, investments=1
+  Faction2: treasury=5, regions=1, expansions=0, investments=1
+  Faction3: treasury=5, regions=1, expansions=0, investments=1
+  Faction4: treasury=5, regions=1, expansions=0, investments=1
 
 Turn 2
-  Faction1: treasury=10, regions=2, expansions=1, investments=0
-  Faction2: treasury=10, regions=2, expansions=1, investments=0
-  Faction3: treasury=10, regions=2, expansions=1, investments=0
-  Faction4: treasury=10, regions=2, expansions=1, investments=0
+  Faction1: treasury=7, regions=2, expansions=1, investments=0
+  Faction2: treasury=7, regions=2, expansions=1, investments=0
+  Faction3: treasury=7, regions=2, expansions=1, investments=0
+  Faction4: treasury=7, regions=2, expansions=1, investments=0
 
 Turn 3
-  Faction1: treasury=16, regions=3, expansions=1, investments=0
-  Faction2: treasury=16, regions=3, expansions=1, investments=0
-  Faction3: treasury=16, regions=3, expansions=1, investments=0
-  Faction4: treasury=16, regions=3, expansions=1, investments=0
+  Faction1: treasury=10, regions=3, expansions=1, investments=0
+  Faction2: treasury=10, regions=3, expansions=1, investments=0
+  Faction3: treasury=10, regions=3, expansions=1, investments=0
+  Faction4: treasury=10, regions=3, expansions=1, investments=0
 
 Turn 4
-  Faction1: treasury=25, regions=4, expansions=1, investments=0
-  Faction2: treasury=25, regions=4, expansions=1, investments=0
-  Faction3: treasury=25, regions=4, expansions=1, investments=0
-  Faction4: treasury=25, regions=4, expansions=1, investments=0
+  Faction1: treasury=15, regions=4, expansions=1, investments=0
+  Faction2: treasury=15, regions=4, expansions=1, investments=0
+  Faction3: treasury=15, regions=4, expansions=1, investments=0
+  Faction4: treasury=15, regions=4, expansions=1, investments=0
 
 Turn 5
-  Faction1: treasury=36, regions=5, expansions=1, investments=0
-  Faction2: treasury=37, regions=5, expansions=1, investments=0
-  Faction3: treasury=36, regions=5, expansions=1, investments=0
-  Faction4: treasury=36, regions=5, expansions=1, investments=0
+  Faction1: treasury=21, regions=5, expansions=1, investments=0
+  Faction2: treasury=22, regions=5, expansions=1, investments=0
+  Faction3: treasury=21, regions=5, expansions=1, investments=0
+  Faction4: treasury=21, regions=5, expansions=1, investments=0
 
 Turn 6
-  Faction1: treasury=49, regions=6, expansions=1, investments=0
-  Faction2: treasury=51, regions=6, expansions=1, investments=0
-  Faction3: treasury=49, regions=6, expansions=1, investments=0
-  Faction4: treasury=49, regions=6, expansions=1, investments=0
+  Faction1: treasury=28, regions=6, expansions=1, investments=0
+  Faction2: treasury=30, regions=6, expansions=1, investments=0
+  Faction3: treasury=28, regions=6, expansions=1, investments=0
+  Faction4: treasury=28, regions=6, expansions=1, investments=0
 
 Turn 7
-  Faction1: treasury=65, regions=7, expansions=1, investments=0
-  Faction2: treasury=67, regions=7, expansions=1, investments=0
-  Faction3: treasury=65, regions=7, expansions=1, investments=0
-  Faction4: treasury=65, regions=7, expansions=1, investments=0
+  Faction1: treasury=37, regions=7, expansions=1, investments=0
+  Faction2: treasury=40, regions=7, expansions=1, investments=0
+  Faction3: treasury=37, regions=7, expansions=1, investments=0
+  Faction4: treasury=36, regions=7, expansions=1, investments=0
 
 Turn 8
-  Faction1: treasury=83, regions=8, expansions=1, investments=0
-  Faction2: treasury=86, regions=8, expansions=1, investments=0
-  Faction3: treasury=83, regions=8, expansions=1, investments=0
-  Faction4: treasury=83, regions=8, expansions=1, investments=0
+  Faction1: treasury=48, regions=8, expansions=1, investments=0
+  Faction2: treasury=51, regions=8, expansions=1, investments=0
+  Faction3: treasury=47, regions=8, expansions=1, investments=0
+  Faction4: treasury=45, regions=8, expansions=1, investments=0
 
 Turn 9
-  Faction1: treasury=103, regions=9, expansions=1, investments=0
-  Faction2: treasury=107, regions=9, expansions=1, investments=0
-  Faction3: treasury=103, regions=9, expansions=1, investments=0
-  Faction4: treasury=103, regions=9, expansions=1, investments=0
+  Faction1: treasury=60, regions=9, expansions=1, investments=0
+  Faction2: treasury=63, regions=9, expansions=1, investments=0
+  Faction3: treasury=58, regions=9, expansions=1, investments=0
+  Faction4: treasury=55, regions=9, expansions=1, investments=0
 
 Turn 10
-  Faction1: treasury=129, regions=9, expansions=0, investments=1
-  Faction2: treasury=134, regions=9, expansions=0, investments=1
-  Faction3: treasury=129, regions=9, expansions=0, investments=1
-  Faction4: treasury=125, regions=10, expansions=1, investments=0
+  Faction1: treasury=78, regions=9, expansions=0, investments=1
+  Faction2: treasury=81, regions=9, expansions=0, investments=1
+  Faction3: treasury=70, regions=10, expansions=1, investments=0
+  Faction4: treasury=71, regions=9, expansions=0, investments=1
 
 Turn 11
-  Faction1: treasury=158, regions=9, expansions=0, investments=1
-  Faction2: treasury=164, regions=9, expansions=0, investments=1
-  Faction3: treasury=158, regions=9, expansions=0, investments=1
-  Faction4: treasury=153, regions=10, expansions=0, investments=1
+  Faction1: treasury=99, regions=9, expansions=0, investments=1
+  Faction2: treasury=102, regions=9, expansions=0, investments=1
+  Faction3: treasury=88, regions=10, expansions=0, investments=1
+  Faction4: treasury=90, regions=9, expansions=0, investments=1
 
 Turn 12
-  Faction1: treasury=190, regions=9, expansions=0, investments=1
-  Faction2: treasury=197, regions=9, expansions=0, investments=1
-  Faction3: treasury=190, regions=9, expansions=0, investments=1
-  Faction4: treasury=184, regions=10, expansions=0, investments=1
+  Faction1: treasury=123, regions=9, expansions=0, investments=1
+  Faction2: treasury=126, regions=9, expansions=0, investments=1
+  Faction3: treasury=109, regions=10, expansions=0, investments=1
+  Faction4: treasury=112, regions=9, expansions=0, investments=1
 
 Turn 13
-  Faction1: treasury=225, regions=9, expansions=0, investments=1
-  Faction2: treasury=233, regions=9, expansions=0, investments=1
-  Faction3: treasury=225, regions=9, expansions=0, investments=1
-  Faction4: treasury=218, regions=10, expansions=0, investments=1
+  Faction1: treasury=150, regions=9, expansions=0, investments=1
+  Faction2: treasury=153, regions=9, expansions=0, investments=1
+  Faction3: treasury=133, regions=10, expansions=0, investments=1
+  Faction4: treasury=137, regions=9, expansions=0, investments=1
 
 Turn 14
-  Faction1: treasury=263, regions=9, expansions=0, investments=1
-  Faction2: treasury=272, regions=9, expansions=0, investments=1
-  Faction3: treasury=263, regions=9, expansions=0, investments=1
-  Faction4: treasury=255, regions=10, expansions=0, investments=1
+  Faction1: treasury=180, regions=9, expansions=0, investments=1
+  Faction2: treasury=183, regions=9, expansions=0, investments=1
+  Faction3: treasury=160, regions=10, expansions=0, investments=1
+  Faction4: treasury=165, regions=9, expansions=0, investments=1
 
 Turn 15
-  Faction1: treasury=304, regions=9, expansions=0, investments=1
-  Faction2: treasury=313, regions=9, expansions=0, investments=1
-  Faction3: treasury=304, regions=9, expansions=0, investments=1
-  Faction4: treasury=295, regions=10, expansions=0, investments=1
+  Faction1: treasury=212, regions=9, expansions=0, investments=1
+  Faction2: treasury=215, regions=9, expansions=0, investments=1
+  Faction3: treasury=190, regions=10, expansions=0, investments=1
+  Faction4: treasury=196, regions=9, expansions=0, investments=1
 
 Turn 16
-  Faction1: treasury=347, regions=9, expansions=0, investments=1
-  Faction2: treasury=356, regions=9, expansions=0, investments=1
-  Faction3: treasury=347, regions=9, expansions=0, investments=1
-  Faction4: treasury=338, regions=10, expansions=0, investments=1
+  Faction1: treasury=246, regions=9, expansions=0, investments=1
+  Faction2: treasury=249, regions=9, expansions=0, investments=1
+  Faction3: treasury=223, regions=10, expansions=0, investments=1
+  Faction4: treasury=230, regions=9, expansions=0, investments=1
 
 Turn 17
-  Faction1: treasury=392, regions=9, expansions=0, investments=1
-  Faction2: treasury=401, regions=9, expansions=0, investments=1
-  Faction3: treasury=392, regions=9, expansions=0, investments=1
-  Faction4: treasury=384, regions=10, expansions=0, investments=1
+  Faction1: treasury=282, regions=9, expansions=0, investments=1
+  Faction2: treasury=285, regions=9, expansions=0, investments=1
+  Faction3: treasury=259, regions=10, expansions=0, investments=1
+  Faction4: treasury=266, regions=9, expansions=0, investments=1
 
 Turn 18
-  Faction1: treasury=437, regions=9, expansions=0, investments=0
-  Faction2: treasury=446, regions=9, expansions=0, investments=0
-  Faction3: treasury=437, regions=9, expansions=0, investments=0
-  Faction4: treasury=432, regions=10, expansions=0, investments=1
+  Faction1: treasury=318, regions=9, expansions=0, investments=0
+  Faction2: treasury=321, regions=9, expansions=0, investments=0
+  Faction3: treasury=297, regions=10, expansions=0, investments=1
+  Faction4: treasury=302, regions=9, expansions=0, investments=0
 
 Turn 19
-  Faction1: treasury=482, regions=9, expansions=0, investments=0
-  Faction2: treasury=491, regions=9, expansions=0, investments=0
-  Faction3: treasury=482, regions=9, expansions=0, investments=0
-  Faction4: treasury=482, regions=10, expansions=0, investments=1
+  Faction1: treasury=354, regions=9, expansions=0, investments=0
+  Faction2: treasury=357, regions=9, expansions=0, investments=0
+  Faction3: treasury=337, regions=10, expansions=0, investments=1
+  Faction4: treasury=338, regions=9, expansions=0, investments=0
 
 Turn 20
-  Faction1: treasury=527, regions=9, expansions=0, investments=0
-  Faction2: treasury=536, regions=9, expansions=0, investments=0
-  Faction3: treasury=527, regions=9, expansions=0, investments=0
-  Faction4: treasury=532, regions=10, expansions=0, investments=0
+  Faction1: treasury=390, regions=9, expansions=0, investments=0
+  Faction2: treasury=393, regions=9, expansions=0, investments=0
+  Faction3: treasury=377, regions=10, expansions=0, investments=0
+  Faction4: treasury=374, regions=9, expansions=0, investments=0

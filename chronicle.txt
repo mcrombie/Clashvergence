@@ -1,14 +1,14 @@
 Simulation Chronicle
 
-On turn 2, Faction4 made its first expansion into M10.
-On turn 2, Faction2 made its first expansion into M4.
-On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction3 made its first expansion into M7.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M11.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M5.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M2.
+On turn 2, Faction1 made its first expansion into M1.
+On turn 2, Faction2 made its first expansion into M4.
+On turn 2, Faction4 made its first expansion into M10.
 On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M8.
-On turn 3, Faction4 seized M11, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
+On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M2.
+On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M5.
+On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M11.
+On turn 3, Faction2 seized M5, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I4.
 On turn 3, Faction1 seized M2, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
 
 Opening Phase
@@ -16,25 +16,25 @@ Opening Phase
 The strongest early land grab was Faction2's claim of C on turn 5, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction2 held the opening treasury lead at 37.
+By the end of turn 5, Faction2 held the opening treasury lead at 22.
 
 Faction Trajectories
 
-Faction1 opened well but faded in the later turns, finishing with 9 regions and 527 treasury.
-Faction2 grew steadily from the opening and converted that position into first place with 9 regions and 536 treasury.
-Faction3 opened well but faded in the later turns, finishing with 9 regions and 527 treasury.
-Faction4 opened well but faded in the later turns, finishing with 10 regions and 532 treasury.
+Faction1 opened well but faded in the later turns, finishing with 9 regions and 390 treasury.
+Faction2 grew steadily from the opening and converted that position into first place with 9 regions and 393 treasury.
+Faction3 opened well but faded in the later turns, finishing with 10 regions and 377 treasury.
+Faction4 opened well but faded in the later turns, finishing with 9 regions and 374 treasury.
 
 Faction Behavior
 
 Faction1 expanded 8 times and invested 9 times, and generally favored development over expansion.
 Faction2 expanded 8 times and invested 9 times, and generally favored development over expansion.
-Faction3 expanded 8 times and invested 9 times, and generally favored development over expansion.
-Faction4 expanded 9 times and invested 10 times, and generally favored development over expansion.
+Faction3 expanded 9 times and invested 10 times, and generally favored development over expansion.
+Faction4 expanded 8 times and invested 9 times, and generally favored development over expansion.
 
 Final Standings
 
-Faction2 finished first with a treasury of 536 and control of 9 regions.
-Faction4 ended with a treasury of 532 and 10 regions.
-Faction1 ended with a treasury of 527 and 9 regions.
-Faction3 ended with a treasury of 527 and 9 regions.
+Faction2 finished first with a treasury of 393 and control of 9 regions.
+Faction1 ended with a treasury of 390 and 9 regions.
+Faction3 ended with a treasury of 377 and 10 regions.
+Faction4 ended with a treasury of 374 and 9 regions.
