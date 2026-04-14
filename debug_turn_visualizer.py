@@ -126,6 +126,53 @@ def reconstruct_turn_snapshots(world, map_name):
     return snapshots
 
 
+def get_faction_turn_summary(snapshot, faction_name):
+    metrics = snapshot["metrics"]["factions"][faction_name]
+    faction_events = [event for event in snapshot["events"] if event.faction == faction_name]
+    treasury_delta = 0
+    event_lines = []
+    claims = []
+    investments = []
+
+    for event in faction_events:
+        treasury_delta += event.get("treasury_change", 0)
+
+        if event.type == "expand" and event.region is not None:
+            claims.append(event.region)
+            cost = event.get("cost", 0)
+            event_lines.append(f"  expand {event.region} (-${cost})")
+        elif event.type == "invest" and event.region is not None:
+            change = event.get("resource_change", 0)
+            new_resources = event.get("new_resources")
+            investments.append(event.region)
+            if new_resources is not None:
+                event_lines.append(f"  invest {event.region} (+{change}R -> R{new_resources})")
+            else:
+                event_lines.append(f"  invest {event.region} (+{change}R)")
+        elif event.type == "income":
+            income = event.get("income", 0)
+            owned_regions = event.get("owned_regions", 0)
+            event_lines.append(f"  income +${income} from {owned_regions} regions")
+        elif event.type == "maintenance":
+            maintenance = event.get("maintenance", 0)
+            owned_regions = event.get("owned_regions", 0)
+            event_lines.append(f"  upkeep -${maintenance} on {owned_regions} regions")
+
+    return {
+        "treasury": metrics["treasury"],
+        "regions": metrics["regions"],
+        "treasury_delta": treasury_delta,
+        "income": metrics.get("income", 0),
+        "maintenance": metrics.get("maintenance", 0),
+        "net_income": metrics.get("net_income", 0),
+        "expansions": metrics["expansions"],
+        "investments": metrics["investments"],
+        "claims": claims,
+        "invested_regions": investments,
+        "event_lines": event_lines,
+    }
+
+
 def format_metrics_text(snapshot):
     if snapshot["metrics"] is None:
         return (
@@ -135,7 +182,9 @@ def format_metrics_text(snapshot):
             "Faction2: teal\n"
             "Faction3: blue\n"
             "Faction4: orange\n"
-            "Unclaimed: white"
+            "Unclaimed: white\n\n"
+            "Faction Activity\n"
+            "No turn events yet."
         )
 
     lines = [
@@ -146,20 +195,56 @@ def format_metrics_text(snapshot):
         "Faction4: orange",
         "Unclaimed: white",
         "",
-        "Treasury / Regions",
+        "Faction Activity",
     ]
 
     for faction_name in sorted(snapshot["metrics"]["factions"]):
-        metrics = snapshot["metrics"]["factions"][faction_name]
+        summary = get_faction_turn_summary(snapshot, faction_name)
+        delta_prefix = "+" if summary["treasury_delta"] >= 0 else ""
+        lines.append("")
         lines.append(
-            f"{faction_name}: ${metrics['treasury']} | "
-            f"{metrics['regions']} regions | "
-            f"+{metrics['expansions']} expand | +{metrics['investments']} invest"
+            f"{faction_name}: ${summary['treasury']} "
+            f"({delta_prefix}{summary['treasury_delta']} this turn)"
+        )
+        lines.append(
+            f"  regions={summary['regions']} | "
+            f"income=+${summary['income']} | "
+            f"upkeep=-${summary['maintenance']} | "
+            f"net=+${summary['net_income']}"
+            if summary["net_income"] >= 0
+            else f"  regions={summary['regions']} | "
+                 f"income=+${summary['income']} | "
+                 f"upkeep=-${summary['maintenance']} | "
+                 f"net=${summary['net_income']}"
+        )
+        lines.append(
+            f"  gains: +{summary['expansions']} claim | +{summary['investments']} invest"
         )
 
-    if snapshot["newly_claimed"]:
+        if summary["claims"]:
+            lines.append(
+                "  claimed: " + ", ".join(sorted(summary["claims"], key=natural_sort_key))
+            )
+        if summary["invested_regions"]:
+            lines.append(
+                "  invested: " + ", ".join(sorted(summary["invested_regions"], key=natural_sort_key))
+            )
+        if summary["event_lines"]:
+            lines.append("  events:")
+            lines.extend(summary["event_lines"])
+        else:
+            lines.append("  events: none")
+
+    if snapshot["newly_claimed"] or snapshot["invested_regions"]:
         lines.append("")
-        lines.append("New claims: " + ", ".join(sorted(snapshot["newly_claimed"], key=natural_sort_key)))
+        if snapshot["newly_claimed"]:
+            lines.append(
+                "Map claims: " + ", ".join(sorted(snapshot["newly_claimed"], key=natural_sort_key))
+            )
+        if snapshot["invested_regions"]:
+            lines.append(
+                "Map invests: " + ", ".join(sorted(snapshot["invested_regions"], key=natural_sort_key))
+            )
 
     return "\n".join(lines)
 
@@ -255,9 +340,9 @@ def render_playback(world, map_name, save_path=None, fps=2, show_connectivity=Tr
     positions = build_map_layout(MAPS[map_name]["regions"], width=900, height=900)
     edges = get_map_edges(MAPS[map_name]["regions"])
 
-    fig = plt.figure(figsize=(13, 8))
-    ax_map = fig.add_axes([0.06, 0.12, 0.63, 0.80])
-    ax_side = fig.add_axes([0.73, 0.18, 0.24, 0.68])
+    fig = plt.figure(figsize=(15, 8.5))
+    ax_map = fig.add_axes([0.05, 0.12, 0.60, 0.80])
+    ax_side = fig.add_axes([0.68, 0.11, 0.30, 0.74])
     ax_side.axis("off")
 
     state = {
@@ -284,7 +369,7 @@ def render_playback(world, map_name, save_path=None, fps=2, show_connectivity=Tr
             format_metrics_text(snapshot),
             va="top",
             ha="left",
-            fontsize=10,
+            fontsize=9.5,
             family="monospace",
         )
         fig.canvas.draw_idle()
@@ -311,7 +396,7 @@ def render_playback(world, map_name, save_path=None, fps=2, show_connectivity=Tr
                 format_metrics_text(snapshot),
                 va="top",
                 ha="left",
-                fontsize=10,
+                fontsize=9.5,
                 family="monospace",
             )
 
