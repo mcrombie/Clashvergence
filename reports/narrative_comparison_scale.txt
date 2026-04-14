@@ -51,10 +51,7 @@ Faction4 spent the opening consolidating its start with 1 investment, built stea
 
 Strategic Interpretation
 
-On this compact 12-region map, early contact came quickly.
-No faction broke the map open. The run stayed competitive to the end, with 4 factions still alive and only 2-region variation across the final board.
-No decisive collapse or phase break separated the field. Faction4 edged ahead in a finish that remained close across 4 surviving factions.
-The final margin stayed narrow: Faction4 beat Faction1 by 3 treasury.
+Faction4 prevailed despite never holding a regional edge, because the contest stayed tied on territory and was decided by treasury, where it finished 22 to 19. Faction1 had the early and mid-game strength and even gained the key frontline region E, but that advantage did not produce a lasting territorial break. The late phase shifted to Faction4, which benefited from the board remaining contested while rivals traded the same frontline position instead of building a decisive lead.
 The closest challenger was Faction1 (expansionist) at 19 treasury and 3 regions.
 
 Final Standings
@@ -115,10 +112,7 @@ Faction4 opened with 1 claim and grew to 3 regions by the end of the opening pha
 
 Strategic Interpretation
 
-On this compact 12-region map, early contact came quickly.
-The opening stayed contested, but Faction1 broke the game open in the middle turns and built a durable territorial edge.
-Faction1 turned the contested opening into a decisive middle-phase swing, built a durable territorial lead, and carried that edge to the finish.
-That break left Faction1 ahead at the finish with 7 regions and 55 treasury.
+Faction1’s win came from an early elimination sequence that removed Faction2’s last territorial hold at E, preventing a rival from staying in the contest while the board was still unsettled. That early break was followed by a stronger midgame, when Faction1 added 3 regions as Faction2 lost 2, giving it the positional base to pull ahead on an asymmetric frontier map. By the end, Faction1 had 7 regions and 55 treasury against Faction4’s 4 regions and 28 treasury, so the margin reflected both territorial separation and a much larger resource pool.
 The closest challenger was Faction4 (opportunist) at 28 treasury and 4 regions.
 
 Final Standings
@@ -179,10 +173,7 @@ Faction4 opened with 1 claim and grew to 5 regions by the end of the opening pha
 
 Strategic Interpretation
 
-On this compact 12-region map, early contact came quickly.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction4 eliminated Faction2 in the mid phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction4 held 12 regions and 229 treasury while every rival had been reduced to zero territory.
+Faction4’s win came from eliminating rivals’ last footholds in sequence: H removed Faction3 early, and E later erased Faction2’s final territory. That left Faction4 free to expand through the midgame, where it gained 7 regions and finished 12 clear while Faction1’s brief early gain of 3 regions did not hold. The late phase then offered no recovery path, since territorial control had already stabilized around Faction4 and the treasury gap was already large at 229 to 61.
 The closest challenger was Faction1 (expansionist) at 61 treasury and 0 regions.
 
 Final Standings
@@ -243,10 +234,7 @@ Faction4 opened with 1 claim and grew to 6 regions by the end of the opening pha
 
 Strategic Interpretation
 
-On this compact 12-region map, early contact came quickly.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction1 eliminated Faction2 in the early phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction1 held 12 regions and 536 treasury while every rival had been reduced to zero territory.
+Faction1’s win came from an early and midgame territorial surge that the others could not match, especially on the asymmetric frontier where expansion rewarded fast positioning. The key swing was elimination sequencing: Faction1 removed Faction2’s last hold early, while Faction4’s elimination of Faction3 left Faction1 and Faction4 as the main contenders, but Faction1 then pulled away by gaining 7 regions in the midgame as Faction4 lost 6. By the end, Faction1 had 12 regions to Faction4’s none and a far larger treasury, showing that its territorial edge was also successfully converted into economic dominance.
 The closest challenger was Faction4 (opportunist) at 85 treasury and 0 regions.
 
 Final Standings
@@ -307,10 +295,7 @@ Faction4 opened with 1 claim and grew to 12 regions by the end of the opening ph
 
 Strategic Interpretation
 
-On this compact 12-region map, early contact came quickly.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction4 eliminated Faction2 in the early phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction4 held 12 regions and 1463 treasury while every rival had been reduced to zero territory.
+Faction4’s win was decided early, when it took G and removed Faction2’s last foothold, while Faction1’s capture of H erased Faction3’s final territory. That left Faction4 as the only side able to expand meaningfully, and it finished the early phase 12 regions ahead after gaining 8 regions. With no surviving territorial rivals and a large treasury gap by the end, the result was full domination rather than a contested finish.
 The closest challenger was Faction1 (expansionist) at 66 treasury and 0 regions.
 
 Final Standings
@@ -371,10 +356,7 @@ Faction4 opened with 20 attack attempts and contested neighboring borders immedi
 
 Strategic Interpretation
 
-On this compact 12-region map, early contact came quickly.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction1 eliminated Faction2 in the early phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction1 held 12 regions and 3039 treasury while every rival had been reduced to zero territory.
+Faction1 established the decisive lead early, gaining 8 regions while the other factions lost their last territorial footholds in quick succession. The capture of E removed Faction2’s final hold, and Faction4’s capture of H did the same to Faction3, leaving Faction1 with no meaningful territorial resistance on the map. From there, the advantage persisted through mid and late phases, and the final gap was reinforced by a huge treasury edge: 3039 to 51.
 The closest challenger was Faction4 (opportunist) at 51 treasury and 0 regions.
 
 Final Standings
@@ -435,10 +417,7 @@ Faction4 spent the opening consolidating its start with 1 investment, built stea
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-Territory alone did not decide this run; Faction3 finished first on treasury without holding the largest empire at the end.
-Faction3 did not win on map share. It finished first on treasury while Faction4 held more territory but failed to turn that size into enough net income.
-Faction3 finished first on 15 treasury with 4 regions, while the largest empire finished on 5 regions.
+Faction3 won by edging out Faction1 on treasury while finishing level on regions, so the result came down to resource conversion rather than territorial expansion. Faction1 had the early and mid-game strength, but the board stayed contested and that advantage did not translate into a lasting economic gap. The late capture of C by Faction3, alongside the similar swing by Faction4, shifted key frontline positions at the point when the game was still open, letting Faction3 finish with the decisive 15–14 treasury edge.
 The closest challenger was Faction1 (expansionist) at 14 treasury and 4 regions.
 
 Final Standings
@@ -499,10 +478,7 @@ Faction4 opened with 2 claims and grew to 3 regions by the end of the opening ph
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-Territory alone did not decide this run; Faction3 finished first on treasury without holding the largest empire at the end.
-Faction3 did not win on map share. It finished first on treasury while Faction1 and Faction4 held more territory but failed to turn that size into enough net income.
-Faction3 finished first on 18 treasury with 4 regions, while the largest empire finished on 7 regions.
+Faction3 won because the contest stayed fragmented long enough for treasury to matter more than raw territory. Faction1 led the board in the early and mid phases and finished with 7 regions, but that territorial edge did not outweigh Faction3’s stronger late position and 18 treasury to Faction1’s 17. The late border swings at I6 and M6 shifted frontline regions without producing enough regional separation to overcome the economic margin.
 The closest challenger was Faction1 (expansionist) at 17 treasury and 7 regions.
 
 Final Standings
@@ -563,10 +539,7 @@ Faction4 opened with 3 claims and grew to 4 regions by the end of the opening ph
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-No faction controlled the run early, but Faction2 stayed close until the late phase and then separated decisively.
-The board stayed crowded into the late phase, but Faction2 separated only at the end, opened a decisive lead, and closed out the run.
-That break left Faction2 ahead at the finish with 13 regions and 12 treasury.
+Faction3 set the early pace, but the board stayed contested long enough for that advantage to remain incomplete. The decisive shift came in the mid and late phases: Faction3’s capture of I4 changed a frontline, then Faction2 added 4 regions in the midgame and surged by 7 more late while Faction4 lost 2, creating the separation that mattered. Faction2’s balanced approach also left it with the stronger treasury, so the final gap was built through both territorial expansion and better resource position.
 The closest challenger was Faction3 (economic) at 8 treasury and 3 regions.
 
 Final Standings
@@ -627,10 +600,7 @@ Faction4 opened with 4 claims and grew to 7 regions by the end of the opening ph
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-The opening stayed contested, but Faction2 broke the game open in the middle turns and built a durable territorial edge.
-Faction2 turned the contested opening into a decisive middle-phase swing, built a durable territorial lead, and carried that edge to the finish.
-That break left Faction2 ahead at the finish with 22 regions and 148 treasury.
+Faction2 won because it seized the midgame and then widened the gap in the late phase, while Faction3’s early strength never held once the board stayed contested. The decisive shift came when Faction2 captured O8, removing Faction3’s last territorial hold and triggering a late collapse in which Faction2 gained 11 regions as Faction3 lost 4. That sequence left Faction2 far ahead on both territory and treasury, with 22 regions and 148 treasury against Faction1’s 5 regions and 22 treasury.
 The closest challenger was Faction1 (expansionist) at 22 treasury and 5 regions.
 
 Final Standings
@@ -691,10 +661,7 @@ Faction4 opened with 3 claims and grew to 15 regions by the end of the opening p
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction4 eliminated Faction1 in the mid phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction4 held 37 regions and 1630 treasury while every rival had been reduced to zero territory.
+Faction4’s win was decided in the midgame, when it removed Faction1’s and Faction2’s last territorial holds at O2 and I1, eliminating the only rivals still able to contest space. That timing mattered more than late expansion: after a 21-region gain in the middle phase, Faction4 already had the map locked down, so the final stretch added only one more region. The treasury gap also reflects that territorial collapse, with Faction4’s 37 regions producing 1630 against Faction2’s 237.
 The closest challenger was Faction2 (balanced) at 237 treasury and 0 regions.
 
 Final Standings
@@ -755,10 +722,7 @@ Faction4 opened with 4 claims and grew to 2 regions by the end of the opening ph
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction1 eliminated Faction3 in the mid phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction1 held 37 regions and 4931 treasury while every rival had been reduced to zero territory.
+Faction1’s win came from early expansion that created a large territorial cushion, then a midgame surge that widened the gap before the map could re-balance. The decisive sequence was the removal of Faction3’s and Faction4’s last holdings at I1 and O6, which erased the remaining territorial resistance and left Faction1 uncontested. With 37 regions and 4,931 treasury against Faction3’s 121, Faction1 also converted its map position into a massive economic advantage rather than merely holding land.
 The closest challenger was Faction3 (economic) at 121 treasury and 0 regions.
 
 Final Standings
@@ -816,10 +780,7 @@ Faction4 spent the opening consolidating its start with 1 investment, built stea
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-No faction broke the map open. The run stayed competitive to the end, with 3 factions still alive and only 2-region variation across the final board.
-No decisive collapse or phase break separated the field. Faction4 edged ahead in a finish that remained close across 3 surviving factions.
-The final margin stayed narrow: Faction4 beat Faction1 by 3 treasury.
+Faction4 won by staying strongest only in the late phase, when the board was still contested and no faction had secured a decisive territorial edge. The key swing came in midgame: Faction2’s capture of Q removed Faction3’s last hold, and Faction1 then took Q back, showing how the frontline kept changing hands rather than settling early. With the map still balanced at the end, Faction4’s slight treasury edge over Faction1 was enough to decide a contest where region counts were tied.
 The closest challenger was Faction1 (expansionist) at 13 treasury and 2 regions.
 
 Final Standings
@@ -879,10 +840,9 @@ Faction4 spent the opening consolidating its start with 1 investment, lost groun
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-No faction controlled the run early, but Faction1 stayed close until the late phase and then separated decisively.
-The board stayed crowded into the late phase, but Faction1 separated only at the end, opened a decisive lead, and closed out the run.
-That break left Faction1 ahead at the finish with 7 regions and 58 treasury.
+Faction2 began with the strongest position, but the board stayed contested and its early gains did not prevent later erosion. The decisive shift came when Faction1 removed Faction3’s last territory at Q, then kept expanding through the mid and late turns, while Faction2’s own early capture of Q only eliminated Faction4 and did not secure the wider map.
+
+By the end, Faction1 had 7 regions to Faction2’s 4 and a much larger treasury, 58 to 19, showing that late territorial growth was also better monetized. On a seventeen-region ring, that sequence of eliminations and continued expansion produced a 3-region and 39-treasury margin.
 The closest challenger was Faction2 (balanced) at 19 treasury and 4 regions.
 
 Final Standings
@@ -942,10 +902,7 @@ Faction4 opened with 4 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction1 eliminated Faction4 in the early phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction1 held 17 regions and 141 treasury while every rival had been reduced to zero territory.
+Faction1’s win was driven by sustained territorial expansion on a seventeen-region ring, where it stayed strongest from the early phase through the late phase and widened the gap as the game progressed. The key shift was not a single late surge but repeated gains in the mid and late game, while Faction2 lost regions and never recovered a territorial base after the early collapses around Q. By the end, Faction1 had 17 regions and 141 treasury against Faction2’s 0 regions and 47 treasury, showing that Faction1’s territorial advantage was never translated into a contestable position for the runner-up.
 The closest challenger was Faction2 (balanced) at 47 treasury and 0 regions.
 
 Final Standings
@@ -1005,10 +962,7 @@ Faction4 opened with 6 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction2 eliminated Faction1 in the early phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction2 held 17 regions and 472 treasury while every rival had been reduced to zero territory.
+Faction2’s win came from seizing the key Q position early and using it to remove Faction1’s last territorial hold, which left Faction1 unable to recover on the ring map. The midgame then widened the gap sharply: Faction2 gained 9 regions while Faction1 lost 4, creating a 17-region lead that the late phase never reversed. That territorial sweep also fed the treasury gap, ending at 472 to 31, so Faction2 finished with full domination rather than a narrow map-only edge.
 The closest challenger was Faction1 (expansionist) at 31 treasury and 0 regions.
 
 Final Standings
@@ -1068,10 +1022,7 @@ Faction4 opened with 4 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction1 eliminated Faction2 in the early phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction1 held 17 regions and 1599 treasury while every rival had been reduced to zero territory.
+Faction1’s win was decided early, when it built a 13-region gain while the other factions were still collapsing around Q. Faction4’s capture of Q removed Faction3’s last hold, and Faction2 then took Q from Faction4, leaving the field open for Faction1 to separate itself before the midgame. Once that early territorial break occurred on the seventeen-region ring, the rest of the match stayed locked in Faction1’s favor, ending in a 17-region sweep and a massive treasury gap.
 The closest challenger was Faction2 (balanced) at 20 treasury and 0 regions.
 
 Final Standings
@@ -1132,10 +1083,7 @@ Faction4 opened with 2 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction1 eliminated Faction4 in the early phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction1 held 17 regions and 3647 treasury while every rival had been reduced to zero territory.
+Faction1’s win was decided early, when it gained 13 regions and immediately pulled 17 clear of the field on the ring map. The two elimination events removed Faction4 and Faction2’s last territorial holds, leaving Faction1 and Faction3 as the only meaningful contenders, but Faction1 already had the stronger position. With territorial control stabilized through the mid and late phases, Faction1 also finished with a massive treasury lead, showing that its early expansion translated into both land and resources.
 The closest challenger was Faction3 (economic) at 15 treasury and 0 regions.
 
 Final Standings
@@ -1194,10 +1142,7 @@ Faction4 spent the opening consolidating its start with 1 investment, built stea
 
 Strategic Interpretation
 
-On this compact 13-region map, early contact came quickly.
-Territory alone did not decide this run; Faction3 finished first on treasury without holding the largest empire at the end.
-Faction3 did not win on map share. It finished first on treasury while Faction4 held more territory but failed to turn that size into enough net income.
-Faction3 finished first on 21 treasury with 2 regions, while the largest empire finished on 3 regions.
+Faction3 won despite finishing with fewer regions because it was strongest in the mid and late phases and held the treasury edge that mattered for an economic victory. The decisive shift came when Faction3 captured M, removing Faction2’s last territorial hold and flipping a key frontline region, which weakened Faction2’s ability to contest the board. Faction4 ended with more regions than the winner, but that territorial advantage did not outweigh Faction3’s superior treasury of 21 against 15.
 The closest challenger was Faction4 (opportunist) at 15 treasury and 3 regions.
 
 Final Standings
@@ -1257,10 +1202,7 @@ Faction4 spent the opening consolidating its start with 1 investment, lost groun
 
 Strategic Interpretation
 
-On this compact 13-region map, early contact came quickly.
-Territory alone did not decide this run; Faction1 finished first on treasury without holding the largest empire at the end.
-Faction1 did not win on map share. It finished first on treasury while Faction2 held more territory but failed to turn that size into enough net income.
-Faction1 finished first on 44 treasury with 2 regions, while the largest empire finished on 7 regions.
+Faction1 won on treasury by a single point despite finishing with only 2 regions, because the map never translated into territorial dominance for the others. Faction2’s late gains and the elimination of Faction4 and then Faction3 removed rivals from the board, but those captures did not overtake Faction1’s earlier economic position. The key pattern was timing: Faction1 stayed strongest through early and midgame, while Faction2’s territorial surge came too late to erase the treasury gap.
 The closest challenger was Faction2 (balanced) at 43 treasury and 7 regions.
 
 Final Standings
@@ -1320,10 +1262,7 @@ Faction4 opened with 5 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-On this compact 13-region map, early contact came quickly.
-The opening stayed contested, but Faction4 broke the game open in the middle turns and built a durable territorial edge.
-Faction4 turned the contested opening into a decisive middle-phase swing, built a durable territorial lead, and carried that edge to the finish.
-That break left Faction4 ahead at the finish with 11 regions and 95 treasury.
+Faction4’s win came from timing rather than an early lead: it was strongest in the midgame and then widened the gap late, finishing 10 regions ahead with 11 regions and 95 treasury. The key shift was the collapse of Faction2’s position around M, which removed Faction2’s last territorial hold and left the board open for Faction4 to accumulate regions while rivals were being stripped away. Faction3 ended as the runner-up with only 1 region and 40 treasury, showing that the decisive advantage was built through territorial elimination before the final stretch.
 The closest challenger was Faction3 (economic) at 40 treasury and 1 region.
 
 Final Standings
@@ -1382,10 +1321,7 @@ Faction4 opened with 12 attack attempts and contested neighboring borders immedi
 
 Strategic Interpretation
 
-On this compact 13-region map, early contact came quickly.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction4 eliminated Faction1 in the early phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction4 held 13 regions and 605 treasury while every rival had been reduced to zero territory.
+Faction4’s win came from seizing the key middle position early and using it to remove the last territorial holds of both Faction3 and Faction1, which left the ring map open for expansion. The midgame then widened the gap sharply: Faction4 gained 6 regions while Faction2 lost 3, so the only remaining challenger never built enough territorial depth to threaten the lead. By the end, Faction4 held all 13 regions and a much larger treasury, showing that its territorial advantage was also converted into a decisive resource edge.
 The closest challenger was Faction2 (balanced) at 85 treasury and 0 regions.
 
 Final Standings
@@ -1445,10 +1381,7 @@ Faction4 opened with 9 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-On this compact 13-region map, early contact came quickly.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction3 eliminated Faction2 in the early phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction3 held 13 regions and 1367 treasury while every rival had been reduced to zero territory.
+Faction3’s win was decided early, when it took M and removed Faction2’s last territorial hold, while Faction1’s capture of M simultaneously erased Faction4’s final position. That left Faction3 with the strongest early footprint on the thirteen-region ring, and the map then stayed stable through mid and late phases rather than producing a comeback window. The economic strategy mattered because the territorial lead was preserved long enough to finish with 13 regions and a 1,315 treasury margin over Faction1.
 The closest challenger was Faction1 (expansionist) at 52 treasury and 0 regions.
 
 Final Standings
@@ -1509,10 +1442,7 @@ Faction4 opened with 3 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-On this compact 13-region map, early contact came quickly.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction1 eliminated Faction3 in the early phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction1 held 13 regions and 3283 treasury while every rival had been reduced to zero territory.
+Faction1’s win was decided early, when it took M and removed Faction3’s last territorial hold, then immediately used the same position to eliminate Faction2’s final foothold as well. That sequencing left Faction1 alone on the thirteen-region ring with no remaining territorial rivals, so the rest of the game was a matter of holding an already decisive map advantage rather than fighting for it. The final treasury gap reflects how completely that early territorial sweep outpaced the runner-up’s much smaller holdings.
 The closest challenger was Faction2 (balanced) at 37 treasury and 0 regions.
 
 Final Standings
@@ -1573,10 +1503,7 @@ Faction4 spent the opening consolidating its start with 1 investment, built stea
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-Territory alone did not decide this run; Faction4 finished first on treasury without holding the largest empire at the end.
-Faction4 did not win on map share. It finished first on treasury while Faction3 and Faction2 held more territory but failed to turn that size into enough net income.
-Faction4 finished first on 21 treasury with 3 regions, while the largest empire finished on 4 regions.
+Faction4 won by outpacing the field in treasury rather than territory, finishing with 21 against Faction3’s 19 even though it held one fewer region. The decisive shift came late, when border captures of C changed the frontline twice and left the board contested, so the final score was decided by who could extract more value from the closing positions. Faction1’s early and midgame territorial strength did not hold through the late swing, and Faction4’s opportunistic timing proved better suited to the end state.
 The closest challenger was Faction3 (economic) at 19 treasury and 4 regions.
 
 Final Standings
@@ -1637,10 +1564,7 @@ Faction4 opened with 2 claims and grew to 3 regions by the end of the opening ph
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-Territory alone did not decide this run; Faction3 finished first on treasury without holding the largest empire at the end.
-Faction3 did not win on map share. It finished first on treasury while Faction2 and Faction1 held more territory but failed to turn that size into enough net income.
-Faction3 finished first on 29 treasury with 4 regions, while the largest empire finished on 5 regions.
+Faction3 won by edging the treasury race rather than by holding the most territory, finishing with 29 treasury against Faction2’s 28 despite trailing 4 regions to 5. The map stayed contested throughout, so no faction built an overwhelming territorial base; instead, the key shifts came from frontline captures at I6 and I8 that changed pressure points without producing a decisive land lead. Faction1’s early and late regional gains were not enough to outpace the stronger late economic position that carried Faction3 to the win.
 The closest challenger was Faction2 (balanced) at 28 treasury and 5 regions.
 
 Final Standings
@@ -1701,10 +1625,7 @@ Faction4 opened with 2 claims and grew to 3 regions by the end of the opening ph
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-Territory alone did not decide this run; Faction2 finished first on treasury without holding the largest empire at the end.
-Faction2 did not win on map share. It finished first on treasury while Faction1, Faction4, and Faction3 held more territory but failed to turn that size into enough net income.
-Faction2 finished first on 25 treasury with 0 regions, while the largest empire finished on 12 regions.
+Faction2 won despite never holding a region at the end because it stayed ahead in treasury, finishing 3 ahead of Faction1’s 22. The key shift was not territorial dominance but timing: Faction1’s midgame push removed Faction2’s last territorial hold, yet that did not prevent Faction2 from preserving the economic edge. On a ring map, the late border swing at I2 mattered for the frontline, but it came too late to overturn the treasury gap.
 The closest challenger was Faction1 (expansionist) at 22 treasury and 12 regions.
 
 Final Standings
@@ -1765,10 +1686,7 @@ Faction4 opened with 9 attack attempts and contested neighboring borders immedia
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-The opening stayed contested, but Faction2 broke the game open in the middle turns and built a durable territorial edge.
-Faction2 turned the contested opening into a decisive middle-phase swing, built a durable territorial lead, and carried that edge to the finish.
-That break left Faction2 ahead at the finish with 18 regions and 195 treasury.
+Faction2’s win was decided by a midgame break on a ring map, where it stayed strongest while Faction1’s gains never translated into durable position. The key swing came when Faction3’s capture of M8 removed Faction4’s last hold early, clearing the field, and later Faction2 added 13 regions as Faction1 shed 10, creating the decisive separation. By the end, Faction2 held 18 regions and 195 treasury against Faction1’s 4 regions and 24 treasury, so the margin came from both territorial dominance and a much stronger resource position.
 The closest challenger was Faction1 (expansionist) at 24 treasury and 4 regions.
 
 Final Standings
@@ -1829,10 +1747,7 @@ Faction4 opened with 2 claims and grew to 14 regions by the end of the opening p
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction4 eliminated Faction2 in the late phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction4 held 37 regions and 1504 treasury while every rival had been reduced to zero territory.
+Faction4’s win came from holding the strongest position from the start and then expanding through the midgame, when it gained 21 regions while Faction3 shed 6. The decisive shift was sequencing: Faction2 removed Faction1’s last territory at O3, but Faction4 later took I1 and erased Faction2’s final hold, leaving no rival with a territorial base. On a 37-region ring, that late elimination sequence produced full domination and a massive treasury gap, with Faction4 at 1504 against Faction2’s 199.
 The closest challenger was Faction2 (balanced) at 199 treasury and 0 regions.
 
 Final Standings
@@ -1893,10 +1808,7 @@ Faction4 opened with 47 attack attempts and contested neighboring borders immedi
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-One faction eventually absorbed the board, turning the later stages into consolidation rather than continued competition.
-Faction1 eliminated Faction4 in the mid phase, reduced the competitive field, converted that advantage into control of the board, and then consolidated into full domination.
-By the finish, Faction1 held 37 regions and 4792 treasury while every rival had been reduced to zero territory.
+Faction1’s win came from early and mid-game elimination sequencing: taking M4 removed Faction2’s last hold, and later taking M8 erased Faction4’s final territory. That left Faction1 free to keep expanding while rivals were already out of the map, which is why it finished 37 regions ahead on a ring with no remaining territorial competition. The treasury gap was also decisive, with Faction1 ending on 4792 against Faction3’s 49, showing that territorial dominance was matched by far stronger resource accumulation.
 The closest challenger was Faction3 (economic) at 49 treasury and 0 regions.
 
 Final Standings

@@ -85,6 +85,7 @@ class Event:
 class WorldState:
     regions: dict[str, Region]
     factions: dict[str, Faction]
+    map_name: str = ""
     turn: int = 0
     events: list[Event] = field(default_factory=list)
     metrics: list = field(default_factory=list)

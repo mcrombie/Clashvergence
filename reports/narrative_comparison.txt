@@ -19,10 +19,6 @@ On turn 2, Faction4 made its first expansion into K.
 On turn 2, Faction1 made its first expansion into C.
 On turn 2, Faction2 made its first expansion into E.
 On turn 2, Faction3 made its first expansion into H.
-On turn 2, Faction4 seized K, a frontier foothold that mattered because it opened new directions for future expansion and later strengthened its income base.
-On turn 2, Faction1 seized C, a frontier foothold that mattered because it opened new directions for future expansion and later strengthened its income base.
-On turn 2, Faction2 seized E, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes.
-On turn 2, Faction3 seized H, an important gain that mattered because it provided a straightforward territorial gain.
 
 Opening Phase
 
@@ -33,22 +29,29 @@ By the end of turn 5, Faction4 held the opening treasury lead at 22.
 
 Phase Summaries
 
-Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. 4 investments improved existing holdings.
-Mid phase: Faction1 and Faction4 were strongest by the end of turns 2-3, with Faction1 on 12 treasury and 2 regions. 4 successful attacks flipped 2 regions; 4 expansions added 4 new regions. Faction1 gained 1 region.
-Late phase: Faction4 was strongest by the end of turns 4-5, with Faction4 on 22 treasury and 3 regions. 4 successful attacks flipped 3 regions; 1 expansion added 1 new region. Faction1 gained 1 region. Faction2 lost 1 region.
+Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
+Mid phase: Faction1 and Faction4 were strongest by the end of turns 2-3, with Faction1 on 12 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 4 successful attacks shifted control of 2 regions. 4 expansions added 4 new regions. Faction1 gained 1 region.
+Late phase: Faction4 was strongest by the end of turns 4-5, with Faction4 on 22 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 4 successful attacks shifted control of 3 regions. 1 expansion added 1 new region. Faction1 gained 1 region while Faction2 lost 1 region.
+
+Turning Points
+
+Mid border swing: Faction1's capture of E flipped an important frontline region.
+Mid border swing: Faction2's capture of E flipped an important frontline region.
+
+Outcome Type
+
+Outcome type: balanced_contest.
 
 Faction Trajectories
 
-Faction1 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 4 treasury, and closed competitive in rank 2 with 3 regions and 19 treasury.
-Faction2 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 3 treasury, and ended weakened in rank 4 with 1 region and 12 treasury.
-Faction3 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 3 treasury, and ended weakened in rank 3 with 2 regions and 14 treasury.
-Faction4 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 4 treasury, and finished dominant with 3 regions and 22 treasury.
+Faction1 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 3 regions by turn 5, and finished rank 2 on 19 treasury with 3 regions after gaining 14 treasury overall.
+Faction2 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 3 treasury, and finished rank 4 on 12 treasury with 1 region after gaining 7 treasury overall.
+Faction3 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 5, and finished rank 3 on 14 treasury with 2 regions after gaining 9 treasury overall.
+Faction4 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 3 regions by turn 5, and finished first with 3 regions, 22 treasury, and 3 total attacks.
 
 Strategic Interpretation
 
-On this compact 12-region map, early contact came quickly.
-The outcome was heavily shaped by early position: Faction4 carried its opening foothold into 3 regions and never surrendered the economic lead for long.
-Faction4 succeeded because it won through repeated border contests, recording 3 attack attempts, finishing with 3 regions, 22 treasury, and rank 1.
+Faction4’s opportunist timing mattered because the board stayed contested through the midgame and late game, so no faction could convert early territorial strength into a decisive lead. Faction1 looked like the early expansionist force, but the repeated flips of E and the final 3-region tie meant the result was decided by a small 3-treasury edge rather than map separation, which prevented the stronger board position from becoming a win.
 The closest challenger was Faction1 (expansionist) at 19 treasury and 3 regions.
 
 Final Standings
@@ -56,7 +59,7 @@ Final Standings
 Faction4 finished first with a treasury of 22 and control of 3 regions.
 Faction1 ended with a treasury of 19 and 3 regions.
 Faction3 ended with a treasury of 14 and 2 regions.
-Faction2 ended with a treasury of 12 and 1 regions.
+Faction2 ended with a treasury of 12 and 1 region.
 
 ========================================================================
 
@@ -77,44 +80,47 @@ On turn 2, Faction2 made its first expansion into E.
 On turn 2, Faction1 made its first expansion into C.
 On turn 2, Faction3 made its first expansion into H.
 On turn 2, Faction4 made its first expansion into K.
-On turn 2, Faction2 seized E, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into F.
-On turn 2, Faction1 seized C, an important gain that mattered because it provided a straightforward territorial gain and later strengthened its income base.
-On turn 2, Faction3 seized H, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into G.
-On turn 2, Faction4 seized K, an important gain that mattered because it provided a straightforward territorial gain and later strengthened its income base.
 
 Opening Phase
 
-The strongest early land grab was Faction2's claim of E on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+The strongest early land grab was Faction3's claim of H on turn 2, a frontier foothold that stood out because it opened new directions for future expansion.
 In the first 3 turns, Faction3 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction4 held the opening treasury lead at 32.
+By the end of turn 5, Faction1 and Faction4 held the opening treasury lead at 23.
 
 Phase Summaries
 
-Early phase: Faction4 was strongest by the end of turns 1-3, with Faction4 on 14 treasury and 3 regions. 3 successful attacks flipped 2 regions; 5 expansions added 5 new regions; 4 investments improved existing holdings. Faction2 gained 2 regions. Faction4 improved its standing most during the phase.
-Mid phase: Faction4 was strongest by the end of turns 4-6, with Faction4 on 44 treasury and 6 regions. 7 successful attacks flipped 6 regions; 2 expansions added 2 new regions; 2 investments improved existing holdings. Faction4 gained 3 regions. Faction2 lost 2 regions. Faction3 improved its standing most during the phase.
-Late phase: Faction4 was strongest by the end of turns 7-10, with Faction4 on 132 treasury and 10 regions. 5 successful attacks flipped 4 regions; 1 investment improved existing holdings. Faction4 gained 4 regions. Faction1 lost 3 regions.
+Early phase: Faction4 was strongest by the end of turns 1-3, with Faction4 on 14 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 3 successful attacks shifted control of 2 regions. 5 expansions added 5 new regions. 4 investments improved existing holdings. Faction2 gained 2 regions while Faction1 lost 1 region. Faction4 improved its standing most during the phase.
+Mid phase: Faction1 was strongest by the end of turns 4-6, with Faction1 on 30 treasury and 5 regions. 7 successful attacks shifted control of 6 regions. 2 expansions added 2 new regions. 1 investment improved existing holdings. Faction1 gained 3 regions while Faction2 lost 2 regions.
+Late phase: Faction1 was strongest by the end of turns 7-10, with Faction1 on 55 treasury and 7 regions. 4 successful attacks shifted control of 2 regions. Faction1 gained 2 regions while Faction4 lost 2 regions.
+
+Turning Points
+
+Mid collapse: Faction4's capture of H eliminated Faction3's last territorial hold.
+Early collapse: Faction1's capture of E eliminated Faction2's last territorial hold.
+
+Outcome Type
+
+Outcome type: midgame_break.
 
 Faction Trajectories
 
-Faction1 opened with 1 claim and grew to 2 regions by the end of the opening phase, expanded under pressure, growing from 3 regions to 4 regions while keeping attacks active, and closed competitive in rank 2 with 1 region and 74 treasury.
-Faction2 opened with 1 claim and grew to 2 regions by the end of the opening phase, lost ground mid-game, falling from 2 regions to 0 regions, and ended weakened in rank 4 with 0 regions and 8 treasury.
-Faction3 opened with 2 claims and grew to 2 regions by the end of the opening phase, stayed active mid-game with 2 attack attempts while holding 1 region, and ended weakened in rank 3 with 0 regions and 11 treasury.
-Faction4 opened with 1 claim and grew to 3 regions by the end of the opening phase, expanded under pressure, growing from 4 regions to 6 regions while keeping attacks active, and finished dominant with 10 regions and 132 treasury.
+Faction1 opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 7 regions by turn 10, and finished first with 7 regions, 55 treasury, and 8 total attacks.
+Faction2 opened with 1 claim and grew to 2 regions by the end of the opening phase, peaked at 2 regions on turn 4 before slipping to 0 regions, and closed on 8 treasury without territory after 1 attacks.
+Faction3 opened with 2 claims and grew to 2 regions by the end of the opening phase, peaked at 2 regions on turn 3 before slipping to 0 regions, and closed on 7 treasury without territory after 2 attacks.
+Faction4 opened with 1 claim and grew to 3 regions by the end of the opening phase, peaked at 6 regions on turn 7 before slipping to 4 regions, and finished rank 2 on 28 treasury with 4 regions after gaining 23 treasury overall.
 
 Strategic Interpretation
 
-On this compact 12-region map, early contact came quickly.
-The decisive shift was rival collapse: Faction3 and Faction2 finished without territory while Faction4 expanded to 10 regions.
-Faction4 succeeded because it won through repeated border contests, recording 8 attack attempts, finishing with 10 regions, 132 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 74 treasury and 1 region.
+After a contested opening, Faction1’s expansionist push created the midgame break because its capture of E removed Faction2’s last territorial hold, which turned a balanced board into a one-sided race for regions. Faction4 had been strongest early, but its own elimination of Faction3’s last hold only simplified the field without matching Faction1’s later territorial gain, which meant it could not stop the separation. By the late phase, Faction1 was strongest and finished 3 regions clear because the midgame swing had already broken the board’s symmetry, leaving Faction4 unable to recover enough ground.
+The closest challenger was Faction4 (opportunist) at 28 treasury and 4 regions.
 
 Final Standings
 
-Faction4 finished first with a treasury of 132 and control of 10 regions.
-Faction1 ended with a treasury of 74 and 1 regions.
-Faction3 ended with a treasury of 11 and 0 regions.
+Faction1 finished first with a treasury of 55 and control of 7 regions.
+Faction4 ended with a treasury of 28 and 4 regions.
 Faction2 ended with a treasury of 8 and 0 regions.
+Faction3 ended with a treasury of 7 and 0 regions.
 
 ========================================================================
 
@@ -135,42 +141,45 @@ On turn 2, Faction1 made its first expansion into C.
 On turn 2, Faction4 made its first expansion into K.
 On turn 2, Faction2 made its first expansion into E.
 On turn 2, Faction3 made its first expansion into H.
-On turn 2, Faction1 seized C, a frontier foothold that mattered because it opened new directions for future expansion and later strengthened its income base.
-On turn 2, Faction4 seized K, a frontier foothold that mattered because it opened new directions for future expansion and later strengthened its income base.
-On turn 2, Faction2 seized E, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes.
-On turn 2, Faction3 seized H, an important gain that mattered because it provided a straightforward territorial gain and later supported its expansion into G.
 
 Opening Phase
 
 The strongest early land grab was Faction2's claim of E on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 1 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction4 held the opening treasury lead at 23.
+By the end of turn 5, Faction4 held the opening treasury lead at 20.
 
 Phase Summaries
 
-Early phase: Faction4 was strongest by the end of turns 1-6, with Faction4 on 34 treasury and 5 regions. 8 successful attacks flipped 5 regions; 8 expansions added 8 new regions; 4 investments improved existing holdings. Faction1 gained 3 regions. Faction4 improved its standing most during the phase.
-Mid phase: Faction4 was strongest by the end of turns 7-13, with Faction4 on 209 treasury and 11 regions. 7 successful attacks flipped 6 regions; 5 investments improved existing holdings. Faction4 gained 6 regions. Faction2 lost 3 regions.
-Late phase: Faction4 was strongest by the end of turns 14-20, with Faction4 on 530 treasury and 12 regions. 1 successful attacks flipped 1 region; 3 investments improved existing holdings. Faction4 gained 1 region. Faction1 lost 1 region.
+Early phase: Faction4 was strongest by the end of turns 1-6, with Faction4 on 25 treasury and 5 regions. 8 successful attacks shifted control of 5 regions. 8 expansions added 8 new regions. 4 investments improved existing holdings. Faction1 gained 3 regions. Faction4 improved its standing most during the phase.
+Mid phase: Faction4 was strongest by the end of turns 7-13, with Faction4 on 88 treasury and 12 regions. 8 successful attacks shifted control of 7 regions. 5 investments improved existing holdings. Faction4 gained 7 regions while Faction1 lost 3 regions.
+Late phase: Faction4 was strongest by the end of turns 14-20, with Faction4 on 229 treasury and 12 regions. The board stabilized after turn 14 with little territorial change.
+
+Turning Points
+
+Mid collapse: Faction4's capture of E eliminated Faction2's last territorial hold.
+Early collapse: Faction4's capture of H eliminated Faction3's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 opened with 1 claim and grew to 3 regions by the end of the opening phase, lost ground mid-game, falling from 4 regions to 1 region, and closed competitive in rank 2 with 0 regions and 86 treasury.
-Faction2 opened with 2 claims and grew to 3 regions by the end of the opening phase, lost ground mid-game, falling from 2 regions to 0 regions, and ended weakened in rank 3 with 0 regions and 25 treasury.
-Faction3 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 10 treasury.
-Faction4 opened with 1 claim and grew to 5 regions by the end of the opening phase, expanded under pressure, growing from 6 regions to 11 regions while keeping attacks active, and finished dominant with 12 regions and 530 treasury.
+Faction1 opened with 1 claim and grew to 3 regions by the end of the opening phase, peaked at 4 regions on turn 9 before slipping to 0 regions, and closed on 61 treasury without territory after 7 attacks.
+Faction2 opened with 2 claims and grew to 3 regions by the end of the opening phase, peaked at 3 regions on turn 6 before slipping to 0 regions, and closed on 25 treasury without territory after 3 attacks.
+Faction3 spent the opening consolidating its start with 1 investment, peaked at 2 regions on turn 5 before slipping to 0 regions, and closed on 10 treasury without territory after 1 attacks.
+Faction4 opened with 1 claim and grew to 5 regions by the end of the opening phase, built steadily past the opening, reaching 12 regions by turn 20, and finished first with 12 regions, 229 treasury, and 11 total attacks.
 
 Strategic Interpretation
 
-On this compact 12-region map, early contact came quickly.
-The decisive shift was rival collapse: Faction1, Faction2, and Faction3 finished without territory while Faction4 expanded to 12 regions.
-Faction4 succeeded because it won through repeated border contests, recording 12 attack attempts, finishing with 12 regions, 530 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 86 treasury and 0 regions.
+Faction4’s opportunist timing mattered because it converted a contested opening into a midgame break, first removing Faction3’s last hold and then Faction2’s last hold, which eliminated recovery paths and left the board open for consolidation. While Faction1’s early expansion gained 3 regions, it could not match the decisive territorial collapse, so the mid-phase swing created a 12-region gap that stabilized through the late game. Faction4’s 229 treasury also reinforced the domination because the larger resource lead compounded the map control rather than merely reflecting it.
+The closest challenger was Faction1 (expansionist) at 61 treasury and 0 regions.
 
 Final Standings
 
-Faction4 finished first with a treasury of 530 and control of 12 regions.
-Faction1 ended with a treasury of 86 and 0 regions.
+Faction4 finished first with a treasury of 229 and control of 12 regions.
+Faction1 ended with a treasury of 61 and 0 regions.
 Faction2 ended with a treasury of 25 and 0 regions.
 Faction3 ended with a treasury of 10 and 0 regions.
 
@@ -193,42 +202,45 @@ On turn 2, Faction1 made its first expansion into C.
 On turn 2, Faction3 made its first expansion into H.
 On turn 2, Faction2 made its first expansion into E.
 On turn 2, Faction4 made its first expansion into K.
-On turn 2, Faction1 seized C, a frontier foothold that mattered because it opened new directions for future expansion and later strengthened its income base.
-On turn 2, Faction3 seized H, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into G.
-On turn 2, Faction2 seized E, a frontier foothold that mattered because it opened new directions for future expansion.
-On turn 2, Faction4 seized K, an important gain that mattered because it provided a straightforward territorial gain and later strengthened its income base.
 
 Opening Phase
 
 The strongest early land grab was Faction3's claim of H on turn 2, a frontier foothold that stood out because it opened new directions for future expansion.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 1 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction4 held the opening treasury lead at 28.
+By the end of turn 5, Faction4 held the opening treasury lead at 25.
 
 Phase Summaries
 
-Early phase: Faction4 was strongest by the end of turns 1-13, with Faction4 on 180 treasury and 11 regions. 14 successful attacks flipped 9 regions; 8 expansions added 8 new regions; 8 investments improved existing holdings. Faction4 gained 7 regions. Faction4 improved its standing most during the phase.
-Mid phase: Faction4 was strongest by the end of turns 14-26, with Faction4 on 761 treasury and 12 regions. 1 successful attacks flipped 1 region; 4 investments improved existing holdings. Faction4 gained 1 region. Faction1 lost 1 region.
-Late phase: Faction4 was strongest by the end of turns 27-40, with Faction4 on 1433 treasury and 12 regions. The board stayed stable with no expansions, investments, or successful attacks.
+Early phase: Faction1 was strongest by the end of turns 1-13, with Faction1 on 80 treasury and 4 regions. 13 successful attacks shifted control of 8 regions. 6 expansions added 6 new regions. 7 investments improved existing holdings. Faction4 gained 6 regions.
+Mid phase: Faction1 was strongest by the end of turns 14-26, with Faction1 on 250 treasury and 11 regions. 6 successful attacks shifted control of 6 regions. 1 expansion added 1 new region. 3 investments improved existing holdings. Faction1 gained 7 regions while Faction4 lost 6 regions.
+Late phase: Faction1 was strongest by the end of turns 27-40, with Faction1 on 536 treasury and 12 regions. 1 expansion added 1 new region. 2 investments improved existing holdings. Faction1 gained 1 region.
+
+Turning Points
+
+Early collapse: Faction4's capture of H eliminated Faction3's last territorial hold.
+Early collapse: Faction1's capture of E eliminated Faction2's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 spent the opening consolidating its start with 5 investments, lost ground mid-game, falling from 1 region to 0 regions, and closed competitive in rank 2 with 0 regions and 89 treasury.
-Faction2 opened with 2 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 7 treasury.
-Faction3 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and ended weakened in rank 3 with 0 regions and 13 treasury.
-Faction4 opened with 1 claim and grew to 11 regions by the end of the opening phase, used the middle turns to scale economically, adding 551 treasury, and finished dominant with 12 regions and 1433 treasury.
+Faction1 opened with 1 claim and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 12 regions by turn 40, and finished first with 12 regions, 536 treasury, and 17 total attacks.
+Faction2 opened with 2 attack attempts and contested neighboring borders immediately, peaked at 2 regions on turn 2 before slipping to 0 regions, and closed on 7 treasury without territory after 2 attacks.
+Faction3 spent the opening consolidating its start with 1 investment, peaked at 2 regions on turn 5 before slipping to 0 regions, and closed on 13 treasury without territory after 1 attacks.
+Faction4 opened with 1 claim and grew to 6 regions by the end of the opening phase, peaked at 6 regions on turn 13 before slipping to 0 regions, and closed on 85 treasury without territory after 19 attacks.
 
 Strategic Interpretation
 
-On this compact 12-region map, early contact came quickly.
-The decisive shift was rival collapse: Faction1, Faction3, and Faction2 finished without territory while Faction4 expanded to 12 regions.
-Faction4 succeeded because it won through repeated border contests, recording 13 attack attempts, finishing with 12 regions, 1433 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 89 treasury and 0 regions.
+Faction1’s expansionist push created early separation because it converted map pressure into territory while the board was still being cleared of rivals. The early collapses of Faction2 and Faction3 removed the only remaining territorial holds for those factions, which meant the contest narrowed quickly and left Faction1 and Faction4 to define the outcome. Although Faction4 gained ground early, Faction1’s midgame surge and late consolidation mattered because they turned a contested frontier into a 12-region lead, while Faction4 could not recover once its own position began shrinking.
+The closest challenger was Faction4 (opportunist) at 85 treasury and 0 regions.
 
 Final Standings
 
-Faction4 finished first with a treasury of 1433 and control of 12 regions.
-Faction1 ended with a treasury of 89 and 0 regions.
+Faction1 finished first with a treasury of 536 and control of 12 regions.
+Faction4 ended with a treasury of 85 and 0 regions.
 Faction3 ended with a treasury of 13 and 0 regions.
 Faction2 ended with a treasury of 7 and 0 regions.
 
@@ -251,44 +263,47 @@ On turn 2, Faction2 made its first expansion into E.
 On turn 2, Faction4 made its first expansion into K.
 On turn 2, Faction1 made its first expansion into C.
 On turn 2, Faction3 made its first expansion into H.
-On turn 2, Faction2 seized E, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into G.
-On turn 2, Faction4 seized K, a frontier foothold that mattered because it opened new directions for future expansion and later strengthened its income base.
-On turn 2, Faction1 seized C, an important gain that mattered because it provided a straightforward territorial gain and later strengthened its income base.
-On turn 2, Faction3 seized H, an important gain that mattered because it provided a straightforward territorial gain and later supported its expansion into L.
 
 Opening Phase
 
 The strongest early land grab was Faction2's claim of E on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction2 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction3 held the opening treasury lead at 24.
+By the end of turn 5, Faction4 held the opening treasury lead at 22.
 
 Phase Summaries
 
-Early phase: Faction3 was strongest by the end of turns 1-26, with Faction3 on 704 treasury and 12 regions. 13 successful attacks flipped 9 regions; 8 expansions added 8 new regions; 12 investments improved existing holdings. Faction3 gained 8 regions. Faction3 improved its standing most during the phase.
-Mid phase: Faction3 was strongest by the end of turns 27-53, with Faction3 on 2000 treasury and 12 regions. The board stayed stable with no expansions, investments, or successful attacks.
-Late phase: Faction3 was strongest by the end of turns 54-80, with Faction3 on 3296 treasury and 12 regions. The board stayed stable with no expansions, investments, or successful attacks.
+Early phase: Faction4 was strongest by the end of turns 1-26, with Faction4 on 329 treasury and 12 regions. 19 successful attacks shifted control of 10 regions. 8 expansions added 8 new regions. 12 investments improved existing holdings. Faction4 gained 8 regions.
+Mid phase: Faction4 was strongest by the end of turns 27-53, with Faction4 on 896 treasury and 12 regions. The board stabilized after turn 27 with little territorial change.
+Late phase: Faction4 was strongest by the end of turns 54-80, with Faction4 on 1463 treasury and 12 regions. The board stabilized after turn 54 with little territorial change.
+
+Turning Points
+
+Early collapse: Faction1's capture of H eliminated Faction3's last territorial hold.
+Early collapse: Faction4's capture of G eliminated Faction2's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 spent the opening consolidating its start with 4 investments, held steady at 0 regions through the middle turns, and closed competitive in rank 2 with 0 regions and 71 treasury.
-Faction2 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and ended weakened in rank 3 with 0 regions and 5 treasury.
-Faction3 opened with 2 claims and grew to 12 regions by the end of the opening phase, held steady at 12 regions through the middle turns, and finished dominant with 12 regions and 3296 treasury.
-Faction4 opened with 16 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 0 treasury.
+Faction1 opened with 7 attack attempts and contested neighboring borders immediately, peaked at 4 regions on turn 10 before slipping to 0 regions, and closed on 66 treasury without territory after 7 attacks.
+Faction2 spent the opening consolidating its start with 1 investment, peaked at 2 regions on turn 2 before slipping to 0 regions, and closed on 5 treasury without territory after 1 attacks.
+Faction3 opened with 4 attack attempts and contested neighboring borders immediately, peaked at 5 regions on turn 5 before slipping to 0 regions, and closed on 21 treasury without territory after 4 attacks.
+Faction4 opened with 1 claim and grew to 12 regions by the end of the opening phase, held steady at 12 regions through the middle turns, and finished first with 12 regions, 1463 treasury, and 13 total attacks.
 
 Strategic Interpretation
 
-On this compact 12-region map, early contact came quickly.
-The decisive shift was rival collapse: Faction1, Faction2, and Faction4 finished without territory while Faction3 expanded to 12 regions.
-Faction3 succeeded because it won through repeated border contests, recording 15 attack attempts, finishing with 12 regions, 3296 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 71 treasury and 0 regions.
+Faction4’s opportunist timing mattered because its early capture of G removed Faction2’s last territorial hold, which quickly shrank the field and left no recovery path for the other factions. That early collapse, alongside Faction1’s elimination of Faction3’s last hold, meant the map stopped being contested and Faction4 could stabilize control while converting its lead into a 12-region and 1,397-treasury margin.
+The closest challenger was Faction1 (expansionist) at 66 treasury and 0 regions.
 
 Final Standings
 
-Faction3 finished first with a treasury of 3296 and control of 12 regions.
-Faction1 ended with a treasury of 71 and 0 regions.
+Faction4 finished first with a treasury of 1463 and control of 12 regions.
+Faction1 ended with a treasury of 66 and 0 regions.
+Faction3 ended with a treasury of 21 and 0 regions.
 Faction2 ended with a treasury of 5 and 0 regions.
-Faction4 ended with a treasury of 0 and 0 regions.
 
 ========================================================================
 
@@ -309,42 +324,45 @@ On turn 2, Faction2 made its first expansion into E.
 On turn 2, Faction1 made its first expansion into C.
 On turn 2, Faction3 made its first expansion into H.
 On turn 2, Faction4 made its first expansion into K.
-On turn 2, Faction2 seized E, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into B.
-On turn 2, Faction1 seized C, an important gain that mattered because it provided a straightforward territorial gain and later strengthened its income base.
-On turn 2, Faction3 seized H, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into G.
-On turn 2, Faction4 seized K, an important gain that mattered because it provided a straightforward territorial gain and later strengthened its income base.
 
 Opening Phase
 
 The strongest early land grab was Faction2's claim of E on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction3 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction4 held the opening treasury lead at 32.
+By the end of turn 5, Faction4 held the opening treasury lead at 23.
 
 Phase Summaries
 
-Early phase: Faction4 was strongest by the end of turns 1-53, with Faction4 on 2156 treasury and 12 regions. 14 successful attacks flipped 10 regions; 8 expansions added 8 new regions; 12 investments improved existing holdings. Faction4 gained 8 regions. Faction4 improved its standing most during the phase.
-Mid phase: Faction4 was strongest by the end of turns 54-106, with Faction4 on 4700 treasury and 12 regions. The board stayed stable with no expansions, investments, or successful attacks.
-Late phase: Faction4 was strongest by the end of turns 107-160, with Faction4 on 7292 treasury and 12 regions. The board stayed stable with no expansions, investments, or successful attacks.
+Early phase: Faction1 was strongest by the end of turns 1-53, with Faction1 on 792 treasury and 12 regions. 22 successful attacks shifted control of 11 regions. 8 expansions added 8 new regions. 12 investments improved existing holdings. Faction1 gained 8 regions. Faction4 improved its standing most during the phase.
+Mid phase: Faction1 was strongest by the end of turns 54-106, with Faction1 on 1905 treasury and 12 regions. The board stabilized after turn 54 with little territorial change.
+Late phase: Faction1 was strongest by the end of turns 107-160, with Faction1 on 3039 treasury and 12 regions. The board stabilized after turn 107 with little territorial change.
+
+Turning Points
+
+Early collapse: Faction1's capture of E eliminated Faction2's last territorial hold.
+Early collapse: Faction4's capture of H eliminated Faction3's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 spent the opening consolidating its start with 4 investments, held steady at 0 regions through the middle turns, and closed competitive in rank 2 with 0 regions and 103 treasury.
-Faction2 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 6 treasury.
-Faction3 spent the opening consolidating its start with 3 investments, held steady at 0 regions through the middle turns, and ended weakened in rank 3 with 0 regions and 14 treasury.
-Faction4 opened with 1 claim and grew to 12 regions by the end of the opening phase, held steady at 12 regions through the middle turns, and finished dominant with 12 regions and 7292 treasury.
+Faction1 opened with 1 claim and grew to 12 regions by the end of the opening phase, held steady at 12 regions through the middle turns, and finished first with 12 regions, 3039 treasury, and 19 total attacks.
+Faction2 spent the opening consolidating its start with 1 investment, peaked at 2 regions on turn 2 before slipping to 0 regions, and closed on 6 treasury without territory after 1 attacks.
+Faction3 spent the opening consolidating its start with 3 investments, peaked at 2 regions on turn 4 before slipping to 0 regions, and closed on 14 treasury without territory after 0 attacks.
+Faction4 opened with 20 attack attempts and contested neighboring borders immediately, peaked at 9 regions on turn 9 before slipping to 0 regions, and closed on 51 treasury without territory after 20 attacks.
 
 Strategic Interpretation
 
-On this compact 12-region map, early contact came quickly.
-The decisive shift was rival collapse: Faction1, Faction3, and Faction2 finished without territory while Faction4 expanded to 12 regions.
-Faction4 succeeded because it won through repeated border contests, recording 11 attack attempts, finishing with 12 regions, 7292 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 103 treasury and 0 regions.
+Faction1’s expansionist push created immediate separation because it gained 8 regions early and finished 12 regions clear, so the map never recovered from the opening break. The early collapse of Faction2 and Faction3’s last territorial holds removed the only remaining rivals, which meant Faction1 could stabilize control in midgame and late play instead of facing a contested board. Faction4’s 51-treasury runner-up position could not matter because it had no regions left, so the result was decided by elimination and sustained territorial dominance rather than resource conversion.
+The closest challenger was Faction4 (opportunist) at 51 treasury and 0 regions.
 
 Final Standings
 
-Faction4 finished first with a treasury of 7292 and control of 12 regions.
-Faction1 ended with a treasury of 103 and 0 regions.
+Faction1 finished first with a treasury of 3039 and control of 12 regions.
+Faction4 ended with a treasury of 51 and 0 regions.
 Faction3 ended with a treasury of 14 and 0 regions.
 Faction2 ended with a treasury of 6 and 0 regions.
 
@@ -367,46 +385,47 @@ On turn 2, Faction3 made its first expansion into M7.
 On turn 2, Faction4 made its first expansion into M10.
 On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction2 made its first expansion into M4.
-On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M8.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M11.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M2.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M5.
-On turn 3, Faction1 seized M2, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
-On turn 3, Faction3 seized M8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I6.
 
 Opening Phase
 
-The strongest early land grab was Faction1's claim of M2 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+The strongest early land grab was Faction3's claim of M7 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction4 held the opening treasury lead at 22.
+By the end of turn 5, Faction3 held the opening treasury lead at 15.
 
 Phase Summaries
 
-Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. 4 investments improved existing holdings.
-Mid phase: Faction1 and Faction2 were strongest by the end of turns 2-3, with Faction1 on 10 treasury and 3 regions. 8 expansions added 8 new regions. Faction1 gained 2 regions.
-Late phase: Faction4 was strongest by the end of turns 4-5, with Faction4 on 22 treasury and 5 regions. 2 successful attacks flipped 1 region; 5 expansions added 5 new regions. Faction4 gained 2 regions. Faction4 improved its standing most during the phase.
+Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
+Mid phase: Faction1 and Faction2 were strongest by the end of turns 2-3, with Faction1 on 10 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 8 expansions added 8 new regions. Faction1 gained 2 regions.
+Late phase: Faction3 was strongest by the end of turns 4-5, with Faction3 on 15 treasury and 4 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 2 successful attacks shifted control of 1 region. 5 expansions added 5 new regions. Faction4 gained 2 regions. Faction3 improved its standing most during the phase.
+
+Turning Points
+
+Late border swing: Faction3's capture of C flipped an important frontline region.
+Late border swing: Faction4's capture of C flipped an important frontline region.
+
+Outcome Type
+
+Outcome type: economic_win.
 
 Faction Trajectories
 
-Faction1 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 3 treasury, and ended weakened in rank 3 with 4 regions and 20 treasury.
-Faction2 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 3 treasury, and ended weakened in rank 4 with 4 regions and 19 treasury.
-Faction3 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 3 treasury, and closed competitive in rank 2 with 4 regions and 21 treasury.
-Faction4 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 3 treasury, and finished dominant with 5 regions and 22 treasury.
+Faction1 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 4 regions by turn 5, and finished rank 2 on 14 treasury with 4 regions after gaining 9 treasury overall.
+Faction2 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 4 regions by turn 5, and finished rank 3 on 13 treasury with 4 regions after gaining 8 treasury overall.
+Faction3 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 4 regions by turn 5, and finished first with 4 regions, 15 treasury, and 1 total attacks.
+Faction4 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 5 regions by turn 5, and finished rank 4 on 13 treasury with 5 regions after gaining 8 treasury overall.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-The outcome was heavily shaped by early position: Faction4 carried its opening foothold into 5 regions and never surrendered the economic lead for long.
-Faction4 succeeded because it won by securing space early and holding 5 regions, finishing with 5 regions, 22 treasury, and rank 1.
-The closest challenger was Faction3 (economic) at 21 treasury and 4 regions.
+Because the board stayed contested on a symmetric map, Faction3’s economic approach mattered more than raw territory, and the 1-treasury edge was enough to separate it from Faction1’s 4-region, 14-treasury position. After Faction1’s early territorial lead stabilized and its midgame gains failed to create a larger gap, late border swings around C shifted the frontline without producing a decisive land advantage, which meant resources decided the result. Faction4’s late two-region gain added pressure, but it did not convert into enough treasury to overtake the leader, so Faction3’s efficient scaling won the narrowest possible economic contest.
+The closest challenger was Faction1 (expansionist) at 14 treasury and 4 regions.
 
 Final Standings
 
-Faction4 finished first with a treasury of 22 and control of 5 regions.
-Faction3 ended with a treasury of 21 and 4 regions.
-Faction1 ended with a treasury of 20 and 4 regions.
-Faction2 ended with a treasury of 19 and 4 regions.
+Faction3 finished first with a treasury of 15 and control of 4 regions.
+Faction1 ended with a treasury of 14 and 4 regions.
+Faction2 ended with a treasury of 13 and 4 regions.
+Faction4 ended with a treasury of 13 and 5 regions.
 
 ========================================================================
 
@@ -427,46 +446,47 @@ On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction4 made its first expansion into M10.
 On turn 2, Faction3 made its first expansion into M7.
 On turn 2, Faction2 made its first expansion into M4.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M2.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M11.
-On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M8.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M5.
-On turn 3, Faction4 seized M11, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
-On turn 3, Faction1 seized M2, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
 
 Opening Phase
 
-The strongest early land grab was Faction4's claim of M11 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+The strongest early land grab was Faction1's claim of M1 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction4 held the opening treasury lead at 22.
+By the end of turn 5, Faction1 held the opening treasury lead at 15.
 
 Phase Summaries
 
-Early phase: Faction1 and Faction2 were strongest by the end of turns 1-3, with Faction1 on 10 treasury and 3 regions. 8 expansions added 8 new regions; 4 investments improved existing holdings. Faction1 gained 2 regions.
-Mid phase: Faction4 was strongest by the end of turns 4-6, with Faction4 on 29 treasury and 5 regions. 4 successful attacks flipped 1 region; 7 expansions added 7 new regions. Faction2 gained 2 regions. Faction4 improved its standing most during the phase.
-Late phase: Faction4 was strongest by the end of turns 7-10, with Faction4 on 71 treasury and 8 regions. 8 successful attacks flipped 7 regions; 6 expansions added 6 new regions. Faction3 gained 3 regions. Faction2 lost 2 regions. Faction3 improved its standing most during the phase.
+Early phase: Faction1 and Faction2 were strongest by the end of turns 1-3, with Faction1 on 10 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 8 expansions added 8 new regions. 4 investments improved existing holdings. Faction1 gained 2 regions.
+Mid phase: Faction1 was strongest by the end of turns 4-6, with Faction1 on 18 treasury and 4 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 5 successful attacks shifted control of 1 region. 6 expansions added 6 new regions. Faction2 gained 2 regions. Faction4 improved its standing most during the phase.
+Late phase: Faction3 was strongest by the end of turns 7-10, with Faction3 on 18 treasury and 4 regions. 9 successful attacks shifted control of 8 regions. 4 expansions added 4 new regions. Faction1 gained 3 regions while Faction2 lost 1 region. Faction3 improved its standing most during the phase.
+
+Turning Points
+
+Late border swing: Faction1's capture of I6 flipped an important frontline region.
+Late border swing: Faction2's capture of M6 flipped an important frontline region.
+
+Outcome Type
+
+Outcome type: economic_win.
 
 Faction Trajectories
 
-Faction1 opened with 2 claims and grew to 3 regions by the end of the opening phase, stayed active mid-game with 2 attack attempts while holding 4 regions, and closed competitive in rank 2 with 6 regions and 56 treasury.
-Faction2 opened with 2 claims and grew to 3 regions by the end of the opening phase, used the middle turns to scale economically, adding 10 treasury, and ended weakened in rank 4 with 3 regions and 42 treasury.
-Faction3 opened with 2 claims and grew to 3 regions by the end of the opening phase, used the middle turns to scale economically, adding 11 treasury, and ended weakened in rank 3 with 8 regions and 56 treasury.
-Faction4 opened with 2 claims and grew to 3 regions by the end of the opening phase, stayed active mid-game with 2 attack attempts while holding 5 regions, and finished dominant with 8 regions and 71 treasury.
+Faction1 opened with 2 claims and grew to 3 regions by the end of the opening phase, built steadily past the opening, reaching 7 regions by turn 10, and finished rank 2 on 17 treasury with 7 regions after gaining 12 treasury overall.
+Faction2 opened with 2 claims and grew to 3 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 10, and finished rank 3 on 15 treasury with 4 regions after gaining 10 treasury overall.
+Faction3 opened with 2 claims and grew to 3 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 10, and finished first with 4 regions, 18 treasury, and 2 total attacks.
+Faction4 opened with 2 claims and grew to 3 regions by the end of the opening phase, built steadily past the opening, reaching 7 regions by turn 10, and finished rank 4 on 14 treasury with 7 regions after gaining 9 treasury overall.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-The outcome was heavily shaped by early position: Faction4 carried its opening foothold into 8 regions and never surrendered the economic lead for long.
-Faction4 succeeded because it won through repeated border contests, recording 6 attack attempts, finishing with 8 regions, 71 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 56 treasury and 6 regions.
+Faction3’s economic approach won because treasury, not territory, decided a board that never fully separated, and the 1-point treasury edge outweighed Faction1’s 7-region lead. After a contested early and midgame, the late border swings on the multi-ring symmetry map shifted frontline regions without creating durable separation, which meant Faction1’s expansionist growth could not convert map control into the income advantage needed to hold the lead.
+The closest challenger was Faction1 (expansionist) at 17 treasury and 7 regions.
 
 Final Standings
 
-Faction4 finished first with a treasury of 71 and control of 8 regions.
-Faction1 ended with a treasury of 56 and 6 regions.
-Faction3 ended with a treasury of 56 and 8 regions.
-Faction2 ended with a treasury of 42 and 3 regions.
+Faction3 finished first with a treasury of 18 and control of 4 regions.
+Faction1 ended with a treasury of 17 and 7 regions.
+Faction2 ended with a treasury of 15 and 4 regions.
+Faction4 ended with a treasury of 14 and 7 regions.
 
 ========================================================================
 
@@ -487,46 +507,47 @@ On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction4 made its first expansion into M10.
 On turn 2, Faction3 made its first expansion into M7.
 On turn 2, Faction2 made its first expansion into M4.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M2.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M11.
-On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M8.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M5.
-On turn 3, Faction3 seized M8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I6.
-On turn 3, Faction2 seized M5, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I4.
 
 Opening Phase
 
-The strongest early land grab was Faction3's claim of M8 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+The strongest early land grab was Faction1's claim of M1 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction1 held the opening treasury lead at 22.
+By the end of turn 5, Faction3 held the opening treasury lead at 15.
 
 Phase Summaries
 
-Early phase: Faction1 was strongest by the end of turns 1-6, with Faction1 on 29 treasury and 5 regions. 4 successful attacks flipped 1 region; 15 expansions added 15 new regions; 4 investments improved existing holdings. Faction3 gained 5 regions. Faction3 improved its standing most during the phase.
-Mid phase: Faction1 was strongest by the end of turns 7-13, with Faction1 on 110 treasury and 9 regions. 14 successful attacks flipped 12 regions; 8 expansions added 8 new regions; 1 investment improved existing holdings. Faction2 gained 5 regions. Faction3 lost 4 regions.
-Late phase: Faction1 was strongest by the end of turns 14-20, with Faction1 on 279 treasury and 14 regions. 16 successful attacks flipped 9 regions; 1 investment improved existing holdings. Faction1 gained 5 regions. Faction2 lost 2 regions.
+Early phase: Faction3 was strongest by the end of turns 1-6, with Faction3 on 18 treasury and 4 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 6 successful attacks shifted control of 1 region. 13 expansions added 13 new regions. 4 investments improved existing holdings. Faction3 gained 4 regions.
+Mid phase: Faction2 was strongest by the end of turns 7-13, with Faction2 on 21 treasury and 6 regions. 15 successful attacks shifted control of 10 regions. 9 expansions added 9 new regions. Faction1 gained 4 regions. Faction2 improved its standing most during the phase.
+Late phase: Faction2 was strongest by the end of turns 14-20, with Faction2 on 12 treasury and 13 regions. 15 successful attacks shifted control of 12 regions. 4 expansions added 4 new regions. 5 investments improved existing holdings. Faction2 gained 7 regions while Faction4 lost 2 regions. Faction3 improved its standing most during the phase.
+
+Turning Points
+
+Late phase break: Faction2 gained 7 regions while Faction4 lost 2 regions.
+Mid border swing: Faction3's capture of I4 flipped an important frontline region.
+
+Outcome Type
+
+Outcome type: late_snowball.
 
 Faction Trajectories
 
-Faction1 opened with 3 claims and grew to 5 regions by the end of the opening phase, expanded under pressure, growing from 6 regions to 9 regions while keeping attacks active, and finished dominant with 14 regions and 279 treasury.
-Faction2 opened with 5 claims and grew to 5 regions by the end of the opening phase, stayed active mid-game with 5 attack attempts while holding 10 regions, and closed competitive in rank 2 with 8 regions and 165 treasury.
-Faction3 opened with 4 claims and grew to 5 regions by the end of the opening phase, lost ground mid-game, falling from 4 regions to 1 region, and ended weakened in rank 4 with 0 regions and 53 treasury.
-Faction4 opened with 3 claims and grew to 4 regions by the end of the opening phase, expanded under pressure, growing from 5 regions to 7 regions while keeping attacks active, and ended weakened in rank 3 with 5 regions and 129 treasury.
+Faction1 opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 8 regions by turn 20, and finished rank 4 on 1 treasury with 8 regions.
+Faction2 opened with 4 claims and grew to 5 regions by the end of the opening phase, built steadily past the opening, reaching 13 regions by turn 20, and finished first with 13 regions, 12 treasury, and 12 total attacks.
+Faction3 opened with 3 claims and grew to 4 regions by the end of the opening phase, peaked at 7 regions on turn 9 before slipping to 3 regions, and finished rank 2 on 8 treasury with 3 regions after gaining 3 treasury overall.
+Faction4 opened with 3 claims and grew to 4 regions by the end of the opening phase, peaked at 9 regions on turn 14 before slipping to 6 regions, and finished rank 3 on 3 treasury with 6 regions.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-The outcome was heavily shaped by early position: Faction1 carried its opening foothold into 14 regions and never surrendered the economic lead for long.
-Faction1 succeeded because it won through repeated border contests, recording 16 attack attempts, finishing with 14 regions, 279 treasury, and rank 1.
-The closest challenger was Faction2 (balanced) at 165 treasury and 8 regions.
+After a contested opening, Faction2’s balanced approach turned the midgame into a platform for late separation because it added 4 regions while the board was still unsettled, which meant it could enter the final phase with momentum. The decisive break came late when Faction2 gained 7 regions as Faction4 lost 2, which created the 10-region gap and prevented the other factions from converting earlier gains into a challenge. Faction3’s early strength and the I4 border swing mattered because they kept the map competitive, but they did not stop Faction2 from compounding control once the late snowball began.
+The closest challenger was Faction3 (economic) at 8 treasury and 3 regions.
 
 Final Standings
 
-Faction1 finished first with a treasury of 279 and control of 14 regions.
-Faction2 ended with a treasury of 165 and 8 regions.
-Faction4 ended with a treasury of 129 and 5 regions.
-Faction3 ended with a treasury of 53 and 0 regions.
+Faction2 finished first with a treasury of 12 and control of 13 regions.
+Faction3 ended with a treasury of 8 and 3 regions.
+Faction4 ended with a treasury of 3 and 6 regions.
+Faction1 ended with a treasury of 1 and 8 regions.
 
 ========================================================================
 
@@ -547,46 +568,47 @@ On turn 2, Faction2 made its first expansion into M4.
 On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction4 made its first expansion into M10.
 On turn 2, Faction3 made its first expansion into M7.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M5.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M2.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M11.
-On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M8.
-On turn 3, Faction1 seized M2, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
-On turn 3, Faction4 seized M11, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
 
 Opening Phase
 
-The strongest early land grab was Faction1's claim of M2 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+The strongest early land grab was Faction4's claim of M10 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction3 held the opening treasury lead at 22.
+By the end of turn 5, Faction1 and Faction2 held the opening treasury lead at 15.
 
 Phase Summaries
 
-Early phase: Faction3 was strongest by the end of turns 1-13, with Faction3 on 121 treasury and 10 regions. 17 successful attacks flipped 11 regions; 22 expansions added 22 new regions; 4 investments improved existing holdings. Faction1 gained 9 regions. Faction3 improved its standing most during the phase.
-Mid phase: Faction3 was strongest by the end of turns 14-26, with Faction3 on 549 treasury and 22 regions. 15 successful attacks flipped 12 regions; 10 expansions added 10 new regions; 3 investments improved existing holdings. Faction3 gained 12 regions. Faction2 lost 6 regions.
-Late phase: Faction3 was strongest by the end of turns 27-40, with Faction3 on 1452 treasury and 32 regions. 10 successful attacks flipped 10 regions; 12 investments improved existing holdings. Faction3 gained 10 regions. Faction1 lost 10 regions.
+Early phase: Faction3 was strongest by the end of turns 1-13, with Faction3 on 20 treasury and 6 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 21 successful attacks shifted control of 8 regions. 20 expansions added 20 new regions. 4 investments improved existing holdings. Faction3 gained 6 regions.
+Mid phase: Faction2 was strongest by the end of turns 14-26, with Faction2 on 22 treasury and 11 regions. 30 successful attacks shifted control of 18 regions. 3 expansions added 3 new regions. 5 investments improved existing holdings. Faction2 gained 5 regions while Faction3 lost 2 regions.
+Late phase: Faction2 was strongest by the end of turns 27-40, with Faction2 on 148 treasury and 22 regions. 22 successful attacks shifted control of 14 regions. 5 expansions added 5 new regions. 11 investments improved existing holdings. Faction2 gained 11 regions while Faction3 lost 4 regions. Faction1 improved its standing most during the phase.
+
+Turning Points
+
+Late collapse: Faction2's capture of O8 eliminated Faction3's last territorial hold.
+Late phase break: Faction2 gained 11 regions while Faction3 lost 4 regions.
+
+Outcome Type
+
+Outcome type: midgame_break.
 
 Faction Trajectories
 
-Faction1 opened with 5 claims and grew to 10 regions by the end of the opening phase, used the middle turns to scale economically, adding 219 treasury, and closed competitive in rank 2 with 4 regions and 594 treasury.
-Faction2 opened with 10 claims and grew to 6 regions by the end of the opening phase, lost ground mid-game, falling from 4 regions to 0 regions, and ended weakened in rank 3 with 0 regions and 78 treasury.
-Faction3 opened with 3 claims and grew to 10 regions by the end of the opening phase, expanded under pressure, growing from 11 regions to 22 regions while keeping attacks active, and finished dominant with 32 regions and 1452 treasury.
-Faction4 opened with 6 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 26 treasury.
+Faction1 opened with 4 claims and grew to 5 regions by the end of the opening phase, peaked at 9 regions on turn 19 before slipping to 5 regions, and finished rank 2 on 22 treasury with 5 regions after gaining 17 treasury overall.
+Faction2 opened with 4 claims and grew to 6 regions by the end of the opening phase, built steadily past the opening, reaching 22 regions by turn 40, and finished first with 22 regions, 148 treasury, and 35 total attacks.
+Faction3 opened with 8 claims and grew to 6 regions by the end of the opening phase, peaked at 9 regions on turn 17 before slipping to 0 regions, and closed on 16 treasury without territory after 17 attacks.
+Faction4 opened with 4 claims and grew to 7 regions by the end of the opening phase, peaked at 7 regions on turn 29 before slipping to 5 regions, and finished rank 4 on 11 treasury with 5 regions after gaining 6 treasury overall.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-The decisive shift was rival collapse: Faction2 and Faction4 finished without territory while Faction3 expanded to 32 regions.
-Faction3 succeeded because it won through repeated border contests, recording 36 attack attempts, finishing with 32 regions, 1452 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 594 treasury and 4 regions.
+Faction2’s balanced approach mattered because the early board stayed contested, so the result depended on who could convert a midgame opening into lasting separation. The decisive break came in the mid-to-late phase, when Faction2’s steady territorial gains outpaced Faction3’s losses, which meant the contest shifted from parity to a widening lead. Capturing O8 removed Faction3’s last territorial hold, which prevented any recovery and allowed Faction2 to finish 17 regions clear with a large treasury edge.
+The closest challenger was Faction1 (expansionist) at 22 treasury and 5 regions.
 
 Final Standings
 
-Faction3 finished first with a treasury of 1452 and control of 32 regions.
-Faction1 ended with a treasury of 594 and 4 regions.
-Faction2 ended with a treasury of 78 and 0 regions.
-Faction4 ended with a treasury of 26 and 0 regions.
+Faction2 finished first with a treasury of 148 and control of 22 regions.
+Faction1 ended with a treasury of 22 and 5 regions.
+Faction3 ended with a treasury of 16 and 0 regions.
+Faction4 ended with a treasury of 11 and 5 regions.
 
 ========================================================================
 
@@ -607,46 +629,47 @@ On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction3 made its first expansion into M7.
 On turn 2, Faction4 made its first expansion into M10.
 On turn 2, Faction2 made its first expansion into M4.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M2.
-On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M8.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M11.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M5.
-On turn 3, Faction4 seized M11, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
-On turn 3, Faction2 seized M5, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I4.
 
 Opening Phase
 
-The strongest early land grab was Faction4's claim of M11 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+The strongest early land grab was Faction4's claim of M10 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction4 held the opening treasury lead at 22.
+By the end of turn 5, Faction1 held the opening treasury lead at 15.
 
 Phase Summaries
 
-Early phase: Faction4 was strongest by the end of turns 1-26, with Faction4 on 532 treasury and 19 regions. 34 successful attacks flipped 22 regions; 27 expansions added 27 new regions; 14 investments improved existing holdings. Faction4 gained 15 regions. Faction4 improved its standing most during the phase.
-Mid phase: Faction4 was strongest by the end of turns 27-53, with Faction4 on 3053 treasury and 37 regions. 17 successful attacks flipped 17 regions; 6 expansions added 6 new regions; 17 investments improved existing holdings. Faction4 gained 18 regions. Faction1 lost 12 regions.
-Late phase: Faction4 was strongest by the end of turns 54-80, with Faction4 on 7018 treasury and 37 regions. 6 investments improved existing holdings.
+Early phase: Faction4 was strongest by the end of turns 1-26, with Faction4 on 53 treasury and 15 regions. 43 successful attacks shifted control of 20 regions. 28 expansions added 28 new regions. 13 investments improved existing holdings. Faction4 gained 11 regions.
+Mid phase: Faction4 was strongest by the end of turns 27-53, with Faction4 on 496 treasury and 36 regions. 31 successful attacks shifted control of 19 regions. 4 expansions added 4 new regions. 15 investments improved existing holdings. Faction4 gained 21 regions while Faction1 lost 6 regions.
+Late phase: Faction4 was strongest by the end of turns 54-80, with Faction4 on 1630 treasury and 37 regions. 1 expansion added 1 new region. 9 investments improved existing holdings. Faction4 gained 1 region.
+
+Turning Points
+
+Mid collapse: Faction4's capture of O2 eliminated Faction1's last territorial hold.
+Mid collapse: Faction4's capture of I1 eliminated Faction2's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 opened with 4 claims and grew to 12 regions by the end of the opening phase, lost ground mid-game, falling from 12 regions to 0 regions, and closed competitive in rank 2 with 0 regions and 711 treasury.
-Faction2 spent the opening consolidating its start with 8 investments, held steady at 0 regions through the middle turns, and ended weakened in rank 3 with 0 regions and 212 treasury.
-Faction3 spent the opening consolidating its start with 4 investments, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 74 treasury.
-Faction4 opened with 3 claims and grew to 19 regions by the end of the opening phase, stayed active mid-game with 22 attack attempts while holding 37 regions, and finished dominant with 37 regions and 7018 treasury.
+Faction1 opened with 6 claims and grew to 6 regions by the end of the opening phase, peaked at 8 regions on turn 23 before slipping to 0 regions, and closed on 5 treasury without territory after 18 attacks.
+Faction2 opened with 11 claims and grew to 5 regions by the end of the opening phase, peaked at 11 regions on turn 37 before slipping to 0 regions, and closed on 237 treasury without territory after 22 attacks.
+Faction3 opened with 8 claims and grew to 6 regions by the end of the opening phase, peaked at 7 regions on turn 10 before slipping to 0 regions, and closed on 48 treasury without territory after 15 attacks.
+Faction4 opened with 3 claims and grew to 15 regions by the end of the opening phase, built steadily past the opening, reaching 37 regions by turn 80, and finished first with 37 regions, 1630 treasury, and 47 total attacks.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-The decisive shift was rival collapse: Faction1, Faction2, and Faction3 finished without territory while Faction4 expanded to 37 regions.
-Faction4 succeeded because it won through repeated border contests, recording 44 attack attempts, finishing with 37 regions, 7018 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 711 treasury and 0 regions.
+Faction4’s opportunist timing mattered because its midgame captures of O2 and I1 removed Faction1 and Faction2’s last territorial holds, which turned a contested board into a one-sided map. The mid collapse was decisive because Faction4 already held the strongest position, so eliminating the remaining rivals prevented any recovery path and locked in full domination. Although Faction4’s late growth slowed, that did not matter because the competition had already been stripped away, leaving Faction4 to consolidate a 37-region lead and a large treasury edge.
+The closest challenger was Faction2 (balanced) at 237 treasury and 0 regions.
 
 Final Standings
 
-Faction4 finished first with a treasury of 7018 and control of 37 regions.
-Faction1 ended with a treasury of 711 and 0 regions.
-Faction2 ended with a treasury of 212 and 0 regions.
-Faction3 ended with a treasury of 74 and 0 regions.
+Faction4 finished first with a treasury of 1630 and control of 37 regions.
+Faction2 ended with a treasury of 237 and 0 regions.
+Faction3 ended with a treasury of 48 and 0 regions.
+Faction1 ended with a treasury of 5 and 0 regions.
 
 ========================================================================
 
@@ -667,46 +690,47 @@ On turn 2, Faction4 made its first expansion into M10.
 On turn 2, Faction2 made its first expansion into M4.
 On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction3 made its first expansion into M7.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M11.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M5.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M2.
-On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M8.
-On turn 3, Faction4 seized M11, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
-On turn 3, Faction3 seized M8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I6.
 
 Opening Phase
 
-The strongest early land grab was Faction4's claim of M11 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+The strongest early land grab was Faction1's claim of M1 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction1 held the opening treasury lead at 22.
+By the end of turn 5, Faction4 held the opening treasury lead at 14.
 
 Phase Summaries
 
-Early phase: Faction2 was strongest by the end of turns 1-53, with Faction2 on 2542 treasury and 37 regions. 45 successful attacks flipped 29 regions; 33 expansions added 33 new regions; 23 investments improved existing holdings. Faction2 gained 33 regions. Faction2 improved its standing most during the phase.
-Mid phase: Faction2 was strongest by the end of turns 54-106, with Faction2 on 10189 treasury and 37 regions. 14 investments improved existing holdings.
-Late phase: Faction2 was strongest by the end of turns 107-160, with Faction2 on 18181 treasury and 37 regions. The board stayed stable with no expansions, investments, or successful attacks.
+Early phase: Faction1 was strongest by the end of turns 1-53, with Faction1 on 453 treasury and 24 regions. 80 successful attacks shifted control of 28 regions. 28 expansions added 28 new regions. 26 investments improved existing holdings. Faction1 gained 20 regions. Faction3 improved its standing most during the phase.
+Mid phase: Faction1 was strongest by the end of turns 54-106, with Faction1 on 2447 treasury and 37 regions. 8 successful attacks shifted control of 8 regions. 5 expansions added 5 new regions. 11 investments improved existing holdings. Faction1 gained 13 regions while Faction3 lost 6 regions.
+Late phase: Faction1 was strongest by the end of turns 107-160, with Faction1 on 4931 treasury and 37 regions. The board stabilized after turn 107 with little territorial change.
+
+Turning Points
+
+Mid collapse: Faction1's capture of I1 eliminated Faction3's last territorial hold.
+Mid collapse: Faction1's capture of O6 eliminated Faction4's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 opened with 14 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and closed competitive in rank 2 with 0 regions and 560 treasury.
-Faction2 opened with 7 claims and grew to 37 regions by the end of the opening phase, held steady at 37 regions through the middle turns, and finished dominant with 37 regions and 18181 treasury.
-Faction3 spent the opening consolidating its start with 3 investments, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 46 treasury.
-Faction4 opened with 13 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 3 with 0 regions and 68 treasury.
+Faction1 opened with 4 claims and grew to 24 regions by the end of the opening phase, built steadily past the opening, reaching 37 regions by turn 160, and finished first with 37 regions, 4931 treasury, and 56 total attacks.
+Faction2 spent the opening consolidating its start with 6 investments, peaked at 8 regions on turn 20 before slipping to 0 regions, and closed on 10 treasury without territory after 11 attacks.
+Faction3 opened with 8 claims and grew to 6 regions by the end of the opening phase, peaked at 13 regions on turn 38 before slipping to 0 regions, and closed on 121 treasury without territory after 30 attacks.
+Faction4 opened with 4 claims and grew to 2 regions by the end of the opening phase, peaked at 10 regions on turn 30 before slipping to 0 regions, and closed on 1 treasury without territory after 47 attacks.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-The decisive shift was rival collapse: Faction1, Faction4, and Faction3 finished without territory while Faction2 expanded to 37 regions.
-Faction2 succeeded because it won through repeated border contests, recording 38 attack attempts, finishing with 37 regions, 18181 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 560 treasury and 0 regions.
+Faction1’s expansionist push created early separation because it was already strongest in the opening and added 20 regions, which meant the board stopped being balanced before rivals could stabilize. The decisive break came in midgame because Faction1 captured Faction3’s last hold and then Faction4’s last hold, which eliminated the remaining territorial counterweights and turned control into full domination. After that collapse, territorial control stabilized because no rival retained a foothold, so the 37-region and 4,810-treasury margin became a consequence of irreversible board control rather than a late race.
+The closest challenger was Faction3 (economic) at 121 treasury and 0 regions.
 
 Final Standings
 
-Faction2 finished first with a treasury of 18181 and control of 37 regions.
-Faction1 ended with a treasury of 560 and 0 regions.
-Faction4 ended with a treasury of 68 and 0 regions.
-Faction3 ended with a treasury of 46 and 0 regions.
+Faction1 finished first with a treasury of 4931 and control of 37 regions.
+Faction3 ended with a treasury of 121 and 0 regions.
+Faction2 ended with a treasury of 10 and 0 regions.
+Faction4 ended with a treasury of 1 and 0 regions.
 
 ========================================================================
 
@@ -724,8 +748,6 @@ Strategies:
 Simulation Chronicle
 
 On turn 2, Faction2 made its first expansion into Q.
-On turn 2, Faction2 seized Q, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into O.
-On turn 4, Faction2 seized O, a frontier foothold that mattered because it opened new directions for future expansion.
 
 Opening Phase
 
@@ -736,22 +758,29 @@ By the end of turn 5, Faction4 held the opening treasury lead at 16.
 
 Phase Summaries
 
-Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. 4 investments improved existing holdings. Faction3 gained 1 region. Faction4 lost 1 region.
-Mid phase: Faction2 was strongest by the end of turns 2-3, with Faction2 on 9 treasury and 2 regions. 4 successful attacks flipped 1 region; 1 expansion added 1 new region. Faction2 gained 1 region. Faction2 improved its standing most during the phase.
-Late phase: Faction4 was strongest by the end of turns 4-5, with Faction4 on 16 treasury and 2 regions. 4 successful attacks flipped 2 regions; 1 expansion added 1 new region. Faction1 gained 1 region. Faction3 lost 1 region. Faction1 improved its standing most during the phase.
+Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. The board stabilized after turn 1 with little territorial change. Faction3 gained 1 region while Faction4 lost 1 region.
+Mid phase: Faction2 was strongest by the end of turns 2-3, with Faction2 on 9 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 4 successful attacks shifted control of 1 region. 1 expansion added 1 new region. Faction2 gained 1 region.
+Late phase: Faction4 was strongest by the end of turns 4-5, with Faction4 on 16 treasury and 2 regions. No faction pulled clear; 3 factions remained within a 2-region spread. 4 successful attacks shifted control of 2 regions. 1 expansion added 1 new region. Faction1 gained 1 region while Faction3 lost 1 region.
+
+Turning Points
+
+Mid collapse: Faction2's capture of Q eliminated Faction3's last territorial hold.
+Mid border swing: Faction1's capture of Q flipped an important frontline region.
+
+Outcome Type
+
+Outcome type: balanced_contest.
 
 Faction Trajectories
 
-Faction1 spent the opening consolidating its start with 1 investment, lost ground mid-game, falling from 2 regions to 1 region, and closed competitive in rank 2 with 2 regions and 13 treasury.
-Faction2 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 3 treasury, and ended weakened in rank 3 with 2 regions and 12 treasury.
-Faction3 spent the opening consolidating its start with 1 investment, stayed active mid-game with 2 attack attempts while holding 1 region, and ended weakened in rank 4 with 0 regions and 7 treasury.
-Faction4 spent the opening consolidating its start with 1 investment, stayed active mid-game with 2 attack attempts while holding 1 region, and finished dominant with 2 regions and 16 treasury.
+Faction1 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 5, and finished rank 2 on 13 treasury with 2 regions after gaining 8 treasury overall.
+Faction2 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 5, and finished rank 3 on 12 treasury with 2 regions after gaining 7 treasury overall.
+Faction3 spent the opening consolidating its start with 1 investment, stayed active mid-game with 2 attack attempts while holding 1 region, and closed on 7 treasury without territory after 3 attacks.
+Faction4 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 5, and finished first with 2 regions, 16 treasury, and 4 total attacks.
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-The outcome was heavily shaped by early position: Faction4 carried its opening foothold into 2 regions and never surrendered the economic lead for long.
-Faction4 succeeded because it won through repeated border contests, recording 4 attack attempts, finishing with 2 regions, 16 treasury, and rank 1.
+Faction4’s opportunist timing mattered because the board stayed contested until late, so a small treasury edge could decide a map with no territorial separation. The midgame collapse removed Faction3’s last hold and the border swing around Q shifted the frontline, which prevented any rival from converting early strength into a lasting lead. While Faction1 and Faction2 each had moments of territorial strength, they could not turn those positions into enough treasury advantage, so Faction4’s 16 to 13 finish held the narrow win.
 The closest challenger was Faction1 (expansionist) at 13 treasury and 2 regions.
 
 Final Standings
@@ -777,9 +806,7 @@ Strategies:
 Simulation Chronicle
 
 On turn 2, Faction4 made its first expansion into Q.
-On turn 2, Faction4 seized Q, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
 On turn 4, Faction2 made its first expansion into O.
-On turn 4, Faction2 seized O, a frontier foothold that mattered because it opened new directions for future expansion.
 On turn 5, Faction3 made its first expansion into J.
 
 Opening Phase
@@ -791,29 +818,36 @@ By the end of turn 5, Faction1 held the opening treasury lead at 19.
 
 Phase Summaries
 
-Early phase: Faction2 and Faction1 were strongest by the end of turns 1-3, with Faction2 on 10 treasury and 2 regions. 7 successful attacks flipped 1 region; 1 expansion added 1 new region; 4 investments improved existing holdings. Faction2 gained 2 regions. Faction1 lost 3 regions. Faction2 improved its standing most during the phase.
-Mid phase: Faction1 was strongest by the end of turns 4-6, with Faction1 on 26 treasury and 3 regions. 5 successful attacks flipped 2 regions; 3 expansions added 3 new regions. Faction1 gained 2 regions. Faction4 lost 1 region.
-Late phase: Faction1 was strongest by the end of turns 7-10, with Faction1 on 88 treasury and 7 regions. 5 successful attacks flipped 5 regions; 6 expansions added 6 new regions; 1 investment improved existing holdings. Faction1 gained 4 regions.
+Early phase: Faction2 and Faction1 were strongest by the end of turns 1-3, with Faction2 on 10 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 7 successful attacks shifted control of 1 region. 1 expansion added 1 new region. 4 investments improved existing holdings. Faction2 gained 2 regions while Faction1 lost 3 regions.
+Mid phase: Faction1 was strongest by the end of turns 4-6, with Faction1 on 26 treasury and 3 regions. 5 successful attacks shifted control of 2 regions. 3 expansions added 3 new regions. Faction1 gained 2 regions while Faction4 lost 1 region.
+Late phase: Faction1 was strongest by the end of turns 7-10, with Faction1 on 58 treasury and 7 regions. 5 successful attacks shifted control of 5 regions. 6 expansions added 6 new regions. 1 investment improved existing holdings. Faction1 gained 4 regions.
+
+Turning Points
+
+Mid collapse: Faction1's capture of Q eliminated Faction3's last territorial hold.
+Early collapse: Faction2's capture of Q eliminated Faction4's last territorial hold.
+
+Outcome Type
+
+Outcome type: late_snowball.
 
 Faction Trajectories
 
-Faction1 opened with 2 attack attempts and contested neighboring borders immediately, expanded under pressure, growing from 2 regions to 3 regions while keeping attacks active, and finished dominant with 7 regions and 88 treasury.
-Faction2 opened with 2 attack attempts and contested neighboring borders immediately, stayed active mid-game with 2 attack attempts while holding 2 regions, and closed competitive in rank 2 with 4 regions and 22 treasury.
-Faction3 opened with 2 attack attempts and contested neighboring borders immediately, used the middle turns to scale economically, adding 5 treasury, and ended weakened in rank 3 with 3 regions and 21 treasury.
-Faction4 spent the opening consolidating its start with 1 investment, lost ground mid-game, falling from 1 region to 0 regions, and ended weakened in rank 4 with 0 regions and 4 treasury.
+Faction1 opened with 2 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 7 regions by turn 10, and finished first with 7 regions, 58 treasury, and 9 total attacks.
+Faction2 opened with 2 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 4 regions by turn 10, and finished rank 2 on 19 treasury with 4 regions after gaining 14 treasury overall.
+Faction3 opened with 2 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 3 regions by turn 10, and finished rank 3 on 15 treasury with 3 regions after gaining 10 treasury overall.
+Faction4 spent the opening consolidating its start with 1 investment, lost ground mid-game, falling from 1 region to 0 regions, and closed on 4 treasury without territory after 3 attacks.
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-The outcome was heavily shaped by early position: Faction1 carried its opening foothold into 7 regions and never surrendered the economic lead for long.
-Faction1 succeeded because it won through repeated border contests, recording 9 attack attempts, finishing with 7 regions, 88 treasury, and rank 1.
-The closest challenger was Faction2 (balanced) at 22 treasury and 4 regions.
+After a contested opening, Faction1’s expansionist push mattered because it turned a narrow midgame gain into a late snowball, finishing 3 regions clear and far ahead in treasury. The decisive break came when Faction1 captured Q and eliminated Faction3’s last territorial hold, which removed the remaining resistance and prevented any recovery path on the seventeen-region ring. Faction2 had been strongest early, but its early advantage did not convert into control because the board stayed contested and Faction1’s later territorial surge created the separation that decided the result.
+The closest challenger was Faction2 (balanced) at 19 treasury and 4 regions.
 
 Final Standings
 
-Faction1 finished first with a treasury of 88 and control of 7 regions.
-Faction2 ended with a treasury of 22 and 4 regions.
-Faction3 ended with a treasury of 21 and 3 regions.
+Faction1 finished first with a treasury of 58 and control of 7 regions.
+Faction2 ended with a treasury of 19 and 4 regions.
+Faction3 ended with a treasury of 15 and 3 regions.
 Faction4 ended with a treasury of 4 and 0 regions.
 
 ========================================================================
@@ -832,42 +866,47 @@ Strategies:
 Simulation Chronicle
 
 On turn 2, Faction3 made its first expansion into Q.
-On turn 2, Faction3 seized Q, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into J.
 On turn 5, Faction2 made its first expansion into F.
 On turn 15, Faction1 made its first expansion into O.
-On turn 15, Faction1 seized O, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into L.
 
 Opening Phase
 
 The strongest early land grab was Faction3's claim of Q on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction3 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction1 held the opening treasury lead at 23.
+By the end of turn 5, Faction1 held the opening treasury lead at 20.
 
 Phase Summaries
 
-Early phase: Faction1 was strongest by the end of turns 1-6, with Faction1 on 35 treasury and 5 regions. 9 successful attacks flipped 4 regions; 6 expansions added 6 new regions; 5 investments improved existing holdings. Faction2 gained 3 regions. Faction3 improved its standing most during the phase.
-Mid phase: Faction1 was strongest by the end of turns 7-13, with Faction1 on 213 treasury and 11 regions. 6 successful attacks flipped 6 regions; 2 expansions added 2 new regions; 5 investments improved existing holdings. Faction1 gained 6 regions. Faction2 lost 2 regions. Faction2 improved its standing most during the phase.
-Late phase: Faction1 was strongest by the end of turns 14-20, with Faction1 on 513 treasury and 17 regions. 1 successful attacks flipped 1 region; 5 expansions added 5 new regions; 1 investment improved existing holdings. Faction1 gained 6 regions. Faction2 lost 1 region.
+Early phase: Faction1 was strongest by the end of turns 1-6, with Faction1 on 26 treasury and 5 regions. 9 successful attacks shifted control of 4 regions. 6 expansions added 6 new regions. 5 investments improved existing holdings. Faction2 gained 3 regions. Faction3 improved its standing most during the phase.
+Mid phase: Faction1 was strongest by the end of turns 7-13, with Faction1 on 90 treasury and 11 regions. 6 successful attacks shifted control of 6 regions. 2 expansions added 2 new regions. 5 investments improved existing holdings. Faction1 gained 6 regions while Faction2 lost 2 regions.
+Late phase: Faction1 was strongest by the end of turns 14-20, with Faction1 on 141 treasury and 17 regions. 1 successful attacks shifted control of 1 region. 5 expansions added 5 new regions. 1 investment improved existing holdings. Faction1 gained 6 regions while Faction2 lost 1 region.
+
+Turning Points
+
+Early collapse: Faction2's capture of Q eliminated Faction3's last territorial hold.
+Early collapse: Faction4's capture of Q eliminated Faction2's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 opened with 5 attack attempts and contested neighboring borders immediately, expanded under pressure, growing from 6 regions to 11 regions while keeping attacks active, and finished dominant with 17 regions and 513 treasury.
-Faction2 opened with 2 claims and grew to 3 regions by the end of the opening phase, lost ground mid-game, falling from 4 regions to 1 region, and closed competitive in rank 2 with 0 regions and 62 treasury.
-Faction3 opened with 4 claims and grew to 2 regions by the end of the opening phase, lost ground mid-game, falling from 1 region to 0 regions, and ended weakened in rank 3 with 0 regions and 21 treasury.
-Faction4 opened with 4 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 5 treasury.
+Faction1 opened with 5 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 17 regions by turn 20, and finished first with 17 regions, 141 treasury, and 13 total attacks.
+Faction2 opened with 2 claims and grew to 3 regions by the end of the opening phase, peaked at 5 regions on turn 8 before slipping to 0 regions, and closed on 47 treasury without territory after 3 attacks.
+Faction3 opened with 4 claims and grew to 2 regions by the end of the opening phase, peaked at 3 regions on turn 5 before slipping to 0 regions, and closed on 21 treasury without territory after 0 attacks.
+Faction4 opened with 4 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and closed on 5 treasury without territory after 4 attacks.
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-The decisive shift was rival collapse: Faction2, Faction3, and Faction4 finished without territory while Faction1 expanded to 17 regions.
-Faction1 succeeded because it won through repeated border contests, recording 13 attack attempts, finishing with 17 regions, 513 treasury, and rank 1.
-The closest challenger was Faction2 (balanced) at 62 treasury and 0 regions.
+Faction1’s expansionist push mattered because it turned an early lead into a widening territorial gap, so the contest never recovered once the board began to thin out. The early collapse of Faction3 and then Faction2 removed the last remaining territorial checks, which meant Faction1 could keep adding regions while rivals lost ground instead of forming a counterweight. By the late phase, that structural advantage had become decisive because Faction1 finished 17 regions clear and far ahead in treasury, leaving Faction2 with no regions and no path back.
+The closest challenger was Faction2 (balanced) at 47 treasury and 0 regions.
 
 Final Standings
 
-Faction1 finished first with a treasury of 513 and control of 17 regions.
-Faction2 ended with a treasury of 62 and 0 regions.
+Faction1 finished first with a treasury of 141 and control of 17 regions.
+Faction2 ended with a treasury of 47 and 0 regions.
 Faction3 ended with a treasury of 21 and 0 regions.
 Faction4 ended with a treasury of 5 and 0 regions.
 
@@ -887,10 +926,8 @@ Strategies:
 Simulation Chronicle
 
 On turn 2, Faction3 made its first expansion into Q.
-On turn 2, Faction3 seized Q, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into J.
 On turn 7, Faction1 made its first expansion into P.
 On turn 19, Faction2 made its first expansion into G.
-On turn 19, Faction2 seized G, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into L.
 
 Opening Phase
 
@@ -901,28 +938,35 @@ By the end of turn 5, Faction2 held the opening treasury lead at 20.
 
 Phase Summaries
 
-Early phase: Faction2 was strongest by the end of turns 1-13, with Faction2 on 124 treasury and 8 regions. 16 successful attacks flipped 7 regions; 8 expansions added 8 new regions; 5 investments improved existing holdings. Faction1 gained 4 regions. Faction2 improved its standing most during the phase.
-Mid phase: Faction2 was strongest by the end of turns 14-26, with Faction2 on 612 treasury and 17 regions. 4 successful attacks flipped 4 regions; 5 expansions added 5 new regions; 7 investments improved existing holdings. Faction2 gained 9 regions. Faction1 lost 4 regions.
-Late phase: Faction2 was strongest by the end of turns 27-40, with Faction2 on 1534 treasury and 17 regions. 5 investments improved existing holdings.
+Early phase: Faction2 was strongest by the end of turns 1-13, with Faction2 on 61 treasury and 8 regions. 16 successful attacks shifted control of 7 regions. 8 expansions added 8 new regions. 5 investments improved existing holdings. Faction1 gained 4 regions. Faction2 improved its standing most during the phase.
+Mid phase: Faction2 was strongest by the end of turns 14-26, with Faction2 on 138 treasury and 17 regions. 4 successful attacks shifted control of 4 regions. 5 expansions added 5 new regions. 7 investments improved existing holdings. Faction2 gained 9 regions while Faction1 lost 4 regions.
+Late phase: Faction2 was strongest by the end of turns 27-40, with Faction2 on 472 treasury and 17 regions. The board stabilized after turn 27 with little territorial change.
+
+Turning Points
+
+Early collapse: Faction1's capture of Q eliminated Faction4's last territorial hold.
+Early collapse: Faction2's capture of Q eliminated Faction1's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 opened with 6 claims and grew to 4 regions by the end of the opening phase, lost ground mid-game, falling from 4 regions to 0 regions, and closed competitive in rank 2 with 0 regions and 58 treasury.
-Faction2 opened with 12 attack attempts and contested neighboring borders immediately, stayed active mid-game with 5 attack attempts while holding 17 regions, and finished dominant with 17 regions and 1534 treasury.
-Faction3 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 4 treasury.
-Faction4 opened with 6 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 3 with 0 regions and 9 treasury.
+Faction1 opened with 6 claims and grew to 4 regions by the end of the opening phase, peaked at 5 regions on turn 10 before slipping to 0 regions, and closed on 31 treasury without territory after 5 attacks.
+Faction2 opened with 12 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 17 regions by turn 40, and finished first with 17 regions, 472 treasury, and 17 total attacks.
+Faction3 spent the opening consolidating its start with 1 investment, peaked at 2 regions on turn 3 before slipping to 0 regions, and closed on 4 treasury without territory after 2 attacks.
+Faction4 opened with 6 attack attempts and contested neighboring borders immediately, peaked at 2 regions on turn 4 before slipping to 0 regions, and closed on 9 treasury without territory after 6 attacks.
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-The decisive shift was rival collapse: Faction1, Faction4, and Faction3 finished without territory while Faction2 expanded to 17 regions.
-Faction2 succeeded because it won through repeated border contests, recording 17 attack attempts, finishing with 17 regions, 1534 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 58 treasury and 0 regions.
+Faction2’s balanced approach mattered because it turned an early contested opening into a midgame break, where Faction2’s 9-region gain and Faction1’s 4-region loss created the separation that decided the map. The capture of Q was decisive because it removed Faction1’s last territorial hold, which prevented any recovery path and left Faction2 as the only side able to consolidate control. After that collapse, the board stabilized in Faction2’s favor because the ring map had no remaining rival base to rebuild from, so the final 17-region and 441-treasury margin became a product of elimination rather than a narrow race.
+The closest challenger was Faction1 (expansionist) at 31 treasury and 0 regions.
 
 Final Standings
 
-Faction2 finished first with a treasury of 1534 and control of 17 regions.
-Faction1 ended with a treasury of 58 and 0 regions.
+Faction2 finished first with a treasury of 472 and control of 17 regions.
+Faction1 ended with a treasury of 31 and 0 regions.
 Faction4 ended with a treasury of 9 and 0 regions.
 Faction3 ended with a treasury of 4 and 0 regions.
 
@@ -942,42 +986,47 @@ Strategies:
 Simulation Chronicle
 
 On turn 2, Faction3 made its first expansion into Q.
-On turn 2, Faction3 seized Q, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into J.
 On turn 4, Faction2 made its first expansion into F.
 On turn 13, Faction1 made its first expansion into O.
-On turn 13, Faction1 seized O, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into L.
 
 Opening Phase
 
 The strongest early land grab was Faction3's claim of Q on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction3 led expansion with 1 claim(s).
 Across the first 5 turns, Faction3 invested most often with 2 investment(s).
-By the end of turn 5, Faction1 held the opening treasury lead at 29.
+By the end of turn 5, Faction1 held the opening treasury lead at 26.
 
 Phase Summaries
 
-Early phase: Faction1 was strongest by the end of turns 1-26, with Faction1 on 846 treasury and 17 regions. 15 successful attacks flipped 10 regions; 13 expansions added 13 new regions; 16 investments improved existing holdings. Faction1 gained 13 regions.
-Mid phase: Faction1 was strongest by the end of turns 27-53, with Faction1 on 2682 treasury and 17 regions. 1 investment improved existing holdings.
-Late phase: Faction1 was strongest by the end of turns 54-80, with Faction1 on 4518 treasury and 17 regions. The board stayed stable with no expansions, investments, or successful attacks.
+Early phase: Faction1 was strongest by the end of turns 1-26, with Faction1 on 195 treasury and 17 regions. 15 successful attacks shifted control of 10 regions. 13 expansions added 13 new regions. 16 investments improved existing holdings. Faction1 gained 13 regions.
+Mid phase: Faction1 was strongest by the end of turns 27-53, with Faction1 on 897 treasury and 17 regions. The board stabilized after turn 27 with little territorial change.
+Late phase: Faction1 was strongest by the end of turns 54-80, with Faction1 on 1599 treasury and 17 regions. The board stabilized after turn 54 with little territorial change.
+
+Turning Points
+
+Early collapse: Faction4's capture of Q eliminated Faction3's last territorial hold.
+Early collapse: Faction2's capture of Q eliminated Faction4's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 opened with 6 claims and grew to 17 regions by the end of the opening phase, held steady at 17 regions through the middle turns, and finished dominant with 17 regions and 4518 treasury.
-Faction2 spent the opening consolidating its start with 4 investments, held steady at 0 regions through the middle turns, and closed competitive in rank 2 with 0 regions and 29 treasury.
-Faction3 spent the opening consolidating its start with 2 investments, held steady at 0 regions through the middle turns, and ended weakened in rank 3 with 0 regions and 8 treasury.
-Faction4 opened with 4 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 5 treasury.
+Faction1 opened with 6 claims and grew to 17 regions by the end of the opening phase, held steady at 17 regions through the middle turns, and finished first with 17 regions, 1599 treasury, and 11 total attacks.
+Faction2 spent the opening consolidating its start with 4 investments, peaked at 4 regions on turn 6 before slipping to 0 regions, and closed on 20 treasury without territory after 2 attacks.
+Faction3 spent the opening consolidating its start with 2 investments, held steady at 0 regions through the middle turns, and closed on 8 treasury without territory after 1 attacks.
+Faction4 opened with 4 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and closed on 5 treasury without territory after 4 attacks.
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-The decisive shift was rival collapse: Faction2, Faction3, and Faction4 finished without territory while Faction1 expanded to 17 regions.
-Faction1 succeeded because it won through repeated border contests, recording 11 attack attempts, finishing with 17 regions, 4518 treasury, and rank 1.
-The closest challenger was Faction2 (balanced) at 29 treasury and 0 regions.
+Faction1’s expansionist push created immediate separation because it gained 13 regions early and finished 17 regions clear, so the map never developed a durable counterweight. The early collapse of Faction3 and then Faction4 around Q removed the last territorial holds for those factions, which meant the board quickly shrank from multiple rivals to a one-sided field. With territorial control stabilizing in midgame and late game, Faction1 could convert its early lead into full domination because no opponent retained enough board presence to recover.
+The closest challenger was Faction2 (balanced) at 20 treasury and 0 regions.
 
 Final Standings
 
-Faction1 finished first with a treasury of 4518 and control of 17 regions.
-Faction2 ended with a treasury of 29 and 0 regions.
+Faction1 finished first with a treasury of 1599 and control of 17 regions.
+Faction2 ended with a treasury of 20 and 0 regions.
 Faction3 ended with a treasury of 8 and 0 regions.
 Faction4 ended with a treasury of 5 and 0 regions.
 
@@ -997,44 +1046,48 @@ Strategies:
 Simulation Chronicle
 
 On turn 2, Faction4 made its first expansion into Q.
-On turn 2, Faction4 seized Q, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
 On turn 3, Faction2 made its first expansion into F.
 On turn 5, Faction3 made its first expansion into J.
 On turn 14, Faction1 made its first expansion into O.
-On turn 14, Faction1 seized O, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into C.
-On turn 15, Faction1 seized C, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into P.
 
 Opening Phase
 
 The strongest early land grab was Faction4's claim of Q on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction2 and Faction4 led expansion with 1 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction1 held the opening treasury lead at 28.
+By the end of turn 5, Faction1 held the opening treasury lead at 25.
 
 Phase Summaries
 
-Early phase: Faction1 was strongest by the end of turns 1-53, with Faction1 on 2614 treasury and 17 regions. 14 successful attacks flipped 10 regions; 13 expansions added 13 new regions; 17 investments improved existing holdings. Faction1 gained 13 regions. Faction3 improved its standing most during the phase.
-Mid phase: Faction1 was strongest by the end of turns 54-106, with Faction1 on 6218 treasury and 17 regions. The board stayed stable with no expansions, investments, or successful attacks.
-Late phase: Faction1 was strongest by the end of turns 107-160, with Faction1 on 9890 treasury and 17 regions. The board stayed stable with no expansions, investments, or successful attacks.
+Early phase: Faction1 was strongest by the end of turns 1-53, with Faction1 on 865 treasury and 17 regions. 14 successful attacks shifted control of 10 regions. 13 expansions added 13 new regions. 17 investments improved existing holdings. Faction1 gained 13 regions. Faction3 improved its standing most during the phase.
+Mid phase: Faction1 was strongest by the end of turns 54-106, with Faction1 on 2243 treasury and 17 regions. The board stabilized after turn 54 with little territorial change.
+Late phase: Faction1 was strongest by the end of turns 107-160, with Faction1 on 3647 treasury and 17 regions. The board stabilized after turn 107 with little territorial change.
+
+Turning Points
+
+Early collapse: Faction1's capture of Q eliminated Faction4's last territorial hold.
+Early collapse: Faction3's capture of F eliminated Faction2's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 opened with 6 claims and grew to 17 regions by the end of the opening phase, held steady at 17 regions through the middle turns, and finished dominant with 17 regions and 9890 treasury.
-Faction2 opened with 2 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 2 treasury.
-Faction3 spent the opening consolidating its start with 5 investments, held steady at 0 regions through the middle turns, and closed competitive in rank 2 with 0 regions and 24 treasury.
-Faction4 opened with 2 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 3 with 0 regions and 8 treasury.
+Faction1 opened with 6 claims and grew to 17 regions by the end of the opening phase, held steady at 17 regions through the middle turns, and finished first with 17 regions, 3647 treasury, and 12 total attacks.
+Faction2 opened with 2 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and closed on 2 treasury without territory after 2 attacks.
+Faction3 spent the opening consolidating its start with 5 investments, peaked at 4 regions on turn 7 before slipping to 0 regions, and closed on 15 treasury without territory after 3 attacks.
+Faction4 opened with 2 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and closed on 8 treasury without territory after 2 attacks.
 
 Strategic Interpretation
 
-A highly connected center kept several factions in contention before one side pulled clear.
-The decisive shift was rival collapse: Faction3, Faction4, and Faction2 finished without territory while Faction1 expanded to 17 regions.
-Faction1 succeeded because it won through repeated border contests, recording 12 attack attempts, finishing with 17 regions, 9890 treasury, and rank 1.
-The closest challenger was Faction3 (economic) at 24 treasury and 0 regions.
+Faction1’s expansionist push created immediate separation because it gained 13 regions early and finished 17 regions clear, so the map never recovered from the opening break. The early collapse of Faction4 and Faction2 removed the last territorial holds for the other sides, which meant Faction1 faced shrinking resistance while its control stabilized through midgame and late game. With Faction3 ending on 0 regions and only 15 treasury, the result was full domination because no rival retained either the board position or resources needed to rebuild.
+The closest challenger was Faction3 (economic) at 15 treasury and 0 regions.
 
 Final Standings
 
-Faction1 finished first with a treasury of 9890 and control of 17 regions.
-Faction3 ended with a treasury of 24 and 0 regions.
+Faction1 finished first with a treasury of 3647 and control of 17 regions.
+Faction3 ended with a treasury of 15 and 0 regions.
 Faction4 ended with a treasury of 8 and 0 regions.
 Faction2 ended with a treasury of 2 and 0 regions.
 
@@ -1054,7 +1107,6 @@ Strategies:
 Simulation Chronicle
 
 On turn 2, Faction4 made its first expansion into M.
-On turn 2, Faction4 seized M, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
 On turn 5, Faction1 made its first expansion into L.
 
 Opening Phase
@@ -1066,29 +1118,36 @@ By the end of turn 5, Faction3 held the opening treasury lead at 21.
 
 Phase Summaries
 
-Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. 4 investments improved existing holdings. Faction2 gained 1 region. Faction3 lost 1 region.
-Mid phase: Faction3 was strongest by the end of turns 2-3, with Faction3 on 11 treasury and 2 regions. 5 successful attacks flipped 1 region; 1 expansion added 1 new region. Faction3 gained 1 region. Faction1 improved its standing most during the phase.
-Late phase: Faction3 was strongest by the end of turns 4-5, with Faction3 on 21 treasury and 2 regions. 3 successful attacks flipped 3 regions; 1 expansion added 1 new region. Faction4 gained 2 regions. Faction2 lost 1 region.
+Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. The board stabilized after turn 1 with little territorial change. Faction2 gained 1 region while Faction3 lost 1 region.
+Mid phase: Faction3 was strongest by the end of turns 2-3, with Faction3 on 11 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 5 successful attacks shifted control of 1 region. 1 expansion added 1 new region. Faction3 gained 1 region.
+Late phase: Faction3 was strongest by the end of turns 4-5, with Faction3 on 21 treasury and 2 regions. 3 successful attacks shifted control of 3 regions. 1 expansion added 1 new region. Faction4 gained 2 regions while Faction2 lost 1 region.
+
+Turning Points
+
+Mid collapse: Faction3's capture of M eliminated Faction2's last territorial hold.
+Mid border swing: Faction2's capture of M flipped an important frontline region.
+
+Outcome Type
+
+Outcome type: economic_win.
 
 Faction Trajectories
 
-Faction1 spent the opening consolidating its start with 1 investment, stayed active mid-game with 2 attack attempts while holding 1 region, and ended weakened in rank 3 with 1 region and 8 treasury.
-Faction2 spent the opening consolidating its start with 1 investment, stayed active mid-game with 2 attack attempts while holding 1 region, and ended weakened in rank 4 with 0 regions and 7 treasury.
-Faction3 spent the opening consolidating its start with 1 investment, stayed active mid-game with 2 attack attempts while holding 2 regions, and finished dominant with 2 regions and 21 treasury.
-Faction4 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 2 treasury, and closed competitive in rank 2 with 3 regions and 15 treasury.
+Faction1 spent the opening consolidating its start with 1 investment, stayed active mid-game with 2 attack attempts while holding 1 region, and finished rank 3 on 8 treasury with 1 region after gaining 3 treasury overall.
+Faction2 spent the opening consolidating its start with 1 investment, stayed active mid-game with 2 attack attempts while holding 1 region, and closed on 7 treasury without territory after 2 attacks.
+Faction3 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 5, and finished first with 2 regions, 21 treasury, and 4 total attacks.
+Faction4 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 3 regions by turn 5, and finished rank 2 on 15 treasury with 3 regions after gaining 10 treasury overall.
 
 Strategic Interpretation
 
-On this compact 13-region map, early contact came quickly.
-The outcome was heavily shaped by early position: Faction3 carried its opening foothold into 2 regions and never surrendered the economic lead for long.
-Faction3 succeeded because it won through repeated border contests, recording 4 attack attempts, finishing with 2 regions, 21 treasury, and rank 1.
+Faction3’s economic approach won because treasury separated the leaders even though it finished with fewer regions, so map control never translated into a territorial edge. The midgame mattered most because the board was still contested, and Faction3’s capture of M eliminated Faction2’s last territorial hold, which removed one rival’s ability to recover. Faction4’s late regional gains were not enough because they improved position without closing the 6-treasury gap, which left Faction3 ahead on the deciding resource.
 The closest challenger was Faction4 (opportunist) at 15 treasury and 3 regions.
 
 Final Standings
 
 Faction3 finished first with a treasury of 21 and control of 2 regions.
 Faction4 ended with a treasury of 15 and 3 regions.
-Faction1 ended with a treasury of 8 and 1 regions.
+Faction1 ended with a treasury of 8 and 1 region.
 Faction2 ended with a treasury of 7 and 0 regions.
 
 ========================================================================
@@ -1107,9 +1166,8 @@ Strategies:
 Simulation Chronicle
 
 On turn 2, Faction4 made its first expansion into M.
-On turn 2, Faction4 seized M, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
 On turn 3, Faction3 made its first expansion into H.
-On turn 9, Faction1 made its first expansion into L.
+On turn 10, Faction2 made its first expansion into L.
 
 Opening Phase
 
@@ -1120,28 +1178,35 @@ By the end of turn 5, Faction1 held the opening treasury lead at 21.
 
 Phase Summaries
 
-Early phase: Faction1 was strongest by the end of turns 1-3, with Faction1 on 11 treasury and 2 regions. 5 successful attacks flipped 1 region; 2 expansions added 2 new regions; 4 investments improved existing holdings. Faction1 gained 2 regions. Faction2 lost 3 regions. Faction4 improved its standing most during the phase.
-Mid phase: Faction2 was strongest by the end of turns 4-6, with Faction2 on 27 treasury and 4 regions. 5 successful attacks flipped 5 regions; 2 expansions added 2 new regions; 1 investment improved existing holdings. Faction2 gained 3 regions. Faction3 lost 1 region. Faction2 improved its standing most during the phase.
-Late phase: Faction2 was strongest by the end of turns 7-10, with Faction2 on 86 treasury and 7 regions. 5 successful attacks flipped 4 regions; 2 expansions added 2 new regions. Faction2 gained 3 regions. Faction3 lost 1 region.
+Early phase: Faction1 was strongest by the end of turns 1-3, with Faction1 on 11 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 5 successful attacks shifted control of 1 region. 2 expansions added 2 new regions. 4 investments improved existing holdings. Faction3 gained 2 regions while Faction2 lost 1 region. Faction4 improved its standing most during the phase.
+Mid phase: Faction1 was strongest by the end of turns 4-6, with Faction1 on 26 treasury and 3 regions. 5 successful attacks shifted control of 5 regions. 2 expansions added 2 new regions. 1 investment improved existing holdings. Faction2 gained 3 regions while Faction3 lost 1 region.
+Late phase: Faction1 was strongest by the end of turns 7-10, with Faction1 on 44 treasury and 2 regions. 4 successful attacks shifted control of 3 regions. 1 expansion added 1 new region. Faction2 gained 3 regions while Faction1 lost 1 region.
+
+Turning Points
+
+Early collapse: Faction2's capture of M eliminated Faction4's last territorial hold.
+Late collapse: Faction2's capture of E eliminated Faction3's last territorial hold.
+
+Outcome Type
+
+Outcome type: economic_win.
 
 Faction Trajectories
 
-Faction1 opened with 2 attack attempts and contested neighboring borders immediately, expanded under pressure, growing from 2 regions to 3 regions while keeping attacks active, and closed competitive in rank 2 with 3 regions and 42 treasury.
-Faction2 opened with 2 attack attempts and contested neighboring borders immediately, expanded under pressure, growing from 2 regions to 4 regions while keeping attacks active, and finished dominant with 7 regions and 86 treasury.
-Faction3 opened with 1 claim and grew to 2 regions by the end of the opening phase, lost ground mid-game, falling from 2 regions to 1 region, and ended weakened in rank 3 with 0 regions and 12 treasury.
-Faction4 spent the opening consolidating its start with 1 investment, lost ground mid-game, falling from 1 region to 0 regions, and ended weakened in rank 4 with 0 regions and 4 treasury.
+Faction1 opened with 2 attack attempts and contested neighboring borders immediately, peaked at 4 regions on turn 7 before slipping to 2 regions, and finished first with 2 regions, 44 treasury, and 9 total attacks.
+Faction2 opened with 2 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 7 regions by turn 10, and finished rank 2 on 43 treasury with 7 regions after gaining 38 treasury overall.
+Faction3 opened with 1 claim and grew to 2 regions by the end of the opening phase, peaked at 2 regions on turn 4 before slipping to 0 regions, and closed on 12 treasury without territory after 1 attacks.
+Faction4 spent the opening consolidating its start with 1 investment, lost ground mid-game, falling from 1 region to 0 regions, and closed on 4 treasury without territory after 3 attacks.
 
 Strategic Interpretation
 
-On this compact 13-region map, early contact came quickly.
-The decisive shift was rival collapse: Faction3 and Faction4 finished without territory while Faction2 expanded to 7 regions.
-Faction2 succeeded because it won through repeated border contests, recording 9 attack attempts, finishing with 7 regions, 86 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 42 treasury and 3 regions.
+Faction1’s expansionist push mattered because it kept the board contested early, but the result was decided by treasury rather than territory since Faction1 finished with 44 against Faction2’s 43 despite trailing 5 regions. Faction2’s larger territorial footprint did not convert into a win because its late gains came after the map had already been thinned by eliminations, which meant control of regions mattered less than the final resource margin. Faction3 and Faction4 were removed as territorial rivals, but that collapse did not create enough separation for Faction2 to overcome Faction1’s economic edge.
+The closest challenger was Faction2 (balanced) at 43 treasury and 7 regions.
 
 Final Standings
 
-Faction2 finished first with a treasury of 86 and control of 7 regions.
-Faction1 ended with a treasury of 42 and 3 regions.
+Faction1 finished first with a treasury of 44 and control of 2 regions.
+Faction2 ended with a treasury of 43 and 7 regions.
 Faction3 ended with a treasury of 12 and 0 regions.
 Faction4 ended with a treasury of 4 and 0 regions.
 
@@ -1161,7 +1226,6 @@ Strategies:
 Simulation Chronicle
 
 On turn 2, Faction2 made its first expansion into M.
-On turn 2, Faction2 seized M, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
 On turn 5, Faction3 made its first expansion into L.
 On turn 10, Faction1 made its first expansion into B.
 
@@ -1174,28 +1238,35 @@ By the end of turn 5, Faction3 held the opening treasury lead at 12.
 
 Phase Summaries
 
-Early phase: Faction2 was strongest by the end of turns 1-6, with Faction2 on 14 treasury and 2 regions. 10 successful attacks flipped 1 region; 2 expansions added 2 new regions; 4 investments improved existing holdings. Faction2 gained 2 regions. Faction4 lost 3 regions. Faction2 improved its standing most during the phase.
-Mid phase: Faction4 was strongest by the end of turns 7-13, with Faction4 on 35 treasury and 4 regions. 14 successful attacks flipped 5 regions; 4 expansions added 4 new regions. Faction4 gained 3 regions. Faction4 improved its standing most during the phase.
-Late phase: Faction4 was strongest by the end of turns 14-20, with Faction4 on 203 treasury and 11 regions. 8 successful attacks flipped 7 regions; 2 expansions added 2 new regions; 6 investments improved existing holdings. Faction4 gained 7 regions. Faction2 lost 2 regions. Faction3 improved its standing most during the phase.
+Early phase: Faction2 was strongest by the end of turns 1-6, with Faction2 on 14 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 10 successful attacks shifted control of 1 region. 2 expansions added 2 new regions. 4 investments improved existing holdings. Faction2 gained 2 regions while Faction4 lost 3 regions.
+Mid phase: Faction4 was strongest by the end of turns 7-13, with Faction4 on 32 treasury and 4 regions. 14 successful attacks shifted control of 5 regions. 4 expansions added 4 new regions. Faction4 gained 3 regions.
+Late phase: Faction4 was strongest by the end of turns 14-20, with Faction4 on 95 treasury and 11 regions. 8 successful attacks shifted control of 7 regions. 2 expansions added 2 new regions. 6 investments improved existing holdings. Faction4 gained 7 regions while Faction2 lost 2 regions. Faction3 improved its standing most during the phase.
+
+Turning Points
+
+Early collapse: Faction2's capture of M eliminated Faction1's last territorial hold.
+Early collapse: Faction3's capture of M eliminated Faction2's last territorial hold.
+
+Outcome Type
+
+Outcome type: midgame_break.
 
 Faction Trajectories
 
-Faction1 opened with 5 attack attempts and contested neighboring borders immediately, stayed active mid-game with 5 attack attempts while holding 1 region, and ended weakened in rank 4 with 0 regions and 17 treasury.
-Faction2 opened with 1 claim and grew to 2 regions by the end of the opening phase, stayed active mid-game with 6 attack attempts while holding 2 regions, and ended weakened in rank 3 with 0 regions and 30 treasury.
-Faction3 opened with 1 claim and grew to 2 regions by the end of the opening phase, stayed active mid-game with 6 attack attempts while holding 3 regions, and closed competitive in rank 2 with 1 region and 43 treasury.
-Faction4 opened with 5 attack attempts and contested neighboring borders immediately, expanded under pressure, growing from 1 region to 4 regions while keeping attacks active, and finished dominant with 11 regions and 203 treasury.
+Faction1 opened with 5 attack attempts and contested neighboring borders immediately, peaked at 2 regions on turn 12 before slipping to 0 regions, and closed on 17 treasury without territory after 11 attacks.
+Faction2 opened with 1 claim and grew to 2 regions by the end of the opening phase, peaked at 2 regions on turn 14 before slipping to 0 regions, and closed on 30 treasury without territory after 12 attacks.
+Faction3 opened with 1 claim and grew to 2 regions by the end of the opening phase, peaked at 4 regions on turn 16 before slipping to 1 region, and finished rank 2 on 40 treasury with 1 region after gaining 35 treasury overall.
+Faction4 opened with 5 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 11 regions by turn 20, and finished first with 11 regions, 95 treasury, and 19 total attacks.
 
 Strategic Interpretation
 
-On this compact 13-region map, early contact came quickly.
-The decisive shift was rival collapse: Faction2 and Faction1 finished without territory while Faction4 expanded to 11 regions.
-Faction4 succeeded because it won through repeated border contests, recording 19 attack attempts, finishing with 11 regions, 203 treasury, and rank 1.
-The closest challenger was Faction3 (economic) at 43 treasury and 1 region.
+After a contested opening, Faction4’s opportunist timing created the midgame break because its gains in the middle phase turned a balanced ring into a one-sided board. That mattered because the early collapses removed Faction1 and then Faction2’s last territorial holds, which prevented the strongest early faction from converting its lead into durable control. Once Faction4 became strongest, the board state allowed a late expansion surge so that it finished far ahead of Faction3, whose small footprint left little room to recover.
+The closest challenger was Faction3 (economic) at 40 treasury and 1 region.
 
 Final Standings
 
-Faction4 finished first with a treasury of 203 and control of 11 regions.
-Faction3 ended with a treasury of 43 and 1 regions.
+Faction4 finished first with a treasury of 95 and control of 11 regions.
+Faction3 ended with a treasury of 40 and 1 region.
 Faction2 ended with a treasury of 30 and 0 regions.
 Faction1 ended with a treasury of 17 and 0 regions.
 
@@ -1215,7 +1286,6 @@ Strategies:
 Simulation Chronicle
 
 On turn 2, Faction2 made its first expansion into M.
-On turn 2, Faction2 seized M, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into E.
 On turn 8, Faction3 made its first expansion into L.
 
 Opening Phase
@@ -1227,29 +1297,36 @@ By the end of turn 5, Faction3 and Faction4 held the opening treasury lead at 14
 
 Phase Summaries
 
-Early phase: Faction4 was strongest by the end of turns 1-13, with Faction4 on 89 treasury and 6 regions. 21 successful attacks flipped 5 regions; 9 expansions added 9 new regions; 9 investments improved existing holdings. Faction2 gained 4 regions. Faction4 improved its standing most during the phase.
-Mid phase: Faction4 was strongest by the end of turns 14-26, with Faction4 on 620 treasury and 13 regions. 7 successful attacks flipped 7 regions; 4 investments improved existing holdings. Faction4 gained 7 regions. Faction2 lost 4 regions.
-Late phase: Faction4 was strongest by the end of turns 27-40, with Faction4 on 1348 treasury and 13 regions. The board stayed stable with no expansions, investments, or successful attacks.
+Early phase: Faction4 was strongest by the end of turns 1-13, with Faction4 on 73 treasury and 7 regions. 24 successful attacks shifted control of 7 regions. 9 expansions added 9 new regions. 7 investments improved existing holdings. Faction2 gained 3 regions. Faction4 improved its standing most during the phase.
+Mid phase: Faction4 was strongest by the end of turns 14-26, with Faction4 on 297 treasury and 13 regions. 6 successful attacks shifted control of 6 regions. 6 investments improved existing holdings. Faction4 gained 6 regions while Faction2 lost 3 regions.
+Late phase: Faction4 was strongest by the end of turns 27-40, with Faction4 on 605 treasury and 13 regions. The board stabilized after turn 27 with little territorial change.
+
+Turning Points
+
+Early collapse: Faction2's capture of M eliminated Faction3's last territorial hold.
+Early collapse: Faction4's capture of M eliminated Faction1's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 opened with 5 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 13 treasury.
-Faction2 opened with 5 claims and grew to 4 regions by the end of the opening phase, lost ground mid-game, falling from 4 regions to 0 regions, and closed competitive in rank 2 with 0 regions and 148 treasury.
-Faction3 opened with 4 claims and grew to 3 regions by the end of the opening phase, lost ground mid-game, falling from 2 regions to 0 regions, and ended weakened in rank 3 with 0 regions and 47 treasury.
-Faction4 opened with 12 attack attempts and contested neighboring borders immediately, stayed active mid-game with 9 attack attempts while holding 13 regions, and finished dominant with 13 regions and 1348 treasury.
+Faction1 opened with 5 attack attempts and contested neighboring borders immediately, peaked at 2 regions on turn 4 before slipping to 0 regions, and closed on 13 treasury without territory after 5 attacks.
+Faction2 opened with 5 claims and grew to 3 regions by the end of the opening phase, peaked at 4 regions on turn 10 before slipping to 0 regions, and closed on 85 treasury without territory after 5 attacks.
+Faction3 opened with 4 claims and grew to 3 regions by the end of the opening phase, peaked at 4 regions on turn 11 before slipping to 0 regions, and closed on 35 treasury without territory after 7 attacks.
+Faction4 opened with 12 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 13 regions by turn 40, and finished first with 13 regions, 605 treasury, and 20 total attacks.
 
 Strategic Interpretation
 
-On this compact 13-region map, early contact came quickly.
-The decisive shift was rival collapse: Faction2, Faction3, and Faction1 finished without territory while Faction4 expanded to 13 regions.
-Faction4 succeeded because it won through repeated border contests, recording 21 attack attempts, finishing with 13 regions, 1348 treasury, and rank 1.
-The closest challenger was Faction2 (balanced) at 148 treasury and 0 regions.
+Faction4’s opportunist timing mattered because it converted the early collapse of both Faction1 and Faction3 into immediate territorial separation, which removed the last recovery paths on a thirteen-region ring. After that opening break, Faction4’s midgame surge to a 13-region lead and Faction2’s loss of ground meant the board stopped being contested, so the late phase was about consolidation rather than reversal. Faction2’s early gains could not convert into a challenge because it was left with no regions and only 85 treasury, while Faction4’s 605 treasury and full map control made the 520-treasury gap decisive.
+The closest challenger was Faction2 (balanced) at 85 treasury and 0 regions.
 
 Final Standings
 
-Faction4 finished first with a treasury of 1348 and control of 13 regions.
-Faction2 ended with a treasury of 148 and 0 regions.
-Faction3 ended with a treasury of 47 and 0 regions.
+Faction4 finished first with a treasury of 605 and control of 13 regions.
+Faction2 ended with a treasury of 85 and 0 regions.
+Faction3 ended with a treasury of 35 and 0 regions.
 Faction1 ended with a treasury of 13 and 0 regions.
 
 ========================================================================
@@ -1268,9 +1345,8 @@ Strategies:
 Simulation Chronicle
 
 On turn 2, Faction1 made its first expansion into M.
-On turn 2, Faction1 seized M, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into L.
 On turn 5, Faction2 made its first expansion into E.
-On turn 8, Faction3 made its first expansion into H.
+On turn 22, Faction3 made its first expansion into F.
 
 Opening Phase
 
@@ -1281,30 +1357,37 @@ By the end of turn 5, Faction3 held the opening treasury lead at 14.
 
 Phase Summaries
 
-Early phase: Faction1 was strongest by the end of turns 1-26, with Faction1 on 744 treasury and 13 regions. 21 successful attacks flipped 9 regions; 9 expansions added 9 new regions; 13 investments improved existing holdings. Faction1 gained 9 regions. Faction3 improved its standing most during the phase.
-Mid phase: Faction1 was strongest by the end of turns 27-53, with Faction1 on 2148 treasury and 13 regions. The board stayed stable with no expansions, investments, or successful attacks.
-Late phase: Faction1 was strongest by the end of turns 54-80, with Faction1 on 3552 treasury and 13 regions. The board stayed stable with no expansions, investments, or successful attacks.
+Early phase: Faction3 was strongest by the end of turns 1-26, with Faction3 on 179 treasury and 13 regions. 32 successful attacks shifted control of 11 regions. 9 expansions added 9 new regions. 13 investments improved existing holdings. Faction3 gained 9 regions.
+Mid phase: Faction3 was strongest by the end of turns 27-53, with Faction3 on 773 treasury and 13 regions. The board stabilized after turn 27 with little territorial change.
+Late phase: Faction3 was strongest by the end of turns 54-80, with Faction3 on 1367 treasury and 13 regions. The board stabilized after turn 54 with little territorial change.
+
+Turning Points
+
+Early collapse: Faction1's capture of M eliminated Faction4's last territorial hold.
+Early collapse: Faction3's capture of M eliminated Faction2's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 opened with 4 claims and grew to 13 regions by the end of the opening phase, held steady at 13 regions through the middle turns, and finished dominant with 13 regions and 3552 treasury.
-Faction2 opened with 5 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 3 with 0 regions and 27 treasury.
-Faction3 opened with 6 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and closed competitive in rank 2 with 0 regions and 40 treasury.
-Faction4 opened with 7 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 14 treasury.
+Faction1 opened with 9 attack attempts and contested neighboring borders immediately, peaked at 5 regions on turn 14 before slipping to 0 regions, and closed on 52 treasury without territory after 9 attacks.
+Faction2 opened with 8 attack attempts and contested neighboring borders immediately, peaked at 2 regions on turn 11 before slipping to 0 regions, and closed on 23 treasury without territory after 8 attacks.
+Faction3 opened with 1 claim and grew to 13 regions by the end of the opening phase, held steady at 13 regions through the middle turns, and finished first with 13 regions, 1367 treasury, and 20 total attacks.
+Faction4 opened with 9 attack attempts and contested neighboring borders immediately, peaked at 2 regions on turn 9 before slipping to 0 regions, and closed on 19 treasury without territory after 9 attacks.
 
 Strategic Interpretation
 
-On this compact 13-region map, early contact came quickly.
-The decisive shift was rival collapse: Faction3, Faction2, and Faction4 finished without territory while Faction1 expanded to 13 regions.
-Faction1 succeeded because it won through repeated border contests, recording 11 attack attempts, finishing with 13 regions, 3552 treasury, and rank 1.
-The closest challenger was Faction3 (economic) at 40 treasury and 0 regions.
+Faction3’s economic approach mattered because it converted an early territorial break into a decisive resource and control lead, so the 13-region ring stopped being contested once Faction2 and Faction4 lost their last holds. The early collapse of the other factions’ final territory removed recovery paths, which meant Faction3 could stabilize its advantage while Faction1 never converted its own capture into any regions. By the midgame and late game, that separation had already locked in, because Faction3 finished 13 regions clear and far ahead in treasury, leaving no structural route back for the runner-up.
+The closest challenger was Faction1 (expansionist) at 52 treasury and 0 regions.
 
 Final Standings
 
-Faction1 finished first with a treasury of 3552 and control of 13 regions.
-Faction3 ended with a treasury of 40 and 0 regions.
-Faction2 ended with a treasury of 27 and 0 regions.
-Faction4 ended with a treasury of 14 and 0 regions.
+Faction3 finished first with a treasury of 1367 and control of 13 regions.
+Faction1 ended with a treasury of 52 and 0 regions.
+Faction2 ended with a treasury of 23 and 0 regions.
+Faction4 ended with a treasury of 19 and 0 regions.
 
 ========================================================================
 
@@ -1322,43 +1405,49 @@ Strategies:
 Simulation Chronicle
 
 On turn 2, Faction2 made its first expansion into M.
-On turn 2, Faction2 seized M, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into E.
 On turn 3, Faction3 made its first expansion into H.
 On turn 3, Faction4 made its first expansion into K.
-On turn 15, Faction1 made its first expansion into L.
+On turn 14, Faction1 made its first expansion into L.
 
 Opening Phase
 
 The strongest early land grab was Faction2's claim of M on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction2 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction1 held the opening treasury lead at 32.
+By the end of turn 5, Faction1 held the opening treasury lead at 23.
 
 Phase Summaries
 
-Early phase: Faction1 was strongest by the end of turns 1-53, with Faction1 on 2287 treasury and 13 regions. 14 successful attacks flipped 11 regions; 9 expansions added 9 new regions; 13 investments improved existing holdings. Faction1 gained 9 regions.
-Mid phase: Faction1 was strongest by the end of turns 54-106, with Faction1 on 5043 treasury and 13 regions. The board stayed stable with no expansions, investments, or successful attacks.
-Late phase: Faction1 was strongest by the end of turns 107-160, with Faction1 on 7851 treasury and 13 regions. The board stayed stable with no expansions, investments, or successful attacks.
+Early phase: Faction1 was strongest by the end of turns 1-53, with Faction1 on 929 treasury and 13 regions. 16 successful attacks shifted control of 11 regions. 9 expansions added 9 new regions. 13 investments improved existing holdings. Faction1 gained 9 regions.
+Mid phase: Faction1 was strongest by the end of turns 54-106, with Faction1 on 2095 treasury and 13 regions. The board stabilized after turn 54 with little territorial change.
+Late phase: Faction1 was strongest by the end of turns 107-160, with Faction1 on 3283 treasury and 13 regions. The board stabilized after turn 107 with little territorial change.
+
+Turning Points
+
+Early collapse: Faction3's capture of M eliminated Faction2's last territorial hold.
+Early collapse: Faction1's capture of M eliminated Faction3's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 opened with 1 claim and grew to 13 regions by the end of the opening phase, held steady at 13 regions through the middle turns, and finished dominant with 13 regions and 7851 treasury.
-Faction2 spent the opening consolidating its start with 5 investments, held steady at 0 regions through the middle turns, and closed competitive in rank 2 with 0 regions and 82 treasury.
-Faction3 spent the opening consolidating its start with 3 investments, held steady at 0 regions through the middle turns, and ended weakened in rank 3 with 0 regions and 16 treasury.
-Faction4 opened with 3 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 1 treasury.
+Faction1 opened with 1 claim and grew to 13 regions by the end of the opening phase, held steady at 13 regions through the middle turns, and finished first with 13 regions, 3283 treasury, and 12 total attacks.
+Faction2 spent the opening consolidating its start with 5 investments, peaked at 3 regions on turn 9 before slipping to 0 regions, and closed on 37 treasury without territory after 1 attacks.
+Faction3 opened with 4 attack attempts and contested neighboring borders immediately, peaked at 3 regions on turn 6 before slipping to 0 regions, and closed on 18 treasury without territory after 4 attacks.
+Faction4 opened with 3 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 3 attacks.
 
 Strategic Interpretation
 
-On this compact 13-region map, early contact came quickly.
-The decisive shift was rival collapse: Faction2, Faction3, and Faction4 finished without territory while Faction1 expanded to 13 regions.
-Faction1 succeeded because it won through repeated border contests, recording 13 attack attempts, finishing with 13 regions, 7851 treasury, and rank 1.
-The closest challenger was Faction2 (balanced) at 82 treasury and 0 regions.
+Faction1’s expansionist push created immediate separation because it gained 9 regions early and finished 13 regions clear, which meant the ring map stopped being contested before any rival could rebuild. The decisive shift came in the opening collapse, because Faction3 removed Faction2’s last hold and then Faction1 removed Faction3’s last hold, which eliminated recovery paths and left Faction1 alone to stabilize control. Faction2’s 37 treasury could not matter because it had no territory left, so the outcome was decided by elimination rather than resource conversion.
+The closest challenger was Faction2 (balanced) at 37 treasury and 0 regions.
 
 Final Standings
 
-Faction1 finished first with a treasury of 7851 and control of 13 regions.
-Faction2 ended with a treasury of 82 and 0 regions.
-Faction3 ended with a treasury of 16 and 0 regions.
+Faction1 finished first with a treasury of 3283 and control of 13 regions.
+Faction2 ended with a treasury of 37 and 0 regions.
+Faction3 ended with a treasury of 18 and 0 regions.
 Faction4 ended with a treasury of 1 and 0 regions.
 
 ========================================================================
@@ -1380,46 +1469,47 @@ On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction4 made its first expansion into M10.
 On turn 2, Faction2 made its first expansion into M4.
 On turn 2, Faction3 made its first expansion into M7.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I4.
-On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I6.
-On turn 3, Faction2 seized I4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into C.
-On turn 3, Faction1 seized I2, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
 
 Opening Phase
 
 The strongest early land grab was Faction2's claim of I4 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction3 held the opening treasury lead at 22.
+By the end of turn 5, Faction4 held the opening treasury lead at 21.
 
 Phase Summaries
 
-Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. 4 investments improved existing holdings.
-Mid phase: Faction1 and Faction2 were strongest by the end of turns 2-3, with Faction1 on 11 treasury and 3 regions. 8 expansions added 8 new regions. Faction1 gained 2 regions.
-Late phase: Faction3 was strongest by the end of turns 4-5, with Faction3 on 22 treasury and 4 regions. 6 successful attacks flipped 1 region; 1 expansion added 1 new region. Faction3 gained 1 region. Faction3 improved its standing most during the phase.
+Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
+Mid phase: Faction1 and Faction2 were strongest by the end of turns 2-3, with Faction1 on 11 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 8 expansions added 8 new regions. Faction1 gained 2 regions.
+Late phase: Faction4 was strongest by the end of turns 4-5, with Faction4 on 21 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 6 successful attacks shifted control of 2 regions. 2 expansions added 2 new regions. Faction2 gained 1 region. Faction4 improved its standing most during the phase.
+
+Turning Points
+
+Late border swing: Faction3's capture of C flipped an important frontline region.
+Late border swing: Faction4's capture of C flipped an important frontline region.
+
+Outcome Type
+
+Outcome type: economic_win.
 
 Faction Trajectories
 
-Faction1 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 4 treasury, and ended weakened in rank 3 with 3 regions and 20 treasury.
-Faction2 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 4 treasury, and ended weakened in rank 4 with 3 regions and 20 treasury.
-Faction3 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 4 treasury, and finished dominant with 4 regions and 22 treasury.
-Faction4 spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 4 treasury, and closed competitive in rank 2 with 3 regions and 21 treasury.
+Faction1 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 3 regions by turn 5, and finished rank 3 on 18 treasury with 3 regions after gaining 13 treasury overall.
+Faction2 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 4 regions by turn 5, and finished rank 4 on 18 treasury with 4 regions after gaining 13 treasury overall.
+Faction3 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 4 regions by turn 5, and finished rank 2 on 19 treasury with 4 regions after gaining 14 treasury overall.
+Faction4 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 3 regions by turn 5, and finished first with 3 regions, 21 treasury, and 2 total attacks.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-The outcome was heavily shaped by early position: Faction3 carried its opening foothold into 4 regions and never surrendered the economic lead for long.
-Faction3 succeeded because it won by compounding income and finishing with 22 treasury, finishing with 4 regions, 22 treasury, and rank 1.
-The closest challenger was Faction4 (opportunist) at 21 treasury and 3 regions.
+Faction4’s opportunist timing mattered because the board stayed contested through most of the game, so the win came down to converting late swings into a small treasury edge rather than holding the most regions. Faction1’s early stabilization and midgame territorial gains did not separate the map enough, which meant Faction3’s and Faction4’s late frontline captures could still reshape the balance. In the end, Faction4’s late strength produced the 21–19 treasury margin even though Faction3 finished with more regions, because economic efficiency outweighed raw territory on this ring map.
+The closest challenger was Faction3 (economic) at 19 treasury and 4 regions.
 
 Final Standings
 
-Faction3 finished first with a treasury of 22 and control of 4 regions.
-Faction4 ended with a treasury of 21 and 3 regions.
-Faction1 ended with a treasury of 20 and 3 regions.
-Faction2 ended with a treasury of 20 and 3 regions.
+Faction4 finished first with a treasury of 21 and control of 3 regions.
+Faction3 ended with a treasury of 19 and 4 regions.
+Faction1 ended with a treasury of 18 and 3 regions.
+Faction2 ended with a treasury of 18 and 4 regions.
 
 ========================================================================
 
@@ -1440,46 +1530,47 @@ On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction3 made its first expansion into M7.
 On turn 2, Faction4 made its first expansion into M10.
 On turn 2, Faction2 made its first expansion into M4.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
-On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I6.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I4.
-On turn 3, Faction4 seized I8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into C.
-On turn 3, Faction2 seized I4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M6.
 
 Opening Phase
 
 The strongest early land grab was Faction4's claim of I8 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction1, Faction2, and Faction4 held the opening treasury lead at 21.
+By the end of turn 5, Faction2 held the opening treasury lead at 19.
 
 Phase Summaries
 
-Early phase: Faction1 and Faction2 were strongest by the end of turns 1-3, with Faction1 on 11 treasury and 3 regions. 8 expansions added 8 new regions; 4 investments improved existing holdings. Faction3 gained 3 regions.
-Mid phase: Faction1 was strongest by the end of turns 4-6, with Faction1 on 29 treasury and 5 regions. 6 successful attacks flipped 5 regions; 4 expansions added 4 new regions. Faction1 gained 2 regions. Faction3 lost 2 regions.
-Late phase: Faction2 was strongest by the end of turns 7-10, with Faction2 on 71 treasury and 7 regions. 8 successful attacks flipped 6 regions. Faction1 gained 2 regions. Faction4 lost 3 regions. Faction2 improved its standing most during the phase.
+Early phase: Faction1 and Faction2 were strongest by the end of turns 1-3, with Faction1 on 11 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 8 expansions added 8 new regions. 4 investments improved existing holdings. Faction1 gained 2 regions.
+Mid phase: Faction2 was strongest by the end of turns 4-6, with Faction2 on 22 treasury and 4 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 6 successful attacks shifted control of 3 regions. 2 expansions added 2 new regions. Faction2 gained 1 region. Faction3 improved its standing most during the phase.
+Late phase: Faction3 was strongest by the end of turns 7-10, with Faction3 on 29 treasury and 4 regions. 11 successful attacks shifted control of 6 regions. 2 expansions added 2 new regions. Faction1 gained 2 regions while Faction4 lost 2 regions. Faction3 improved its standing most during the phase.
+
+Turning Points
+
+Late border swing: Faction2's capture of I8 flipped an important frontline region.
+Mid border swing: Faction1's capture of I6 flipped an important frontline region.
+
+Outcome Type
+
+Outcome type: economic_win.
 
 Faction Trajectories
 
-Faction1 opened with 2 claims and grew to 3 regions by the end of the opening phase, expanded under pressure, growing from 4 regions to 5 regions while keeping attacks active, and closed competitive in rank 2 with 7 regions and 65 treasury.
-Faction2 opened with 2 claims and grew to 3 regions by the end of the opening phase, stayed active mid-game with 2 attack attempts while holding 5 regions, and finished dominant with 7 regions and 71 treasury.
-Faction3 opened with 2 claims and grew to 3 regions by the end of the opening phase, lost ground mid-game, falling from 3 regions to 1 region, and ended weakened in rank 4 with 0 regions and 19 treasury.
-Faction4 opened with 2 claims and grew to 3 regions by the end of the opening phase, stayed active mid-game with 2 attack attempts while holding 5 regions, and ended weakened in rank 3 with 2 regions and 45 treasury.
+Faction1 opened with 2 claims and grew to 3 regions by the end of the opening phase, built steadily past the opening, reaching 5 regions by turn 10, and finished rank 4 on 25 treasury with 5 regions after gaining 20 treasury overall.
+Faction2 opened with 2 claims and grew to 3 regions by the end of the opening phase, built steadily past the opening, reaching 5 regions by turn 10, and finished rank 2 on 28 treasury with 5 regions after gaining 23 treasury overall.
+Faction3 opened with 2 claims and grew to 3 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 10, and finished first with 4 regions, 29 treasury, and 6 total attacks.
+Faction4 opened with 2 claims and grew to 3 regions by the end of the opening phase, peaked at 4 regions on turn 6 before slipping to 2 regions, and finished rank 3 on 26 treasury with 2 regions after gaining 21 treasury overall.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-The outcome was heavily shaped by early position: Faction2 carried its opening foothold into 7 regions and never surrendered the economic lead for long.
-Faction2 succeeded because it won through repeated border contests, recording 6 attack attempts, finishing with 7 regions, 71 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 65 treasury and 7 regions.
+Faction3’s economic approach won because treasury, not territory, decided a board that never fully separated, and the 1-point cash edge outweighed Faction2’s 5-to-4 region lead. After a contested opening and midgame, the late phase mattered most because Faction3 became strongest while the frontline swings between Faction1 and Faction2 kept the map unstable, which prevented any larger empire from converting its extra regions into a decisive finish.
+The closest challenger was Faction2 (balanced) at 28 treasury and 5 regions.
 
 Final Standings
 
-Faction2 finished first with a treasury of 71 and control of 7 regions.
-Faction1 ended with a treasury of 65 and 7 regions.
-Faction4 ended with a treasury of 45 and 2 regions.
-Faction3 ended with a treasury of 19 and 0 regions.
+Faction3 finished first with a treasury of 29 and control of 4 regions.
+Faction2 ended with a treasury of 28 and 5 regions.
+Faction4 ended with a treasury of 26 and 2 regions.
+Faction1 ended with a treasury of 25 and 5 regions.
 
 ========================================================================
 
@@ -1500,46 +1591,47 @@ On turn 2, Faction2 made its first expansion into M4.
 On turn 2, Faction3 made its first expansion into M7.
 On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction4 made its first expansion into M10.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I4.
-On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I6.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
-On turn 3, Faction1 seized I2, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into C.
-On turn 3, Faction2 seized I4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
 
 Opening Phase
 
 The strongest early land grab was Faction1's claim of I2 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction2 and Faction4 held the opening treasury lead at 20.
+By the end of turn 5, Faction3 held the opening treasury lead at 19.
 
 Phase Summaries
 
-Early phase: Faction2 was strongest by the end of turns 1-6, with Faction2 on 27 treasury and 5 regions. 4 successful attacks flipped 3 regions; 12 expansions added 12 new regions; 4 investments improved existing holdings. Faction1 gained 4 regions. Faction4 improved its standing most during the phase.
-Mid phase: Faction2 was strongest by the end of turns 7-13, with Faction2 on 121 treasury and 11 regions. 11 successful attacks flipped 9 regions; 9 expansions added 9 new regions. Faction2 gained 6 regions. Faction1 lost 1 region.
-Late phase: Faction2 was strongest by the end of turns 14-20, with Faction2 on 305 treasury and 18 regions. 12 successful attacks flipped 11 regions; 9 expansions added 9 new regions; 5 investments improved existing holdings. Faction2 gained 7 regions. Faction3 lost 2 regions.
+Early phase: Faction3 was strongest by the end of turns 1-6, with Faction3 on 24 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 5 successful attacks shifted control of 1 region. 10 expansions added 10 new regions. 4 investments improved existing holdings. Faction2 gained 4 regions. Faction3 improved its standing most during the phase.
+Mid phase: Faction1 was strongest by the end of turns 7-13, with Faction1 on 36 treasury and 5 regions. 15 successful attacks shifted control of 9 regions. 4 expansions added 4 new regions. Faction3 gained 4 regions while Faction2 lost 4 regions. Faction1 improved its standing most during the phase.
+Late phase: Faction2 was strongest by the end of turns 14-20, with Faction2 on 25 treasury and 0 regions. 12 successful attacks shifted control of 10 regions. 7 expansions added 7 new regions. Faction1 gained 7 regions while Faction3 lost 2 regions. Faction2 improved its standing most during the phase.
+
+Turning Points
+
+Mid collapse: Faction1's capture of M4 eliminated Faction2's last territorial hold.
+Late border swing: Faction1's capture of I2 flipped an important frontline region.
+
+Outcome Type
+
+Outcome type: economic_win.
 
 Faction Trajectories
 
-Faction1 opened with 4 claims and grew to 4 regions by the end of the opening phase, lost ground mid-game, falling from 4 regions to 3 regions, and ended weakened in rank 4 with 3 regions and 74 treasury.
-Faction2 opened with 2 claims and grew to 5 regions by the end of the opening phase, expanded under pressure, growing from 6 regions to 11 regions while keeping attacks active, and finished dominant with 18 regions and 305 treasury.
-Faction3 opened with 4 claims and grew to 3 regions by the end of the opening phase, used the middle turns to scale economically, adding 26 treasury, and ended weakened in rank 3 with 3 regions and 83 treasury.
-Faction4 opened with 2 claims and grew to 4 regions by the end of the opening phase, expanded under pressure, growing from 4 regions to 6 regions while keeping attacks active, and closed competitive in rank 2 with 10 regions and 141 treasury.
+Faction1 opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 12 regions by turn 20, and finished rank 2 on 22 treasury with 12 regions after gaining 17 treasury overall.
+Faction2 opened with 3 claims and grew to 4 regions by the end of the opening phase, peaked at 4 regions on turn 7 before slipping to 0 regions, and closed on 25 treasury without territory after 4 attacks.
+Faction3 opened with 2 claims and grew to 3 regions by the end of the opening phase, peaked at 8 regions on turn 12 before slipping to 5 regions, and finished rank 4 on 7 treasury with 5 regions after gaining 2 treasury overall.
+Faction4 opened with 2 claims and grew to 3 regions by the end of the opening phase, built steadily past the opening, reaching 8 regions by turn 20, and finished rank 3 on 9 treasury with 8 regions after gaining 4 treasury overall.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-The outcome was heavily shaped by early position: Faction2 carried its opening foothold into 18 regions and never surrendered the economic lead for long.
-Faction2 succeeded because it won through repeated border contests, recording 17 attack attempts, finishing with 18 regions, 305 treasury, and rank 1.
-The closest challenger was Faction4 (opportunist) at 141 treasury and 10 regions.
+Faction2’s balanced approach won because treasury, not territory, decided the result: it finished with 25 against Faction1’s 22 even though Faction1 held 12 regions, so map control never translated into a decisive lead. The board stayed contested through the middle phases, which meant no faction could lock in a territorial break, and Faction1’s midgame capture of M4 and late swing at I2 mattered more for shifting fronts than for creating an income gap. Faction2’s steadier scaling was enough to edge the resource race, while the larger empires failed to convert their regional gains into the treasury margin that actually settled the game.
+The closest challenger was Faction1 (expansionist) at 22 treasury and 12 regions.
 
 Final Standings
 
-Faction2 finished first with a treasury of 305 and control of 18 regions.
-Faction4 ended with a treasury of 141 and 10 regions.
-Faction3 ended with a treasury of 83 and 3 regions.
-Faction1 ended with a treasury of 74 and 3 regions.
+Faction2 finished first with a treasury of 25 and control of 0 regions.
+Faction1 ended with a treasury of 22 and 12 regions.
+Faction4 ended with a treasury of 9 and 8 regions.
+Faction3 ended with a treasury of 7 and 5 regions.
 
 ========================================================================
 
@@ -1560,46 +1652,47 @@ On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction4 made its first expansion into M10.
 On turn 2, Faction3 made its first expansion into M7.
 On turn 2, Faction2 made its first expansion into M4.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
-On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I6.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I4.
-On turn 3, Faction4 seized I8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into C.
-On turn 3, Faction1 seized I2, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M3.
 
 Opening Phase
 
 The strongest early land grab was Faction4's claim of I8 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction2 held the opening treasury lead at 24.
+By the end of turn 5, Faction1 held the opening treasury lead at 19.
 
 Phase Summaries
 
-Early phase: Faction2 was strongest by the end of turns 1-13, with Faction2 on 134 treasury and 12 regions. 15 successful attacks flipped 14 regions; 19 expansions added 19 new regions; 4 investments improved existing holdings. Faction2 gained 8 regions. Faction4 improved its standing most during the phase.
-Mid phase: Faction2 was strongest by the end of turns 14-26, with Faction2 on 500 treasury and 20 regions. 17 successful attacks flipped 10 regions; 3 expansions added 3 new regions; 2 investments improved existing holdings. Faction2 gained 8 regions. Faction3 lost 5 regions.
-Late phase: Faction2 was strongest by the end of turns 27-40, with Faction2 on 1122 treasury and 31 regions. 12 successful attacks flipped 7 regions; 5 expansions added 5 new regions. Faction2 gained 11 regions. Faction4 lost 6 regions.
+Early phase: Faction2 was strongest by the end of turns 1-13, with Faction2 on 29 treasury and 6 regions. 21 successful attacks shifted control of 10 regions. 17 expansions added 17 new regions. 4 investments improved existing holdings. Faction1 gained 7 regions. Faction2 improved its standing most during the phase.
+Mid phase: Faction2 was strongest by the end of turns 14-26, with Faction2 on 17 treasury and 5 regions. 20 successful attacks shifted control of 12 regions. 7 expansions added 7 new regions. 6 investments improved existing holdings. Faction1 gained 7 regions while Faction2 lost 1 region. Faction4 improved its standing most during the phase.
+Late phase: Faction2 was strongest by the end of turns 27-40, with Faction2 on 195 treasury and 18 regions. 25 successful attacks shifted control of 19 regions. 5 expansions added 5 new regions. 9 investments improved existing holdings. Faction2 gained 13 regions while Faction1 lost 10 regions.
+
+Turning Points
+
+Early collapse: Faction3's capture of M8 eliminated Faction4's last territorial hold.
+Late phase break: Faction2 gained 13 regions while Faction1 lost 10 regions.
+
+Outcome Type
+
+Outcome type: midgame_break.
 
 Faction Trajectories
 
-Faction1 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 28 treasury.
-Faction2 opened with 2 claims and grew to 12 regions by the end of the opening phase, expanded under pressure, growing from 13 regions to 20 regions while keeping attacks active, and finished dominant with 31 regions and 1122 treasury.
-Faction3 opened with 9 claims and grew to 5 regions by the end of the opening phase, lost ground mid-game, falling from 4 regions to 0 regions, and ended weakened in rank 3 with 0 regions and 71 treasury.
-Faction4 opened with 3 claims and grew to 6 regions by the end of the opening phase, lost ground mid-game, falling from 7 regions to 6 regions, and closed competitive in rank 2 with 0 regions and 252 treasury.
+Faction1 opened with 2 claims and grew to 7 regions by the end of the opening phase, peaked at 15 regions on turn 25 before slipping to 4 regions, and finished rank 2 on 24 treasury with 4 regions after gaining 19 treasury overall.
+Faction2 opened with 7 claims and grew to 6 regions by the end of the opening phase, built steadily past the opening, reaching 18 regions by turn 40, and finished first with 18 regions, 195 treasury, and 24 total attacks.
+Faction3 opened with 5 claims and grew to 7 regions by the end of the opening phase, peaked at 14 regions on turn 36 before slipping to 11 regions, and finished rank 4 on 1 treasury with 11 regions.
+Faction4 opened with 9 attack attempts and contested neighboring borders immediately, peaked at 7 regions on turn 9 before slipping to 0 regions, and closed on 15 treasury without territory after 10 attacks.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-The decisive shift was rival collapse: Faction4, Faction3, and Faction1 finished without territory while Faction2 expanded to 31 regions.
-Faction2 succeeded because it won through repeated border contests, recording 32 attack attempts, finishing with 31 regions, 1122 treasury, and rank 1.
-The closest challenger was Faction4 (opportunist) at 252 treasury and 0 regions.
+Faction2’s balanced approach mattered because it turned a contested opening into a midgame break, then widened that gap as Faction1’s position unraveled. The late surge, with Faction2 gaining 13 regions while Faction1 lost 10, created the decisive separation on a 37-region ring because the board shifted from competition to collapse rather than remaining evenly split. Faction1’s early expansion was not enough to convert into control, which meant Faction2 could finish with both the larger territory base and the overwhelming treasury edge.
+The closest challenger was Faction1 (expansionist) at 24 treasury and 4 regions.
 
 Final Standings
 
-Faction2 finished first with a treasury of 1122 and control of 31 regions.
-Faction4 ended with a treasury of 252 and 0 regions.
-Faction3 ended with a treasury of 71 and 0 regions.
-Faction1 ended with a treasury of 28 and 0 regions.
+Faction2 finished first with a treasury of 195 and control of 18 regions.
+Faction1 ended with a treasury of 24 and 4 regions.
+Faction4 ended with a treasury of 15 and 0 regions.
+Faction3 ended with a treasury of 1 and 11 regions.
 
 ========================================================================
 
@@ -1620,46 +1713,47 @@ On turn 2, Faction2 made its first expansion into M4.
 On turn 2, Faction3 made its first expansion into M7.
 On turn 2, Faction4 made its first expansion into M10.
 On turn 2, Faction1 made its first expansion into M1.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I4.
-On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I6.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
-On turn 3, Faction3 seized I6, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M9.
-On turn 3, Faction4 seized I8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
 
 Opening Phase
 
-The strongest early land grab was Faction3's claim of I6 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+The strongest early land grab was Faction4's claim of M10 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction2 held the opening treasury lead at 24.
+By the end of turn 5, Faction3 and Faction4 held the opening treasury lead at 19.
 
 Phase Summaries
 
-Early phase: Faction2 was strongest by the end of turns 1-26, with Faction2 on 551 treasury and 21 regions. 29 successful attacks flipped 19 regions; 28 expansions added 28 new regions; 6 investments improved existing holdings. Faction2 gained 17 regions. Faction2 improved its standing most during the phase.
-Mid phase: Faction2 was strongest by the end of turns 27-53, with Faction2 on 2578 treasury and 37 regions. 14 successful attacks flipped 14 regions; 5 expansions added 5 new regions; 17 investments improved existing holdings. Faction2 gained 16 regions. Faction1 lost 11 regions.
-Late phase: Faction2 was strongest by the end of turns 54-80, with Faction2 on 6377 treasury and 37 regions. 14 investments improved existing holdings.
+Early phase: Faction4 was strongest by the end of turns 1-26, with Faction4 on 26 treasury and 14 regions. 47 successful attacks shifted control of 20 regions. 26 expansions added 26 new regions. 10 investments improved existing holdings. Faction4 gained 10 regions.
+Mid phase: Faction4 was strongest by the end of turns 27-53, with Faction4 on 364 treasury and 35 regions. 29 successful attacks shifted control of 23 regions. 7 expansions added 7 new regions. 19 investments improved existing holdings. Faction4 gained 21 regions while Faction3 lost 6 regions.
+Late phase: Faction4 was strongest by the end of turns 54-80, with Faction4 on 1504 treasury and 37 regions. 2 successful attacks shifted control of 2 regions. 8 investments improved existing holdings. Faction4 gained 2 regions while Faction2 lost 2 regions.
+
+Turning Points
+
+Late collapse: Faction4's capture of I1 eliminated Faction2's last territorial hold.
+Mid collapse: Faction2's capture of O3 eliminated Faction1's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 opened with 14 claims and grew to 11 regions by the end of the opening phase, lost ground mid-game, falling from 11 regions to 0 regions, and closed competitive in rank 2 with 0 regions and 505 treasury.
-Faction2 opened with 2 claims and grew to 21 regions by the end of the opening phase, stayed active mid-game with 18 attack attempts while holding 37 regions, and finished dominant with 37 regions and 6377 treasury.
-Faction3 spent the opening consolidating its start with 3 investments, held steady at 0 regions through the middle turns, and ended weakened in rank 3 with 0 regions and 47 treasury.
-Faction4 opened with 3 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 19 treasury.
+Faction1 opened with 8 claims and grew to 5 regions by the end of the opening phase, peaked at 9 regions on turn 17 before slipping to 0 regions, and closed on 16 treasury without territory after 14 attacks.
+Faction2 opened with 8 claims and grew to 5 regions by the end of the opening phase, peaked at 12 regions on turn 38 before slipping to 0 regions, and closed on 199 treasury without territory after 27 attacks.
+Faction3 opened with 8 claims and grew to 6 regions by the end of the opening phase, peaked at 8 regions on turn 22 before slipping to 0 regions, and closed on 118 treasury without territory after 15 attacks.
+Faction4 opened with 2 claims and grew to 14 regions by the end of the opening phase, built steadily past the opening, reaching 37 regions by turn 80, and finished first with 37 regions, 1504 treasury, and 52 total attacks.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-The decisive shift was rival collapse: Faction1, Faction3, and Faction4 finished without territory while Faction2 expanded to 37 regions.
-Faction2 succeeded because it won through repeated border contests, recording 41 attack attempts, finishing with 37 regions, 6377 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 505 treasury and 0 regions.
+Faction4’s opportunist timing mattered because it turned a strong position into full domination by striking when rivals were already weakened, which let it eliminate the last territorial hold of Faction2 and remove any recovery path. The midgame swing was decisive because Faction4’s 21-region gain coincided with Faction3’s losses, which meant the board stopped being contested and became one-sided before the final collapse. While Faction2 and Faction1 each lost their last territory, they could not convert earlier positions into survival because Faction4’s late pressure kept shrinking the map until no opponent remained.
+The closest challenger was Faction2 (balanced) at 199 treasury and 0 regions.
 
 Final Standings
 
-Faction2 finished first with a treasury of 6377 and control of 37 regions.
-Faction1 ended with a treasury of 505 and 0 regions.
-Faction3 ended with a treasury of 47 and 0 regions.
-Faction4 ended with a treasury of 19 and 0 regions.
+Faction4 finished first with a treasury of 1504 and control of 37 regions.
+Faction2 ended with a treasury of 199 and 0 regions.
+Faction3 ended with a treasury of 118 and 0 regions.
+Faction1 ended with a treasury of 16 and 0 regions.
 
 ========================================================================
 
@@ -1680,46 +1774,47 @@ On turn 2, Faction3 made its first expansion into M7.
 On turn 2, Faction1 made its first expansion into M1.
 On turn 2, Faction2 made its first expansion into M4.
 On turn 2, Faction4 made its first expansion into M10.
-On turn 2, Faction3 seized M7, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I6.
-On turn 2, Faction1 seized M1, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
-On turn 2, Faction2 seized M4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I4.
-On turn 2, Faction4 seized M10, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I8.
-On turn 3, Faction1 seized I2, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into C.
-On turn 3, Faction4 seized I8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
 
 Opening Phase
 
 The strongest early land grab was Faction1's claim of I2 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction2 and Faction3 held the opening treasury lead at 21.
+By the end of turn 5, Faction4 held the opening treasury lead at 21.
 
 Phase Summaries
 
-Early phase: Faction3 was strongest by the end of turns 1-53, with Faction3 on 2792 treasury and 37 regions. 45 successful attacks flipped 28 regions; 33 expansions added 33 new regions; 26 investments improved existing holdings. Faction3 gained 33 regions. Faction3 improved its standing most during the phase.
-Mid phase: Faction3 was strongest by the end of turns 54-106, with Faction3 on 10516 treasury and 37 regions. 11 investments improved existing holdings.
-Late phase: Faction3 was strongest by the end of turns 107-160, with Faction3 on 18508 treasury and 37 regions. The board stayed stable with no expansions, investments, or successful attacks.
+Early phase: Faction1 was strongest by the end of turns 1-53, with Faction1 on 418 treasury and 30 regions. 90 successful attacks shifted control of 27 regions. 27 expansions added 27 new regions. 22 investments improved existing holdings. Faction1 gained 26 regions. Faction3 improved its standing most during the phase.
+Mid phase: Faction1 was strongest by the end of turns 54-106, with Faction1 on 2308 treasury and 37 regions. 1 successful attacks shifted control of 1 region. 6 expansions added 6 new regions. 15 investments improved existing holdings. Faction1 gained 7 regions while Faction4 lost 1 region.
+Late phase: Faction1 was strongest by the end of turns 107-160, with Faction1 on 4792 treasury and 37 regions. The board stabilized after turn 107 with little territorial change.
+
+Turning Points
+
+Mid collapse: Faction1's capture of M8 eliminated Faction4's last territorial hold.
+Early collapse: Faction1's capture of M4 eliminated Faction2's last territorial hold.
+
+Outcome Type
+
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Faction1 opened with 13 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and closed competitive in rank 2 with 0 regions and 351 treasury.
-Faction2 spent the opening consolidating its start with 3 investments, held steady at 0 regions through the middle turns, and ended weakened in rank 3 with 0 regions and 57 treasury.
-Faction3 opened with 8 claims and grew to 37 regions by the end of the opening phase, held steady at 37 regions through the middle turns, and finished dominant with 37 regions and 18508 treasury.
-Faction4 opened with 6 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and ended weakened in rank 4 with 0 regions and 27 treasury.
+Faction1 opened with 6 claims and grew to 30 regions by the end of the opening phase, built steadily past the opening, reaching 37 regions by turn 160, and finished first with 37 regions, 4792 treasury, and 47 total attacks.
+Faction2 spent the opening consolidating its start with 9 investments, peaked at 10 regions on turn 18 before slipping to 0 regions, and closed on 14 treasury without territory after 10 attacks.
+Faction3 opened with 29 attack attempts and contested neighboring borders immediately, peaked at 12 regions on turn 28 before slipping to 0 regions, and closed on 49 treasury without territory after 29 attacks.
+Faction4 opened with 47 attack attempts and contested neighboring borders immediately, peaked at 7 regions on turn 35 before slipping to 0 regions, and closed on 1 treasury without territory after 47 attacks.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-The decisive shift was rival collapse: Faction1, Faction2, and Faction4 finished without territory while Faction3 expanded to 37 regions.
-Faction3 succeeded because it won through repeated border contests, recording 35 attack attempts, finishing with 37 regions, 18508 treasury, and rank 1.
-The closest challenger was Faction1 (expansionist) at 351 treasury and 0 regions.
+Faction1’s expansionist push created early separation because it gained 26 regions and was already 30 regions clear in the opening phase, which meant the board stopped being contestable before rivals could build a counterweight. The midgame then converted that lead into full domination because Faction1 eliminated Faction2’s and Faction4’s last territorial holds, which removed the only paths to recovery and left territorial control stabilized. Faction3’s 49-treasury finish could not matter because it had 0 regions, so the result was decided by elimination and map control rather than resources.
+The closest challenger was Faction3 (economic) at 49 treasury and 0 regions.
 
 Final Standings
 
-Faction3 finished first with a treasury of 18508 and control of 37 regions.
-Faction1 ended with a treasury of 351 and 0 regions.
-Faction2 ended with a treasury of 57 and 0 regions.
-Faction4 ended with a treasury of 27 and 0 regions.
+Faction1 finished first with a treasury of 4792 and control of 37 regions.
+Faction3 ended with a treasury of 49 and 0 regions.
+Faction2 ended with a treasury of 14 and 0 regions.
+Faction4 ended with a treasury of 1 and 0 regions.
 
 ========================================================================
 

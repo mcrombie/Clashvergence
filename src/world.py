@@ -18,4 +18,4 @@ def create_world(map_name="seven_region_ring", num_factions=4) -> WorldState:
 
     factions = create_factions(num_factions=num_factions)
 
-    return WorldState(regions=regions, factions=factions)
+    return WorldState(regions=regions, factions=factions, map_name=map_name)

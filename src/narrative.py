@@ -1,3 +1,4 @@
+from src.ai_interpretation import generate_ai_interpretation
 from src.event_analysis import (
     build_initial_opening_state,
     ensure_event_importance_scores,
@@ -1276,6 +1277,75 @@ def build_causal_chain(world, winner, outcome_type, phase_analyses):
     return sentence_case(line)
 
 
+def build_ai_phase_summary(analysis):
+    """Returns one compact phase summary string for the AI payload."""
+    if analysis is None:
+        return None
+
+    leader = analysis["rankings"][0][0]
+    gain_name = analysis["biggest_gain"]
+    gain_value = analysis["region_deltas"][gain_name]
+    loss_name = analysis["biggest_loss"]
+    loss_value = analysis["region_deltas"][loss_name]
+    parts = [f"{leader} strongest"]
+
+    if analysis["stable_board"]:
+        parts.append("territorial control stabilized")
+    elif analysis["close_contest"]:
+        parts.append("the board remained contested")
+    elif analysis["lead_region_margin"] >= 3:
+        parts.append(
+            f"{leader} finished {format_count_noun(analysis['lead_region_margin'], 'region')} clear"
+        )
+
+    if gain_value > 0:
+        shift_text = f"{gain_name} gained {format_count_noun(gain_value, 'region')}"
+        if loss_value < 0:
+            shift_text += (
+                f" while {loss_name} lost {format_count_noun(abs(loss_value), 'region')}"
+            )
+        parts.append(shift_text)
+
+    return "; ".join(parts) + "."
+
+
+def build_ai_interpretation_summary(world, phase_analyses, standings, outcome_type):
+    """Builds the compact structured payload sent to the AI layer."""
+    winner = standings[0]["faction"]
+    runner_up = standings[1] if len(standings) > 1 else None
+    turning_points = summarize_turning_points(world, phase_analyses)
+
+    summary = {
+        "map": getattr(world, "map_name", "") or "unknown_map",
+        "turns": len(world.metrics),
+        "outcome_type": outcome_type,
+        "winner": winner,
+        "winner_strategy": world.factions[winner].strategy,
+        "turning_points": turning_points[:2],
+        "phase_summary": {
+            "early": build_ai_phase_summary(phase_analyses[0] if len(phase_analyses) > 0 else None),
+            "mid": build_ai_phase_summary(phase_analyses[1] if len(phase_analyses) > 1 else None),
+            "late": build_ai_phase_summary(phase_analyses[2] if len(phase_analyses) > 2 else None),
+        },
+        "final_margin": {
+            "winner_treasury": standings[0]["treasury"],
+            "winner_regions": standings[0]["owned_regions"],
+            "runner_up": runner_up["faction"] if runner_up is not None else None,
+            "runner_up_treasury": runner_up["treasury"] if runner_up is not None else None,
+            "runner_up_regions": runner_up["owned_regions"] if runner_up is not None else None,
+            "treasury_margin": (
+                standings[0]["treasury"] - runner_up["treasury"]
+                if runner_up is not None else None
+            ),
+            "region_margin": (
+                standings[0]["owned_regions"] - runner_up["owned_regions"]
+                if runner_up is not None else None
+            ),
+        },
+    }
+    return summary
+
+
 def summarize_strategic_interpretation(world):
     """Returns a short interpretation of why the simulation ended as it did."""
     standings = get_final_standings(world)
@@ -1293,6 +1363,30 @@ def summarize_strategic_interpretation(world):
     mid_analysis = phase_analyses[1] if len(phase_analyses) > 1 else None
     late_analysis = phase_analyses[2] if len(phase_analyses) > 2 else None
     causal_chain = build_causal_chain(world, winner, outcome_type, phase_analyses)
+    ai_summary = build_ai_interpretation_summary(
+        world=world,
+        phase_analyses=phase_analyses,
+        standings=standings,
+        outcome_type=outcome_type,
+    )
+    ai_paragraph = generate_ai_interpretation(ai_summary)
+
+    if ai_paragraph is not None:
+        lines = [ai_paragraph]
+        standings_by_strategy = [
+            f"{standing['faction']} ({world.factions[standing['faction']].strategy})"
+            for standing in standings[: min(2, len(standings))]
+        ]
+        if runner_up is not None:
+            lines.append(
+                f"The closest challenger was {runner_up['faction']} ({world.factions[runner_up['faction']].strategy}) at "
+                f"{runner_up['treasury']} treasury and {format_count_noun(runner_up['owned_regions'], 'region')}."
+            )
+        else:
+            lines.append(
+                f"The strongest finishing strategy in this run was {standings_by_strategy[0]}."
+            )
+        return lines
 
     lines = []
     lines.append(get_map_structure_comment(world) + ".")
