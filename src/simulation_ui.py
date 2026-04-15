@@ -7,7 +7,6 @@ from pathlib import Path
 
 from src.event_analysis import (
     get_final_standings,
-    get_opening_phase_summary,
 )
 from src.factions import create_factions
 from src.map_visualization import (
@@ -22,7 +21,6 @@ from src.map_visualization import (
 from src.maps import MAPS
 from src.metrics import get_turn_metrics
 from src.narrative import (
-    get_faction_trajectory_sentence,
     get_phase_ranges,
     summarize_final_standings,
     summarize_phases,
@@ -213,7 +211,6 @@ def build_simulation_view_model(world):
         ]
     snapshots = build_simulation_snapshots(world)
     final_standings = get_final_standings(world)
-    opening_summary = get_opening_phase_summary(world)
     phase_ranges = get_phase_ranges(world.turn)
     _phase_analyses, phase_summary_lines = summarize_phases(world)
     phase_summaries = [
@@ -226,38 +223,14 @@ def build_simulation_view_model(world):
         for (phase_name, start_turn, end_turn), summary_line in zip(phase_ranges, phase_summary_lines)
     ]
 
-    factions = []
-    for faction_name in sorted(world.factions, key=natural_sort_key):
-        faction = world.factions[faction_name]
-        metrics_history = []
-        for snapshot in world.metrics:
-            faction_metrics = snapshot["factions"][faction_name]
-            metrics_history.append({
-                "turn": snapshot["turn"],
-                "treasury": faction_metrics["treasury"],
-                "regions": faction_metrics["regions"],
-                "net_income": faction_metrics["net_income"],
-                "attacks": faction_metrics["attacks"],
-                "expansions": faction_metrics["expansions"],
-                "investments": faction_metrics["investments"],
-            })
-
-        factions.append({
+    factions = [
+        {
             "name": faction_name,
-            "strategy": faction.strategy,
+            "strategy": world.factions[faction_name].strategy,
             "color": get_faction_color(faction_name),
-            "final_treasury": faction.treasury,
-            "final_regions": next(
-                (
-                    entry["owned_regions"]
-                    for entry in final_standings
-                    if entry["faction"] == faction_name
-                ),
-                0,
-            ),
-            "history": metrics_history,
-            "trajectory": get_faction_trajectory_sentence(world, faction_name),
-        })
+        }
+        for faction_name in sorted(world.factions, key=natural_sort_key)
+    ]
 
     atlas_region_names = (
         sorted(atlas_geometry, key=_atlas_region_sort_key)
@@ -297,7 +270,6 @@ def build_simulation_view_model(world):
         "edges": edges,
         "factions": factions,
         "snapshots": snapshots,
-        "opening_summary": opening_summary,
         "phase_summaries": phase_summaries,
         "narrative_summary": {
             "strategic": summarize_strategic_interpretation(world),
@@ -320,7 +292,7 @@ def render_simulation_html(world):
   <title>{html.escape(world.map_name)} Simulation Viewer</title>
   <style>
     :root {{
-      --bg: #f7f1e4;
+      --bg: #080909;
       --panel: rgba(255, 251, 245, 0.88);
       --panel-strong: #fffdf8;
       --ink: #1f2933;
@@ -338,19 +310,13 @@ def render_simulation_html(world):
       font-family: Georgia, "Times New Roman", serif;
       color: var(--ink);
       background:
-        radial-gradient(circle at top, rgba(255,255,255,0.72), transparent 36%),
-        linear-gradient(180deg, #efe2c7 0%, #f7f1e4 46%, #efe7d7 100%);
+        radial-gradient(circle at top, rgba(48, 89, 122, 0.18), transparent 34%),
+        linear-gradient(180deg, #0b0d10 0%, #080909 52%, #050606 100%);
     }}
     .page {{
       max-width: 1440px;
       margin: 0 auto;
       padding: 28px;
-    }}
-    .hero {{
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
-      gap: 18px;
-      margin-bottom: 22px;
     }}
     .panel {{
       background: var(--panel);
@@ -373,8 +339,8 @@ def render_simulation_html(world):
     }}
     h1 {{
       margin: 14px 0 8px;
-      font-size: clamp(2.2rem, 5vw, 4rem);
-      line-height: 0.96;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.02;
     }}
     .lede {{
       margin: 0;
@@ -383,41 +349,82 @@ def render_simulation_html(world):
       line-height: 1.6;
       max-width: 70ch;
     }}
-    .hero-stats {{
+    .hero-meta {{
+      margin-top: 18px;
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      align-content: start;
+      grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+      gap: 20px;
+      align-items: start;
     }}
-    .stat {{
-      background: rgba(255,255,255,0.58);
-      border: 1px solid rgba(32, 78, 74, 0.08);
+    .hero-subpanel {{
+      background: rgba(255,255,255,0.52);
+      border: 1px solid rgba(63, 74, 89, 0.08);
       border-radius: 18px;
-      padding: 16px;
+      padding: 16px 18px;
     }}
-    .stat-label {{
+    .overview-copy {{
+      margin: 0;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 0.98rem;
+      line-height: 1.7;
+      max-width: 68ch;
+    }}
+    .settings-block {{
+      justify-self: stretch;
+      text-align: left;
+      min-width: 220px;
+    }}
+    .settings-list {{
+      margin: 10px 0 0;
+      display: grid;
+      gap: 8px;
+    }}
+    .setting-row {{
+      display: grid;
+      gap: 2px;
+    }}
+    .setting-label {{
+      color: var(--muted);
+      font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }}
-    .stat-value {{
-      margin-top: 8px;
-      font-size: 1.85rem;
-      font-weight: 700;
+    .setting-value {{
+      font-size: 0.98rem;
+      font-weight: 600;
+      color: var(--ink);
     }}
     .layout {{
-      display: grid;
-      grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.95fr);
-      gap: 22px;
-    }}
-    .stack {{
       display: grid;
       gap: 22px;
     }}
     .section-title {{
       margin: 0 0 14px;
       font-size: 1.15rem;
+    }}
+    .playback-layout {{
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.62fr);
+      gap: 18px;
+      align-items: start;
+    }}
+    .map-stage {{
+      min-width: 0;
+    }}
+    .side-rail {{
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }}
+    .side-section {{
+      background: rgba(255,255,255,0.46);
+      border: 1px solid rgba(63, 74, 89, 0.08);
+      border-radius: 20px;
+      padding: 16px;
+    }}
+    .side-title {{
+      margin: 0 0 10px;
+      font-size: 0.95rem;
     }}
     .map-shell {{
       position: relative;
@@ -484,7 +491,7 @@ def render_simulation_html(world):
       stroke-width: 2;
     }}
     .atlas-water {{
-      fill: rgba(170, 207, 202, 0.18);
+      fill: rgba(24, 73, 122, 0.34);
     }}
     .atlas-landmass {{
       fill: rgba(219, 212, 188, 0.45);
@@ -568,6 +575,16 @@ def render_simulation_html(world):
       display: grid;
       gap: 12px;
     }}
+    .settings-label {{
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }}
+    .panel-hidden {{
+      display: none;
+    }}
     .summary-card {{
       background: rgba(255,255,255,0.56);
       border: 1px solid rgba(63, 74, 89, 0.08);
@@ -609,6 +626,18 @@ def render_simulation_html(world):
       background: rgba(255,255,255,0.56);
       border: 1px solid rgba(63, 74, 89, 0.08);
     }}
+    .standings-bar {{
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }}
+    .standing-item.bar {{
+      padding: 12px 14px;
+      gap: 4px;
+      border-radius: 16px;
+      min-width: 0;
+    }}
     .standing-row {{
       display: flex;
       justify-content: space-between;
@@ -619,41 +648,11 @@ def render_simulation_html(world):
       color: var(--muted);
       font-size: 0.9rem;
     }}
-    .faction-grid {{
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }}
-    .faction-card {{
-      border-radius: 20px;
-      padding: 16px;
-      color: #18222f;
-      background: linear-gradient(180deg, rgba(255,255,255,0.84), rgba(255,255,255,0.58));
-      border: 1px solid rgba(63, 74, 89, 0.08);
-    }}
-    .faction-name {{
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 10px;
-    }}
     .pill {{
       padding: 4px 9px;
       border-radius: 999px;
       font-size: 12px;
       background: rgba(0,0,0,0.05);
-    }}
-    .chart {{
-      width: 100%;
-      height: 68px;
-      margin: 10px 0 8px;
-    }}
-    .chart path, .chart polyline {{
-      fill: none;
-      stroke-width: 3;
-      stroke-linecap: round;
-      stroke-linejoin: round;
     }}
     .mini-stats {{
       display: flex;
@@ -663,18 +662,26 @@ def render_simulation_html(world):
       font-size: 0.9rem;
     }}
     @media (max-width: 1100px) {{
-      .hero,
-      .layout {{
+      .playback-layout {{
         grid-template-columns: 1fr;
+      }}
+      .standings-bar,
+      .hero-meta {{
+        grid-template-columns: 1fr;
+      }}
+      .settings-block {{
+        justify-self: start;
+        text-align: left;
       }}
     }}
     @media (max-width: 720px) {{
       .page {{
         padding: 16px;
       }}
-      .summary-grid,
-      .faction-grid,
-      .hero-stats {{
+      .hero-meta {{
+        grid-template-columns: 1fr;
+      }}
+      .standings-bar {{
         grid-template-columns: 1fr;
       }}
       h1 {{
@@ -685,90 +692,85 @@ def render_simulation_html(world):
 </head>
 <body>
   <div class="page">
-    <section class="hero">
+    <section class="layout">
       <div class="panel">
         <span class="eyebrow">Simulation Viewer</span>
-        <h1>{html.escape(world.map_name.replace("_", " ").title())}</h1>
-        <p class="lede">{html.escape(MAPS[world.map_name]["description"])}</p>
-      </div>
-      <div class="hero-stats">
-        <div class="stat">
-          <div class="stat-label">Turns</div>
-          <div class="stat-value">{world.turn}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Regions</div>
-          <div class="stat-value">{len(world.regions)}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Factions</div>
-          <div class="stat-value">{len(world.factions)}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Events</div>
-          <div class="stat-value">{len(world.events)}</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="layout">
-      <div class="stack">
-        <div class="panel">
-          <h2 class="section-title">Map Playback</h2>
-          <div class="controls">
-            <div class="transport">
-              <button type="button" id="play-toggle">Play</button>
-              <button type="button" class="secondary" id="prev-turn">Prev</button>
-              <button type="button" class="secondary" id="next-turn">Next</button>
-              <div class="turn-readout" id="turn-readout">Turn 0 of 0</div>
+        <h1>Clashvergence</h1>
+        <div class="hero-meta">
+          <div class="hero-subpanel">
+            <p class="settings-label">Overview</p>
+            <p class="overview-copy">This simulation is meant to replicate the way human nations clash and converge across time and space, with geography, expansion pressure, and strategic tradeoffs shaping how power rises, collides, and settles.</p>
+          </div>
+          <div class="hero-subpanel settings-block">
+            <p class="settings-label">Simulation Settings</p>
+            <div class="settings-list">
+              <div class="setting-row">
+                <div class="setting-label">Map</div>
+                <div class="setting-value">{html.escape(world.map_name.replace("_", " ").title())}</div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label">Turns</div>
+                <div class="setting-value">{world.turn}</div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label">Regions</div>
+                <div class="setting-value">{len(world.regions)}</div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label">Factions</div>
+                <div class="setting-value">{len(world.factions)}</div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label">Events</div>
+                <div class="setting-value">{len(world.events)}</div>
+              </div>
             </div>
-            <div class="view-toggle" id="view-toggle"></div>
-            <input id="turn-slider" type="range" min="0" max="0" value="0">
           </div>
-          <div class="map-shell">
-            <svg id="simulation-map" viewBox="0 0 900 900" role="img" aria-label="Simulation map">
-              <g id="atlas-background-layer" class="map-layer"></g>
-              <g id="atlas-layer" class="map-layer"></g>
-              <g id="atlas-label-layer" class="map-layer"></g>
-              <g id="graph-layer" class="map-layer">
-                <g id="edge-layer"></g>
-                <g id="region-layer"></g>
-                <g id="label-layer"></g>
-              </g>
-            </svg>
-          </div>
-          <div class="legend" id="legend"></div>
         </div>
 
-        <div class="panel">
-          <h2 class="section-title">Opening Snapshot</h2>
-          <div class="summary-grid" id="opening-summary"></div>
+        <h2 class="section-title">Map Playback</h2>
+        <div class="controls">
+          <div class="transport">
+            <button type="button" id="play-toggle">Play</button>
+            <button type="button" class="secondary" id="prev-turn">Prev</button>
+            <button type="button" class="secondary" id="next-turn">Next</button>
+            <div class="turn-readout" id="turn-readout">Turn 0 of 0</div>
+          </div>
+          <div class="view-toggle" id="view-toggle"></div>
+          <input id="turn-slider" type="range" min="0" max="0" value="0">
         </div>
-
-        <div class="panel">
-          <h2 class="section-title">Faction Outlook</h2>
-          <div class="faction-grid" id="faction-grid"></div>
+        <div class="playback-layout">
+          <div class="map-stage">
+            <div class="map-shell">
+              <svg id="simulation-map" viewBox="0 0 900 900" role="img" aria-label="Simulation map">
+                <g id="atlas-background-layer" class="map-layer"></g>
+                <g id="atlas-layer" class="map-layer"></g>
+                <g id="atlas-label-layer" class="map-layer"></g>
+                <g id="graph-layer" class="map-layer">
+                  <g id="edge-layer"></g>
+                  <g id="region-layer"></g>
+                  <g id="label-layer"></g>
+                </g>
+              </svg>
+            </div>
+            <div class="legend" id="legend"></div>
+          </div>
+          <aside class="side-rail">
+            <section class="side-section">
+              <h3 class="side-title">Current Turn</h3>
+              <div class="summary-stack">
+                <article class="summary-card" id="turn-context"></article>
+                <div class="list" id="turn-events"></div>
+              </div>
+            </section>
+          </aside>
         </div>
+        <div class="standings-bar" id="standings"></div>
       </div>
 
-      <div class="stack">
-        <div class="panel">
-          <h2 class="section-title">Standings</h2>
-          <div class="list" id="standings"></div>
-        </div>
-
-        <div class="panel">
-          <h2 class="section-title">Playback Summary</h2>
-          <div class="summary-stack">
-            <article class="summary-card" id="turn-context"></article>
-            <div class="list" id="turn-events"></div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h2 class="section-title">Run Summary</h2>
-          <div class="summary-stack" id="run-summary"></div>
-        </div>
+      <div class="panel panel-hidden" id="run-summary-panel">
+        <h2 class="section-title">Run Summary</h2>
+        <div class="summary-stack" id="run-summary"></div>
       </div>
     </section>
   </div>
@@ -800,9 +802,8 @@ def render_simulation_html(world):
     const standings = document.getElementById("standings");
     const turnContext = document.getElementById("turn-context");
     const turnEvents = document.getElementById("turn-events");
-    const openingSummary = document.getElementById("opening-summary");
+    const runSummaryPanel = document.getElementById("run-summary-panel");
     const runSummary = document.getElementById("run-summary");
-    const factionGrid = document.getElementById("faction-grid");
 
     const colorByFaction = Object.fromEntries(data.factions.map((faction) => [faction.name, faction.color]));
 
@@ -960,82 +961,18 @@ def render_simulation_html(world):
       legend.innerHTML = items.join("");
     }}
 
-    function buildSparkline(points, width, height) {{
-      if (!points.length) {{
-        return "";
-      }}
-      const min = Math.min(...points);
-      const max = Math.max(...points);
-      const range = Math.max(max - min, 1);
-      return points.map((value, index) => {{
-        const x = points.length === 1 ? width / 2 : (index / (points.length - 1)) * width;
-        const y = height - (((value - min) / range) * (height - 8)) - 4;
-        return `${{x.toFixed(1)}},${{y.toFixed(1)}}`;
-      }}).join(" ");
-    }}
-
-    function renderFactionCards() {{
-      factionGrid.innerHTML = data.factions.map((faction) => {{
-        const treasuryPoints = faction.history.map((entry) => entry.treasury);
-        const treasuryPath = buildSparkline(treasuryPoints, 280, 68);
-        return `
-          <article class="faction-card">
-            <div class="faction-name">
-              <strong>${{escapeHtml(faction.name)}}</strong>
-              <span class="pill">${{escapeHtml(faction.strategy)}}</span>
-            </div>
-            <div class="mini-stats">
-              <span>Treasury $${{faction.final_treasury}}</span>
-              <span>Regions ${{faction.final_regions}}</span>
-            </div>
-            <svg class="chart" viewBox="0 0 280 68" aria-label="${{escapeHtml(faction.name)}} treasury chart">
-              <polyline points="${{treasuryPath}}" stroke="${{faction.color}}" opacity="0.95"></polyline>
-            </svg>
-            <p class="summary-copy">${{escapeHtml(faction.trajectory)}}</p>
-          </article>
-        `;
-      }}).join("");
-    }}
-
-    function renderOpeningSummary() {{
-      const opening = data.opening_summary;
-      const claim = opening.highest_scoring_claim;
-      const leaders = opening.expansion_leaders.leaders.join(", ") || "None";
-      const investors = opening.investment_leaders.leaders.join(", ") || "None";
-      const treasuryLeaders = opening.treasury_leaders.leaders.join(", ") || "None";
-      const claimText = claim
-        ? `${{escapeHtml(claim.faction)}} took ${{escapeHtml(claim.region)}} on turn ${{claim.turn + 1}}.`
-        : "No opening claim recorded.";
-
-      openingSummary.innerHTML = `
-        <article class="summary-card">
-          <strong>Best Opening Claim</strong>
-          <p>${{claimText}}</p>
-        </article>
-        <article class="summary-card">
-          <strong>Opening Pace</strong>
-          <p>${{escapeHtml(leaders)}} led the first ${{opening.expansion_leaders.turns}} turns with ${{opening.expansion_leaders.count}} claim(s), while ${{escapeHtml(investors)}} invested most often.</p>
-        </article>
-        <article class="summary-card">
-          <strong>Treasury Edge</strong>
-          <p>${{escapeHtml(treasuryLeaders)}} held the opening treasury lead at $${{opening.treasury_leaders.treasury}}.</p>
-        </article>
-      `;
-    }}
-
-    function getPhaseSummary(turn) {{
-      const completedTurn = Math.max(1, turn);
-      return data.phase_summaries.find((phase) =>
-        completedTurn >= phase.start_turn && completedTurn <= phase.end_turn
-      ) || data.phase_summaries[0] || null;
-    }}
-
     function renderRunSummary() {{
       const strategic = data.narrative_summary.strategic || [];
       const victor = data.narrative_summary.victor || [];
       const finalLines = data.narrative_summary.final || [];
 
       runSummary.innerHTML = `
+        <article class="summary-card">
+          <strong>Phase Arc</strong>
+          <ul class="summary-list">
+            ${{data.phase_summaries.map((phase) => `<li><strong>${{escapeHtml(phase.name)}}:</strong> ${{escapeHtml(phase.summary)}}</li>`).join("")}}
+          </ul>
+        </article>
         <article class="summary-card">
           <strong>Strategic Read</strong>
           <p class="summary-copy">${{escapeHtml(strategic[0] || "No strategic interpretation available.")}}</p>
@@ -1053,26 +990,36 @@ def render_simulation_html(world):
       `;
     }}
 
+    function syncRunSummaryVisibility(turn) {{
+      runSummaryPanel.classList.toggle("panel-hidden", turn < data.turns);
+    }}
+
     function renderTurnContext(turn, snapshot) {{
-      const phase = getPhaseSummary(turn);
-      const phaseLabel = phase ? `${{phase.name}} Phase` : "Run Context";
-      const phaseTurns = phase ? `Turns ${{phase.start_turn}}-${{phase.end_turn}}` : "";
       const eventCount = snapshot.events.length;
+      const contestedCount = snapshot.contested_regions.length;
+      const changedCount = snapshot.changed_regions.length;
+      const leader = snapshot.standings[0];
+      const leaderText = leader
+        ? `${{leader.faction}} leads on $${{leader.treasury}} with ${{leader.owned_regions}} region${{leader.owned_regions === 1 ? "" : "s"}}.`
+        : "No leader yet.";
+      const contextText = turn === 0
+        ? "Initial setup before any faction has acted."
+        : leaderText;
 
       turnContext.innerHTML = `
-        <strong>${{phaseLabel}}</strong>
-        <p class="summary-copy">${{escapeHtml(phase?.summary || "No phase summary available.")}}</p>
+        <strong>${{turn === 0 ? "Initial State" : `Turn ${{turn}} Snapshot`}}</strong>
+        <p class="summary-copy">${{escapeHtml(contextText)}}</p>
         <div class="mini-stats">
-          <span>${{phaseTurns}}</span>
           <span>${{eventCount}} event${{eventCount === 1 ? "" : "s"}} on this turn</span>
-          <span>${{snapshot.changed_regions.length}} region${{snapshot.changed_regions.length === 1 ? "" : "s"}} changed</span>
+          <span>${{changedCount}} region${{changedCount === 1 ? "" : "s"}} changed</span>
+          <span>${{contestedCount}} contested region${{contestedCount === 1 ? "" : "s"}}</span>
         </div>
       `;
     }}
 
     function renderStandings(snapshot) {{
       standings.innerHTML = snapshot.standings.map((entry, index) => `
-        <article class="standing-item">
+        <article class="standing-item bar">
           <div class="standing-row">
             <strong>#${{index + 1}} ${{escapeHtml(entry.faction)}}</strong>
             <span class="pill" style="background:${{colorByFaction[entry.faction]}}22;">${{escapeHtml(data.factions.find((faction) => faction.name === entry.faction).strategy)}}</span>
@@ -1139,6 +1086,7 @@ def render_simulation_html(world):
       const snapshot = data.snapshots[turn];
       slider.value = String(turn);
       readout.textContent = `Turn ${{turn}} of ${{data.turns}}`;
+      syncRunSummaryVisibility(turn);
       updateMap(snapshot);
       renderStandings(snapshot);
       renderTurnContext(turn, snapshot);
@@ -1194,8 +1142,6 @@ def render_simulation_html(world):
     buildStaticMap();
     renderLegend();
     renderViewToggle();
-    renderFactionCards();
-    renderOpeningSummary();
     renderRunSummary();
     renderTurn(0);
   </script>

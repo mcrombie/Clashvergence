@@ -3,7 +3,7 @@ Detailed Simulation Results
 Simulation Setup
 
 Map: thirty_seven_region_ring
-Turns: 20
+Turns: 5
 Regions: 37
 Factions: 4
 Faction Strategies:
@@ -14,141 +14,82 @@ Faction Strategies:
 
 Simulation Chronicle
 
-On turn 2, Faction1 made its first expansion into M1.
-On turn 2, Faction4 made its first expansion into M10.
-On turn 2, Faction2 made its first expansion into M4.
 On turn 2, Faction3 made its first expansion into M7.
-On turn 3, Faction3 seized I6, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
-On turn 3, Faction4 seized I8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into C.
-On turn 3, Faction1 seized I2, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
+On turn 2, Faction2 made its first expansion into M4.
+On turn 2, Faction4 made its first expansion into M10.
+On turn 2, Faction1 made its first expansion into M1.
+On turn 5, Faction3 seized M9, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
 
 Opening Phase
 
 The strongest early land grab was Faction3's claim of I6 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
 Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction1 held the opening treasury lead at 19.
+By the end of turn 5, Faction1 and Faction4 held the opening treasury lead at 19.
 
 Phase Summaries
 
-Early phase: Faction1 was strongest by the end of turns 1-6, with Faction1 on 24 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 4 successful attacks shifted control of 1 region. 12 expansions added 12 new regions. 4 investments improved existing holdings. Faction2 gained 4 regions. Faction4 improved its standing most during the phase.
-Mid phase: Faction1 was strongest by the end of turns 7-13, with Faction1 on 24 treasury and 9 regions. 16 successful attacks shifted control of 9 regions. 6 expansions added 6 new regions. 1 investment improved existing holdings. Faction1 gained 6 regions while Faction2 lost 4 regions.
-Late phase: Faction2 was strongest by the end of turns 14-20, with Faction2 on 45 treasury and 8 regions. 20 successful attacks shifted control of 13 regions. 4 expansions added 4 new regions. 2 investments improved existing holdings. Faction2 gained 7 regions while Faction3 lost 3 regions.
+Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
+Mid phase: Faction1 and Faction2 were strongest by the end of turns 2-3, with Faction1 on 11 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 8 expansions added 8 new regions. Faction1 gained 2 regions.
+Late phase: Faction4 and Faction1 were strongest by the end of turns 4-5, with Faction4 on 19 treasury and 4 regions. 5 successful attacks shifted control of 3 regions. 2 expansions added 2 new regions. Faction2 gained 2 regions while Faction3 lost 1 region. Faction4 improved its standing most during the phase.
 
 Turning Points
 
-Late phase break: Faction2 gained 7 regions while Faction3 lost 3 regions.
-Early phase break: Faction2 gained 4 regions and opened the clearest territorial swing of the run.
+Mid leader change: Faction3 took the treasury lead.
+Late leader change: Faction3 took the treasury lead.
 
 Outcome Type
 
-Outcome type: late_snowball.
+Outcome type: economic_win.
 
 Faction Trajectories
 
-Faction1 opened with 2 claims and grew to 3 regions by the end of the opening phase, peaked at 10 regions on turn 16 before slipping to 8 regions, and finished rank 4 on 2 treasury with 8 regions.
-Faction2 opened with 4 claims and grew to 5 regions by the end of the opening phase, built steadily past the opening, reaching 8 regions by turn 20, and finished first with 8 regions, 45 treasury, and 10 total attacks.
-Faction3 opened with 3 claims and grew to 4 regions by the end of the opening phase, peaked at 7 regions on turn 12 before slipping to 4 regions, and finished rank 2 on 15 treasury with 4 regions after gaining 10 treasury overall.
-Faction4 opened with 3 claims and grew to 4 regions by the end of the opening phase, peaked at 8 regions on turn 17 before slipping to 6 regions, and finished rank 3 on 8 treasury with 6 regions after gaining 3 treasury overall.
+Faction1 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 3 regions by turn 5, and finished first with 3 regions, 19 treasury, and 2 total attacks.
+Faction2 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 5 regions by turn 5, and finished rank 4 on 16 treasury with 5 regions after gaining 11 treasury overall.
+Faction3 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 5, and finished rank 3 on 17 treasury with 2 regions after gaining 12 treasury overall.
+Faction4 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 4 regions by turn 5, and finished rank 2 on 19 treasury with 4 regions after gaining 14 treasury overall.
 
 Strategic Interpretation
 
-Faction2’s balanced approach turned into a late snowball because the board stayed contested early and midgame, so no faction could lock in a lasting lead before the final swing. The decisive break came late, when Faction2 gained 7 regions while Faction3 lost 3 regions, which created the 4-region margin and made the territorial gap large enough to hold. Faction1’s earlier strength did not convert because its midgame lead was reversed, which left Faction2 as the only faction able to compound advantage when the map finally opened.
-The closest challenger was Faction3 (economic) at 15 treasury and 4 regions.
+On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
+Territory alone did not decide this run; Faction1 finished first on treasury without holding the largest empire at the end.
+Faction1 did not win on map share. It finished first on treasury while Faction4 and Faction2 held more territory but failed to turn that size into enough net income.
+Faction1 finished first on 19 treasury with 3 regions, while the largest empire finished on 5 regions.
+The closest challenger was Faction4 (opportunist) at 19 treasury and 4 regions.
 
 Final Standings
 
-Faction2 finished first with a treasury of 45 and control of 8 regions.
-Faction3 ended with a treasury of 15 and 4 regions.
-Faction4 ended with a treasury of 8 and 6 regions.
-Faction1 ended with a treasury of 2 and 8 regions.
+Faction1 finished first with a treasury of 19 and control of 3 regions.
+Faction4 ended with a treasury of 19 and 4 regions.
+Faction3 ended with a treasury of 17 and 2 regions.
+Faction2 ended with a treasury of 16 and 5 regions.
 
 Victor's History
 
-Faction2’s victory was not the product of spectacle, but of prudence and steadier judgment on a thirty-seven-region ring. It opened close to the contest, gained 4 regions in the early phase, and then kept its course until the late break, when it added 7 regions and separated decisively. By turn 20 it stood first with 8 regions and 45 treasury, a cleaner and more durable position than the more volatile runs of its rivals. Faction3’s economic start was respectable, but its slide from a peak of 7 regions to 4 showed the limits of its hold, while Faction1’s early strength did not survive the longer test.
+Faction1's historians would treat this run as evidence that their advance proved that initiative and rightful growth mattered more than caution. They would point first to the decisive shift: mid leader change: Faction3 took the treasury lead. In their telling, rivals mistook sheer map share for strength, while Faction1 finished ahead on treasury with 19 against Faction4's 19. From that partisan view, Faction4's resistance was real but never as durable as Faction1's final position.
 
 Event Log
 
-Turn 1: Faction1 invested in O1 (invest_amount=4, new_resources=5)
 Turn 1: Faction2 invested in O5 (invest_amount=4, new_resources=5)
 Turn 1: Faction3 invested in O9 (invest_amount=4, new_resources=5)
 Turn 1: Faction4 invested in O13 (invest_amount=4, new_resources=5)
-Turn 2: Faction1 expanded into M1 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
-Turn 2: Faction4 expanded into M10 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
-Turn 2: Faction2 expanded into M4 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
+Turn 1: Faction1 invested in O1 (invest_amount=4, new_resources=5)
 Turn 2: Faction3 expanded into M7 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
+Turn 2: Faction2 expanded into M4 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
+Turn 2: Faction4 expanded into M10 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
+Turn 2: Faction1 expanded into M1 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
 Turn 3: Faction3 expanded into I6 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
-Turn 3: Faction4 expanded into I8 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
-Turn 3: Faction2 expanded into I4 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
 Turn 3: Faction1 expanded into I2 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
-Turn 4: Faction4 expanded into C (score=20, resources=2, neighbors=8, unclaimed_neighbors=4, treasury_after=8)
-Turn 4: Faction1 attacked Faction4 in C and captured the region (success_chance=0.700, attack_strength=14, defense_strength=10, treasury_after=9)
-Turn 4: Faction2 attacked Faction1 in C and failed against the region (success_chance=0.650, attack_strength=14, defense_strength=11, treasury_after=7)
-Turn 4: Faction3 attacked Faction1 in C and captured the region (success_chance=0.650, attack_strength=14, defense_strength=11, treasury_after=9)
-Turn 5: Faction2 expanded into M6 (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=11)
-Turn 5: Faction4 attacked Faction3 in C and failed against the region (success_chance=0.600, attack_strength=18, defense_strength=16, treasury_after=11)
-Turn 5: Faction1 attacked Faction3 in C and failed against the region (success_chance=0.650, attack_strength=19, defense_strength=16, treasury_after=12)
-Turn 5: Faction3 attacked Faction2 in M6 and failed against the region (success_chance=0.650, attack_strength=16, defense_strength=13, treasury_after=10)
-Turn 6: Faction1 attacked Faction3 in C and captured the region (success_chance=0.750, attack_strength=22, defense_strength=17, treasury_after=17)
-Turn 6: Faction2 expanded into M3 (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=13)
-Turn 6: Faction4 attacked Faction1 in C and captured the region (success_chance=0.600, attack_strength=21, defense_strength=19, treasury_after=16)
-Turn 6: Faction3 expanded into M9 (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=12)
-Turn 7: Faction2 expanded into O7 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=13)
-Turn 7: Faction1 attacked Faction2 in M3 and captured the region (success_chance=0.800, attack_strength=27, defense_strength=15, treasury_after=22)
-Turn 7: Faction4 attacked Faction2 in I4 and captured the region (success_chance=0.800, attack_strength=23, defense_strength=16, treasury_after=19)
-Turn 7: Faction3 attacked Faction2 in M6 and failed against the region (success_chance=0.700, attack_strength=19, defense_strength=15, treasury_after=13)
-Turn 8: Faction4 attacked Faction2 in M6 and captured the region (success_chance=0.800, attack_strength=26, defense_strength=19, treasury_after=21)
-Turn 8: Faction2 expanded into M5 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=14)
-Turn 8: Faction1 attacked Faction2 in M4 and captured the region (success_chance=0.800, attack_strength=29, defense_strength=16, treasury_after=25)
-Turn 8: Faction3 expanded into O11 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=15)
-Turn 9: Faction1 attacked Faction2 in O5 and captured the region (success_chance=0.750, attack_strength=30, defense_strength=25, treasury_after=26)
-Turn 9: Faction4 attacked Faction3 in M9 and captured the region (success_chance=0.750, attack_strength=25, defense_strength=20, treasury_after=21)
-Turn 9: Faction2 expanded into O6 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=17)
-Turn 9: Faction3 expanded into M8 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=15)
-Turn 10: Faction1 attacked Faction4 in I4 and captured the region (success_chance=0.800, attack_strength=32, defense_strength=24, treasury_after=28)
-Turn 10: Faction2 expanded into O8 (score=7, resources=2, neighbors=3, unclaimed_neighbors=0, treasury_after=17)
-Turn 10: Faction3 attacked Faction2 in O8 and captured the region (success_chance=0.700, attack_strength=23, defense_strength=19, treasury_after=16)
-Turn 10: Faction4 attacked Faction3 in O8 and captured the region (success_chance=0.750, attack_strength=23, defense_strength=18, treasury_after=19)
-Turn 11: Faction2 attacked Faction4 in O8 and failed against the region (success_chance=0.600, attack_strength=22, defense_strength=20, treasury_after=16)
-Turn 11: Faction3 attacked Faction4 in O8 and captured the region (success_chance=0.700, attack_strength=24, defense_strength=20, treasury_after=17)
-Turn 11: Faction4 attacked Faction2 in O7 and failed against the region (success_chance=0.600, attack_strength=20, defense_strength=18, treasury_after=14)
-Turn 11: Faction1 attacked Faction2 in O6 and captured the region (success_chance=0.800, attack_strength=36, defense_strength=18, treasury_after=29)
-Turn 12: Faction1 attacked Faction2 in O7 and failed against the region (success_chance=0.800, attack_strength=32, defense_strength=20, treasury_after=26)
-Turn 12: Faction2 attacked Faction4 in M6 and failed against the region (success_chance=0.650, attack_strength=20, defense_strength=17, treasury_after=14)
-Turn 12: Faction4 attacked Faction2 in O7 and captured the region (success_chance=0.550, attack_strength=17, defense_strength=16, treasury_after=13)
-Turn 12: Faction3 attacked Faction4 in M9 and captured the region (success_chance=0.800, attack_strength=21, defense_strength=15, treasury_after=16)
-Turn 13: Faction1 attacked Faction4 in O7 and captured the region (success_chance=0.800, attack_strength=29, defense_strength=16, treasury_after=25)
-Turn 13: Faction2 invested in M5 (invest_amount=4, new_resources=5)
-Turn 13: Faction4 attacked Faction3 in O8 and captured the region (success_chance=0.450, attack_strength=16, defense_strength=17, treasury_after=12)
-Turn 13: Faction3 attacked Faction4 in O8 and captured the region (success_chance=0.800, attack_strength=20, defense_strength=14, treasury_after=13)
-Turn 14: Faction2 attacked Faction4 in M6 and captured the region (success_chance=0.800, attack_strength=24, defense_strength=17, treasury_after=17)
-Turn 14: Faction4 attacked Faction3 in M9 and captured the region (success_chance=0.650, attack_strength=17, defense_strength=14, treasury_after=13)
-Turn 14: Faction1 attacked Faction2 in M5 and failed against the region (success_chance=0.750, attack_strength=27, defense_strength=22, treasury_after=20)
-Turn 14: Faction3 expanded into I7 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=9)
-Turn 15: Faction2 attacked Faction3 in O8 and captured the region (success_chance=0.800, attack_strength=24, defense_strength=11, treasury_after=20)
-Turn 15: Faction1 attacked Faction4 in C and failed against the region (success_chance=0.700, attack_strength=22, defense_strength=18, treasury_after=15)
-Turn 15: Faction4 attacked Faction3 in I7 and captured the region (success_chance=0.800, attack_strength=19, defense_strength=12, treasury_after=14)
-Turn 15: Faction3 expanded into I5 (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=6)
-Turn 16: Faction4 attacked Faction3 in I6 and captured the region (success_chance=0.800, attack_strength=19, defense_strength=11, treasury_after=14)
-Turn 16: Faction1 attacked Faction3 in I5 and captured the region (success_chance=0.800, attack_strength=17, defense_strength=11, treasury_after=12)
-Turn 16: Faction3 expanded into O10 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=5)
-Turn 16: Faction2 attacked Faction3 in O9 and captured the region (success_chance=0.800, attack_strength=28, defense_strength=10, treasury_after=24)
-Turn 17: Faction4 attacked Faction3 in O11 and captured the region (success_chance=0.800, attack_strength=17, defense_strength=8, treasury_after=13)
-Turn 17: Faction1 attacked Faction3 in M7 and captured the region (success_chance=0.750, attack_strength=13, defense_strength=8, treasury_after=8)
-Turn 17: Faction3 invested in M8 (invest_amount=4, new_resources=5)
-Turn 17: Faction2 attacked Faction1 in I5 and captured the region (success_chance=0.800, attack_strength=33, defense_strength=11, treasury_after=29)
-Turn 18: Faction2 attacked Faction4 in I6 and captured the region (success_chance=0.800, attack_strength=38, defense_strength=15, treasury_after=33)
-Turn 18: Faction4 attacked Faction1 in I4 and captured the region (success_chance=0.800, attack_strength=14, defense_strength=8, treasury_after=10)
-Turn 18: Faction3 attacked Faction1 in M7 and captured the region (success_chance=0.800, attack_strength=16, defense_strength=7, treasury_after=9)
-Turn 18: Faction1 expanded into M12 (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=2)
-Turn 19: Faction1 invested in M1 (invest_amount=4, new_resources=5)
-Turn 19: Faction4 attacked Faction1 in I2 and captured the region (success_chance=0.800, attack_strength=11, defense_strength=3, treasury_after=7)
-Turn 19: Faction2 attacked Faction3 in M8 and captured the region (success_chance=0.800, attack_strength=41, defense_strength=20, treasury_after=36)
-Turn 19: Faction3 attacked Faction4 in O11 and captured the region (success_chance=0.800, attack_strength=17, defense_strength=9, treasury_after=13)
-Turn 20: Faction4 attacked Faction1 in M4 and captured the region (success_chance=0.800, attack_strength=10, defense_strength=4, treasury_after=5)
-Turn 20: Faction3 attacked Faction4 in M9 and captured the region (success_chance=0.800, attack_strength=18, defense_strength=7, treasury_after=14)
-Turn 20: Faction2 attacked Faction4 in I7 and captured the region (success_chance=0.800, attack_strength=45, defense_strength=8, treasury_after=40)
-Turn 20: Faction1 attacked Faction4 in M4 and captured the region (success_chance=0.500, attack_strength=7, defense_strength=7, treasury_after=0)
+Turn 3: Faction2 expanded into I4 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
+Turn 3: Faction4 expanded into I8 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
+Turn 4: Faction3 expanded into C (score=20, resources=2, neighbors=8, unclaimed_neighbors=4, treasury_after=8)
+Turn 4: Faction4 attacked Faction3 in C and captured the region (success_chance=0.700, attack_strength=14, defense_strength=10, treasury_after=9)
+Turn 4: Faction1 attacked Faction4 in C and captured the region (success_chance=0.650, attack_strength=14, defense_strength=11, treasury_after=9)
+Turn 4: Faction2 attacked Faction1 in C and captured the region (success_chance=0.650, attack_strength=14, defense_strength=11, treasury_after=9)
+Turn 5: Faction3 expanded into M9 (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=12)
+Turn 5: Faction1 attacked Faction2 in C and failed against the region (success_chance=0.650, attack_strength=19, defense_strength=16, treasury_after=12)
+Turn 5: Faction4 attacked Faction3 in M9 and captured the region (success_chance=0.700, attack_strength=18, defense_strength=14, treasury_after=14)
+Turn 5: Faction2 attacked Faction3 in I6 and captured the region (success_chance=0.550, attack_strength=16, defense_strength=15, treasury_after=12)
 
 Per-Turn Metrics
 
@@ -172,102 +113,12 @@ Turn 3
 
 Turn 4
   Faction1: treasury=16, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Faction2: treasury=14, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Faction3: treasury=14, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Faction4: treasury=15, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Faction2: treasury=14, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Faction3: treasury=15, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Faction4: treasury=16, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
 
 Turn 5
   Faction1: treasury=19, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Faction2: treasury=16, regions=4, attacks=0, expansions=1, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Faction3: treasury=15, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Faction4: treasury=18, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-
-Turn 6
-  Faction1: treasury=24, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Faction2: treasury=16, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Faction3: treasury=17, regions=4, attacks=0, expansions=1, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Faction4: treasury=21, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-
-Turn 7
-  Faction1: treasury=27, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Faction2: treasury=17, regions=4, attacks=0, expansions=1, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4
-  Faction3: treasury=18, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Faction4: treasury=23, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
-
-Turn 8
-  Faction1: treasury=28, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Faction2: treasury=20, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
-  Faction3: treasury=18, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Faction4: treasury=23, regions=6, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
-
-Turn 9
-  Faction1: treasury=30, regions=6, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=9, effective_income=10, maintenance=6, net=4
-  Faction2: treasury=20, regions=3, attacks=0, expansions=1, investments=0, base_income=6, scale_penalty=0, effective_income=6, maintenance=3, net=3
-  Faction3: treasury=18, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Faction4: treasury=21, regions=7, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=12, effective_income=7, maintenance=7, net=0
-
-Turn 10
-  Faction1: treasury=31, regions=7, attacks=1, expansions=0, investments=0, base_income=22, scale_penalty=12, effective_income=10, maintenance=7, net=3
-  Faction2: treasury=20, regions=3, attacks=0, expansions=1, investments=0, base_income=6, scale_penalty=0, effective_income=6, maintenance=3, net=3
-  Faction3: treasury=19, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Faction4: treasury=18, regions=7, attacks=1, expansions=0, investments=0, base_income=18, scale_penalty=12, effective_income=6, maintenance=7, net=-1
-
-Turn 11
-  Faction1: treasury=30, regions=8, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=15, effective_income=9, maintenance=8, net=1
-  Faction2: treasury=18, regions=2, attacks=1, expansions=0, investments=0, base_income=4, scale_penalty=0, effective_income=4, maintenance=2, net=2
-  Faction3: treasury=18, regions=6, attacks=1, expansions=0, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1
-  Faction4: treasury=15, regions=6, attacks=1, expansions=0, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1
-
-Turn 12
-  Faction1: treasury=27, regions=8, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=15, effective_income=9, maintenance=8, net=1
-  Faction2: treasury=15, regions=1, attacks=1, expansions=0, investments=0, base_income=2, scale_penalty=0, effective_income=2, maintenance=1, net=1
-  Faction3: treasury=15, regions=7, attacks=1, expansions=0, investments=0, base_income=18, scale_penalty=12, effective_income=6, maintenance=7, net=-1
-  Faction4: treasury=14, regions=6, attacks=1, expansions=0, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1
-
-Turn 13
-  Faction1: treasury=24, regions=9, attacks=1, expansions=0, investments=0, base_income=26, scale_penalty=18, effective_income=8, maintenance=9, net=-1
-  Faction2: treasury=19, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
-  Faction3: treasury=12, regions=7, attacks=1, expansions=0, investments=0, base_income=18, scale_penalty=12, effective_income=6, maintenance=7, net=-1
-  Faction4: treasury=15, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-
-Turn 14
-  Faction1: treasury=19, regions=9, attacks=1, expansions=0, investments=0, base_income=26, scale_penalty=18, effective_income=8, maintenance=9, net=-1
-  Faction2: treasury=22, regions=2, attacks=1, expansions=0, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Faction3: treasury=9, regions=7, attacks=0, expansions=1, investments=0, base_income=19, scale_penalty=12, effective_income=7, maintenance=7, net=0
-  Faction4: treasury=16, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-
-Turn 15
-  Faction1: treasury=14, regions=9, attacks=1, expansions=0, investments=0, base_income=26, scale_penalty=18, effective_income=8, maintenance=9, net=-1
-  Faction2: treasury=26, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
-  Faction3: treasury=8, regions=6, attacks=0, expansions=1, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
-  Faction4: treasury=16, regions=6, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
-
-Turn 16
-  Faction1: treasury=10, regions=10, attacks=1, expansions=0, investments=0, base_income=29, scale_penalty=21, effective_income=8, maintenance=10, net=-2
-  Faction2: treasury=31, regions=4, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=3, effective_income=11, maintenance=4, net=7
-  Faction3: treasury=6, regions=4, attacks=0, expansions=1, investments=0, base_income=8, scale_penalty=3, effective_income=5, maintenance=4, net=1
-  Faction4: treasury=15, regions=7, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1
-
-Turn 17
-  Faction1: treasury=5, regions=10, attacks=1, expansions=0, investments=0, base_income=28, scale_penalty=21, effective_income=7, maintenance=10, net=-3
-  Faction2: treasury=35, regions=5, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=6, effective_income=11, maintenance=5, net=6
-  Faction3: treasury=11, regions=2, attacks=0, expansions=0, investments=1, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Faction4: treasury=12, regions=8, attacks=1, expansions=0, investments=0, base_income=22, scale_penalty=15, effective_income=7, maintenance=8, net=-1
-
-Turn 18
-  Faction1: treasury=0, regions=9, attacks=0, expansions=1, investments=0, base_income=25, scale_penalty=18, effective_income=7, maintenance=9, net=-2
-  Faction2: treasury=38, regions=6, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=9, effective_income=11, maintenance=6, net=5
-  Faction3: treasury=15, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
-  Faction4: treasury=9, regions=8, attacks=1, expansions=0, investments=0, base_income=22, scale_penalty=15, effective_income=7, maintenance=8, net=-1
-
-Turn 19
-  Faction1: treasury=2, regions=8, attacks=0, expansions=0, investments=1, base_income=25, scale_penalty=15, effective_income=10, maintenance=8, net=2
-  Faction2: treasury=42, regions=7, attacks=1, expansions=0, investments=0, base_income=25, scale_penalty=12, effective_income=13, maintenance=7, net=6
-  Faction3: treasury=16, regions=3, attacks=1, expansions=0, investments=0, base_income=6, scale_penalty=0, effective_income=6, maintenance=3, net=3
-  Faction4: treasury=7, regions=8, attacks=1, expansions=0, investments=0, base_income=23, scale_penalty=15, effective_income=8, maintenance=8, net=0
-
-Turn 20
-  Faction1: treasury=2, regions=8, attacks=1, expansions=0, investments=0, base_income=25, scale_penalty=15, effective_income=10, maintenance=8, net=2
-  Faction2: treasury=45, regions=8, attacks=1, expansions=0, investments=0, base_income=28, scale_penalty=15, effective_income=13, maintenance=8, net=5
-  Faction3: treasury=15, regions=4, attacks=1, expansions=0, investments=0, base_income=8, scale_penalty=3, effective_income=5, maintenance=4, net=1
-  Faction4: treasury=8, regions=6, attacks=1, expansions=0, investments=0, base_income=18, scale_penalty=9, effective_income=9, maintenance=6, net=3
+  Faction2: treasury=16, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+  Faction3: treasury=17, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
+  Faction4: treasury=19, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
