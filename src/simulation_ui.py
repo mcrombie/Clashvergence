@@ -512,6 +512,12 @@ def render_simulation_html(world):
       gap: 8px;
       flex-wrap: wrap;
     }}
+    .toggle-row {{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }}
     button {{
       border: 0;
       border-radius: 999px;
@@ -603,6 +609,15 @@ def render_simulation_html(world):
       fill: #274c5e;
       pointer-events: none;
     }}
+    .terrain-overlay {{
+      font-size: 9.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      fill: #4b5f4b;
+      pointer-events: none;
+      opacity: 0.88;
+    }}
     .map-layer.hidden {{
       display: none;
     }}
@@ -611,6 +626,12 @@ def render_simulation_html(world):
       gap: 12px;
       flex-wrap: wrap;
       margin-top: 12px;
+    }}
+    .terrain-legend {{
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }}
     .legend-item {{
       display: inline-flex;
@@ -624,6 +645,13 @@ def render_simulation_html(world):
       height: 13px;
       border-radius: 999px;
       border: 1px solid rgba(17, 24, 39, 0.45);
+    }}
+    .terrain-chip {{
+      width: 14px;
+      height: 14px;
+      border-radius: 5px;
+      border: 1px solid rgba(17, 24, 39, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28);
     }}
     .summary-grid {{
       display: grid;
@@ -720,6 +748,24 @@ def render_simulation_html(world):
       color: var(--muted);
       font-size: 0.9rem;
     }}
+    .detail-grid {{
+      display: grid;
+      gap: 10px;
+    }}
+    .detail-row {{
+      display: grid;
+      gap: 3px;
+    }}
+    .detail-label {{
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }}
+    .detail-value {{
+      font-size: 0.98rem;
+      color: var(--ink);
+    }}
     @media (max-width: 1100px) {{
       .playback-layout {{
         grid-template-columns: 1fr;
@@ -795,7 +841,10 @@ def render_simulation_html(world):
             <button type="button" class="secondary" id="next-turn">Next</button>
             <div class="turn-readout" id="turn-readout">Turn 0 of 0</div>
           </div>
-          <div class="view-toggle" id="view-toggle"></div>
+          <div class="toggle-row">
+            <div class="view-toggle" id="view-toggle"></div>
+            <div class="view-toggle" id="terrain-toggle"></div>
+          </div>
           <input id="turn-slider" type="range" min="0" max="0" value="0">
         </div>
         <div class="playback-layout">
@@ -805,14 +854,17 @@ def render_simulation_html(world):
                 <g id="atlas-background-layer" class="map-layer"></g>
                 <g id="atlas-layer" class="map-layer"></g>
                 <g id="atlas-label-layer" class="map-layer"></g>
+                <g id="atlas-terrain-layer" class="map-layer hidden"></g>
                 <g id="graph-layer" class="map-layer">
                   <g id="edge-layer"></g>
                   <g id="region-layer"></g>
                   <g id="label-layer"></g>
+                  <g id="terrain-layer" class="map-layer hidden"></g>
                 </g>
               </svg>
             </div>
             <div class="legend" id="legend"></div>
+            <div class="terrain-legend" id="terrain-legend"></div>
           </div>
           <aside class="side-rail">
             <section class="side-section">
@@ -821,6 +873,10 @@ def render_simulation_html(world):
                 <article class="summary-card" id="turn-context"></article>
                 <div class="list" id="turn-events"></div>
               </div>
+            </section>
+            <section class="side-section">
+              <h3 class="side-title">Region Detail</h3>
+              <article class="summary-card" id="region-detail"></article>
             </section>
           </aside>
         </div>
@@ -842,6 +898,8 @@ def render_simulation_html(world):
       playing: false,
       timer: null,
       mapView: data.atlas_regions.length ? "atlas" : "graph",
+      showTerrainOverlay: false,
+      focusRegionName: null,
     }};
 
     const slider = document.getElementById("turn-slider");
@@ -850,21 +908,51 @@ def render_simulation_html(world):
     const prevButton = document.getElementById("prev-turn");
     const nextButton = document.getElementById("next-turn");
     const viewToggle = document.getElementById("view-toggle");
+    const terrainToggle = document.getElementById("terrain-toggle");
     const atlasBackgroundLayer = document.getElementById("atlas-background-layer");
     const atlasLayer = document.getElementById("atlas-layer");
     const atlasLabelLayer = document.getElementById("atlas-label-layer");
+    const atlasTerrainLayer = document.getElementById("atlas-terrain-layer");
     const graphLayer = document.getElementById("graph-layer");
     const regionLayer = document.getElementById("region-layer");
     const edgeLayer = document.getElementById("edge-layer");
     const labelLayer = document.getElementById("label-layer");
+    const terrainLayer = document.getElementById("terrain-layer");
     const legend = document.getElementById("legend");
+    const terrainLegend = document.getElementById("terrain-legend");
     const standings = document.getElementById("standings");
     const turnContext = document.getElementById("turn-context");
     const turnEvents = document.getElementById("turn-events");
+    const regionDetail = document.getElementById("region-detail");
     const runSummaryPanel = document.getElementById("run-summary-panel");
     const runSummary = document.getElementById("run-summary");
 
     const colorByFaction = Object.fromEntries(data.factions.map((faction) => [faction.name, faction.color]));
+    const terrainBaseColors = {{
+      coast: "#5d92b3",
+      riverland: "#5e9f87",
+      highland: "#8a7457",
+      hills: "#a1865e",
+      marsh: "#7d8a5c",
+      forest: "#5f8556",
+      steppe: "#c9b26f",
+      plains: "#b7c784",
+    }};
+
+    function getTerrainColor(tags) {{
+      const [primaryTag = "plains"] = tags || [];
+      return terrainBaseColors[primaryTag] || terrainBaseColors.plains;
+    }}
+
+    function getTerrainAbbreviation(tags) {{
+      return (tags || []).map((tag) => tag.slice(0, 2).toUpperCase()).join("/");
+    }}
+
+    function getRegionDataByName(regionName) {{
+      return data.regions.find((region) => region.name === regionName)
+        || data.atlas_regions.find((region) => region.name === regionName)
+        || null;
+    }}
 
     function svgElement(name, attrs) {{
       const element = document.createElementNS("http://www.w3.org/2000/svg", name);
@@ -924,6 +1012,10 @@ def render_simulation_html(world):
             id: `atlas-region-${{region.name}}`,
           }});
           attachTitle(polygon, `atlas-title-${{region.name}}`);
+          polygon.addEventListener("mouseenter", () => {{
+            state.focusRegionName = region.name;
+            renderRegionDetail(data.snapshots[state.currentTurn]);
+          }});
           atlasLayer.appendChild(polygon);
 
           atlasLabelLayer.appendChild(svgElement("text", {{
@@ -940,6 +1032,14 @@ def render_simulation_html(world):
             "text-anchor": "middle",
             class: "region-resource",
             id: `atlas-resource-${{region.name}}`,
+          }}));
+
+          atlasTerrainLayer.appendChild(svgElement("text", {{
+            x: region.label_x,
+            y: region.label_y + 28,
+            "text-anchor": "middle",
+            class: "terrain-overlay",
+            id: `atlas-terrain-${{region.name}}`,
           }}));
         }}
       }}
@@ -965,6 +1065,10 @@ def render_simulation_html(world):
           id: `region-node-${{region.name}}`,
         }});
         attachTitle(node, `region-title-${{region.name}}`);
+        node.addEventListener("mouseenter", () => {{
+          state.focusRegionName = region.name;
+          renderRegionDetail(data.snapshots[state.currentTurn]);
+        }});
         regionLayer.appendChild(node);
 
         labelLayer.appendChild(svgElement("text", {{
@@ -982,14 +1086,34 @@ def render_simulation_html(world):
           class: "region-resource",
           id: `region-resource-${{region.name}}`,
         }}));
+
+        terrainLayer.appendChild(svgElement("text", {{
+          x: region.x,
+          y: region.y + 28,
+          "text-anchor": "middle",
+          class: "terrain-overlay",
+          id: `region-terrain-${{region.name}}`,
+        }}));
       }}
     }}
 
     function renderViewToggle() {{
+      terrainToggle.innerHTML = `
+        <button type="button" class="secondary" data-terrain="overlay">Show Terrain</button>
+      `;
+
       if (!data.atlas_regions.length) {{
         graphLayer.classList.remove("hidden");
         atlasLayer.classList.add("hidden");
         atlasLabelLayer.classList.add("hidden");
+        for (const button of terrainToggle.querySelectorAll("[data-terrain]")) {{
+          button.classList.toggle("active", state.showTerrainOverlay);
+          button.addEventListener("click", () => {{
+            state.showTerrainOverlay = !state.showTerrainOverlay;
+            syncMapView();
+          }});
+        }}
+        syncMapView();
         return;
       }}
 
@@ -1006,6 +1130,14 @@ def render_simulation_html(world):
         }});
       }}
 
+      for (const button of terrainToggle.querySelectorAll("[data-terrain]")) {{
+        button.classList.toggle("active", state.showTerrainOverlay);
+        button.addEventListener("click", () => {{
+          state.showTerrainOverlay = !state.showTerrainOverlay;
+          syncMapView();
+        }});
+      }}
+
       syncMapView();
     }}
 
@@ -1014,10 +1146,15 @@ def render_simulation_html(world):
       atlasBackgroundLayer.classList.toggle("hidden", !showAtlas);
       atlasLayer.classList.toggle("hidden", !showAtlas);
       atlasLabelLayer.classList.toggle("hidden", !showAtlas);
+      atlasTerrainLayer.classList.toggle("hidden", !showAtlas || !state.showTerrainOverlay);
       graphLayer.classList.toggle("hidden", showAtlas);
+      terrainLayer.classList.toggle("hidden", !state.showTerrainOverlay);
 
       for (const button of viewToggle.querySelectorAll("[data-view]")) {{
         button.classList.toggle("active", button.dataset.view === state.mapView);
+      }}
+      for (const button of terrainToggle.querySelectorAll("[data-terrain]")) {{
+        button.classList.toggle("active", state.showTerrainOverlay);
       }}
     }}
 
@@ -1027,6 +1164,23 @@ def render_simulation_html(world):
         `<span class="legend-item"><span class="swatch" style="background:${{unclaimedColor}}"></span>Unclaimed</span>`,
       ];
       legend.innerHTML = items.join("");
+    }}
+
+    function renderTerrainLegend() {{
+      const uniqueTerrain = new Map();
+      for (const region of data.regions) {{
+        const key = region.terrain_label;
+        if (!uniqueTerrain.has(key)) {{
+          uniqueTerrain.set(key, region.terrain_tags);
+        }}
+      }}
+
+      terrainLegend.innerHTML = [...uniqueTerrain.entries()].map(([label, tags]) => `
+        <span class="legend-item">
+          <span class="terrain-chip" style="background:${{getTerrainColor(tags)}}"></span>
+          ${{escapeHtml(label)}}
+        </span>
+      `).join("");
     }}
 
     function renderRunSummary() {{
@@ -1085,6 +1239,61 @@ def render_simulation_html(world):
       `;
     }}
 
+    function renderRegionDetail(snapshot) {{
+      const regionName = state.focusRegionName || snapshot.changed_regions[0] || data.regions[0]?.name;
+      if (!regionName) {{
+        regionDetail.innerHTML = `<strong>No Region Selected</strong><p class="summary-copy">Hover a region on the map to inspect its terrain and current status.</p>`;
+        return;
+      }}
+
+      const staticRegion = getRegionDataByName(regionName);
+      const regionSnapshot = snapshot.regions[regionName];
+      if (!staticRegion || !regionSnapshot) {{
+        regionDetail.innerHTML = `<strong>No Region Selected</strong><p class="summary-copy">Hover a region on the map to inspect its terrain and current status.</p>`;
+        return;
+      }}
+
+      const ownerText = regionSnapshot.owner || "Unclaimed";
+      const foundingText = regionSnapshot.founding_name
+        ? `${{escapeHtml(regionSnapshot.founding_name)}}${{regionSnapshot.founding_name !== regionName ? ` <span class="subtle">(${{
+          escapeHtml(regionName)
+        }})</span>` : ""}}`
+        : escapeHtml(regionName);
+
+      regionDetail.innerHTML = `
+        <strong>${{escapeHtml(regionSnapshot.display_name || staticRegion.display_name || regionName)}}</strong>
+        <div class="detail-grid">
+          <div class="detail-row">
+            <div class="detail-label">Region Code</div>
+            <div class="detail-value">${{escapeHtml(regionName)}}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Terrain</div>
+            <div class="detail-value">
+              <span class="terrain-chip" style="background:${{getTerrainColor(regionSnapshot.terrain_tags || staticRegion.terrain_tags)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
+              ${{escapeHtml(regionSnapshot.terrain_label || staticRegion.terrain_label)}}
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Owner</div>
+            <div class="detail-value">${{escapeHtml(ownerText)}}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Resources</div>
+            <div class="detail-value">R${{regionSnapshot.resources}}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Founding Name</div>
+            <div class="detail-value">${{foundingText}}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Neighbors</div>
+            <div class="detail-value">${{staticRegion.neighbors.length}}</div>
+          </div>
+        </div>
+      `;
+    }}
+
     function renderStandings(snapshot) {{
       standings.innerHTML = snapshot.standings.map((entry, index) => `
         <article class="standing-item bar">
@@ -1129,10 +1338,15 @@ def render_simulation_html(world):
         label.textContent = regionSnapshot.display_name || region.display_name || region.name;
         resource.textContent = `R${{regionSnapshot.resources}}`;
         const title = document.getElementById(`region-title-${{region.name}}`);
+        const terrainOverlay = document.getElementById(`region-terrain-${{region.name}}`);
         if (title) {{
           const ownerText = regionSnapshot.owner || "Unclaimed";
           const terrainText = regionSnapshot.terrain_label || region.terrain_label || "Plains";
           title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}}`;
+        }}
+        if (terrainOverlay) {{
+          terrainOverlay.textContent = getTerrainAbbreviation(regionSnapshot.terrain_tags || region.terrain_tags);
+          terrainOverlay.setAttribute("fill", getTerrainColor(regionSnapshot.terrain_tags || region.terrain_tags));
         }}
       }}
 
@@ -1153,10 +1367,15 @@ def render_simulation_html(world):
         label.textContent = regionSnapshot.display_name || region.display_name || region.name;
         resource.textContent = `R${{regionSnapshot.resources}}`;
         const title = document.getElementById(`atlas-title-${{region.name}}`);
+        const terrainOverlay = document.getElementById(`atlas-terrain-${{region.name}}`);
         if (title) {{
           const ownerText = regionSnapshot.owner || "Unclaimed";
           const terrainText = regionSnapshot.terrain_label || region.terrain_label || "Plains";
           title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}}`;
+        }}
+        if (terrainOverlay) {{
+          terrainOverlay.textContent = getTerrainAbbreviation(regionSnapshot.terrain_tags || region.terrain_tags);
+          terrainOverlay.setAttribute("fill", getTerrainColor(regionSnapshot.terrain_tags || region.terrain_tags));
         }}
       }}
     }}
@@ -1171,6 +1390,7 @@ def render_simulation_html(world):
       renderStandings(snapshot);
       renderTurnContext(turn, snapshot);
       renderTurnEvents(snapshot);
+      renderRegionDetail(snapshot);
     }}
 
     function stopPlayback() {{
@@ -1221,6 +1441,7 @@ def render_simulation_html(world):
 
     buildStaticMap();
     renderLegend();
+    renderTerrainLegend();
     renderViewToggle();
     renderRunSummary();
     renderTurn(0);
