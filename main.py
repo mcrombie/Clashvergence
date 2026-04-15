@@ -6,6 +6,7 @@ from src.simulation import run_simulation
 from src.narrative import build_chronicle
 from src.event_analysis import get_event_log
 from src.metrics import get_metrics_log
+from src.simulation_ui import write_simulation_html
 
 
 REPORTS_DIR = Path("reports")
@@ -187,6 +188,9 @@ def main():
 
     with open(CHRONICLE_OUTPUT, "w") as file:
         file.write(chronicle)
+
+    simulation_view_output = write_simulation_html(world)
+    print(f"\nSimulation viewer written to {simulation_view_output}")
 
 
 if __name__ == "__main__":

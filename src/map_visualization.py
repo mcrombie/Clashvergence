@@ -267,6 +267,217 @@ def get_annular_label_position(center_x, center_y, inner_radius, outer_radius, s
     return polar_to_cartesian(center_x, center_y, radius, angle)
 
 
+def _normalize_angle_deg(angle_deg):
+    return angle_deg % 360
+
+
+def _wave_radius(base_radius, angle_deg, primary_amp=0, primary_freq=1, phase_deg=0, secondary_amp=0, secondary_freq=1):
+    angle_rad = math.radians(angle_deg)
+    phase_rad = math.radians(phase_deg)
+    return (
+        base_radius
+        + (primary_amp * math.sin((primary_freq * angle_rad) + phase_rad))
+        + (secondary_amp * math.cos(secondary_freq * angle_rad))
+    )
+
+
+def get_multi_ring_boundary_radius(boundary_name, angle_deg):
+    if boundary_name == "center":
+        return _wave_radius(
+            78,
+            angle_deg,
+            primary_amp=4,
+            primary_freq=4,
+            phase_deg=10,
+            secondary_amp=2,
+            secondary_freq=2,
+        )
+    if boundary_name == "inner":
+        return _wave_radius(
+            176,
+            angle_deg,
+            primary_amp=7,
+            primary_freq=6,
+            phase_deg=-20,
+            secondary_amp=3,
+            secondary_freq=3,
+        )
+    if boundary_name == "middle":
+        return _wave_radius(
+            298,
+            angle_deg,
+            primary_amp=10,
+            primary_freq=5,
+            phase_deg=15,
+            secondary_amp=4,
+            secondary_freq=2,
+        )
+    if boundary_name == "outer":
+        return _wave_radius(
+            422,
+            angle_deg,
+            primary_amp=16,
+            primary_freq=7,
+            phase_deg=-10,
+            secondary_amp=7,
+            secondary_freq=3,
+        )
+    raise ValueError(f"Unknown multi-ring boundary: {boundary_name}")
+
+
+def get_multi_ring_geometry_profile(map_name):
+    if map_name == "thirty_seven_region_ring":
+        return {
+            "inner_boundary_offset_deg": -22.5,
+        }
+
+    return {
+        "inner_boundary_offset_deg": 0.0,
+    }
+
+
+def build_variable_annular_sector(
+    center_x,
+    center_y,
+    inner_radius_fn,
+    outer_radius_fn,
+    start_deg,
+    end_deg,
+    steps=12,
+):
+    polygon = []
+
+    for step in range(steps + 1):
+        angle = start_deg + ((end_deg - start_deg) * step / steps)
+        radius = outer_radius_fn(_normalize_angle_deg(angle))
+        polygon.append(polar_to_cartesian(center_x, center_y, radius, angle))
+
+    if inner_radius_fn is None:
+        polygon.append((center_x, center_y))
+        return polygon
+
+    for step in range(steps, -1, -1):
+        angle = start_deg + ((end_deg - start_deg) * step / steps)
+        radius = inner_radius_fn(_normalize_angle_deg(angle))
+        polygon.append(polar_to_cartesian(center_x, center_y, radius, angle))
+
+    return polygon
+
+
+def build_multi_ring_coastline_polygon(width=900, height=900, steps=96):
+    center_x = width / 2
+    center_y = height / 2
+    polygon = []
+
+    for step in range(steps):
+        angle_deg = -90 + ((360 * step) / steps)
+        radius = get_multi_ring_boundary_radius("outer", _normalize_angle_deg(angle_deg))
+        polygon.append(polar_to_cartesian(center_x, center_y, radius, angle_deg))
+
+    return polygon
+
+
+def build_multi_ring_region_geometry(regions, map_name="", width=900, height=900):
+    center_x = width / 2
+    center_y = height / 2
+    profile = get_multi_ring_geometry_profile(map_name)
+    inner_boundary_offset_deg = profile["inner_boundary_offset_deg"]
+
+    outer_names = sorted((name for name in regions if name.startswith("O")), key=natural_sort_key)
+    middle_names = sorted((name for name in regions if name.startswith("M")), key=natural_sort_key)
+    inner_names = sorted((name for name in regions if name.startswith("I")), key=natural_sort_key)
+
+    outer_step = 360 / len(outer_names)
+    middle_step = 360 / len(middle_names)
+    inner_step = 360 / len(inner_names)
+    geometry = {}
+
+    center_polygon = build_variable_annular_sector(
+        center_x,
+        center_y,
+        inner_radius_fn=None,
+        outer_radius_fn=lambda angle_deg: get_multi_ring_boundary_radius("center", angle_deg),
+        start_deg=0,
+        end_deg=360,
+        steps=48,
+    )
+    geometry["C"] = {
+        "polygon": center_polygon,
+        "label": (center_x, center_y),
+    }
+
+    for index, region_name in enumerate(inner_names):
+        start_deg = -90 + inner_boundary_offset_deg + (index * inner_step)
+        end_deg = start_deg + inner_step
+        geometry[region_name] = {
+            "polygon": build_variable_annular_sector(
+                center_x,
+                center_y,
+                inner_radius_fn=lambda angle_deg: get_multi_ring_boundary_radius("center", angle_deg),
+                outer_radius_fn=lambda angle_deg: get_multi_ring_boundary_radius("inner", angle_deg),
+                start_deg=start_deg,
+                end_deg=end_deg,
+                steps=12,
+            ),
+            "label": get_annular_label_position(
+                center_x,
+                center_y,
+                get_multi_ring_boundary_radius("center", (start_deg + end_deg) / 2),
+                get_multi_ring_boundary_radius("inner", (start_deg + end_deg) / 2),
+                start_deg,
+                end_deg,
+            ),
+        }
+
+    for index, region_name in enumerate(middle_names):
+        start_deg = -90 + (index * middle_step)
+        end_deg = start_deg + middle_step
+        geometry[region_name] = {
+            "polygon": build_variable_annular_sector(
+                center_x,
+                center_y,
+                inner_radius_fn=lambda angle_deg: get_multi_ring_boundary_radius("inner", angle_deg),
+                outer_radius_fn=lambda angle_deg: get_multi_ring_boundary_radius("middle", angle_deg),
+                start_deg=start_deg,
+                end_deg=end_deg,
+                steps=12,
+            ),
+            "label": get_annular_label_position(
+                center_x,
+                center_y,
+                get_multi_ring_boundary_radius("inner", (start_deg + end_deg) / 2),
+                get_multi_ring_boundary_radius("middle", (start_deg + end_deg) / 2),
+                start_deg,
+                end_deg,
+            ),
+        }
+
+    for index, region_name in enumerate(outer_names):
+        start_deg = -90 + (index * outer_step)
+        end_deg = start_deg + outer_step
+        geometry[region_name] = {
+            "polygon": build_variable_annular_sector(
+                center_x,
+                center_y,
+                inner_radius_fn=lambda angle_deg: get_multi_ring_boundary_radius("middle", angle_deg),
+                outer_radius_fn=lambda angle_deg: get_multi_ring_boundary_radius("outer", angle_deg),
+                start_deg=start_deg,
+                end_deg=end_deg,
+                steps=12,
+            ),
+            "label": get_annular_label_position(
+                center_x,
+                center_y,
+                get_multi_ring_boundary_radius("middle", (start_deg + end_deg) / 2),
+                get_multi_ring_boundary_radius("outer", (start_deg + end_deg) / 2),
+                start_deg,
+                end_deg,
+            ),
+        }
+
+    return geometry
+
+
 def render_graph_map_svg(map_name, map_definition, width=900, height=900):
     regions = map_definition["regions"]
     positions = build_map_layout(regions, width=width, height=height)
@@ -376,128 +587,30 @@ def render_ring_map_svg(map_name, map_definition, width=900, height=900):
 
 def render_multi_ring_map_svg(map_name, map_definition, width=900, height=900):
     regions = map_definition["regions"]
-    center_x = width / 2
-    center_y = height / 2
-    inner_center_radius = 70
-    inner_outer_radius = 170
-    middle_outer_radius = 290
-    outer_outer_radius = 410
+    geometry = build_multi_ring_region_geometry(regions, map_name=map_name, width=width, height=height)
+    coastline_polygon = build_multi_ring_coastline_polygon(width=width, height=height)
     svg_lines = []
 
     svg_lines.append(
         f"<svg viewBox='0 0 {width} {height}' role='img' aria-label='{html.escape(map_name)} map'>"
     )
-
-    center_polygon = build_annular_sector(
-        center_x,
-        center_y,
-        0,
-        inner_center_radius,
-        0,
-        360,
-        steps=32,
-    )
-    center_fill = get_faction_color(regions["C"]["owner"])
     svg_lines.append(
-        f"<polygon points='{polygon_to_points_text(center_polygon)}' fill='{center_fill}' class='territory' />"
-    )
-    svg_lines.append(
-        f"<text x='{center_x:.1f}' y='{center_y - 8:.1f}' text-anchor='middle' class='label'>C</text>"
-    )
-    svg_lines.append(
-        f"<text x='{center_x:.1f}' y='{center_y + 12:.1f}' text-anchor='middle' class='resource'>R{regions['C']['resources']}</text>"
+        f"<polygon points='{polygon_to_points_text(coastline_polygon)}' class='coastline-shell' />"
     )
 
-    outer_names = sorted((name for name in regions if name.startswith("O")), key=natural_sort_key)
-    middle_names = sorted((name for name in regions if name.startswith("M")), key=natural_sort_key)
-    inner_names = sorted((name for name in regions if name.startswith("I")), key=natural_sort_key)
+    render_order = (
+        sorted((name for name in regions if name.startswith("O")), key=natural_sort_key)
+        + sorted((name for name in regions if name.startswith("M")), key=natural_sort_key)
+        + sorted((name for name in regions if name.startswith("I")), key=natural_sort_key)
+        + ["C"]
+    )
 
-    outer_step = 360 / len(outer_names)
-    middle_step = 360 / len(middle_names)
-    inner_step = 360 / len(inner_names)
-
-    for index, region_name in enumerate(outer_names):
-        start_deg = (-90 - (outer_step / 2)) + (index * outer_step)
-        end_deg = start_deg + outer_step
-        polygon = build_annular_sector(
-            center_x,
-            center_y,
-            middle_outer_radius,
-            outer_outer_radius,
-            start_deg,
-            end_deg,
-        )
-        x, y = get_annular_label_position(
-            center_x,
-            center_y,
-            middle_outer_radius,
-            outer_outer_radius,
-            start_deg,
-            end_deg,
-        )
+    for region_name in render_order:
+        polygon = geometry[region_name]["polygon"]
+        x, y = geometry[region_name]["label"]
         fill = get_faction_color(regions[region_name]["owner"])
         svg_lines.append(
-            f"<polygon points='{polygon_to_points_text(polygon)}' fill='{fill}' class='territory' />"
-        )
-        svg_lines.append(
-            f"<text x='{x:.1f}' y='{y - 8:.1f}' text-anchor='middle' class='label'>{html.escape(region_name)}</text>"
-        )
-        svg_lines.append(
-            f"<text x='{x:.1f}' y='{y + 12:.1f}' text-anchor='middle' class='resource'>R{regions[region_name]['resources']}</text>"
-        )
-
-    for index, region_name in enumerate(middle_names):
-        start_deg = -90 + (index * middle_step)
-        end_deg = start_deg + middle_step
-        polygon = build_annular_sector(
-            center_x,
-            center_y,
-            inner_outer_radius,
-            middle_outer_radius,
-            start_deg,
-            end_deg,
-        )
-        x, y = get_annular_label_position(
-            center_x,
-            center_y,
-            inner_outer_radius,
-            middle_outer_radius,
-            start_deg,
-            end_deg,
-        )
-        fill = get_faction_color(regions[region_name]["owner"])
-        svg_lines.append(
-            f"<polygon points='{polygon_to_points_text(polygon)}' fill='{fill}' class='territory' />"
-        )
-        svg_lines.append(
-            f"<text x='{x:.1f}' y='{y - 8:.1f}' text-anchor='middle' class='label'>{html.escape(region_name)}</text>"
-        )
-        svg_lines.append(
-            f"<text x='{x:.1f}' y='{y + 12:.1f}' text-anchor='middle' class='resource'>R{regions[region_name]['resources']}</text>"
-        )
-
-    for index, region_name in enumerate(inner_names):
-        start_deg = -90 + (index * inner_step)
-        end_deg = start_deg + inner_step
-        polygon = build_annular_sector(
-            center_x,
-            center_y,
-            inner_center_radius,
-            inner_outer_radius,
-            start_deg,
-            end_deg,
-        )
-        x, y = get_annular_label_position(
-            center_x,
-            center_y,
-            inner_center_radius,
-            inner_outer_radius,
-            start_deg,
-            end_deg,
-        )
-        fill = get_faction_color(regions[region_name]["owner"])
-        svg_lines.append(
-            f"<polygon points='{polygon_to_points_text(polygon)}' fill='{fill}' class='territory' />"
+            f"<polygon points='{polygon_to_points_text(polygon)}' fill='{fill}' class='territory structured-territory' data-region='{html.escape(region_name)}' />"
         )
         svg_lines.append(
             f"<text x='{x:.1f}' y='{y - 8:.1f}' text-anchor='middle' class='label'>{html.escape(region_name)}</text>"
@@ -523,7 +636,7 @@ def render_map_svg(map_name, map_definition, width=900, height=900):
 
 
 def supports_exact_border_view(regions):
-    return is_ring_map(regions) and not is_multi_ring_map(regions)
+    return is_ring_map(regions) or is_multi_ring_map(regions)
 
 
 def render_map_html(map_name, map_definition):
