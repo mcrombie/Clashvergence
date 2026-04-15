@@ -1,28 +1,28 @@
 Simulation Chronicle
 
-On turn 2, Faction3 made its first expansion into M7.
-On turn 2, Faction2 made its first expansion into M4.
-On turn 2, Faction4 made its first expansion into M10.
-On turn 2, Faction1 made its first expansion into M1.
-On turn 5, Faction3 seized M9, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
+On turn 2, Persermia Tribe made its first expansion into M4.
+On turn 2, Noraraand Tribe made its first expansion into M7.
+On turn 2, Veneunar Tribe made its first expansion into M10.
+On turn 2, Akhakiar Tribe made its first expansion into M1.
+On turn 3, Veneunar Tribe seized I8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into C.
 
 Opening Phase
 
-The strongest early land grab was Faction3's claim of I6 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
-Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction1 and Faction4 held the opening treasury lead at 19.
+The strongest early land grab was Veneunar Tribe's claim of I8 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe led expansion with 2 claim(s).
+Across the first 5 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe invested most often with 1 investment(s).
+By the end of turn 5, Noraraand Tribe held the opening treasury lead at 19.
 
 Phase Summaries
 
-Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
-Mid phase: Faction1 and Faction2 were strongest by the end of turns 2-3, with Faction1 on 11 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 8 expansions added 8 new regions. Faction1 gained 2 regions.
-Late phase: Faction4 and Faction1 were strongest by the end of turns 4-5, with Faction4 on 19 treasury and 4 regions. 5 successful attacks shifted control of 3 regions. 2 expansions added 2 new regions. Faction2 gained 2 regions while Faction3 lost 1 region. Faction4 improved its standing most during the phase.
+Early phase: Noraraand Tribe was strongest by the end of turns 1-6, with Noraraand Tribe on 22 treasury and 4 regions. 6 successful attacks shifted control of 3 regions. 10 expansions added 10 new regions. 4 investments improved existing holdings. Akhakiar Tribe gained 4 regions. Noraraand Tribe improved its standing most during the phase.
+Mid phase: Noraraand Tribe and Veneunar Tribe were strongest by the end of turns 7-13, with Noraraand Tribe on 32 treasury and 6 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 12 successful attacks shifted control of 10 regions. 7 expansions added 7 new regions. Veneunar Tribe gained 4 regions while Akhakiar Tribe lost 1 region. Noraraand Tribe improved its standing most during the phase.
+Late phase: Akhakiar Tribe was strongest by the end of turns 14-20, with Akhakiar Tribe on 58 treasury and 4 regions. 17 successful attacks shifted control of 13 regions. 6 expansions added 6 new regions. 2 investments improved existing holdings. Persermia Tribe gained 4 regions.
 
 Turning Points
 
-Mid leader change: Faction3 took the treasury lead.
-Late leader change: Faction3 took the treasury lead.
+Late economic shift: Akhakiar Tribe created a treasury edge that became central to the finish.
+Mid economic shift: Noraraand Tribe created a treasury edge that became central to the finish.
 
 Outcome Type
 
@@ -30,26 +30,26 @@ Outcome type: economic_win.
 
 Faction Trajectories
 
-Faction1 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 3 regions by turn 5, and finished first with 3 regions, 19 treasury, and 2 total attacks.
-Faction2 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 5 regions by turn 5, and finished rank 4 on 16 treasury with 5 regions after gaining 11 treasury overall.
-Faction3 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 5, and finished rank 3 on 17 treasury with 2 regions after gaining 12 treasury overall.
-Faction4 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 4 regions by turn 5, and finished rank 2 on 19 treasury with 4 regions after gaining 14 treasury overall.
+Akhakiar Tribe opened with 2 claims and grew to 5 regions by the end of the opening phase, used the middle turns to scale economically, adding 4 treasury, and finished first with 4 regions, 58 treasury, and 8 total attacks.
+Persermia Tribe opened with 3 claims and grew to 3 regions by the end of the opening phase, built steadily past the opening, reaching 9 regions by turn 20, and finished rank 2 on 35 treasury with 9 regions after gaining 30 treasury overall.
+Noraraand Tribe opened with 2 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 8 regions by turn 20, and finished rank 4 on -2 treasury with 8 regions.
+Veneunar Tribe opened with 3 claims and grew to 2 regions by the end of the opening phase, peaked at 8 regions on turn 15 before slipping to 6 regions, and finished rank 3 on 7 treasury with 6 regions after gaining 2 treasury overall.
 
 Strategic Interpretation
 
 On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-Territory alone did not decide this run; Faction1 finished first on treasury without holding the largest empire at the end.
-Faction1 did not win on map share. It finished first on treasury while Faction4 and Faction2 held more territory but failed to turn that size into enough net income.
-Faction1 finished first on 19 treasury with 3 regions, while the largest empire finished on 5 regions.
-The closest challenger was Faction4 (opportunist) at 19 treasury and 4 regions.
+Territory alone did not decide this run; Akhakiar Tribe finished first on treasury without holding the largest empire at the end.
+Akhakiar Tribe did not win on map share. It finished first on treasury while Persermia Tribe, Veneunar Tribe, and Noraraand Tribe held more territory but failed to turn that size into enough net income.
+Akhakiar Tribe finished first on 58 treasury with 4 regions, while the largest empire finished on 9 regions.
+The closest challenger was Persermia Tribe (balanced) at 35 treasury and 9 regions.
 
 Final Standings
 
-Faction1 finished first with a treasury of 19 and control of 3 regions.
-Faction4 ended with a treasury of 19 and 4 regions.
-Faction3 ended with a treasury of 17 and 2 regions.
-Faction2 ended with a treasury of 16 and 5 regions.
+Akhakiar Tribe finished first with a treasury of 58 and control of 4 regions.
+Persermia Tribe ended with a treasury of 35 and 9 regions.
+Veneunar Tribe ended with a treasury of 7 and 6 regions.
+Noraraand Tribe ended with a treasury of -2 and 8 regions.
 
 Victor's History
 
-Faction1's historians would treat this run as evidence that their advance proved that initiative and rightful growth mattered more than caution. They would point first to the decisive shift: mid leader change: Faction3 took the treasury lead. In their telling, rivals mistook sheer map share for strength, while Faction1 finished ahead on treasury with 19 against Faction4's 19. From that partisan view, Faction4's resistance was real but never as durable as Faction1's final position.
+Akhakiar Tribe's historians would treat this run as evidence that their advance proved that initiative and rightful growth mattered more than caution. They would point first to the decisive shift: late economic shift: Akhakiar Tribe created a treasury edge that became central to the finish. In their telling, rivals mistook sheer map share for strength, while Akhakiar Tribe finished ahead on treasury with 58 against Persermia Tribe's 35. From that partisan view, Persermia Tribe's resistance was real but never as durable as Akhakiar Tribe's final position.

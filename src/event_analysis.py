@@ -1,5 +1,5 @@
+from src.maps import MAPS
 from src.metrics import get_turn_metrics
-from src.factions import create_factions
 
 # EVENT IMPORTANCE WEIGHTS
 IMPORTANCE_BASE_ATTACK = 3.0
@@ -192,12 +192,9 @@ def apply_event_to_replay_state(event, state):
 def build_replay_state(world):
     """Builds the initial replay state used for event-level analysis."""
     initial_state = build_initial_opening_state(world)
-    num_factions = len(world.factions)
-
     treasuries = {
-        faction_name: faction.treasury
-        for faction_name, faction in create_factions(num_factions=num_factions).items()
-        if faction_name in world.factions
+        faction_name: faction.starting_treasury
+        for faction_name, faction in world.factions.items()
     }
     owners = {
         region_name: data["owner"]
@@ -690,25 +687,18 @@ def get_opening_investment_leaders(world, opening_turns=5):
 
 
 def build_initial_opening_state(world):
-    """Infers initial ownership and resource values from the final world and event log."""
-    expanded_regions = {event.region for event in world.events if event.type == "expand"}
+    """Returns initial ownership/resource values from the authored map state."""
+    map_regions = MAPS[world.map_name]["regions"]
+    owner_name_map = {
+        faction.internal_id: faction_name
+        for faction_name, faction in world.factions.items()
+    }
     region_state = {}
 
-    for region_name, region in world.regions.items():
-        initial_resources = region.resources
-
-        for event in world.events:
-            if event.type == "invest" and event.region == region_name:
-                initial_resources -= event.get("invest_amount", 0)
-
-        if initial_resources < 0:
-            initial_resources = 0
-
-        initial_owner = None if region_name in expanded_regions else region.owner
-
+    for region_name, region_data in map_regions.items():
         region_state[region_name] = {
-            "owner": initial_owner,
-            "resources": initial_resources,
+            "owner": owner_name_map.get(region_data["owner"], region_data["owner"]),
+            "resources": region_data["resources"],
         }
 
     return region_state
@@ -717,11 +707,9 @@ def build_initial_opening_state(world):
 def replay_opening_treasury_snapshots(world, opening_turns=5):
     """Replays the opening turns and returns treasury snapshots after each turn."""
     region_state = build_initial_opening_state(world)
-    num_factions = len(world.factions)
     treasuries = {
-        faction_name: faction.treasury
-        for faction_name, faction in create_factions(num_factions=num_factions).items()
-        if faction_name in world.factions
+        faction_name: faction.starting_treasury
+        for faction_name, faction in world.factions.items()
     }
     snapshots = []
 

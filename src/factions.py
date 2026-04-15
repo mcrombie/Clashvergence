@@ -1,3 +1,8 @@
+from src.faction_naming import (
+    generate_faction_identities,
+    get_configured_faction_internal_ids,
+    get_faction_internal_id,
+)
 from src.maps import MAPS
 from src.models import Faction
 
@@ -12,27 +17,31 @@ FACTION_STRATEGY_CYCLE = [
 
 
 def get_faction_name(index):
-    return f"Faction{index}"
+    return get_faction_internal_id(index)
 
 
 def get_configured_faction_names(num_factions):
-    if num_factions < 1:
-        raise ValueError("num_factions must be at least 1.")
-
-    return [get_faction_name(index) for index in range(1, num_factions + 1)]
+    return get_configured_faction_internal_ids(num_factions)
 
 
-def create_factions(num_factions=4, starting_treasury=DEFAULT_STARTING_TREASURY):
-    faction_names = get_configured_faction_names(num_factions)
+def create_factions(
+    num_factions=4,
+    starting_treasury=DEFAULT_STARTING_TREASURY,
+    naming_seed="default",
+):
+    identities = generate_faction_identities(num_factions, naming_seed=naming_seed)
 
-    return {
-        faction_name: Faction(
-            faction_name,
-            FACTION_STRATEGY_CYCLE[(index - 1) % len(FACTION_STRATEGY_CYCLE)],
+    factions = {}
+    for index, identity in enumerate(identities, start=1):
+        strategy = FACTION_STRATEGY_CYCLE[(index - 1) % len(FACTION_STRATEGY_CYCLE)]
+        factions[identity.display_name] = Faction(
+            name=identity.display_name,
+            strategy=strategy,
             treasury=starting_treasury,
+            identity=identity,
+            starting_treasury=starting_treasury,
         )
-        for index, faction_name in enumerate(faction_names, start=1)
-    }
+    return factions
 
 
 def get_map_starting_region_counts(map_name):
@@ -48,7 +57,7 @@ def get_map_starting_region_counts(map_name):
 
 
 def validate_map_factions(map_name, num_factions):
-    configured_factions = set(get_configured_faction_names(num_factions))
+    configured_factions = set(get_configured_faction_internal_ids(num_factions))
     starting_region_counts = get_map_starting_region_counts(map_name)
     map_factions = set(starting_region_counts)
 

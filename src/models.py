@@ -9,10 +9,49 @@ class Region:
     resources: int
 
 @dataclass
+class FactionIdentity:
+    internal_id: str
+    culture_name: str
+    government_type: str = "Tribe"
+    display_name: str = ""
+    source_traditions: list[str] = field(default_factory=list)
+    generation_method: str = "curated_source_fusion"
+    ai_generated: bool = False
+    inspirations: list[str] = field(default_factory=list)
+    candidate_pool: list[str] = field(default_factory=list)
+
+    def __post_init__(self):
+        if not self.display_name:
+            self.display_name = f"{self.culture_name} {self.government_type}"
+
+
+@dataclass
 class Faction:
     name: str
     strategy: str
     treasury: int = 0
+    identity: FactionIdentity | None = None
+    starting_treasury: int = 0
+
+    def __post_init__(self):
+        if self.starting_treasury == 0:
+            self.starting_treasury = self.treasury
+
+    @property
+    def display_name(self):
+        return self.identity.display_name if self.identity is not None else self.name
+
+    @property
+    def culture_name(self):
+        return self.identity.culture_name if self.identity is not None else self.name
+
+    @property
+    def government_type(self):
+        return self.identity.government_type if self.identity is not None else "Tribe"
+
+    @property
+    def internal_id(self):
+        return self.identity.internal_id if self.identity is not None else self.name
 
 
 @dataclass

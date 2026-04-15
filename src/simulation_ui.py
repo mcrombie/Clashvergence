@@ -6,9 +6,9 @@ from collections import Counter
 from pathlib import Path
 
 from src.event_analysis import (
+    build_initial_opening_state,
     get_final_standings,
 )
-from src.factions import create_factions
 from src.map_visualization import (
     build_map_layout,
     build_multi_ring_coastline_polygon,
@@ -70,14 +70,14 @@ def _get_event_summary(event):
 
 
 def build_simulation_snapshots(world):
-    map_regions = MAPS[world.map_name]["regions"]
+    initial_state = build_initial_opening_state(world)
     region_state = {
         region_name: {
-            "owner": region_data["owner"],
-            "resources": region_data["resources"],
-            "neighbors": list(region_data["neighbors"]),
+            "owner": initial_state[region_name]["owner"],
+            "resources": initial_state[region_name]["resources"],
+            "neighbors": list(region.neighbors),
         }
-        for region_name, region_data in map_regions.items()
+        for region_name, region in world.regions.items()
     }
 
     snapshots = [{
@@ -164,12 +164,11 @@ def _build_snapshot_standings_from_regions(region_state, world):
         for region in region_state.values()
         if region["owner"] in world.factions
     )
-    initial_factions = create_factions(num_factions=len(world.factions))
     standings = []
     for faction_name, faction in world.factions.items():
         standings.append({
             "faction": faction_name,
-            "treasury": initial_factions[faction_name].treasury,
+            "treasury": faction.starting_treasury,
             "owned_regions": owned_counts.get(faction_name, 0),
         })
     standings.sort(
@@ -226,8 +225,12 @@ def build_simulation_view_model(world):
     factions = [
         {
             "name": faction_name,
+            "internal_id": world.factions[faction_name].internal_id,
             "strategy": world.factions[faction_name].strategy,
-            "color": get_faction_color(faction_name),
+            "color": get_faction_color(
+                faction_name,
+                internal_id=world.factions[faction_name].internal_id,
+            ),
         }
         for faction_name in sorted(world.factions, key=natural_sort_key)
     ]

@@ -3,40 +3,40 @@ Detailed Simulation Results
 Simulation Setup
 
 Map: thirty_seven_region_ring
-Turns: 5
+Turns: 20
 Regions: 37
 Factions: 4
 Faction Strategies:
-  Faction1: strategy=expansionist, starting_treasury=1
-  Faction2: strategy=balanced, starting_treasury=1
-  Faction3: strategy=economic, starting_treasury=1
-  Faction4: strategy=opportunist, starting_treasury=1
+  Akhakiar Tribe: strategy=expansionist, starting_treasury=1, culture=Akhakiar, government=Tribe, internal_id=Faction1, traditions=persian,chinese, ai_generated=False
+  Persermia Tribe: strategy=balanced, starting_treasury=1, culture=Persermia, government=Tribe, internal_id=Faction2, traditions=persian,roman, ai_generated=False
+  Noraraand Tribe: strategy=economic, starting_treasury=1, culture=Noraraand, government=Tribe, internal_id=Faction3, traditions=roman,persian, ai_generated=False
+  Veneunar Tribe: strategy=opportunist, starting_treasury=1, culture=Veneunar, government=Tribe, internal_id=Faction4, traditions=roman,chinese, ai_generated=False
 
 Simulation Chronicle
 
-On turn 2, Faction3 made its first expansion into M7.
-On turn 2, Faction2 made its first expansion into M4.
-On turn 2, Faction4 made its first expansion into M10.
-On turn 2, Faction1 made its first expansion into M1.
-On turn 5, Faction3 seized M9, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later opened the way for further expansion.
+On turn 2, Persermia Tribe made its first expansion into M4.
+On turn 2, Noraraand Tribe made its first expansion into M7.
+On turn 2, Veneunar Tribe made its first expansion into M10.
+On turn 2, Akhakiar Tribe made its first expansion into M1.
+On turn 3, Veneunar Tribe seized I8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into C.
 
 Opening Phase
 
-The strongest early land grab was Faction3's claim of I6 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Faction1, Faction2, Faction3, and Faction4 led expansion with 2 claim(s).
-Across the first 5 turns, Faction1, Faction2, Faction3, and Faction4 invested most often with 1 investment(s).
-By the end of turn 5, Faction1 and Faction4 held the opening treasury lead at 19.
+The strongest early land grab was Veneunar Tribe's claim of I8 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe led expansion with 2 claim(s).
+Across the first 5 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe invested most often with 1 investment(s).
+By the end of turn 5, Noraraand Tribe held the opening treasury lead at 19.
 
 Phase Summaries
 
-Early phase: Faction1 and Faction2 were strongest by the end of turns 1-1, with Faction1 on 5 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
-Mid phase: Faction1 and Faction2 were strongest by the end of turns 2-3, with Faction1 on 11 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 8 expansions added 8 new regions. Faction1 gained 2 regions.
-Late phase: Faction4 and Faction1 were strongest by the end of turns 4-5, with Faction4 on 19 treasury and 4 regions. 5 successful attacks shifted control of 3 regions. 2 expansions added 2 new regions. Faction2 gained 2 regions while Faction3 lost 1 region. Faction4 improved its standing most during the phase.
+Early phase: Noraraand Tribe was strongest by the end of turns 1-6, with Noraraand Tribe on 22 treasury and 4 regions. 6 successful attacks shifted control of 3 regions. 10 expansions added 10 new regions. 4 investments improved existing holdings. Akhakiar Tribe gained 4 regions. Noraraand Tribe improved its standing most during the phase.
+Mid phase: Noraraand Tribe and Veneunar Tribe were strongest by the end of turns 7-13, with Noraraand Tribe on 32 treasury and 6 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 12 successful attacks shifted control of 10 regions. 7 expansions added 7 new regions. Veneunar Tribe gained 4 regions while Akhakiar Tribe lost 1 region. Noraraand Tribe improved its standing most during the phase.
+Late phase: Akhakiar Tribe was strongest by the end of turns 14-20, with Akhakiar Tribe on 58 treasury and 4 regions. 17 successful attacks shifted control of 13 regions. 6 expansions added 6 new regions. 2 investments improved existing holdings. Persermia Tribe gained 4 regions.
 
 Turning Points
 
-Mid leader change: Faction3 took the treasury lead.
-Late leader change: Faction3 took the treasury lead.
+Late economic shift: Akhakiar Tribe created a treasury edge that became central to the finish.
+Mid economic shift: Noraraand Tribe created a treasury edge that became central to the finish.
 
 Outcome Type
 
@@ -44,81 +44,231 @@ Outcome type: economic_win.
 
 Faction Trajectories
 
-Faction1 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 3 regions by turn 5, and finished first with 3 regions, 19 treasury, and 2 total attacks.
-Faction2 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 5 regions by turn 5, and finished rank 4 on 16 treasury with 5 regions after gaining 11 treasury overall.
-Faction3 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 5, and finished rank 3 on 17 treasury with 2 regions after gaining 12 treasury overall.
-Faction4 spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 4 regions by turn 5, and finished rank 2 on 19 treasury with 4 regions after gaining 14 treasury overall.
+Akhakiar Tribe opened with 2 claims and grew to 5 regions by the end of the opening phase, used the middle turns to scale economically, adding 4 treasury, and finished first with 4 regions, 58 treasury, and 8 total attacks.
+Persermia Tribe opened with 3 claims and grew to 3 regions by the end of the opening phase, built steadily past the opening, reaching 9 regions by turn 20, and finished rank 2 on 35 treasury with 9 regions after gaining 30 treasury overall.
+Noraraand Tribe opened with 2 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 8 regions by turn 20, and finished rank 4 on -2 treasury with 8 regions.
+Veneunar Tribe opened with 3 claims and grew to 2 regions by the end of the opening phase, peaked at 8 regions on turn 15 before slipping to 6 regions, and finished rank 3 on 7 treasury with 6 regions after gaining 2 treasury overall.
 
 Strategic Interpretation
 
 On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-Territory alone did not decide this run; Faction1 finished first on treasury without holding the largest empire at the end.
-Faction1 did not win on map share. It finished first on treasury while Faction4 and Faction2 held more territory but failed to turn that size into enough net income.
-Faction1 finished first on 19 treasury with 3 regions, while the largest empire finished on 5 regions.
-The closest challenger was Faction4 (opportunist) at 19 treasury and 4 regions.
+Territory alone did not decide this run; Akhakiar Tribe finished first on treasury without holding the largest empire at the end.
+Akhakiar Tribe did not win on map share. It finished first on treasury while Persermia Tribe, Veneunar Tribe, and Noraraand Tribe held more territory but failed to turn that size into enough net income.
+Akhakiar Tribe finished first on 58 treasury with 4 regions, while the largest empire finished on 9 regions.
+The closest challenger was Persermia Tribe (balanced) at 35 treasury and 9 regions.
 
 Final Standings
 
-Faction1 finished first with a treasury of 19 and control of 3 regions.
-Faction4 ended with a treasury of 19 and 4 regions.
-Faction3 ended with a treasury of 17 and 2 regions.
-Faction2 ended with a treasury of 16 and 5 regions.
+Akhakiar Tribe finished first with a treasury of 58 and control of 4 regions.
+Persermia Tribe ended with a treasury of 35 and 9 regions.
+Veneunar Tribe ended with a treasury of 7 and 6 regions.
+Noraraand Tribe ended with a treasury of -2 and 8 regions.
 
 Victor's History
 
-Faction1's historians would treat this run as evidence that their advance proved that initiative and rightful growth mattered more than caution. They would point first to the decisive shift: mid leader change: Faction3 took the treasury lead. In their telling, rivals mistook sheer map share for strength, while Faction1 finished ahead on treasury with 19 against Faction4's 19. From that partisan view, Faction4's resistance was real but never as durable as Faction1's final position.
+Akhakiar Tribe's historians would treat this run as evidence that their advance proved that initiative and rightful growth mattered more than caution. They would point first to the decisive shift: late economic shift: Akhakiar Tribe created a treasury edge that became central to the finish. In their telling, rivals mistook sheer map share for strength, while Akhakiar Tribe finished ahead on treasury with 58 against Persermia Tribe's 35. From that partisan view, Persermia Tribe's resistance was real but never as durable as Akhakiar Tribe's final position.
 
 Event Log
 
-Turn 1: Faction2 invested in O5 (invest_amount=4, new_resources=5)
-Turn 1: Faction3 invested in O9 (invest_amount=4, new_resources=5)
-Turn 1: Faction4 invested in O13 (invest_amount=4, new_resources=5)
-Turn 1: Faction1 invested in O1 (invest_amount=4, new_resources=5)
-Turn 2: Faction3 expanded into M7 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
-Turn 2: Faction2 expanded into M4 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
-Turn 2: Faction4 expanded into M10 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
-Turn 2: Faction1 expanded into M1 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
-Turn 3: Faction3 expanded into I6 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
-Turn 3: Faction1 expanded into I2 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
-Turn 3: Faction2 expanded into I4 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
-Turn 3: Faction4 expanded into I8 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
-Turn 4: Faction3 expanded into C (score=20, resources=2, neighbors=8, unclaimed_neighbors=4, treasury_after=8)
-Turn 4: Faction4 attacked Faction3 in C and captured the region (success_chance=0.700, attack_strength=14, defense_strength=10, treasury_after=9)
-Turn 4: Faction1 attacked Faction4 in C and captured the region (success_chance=0.650, attack_strength=14, defense_strength=11, treasury_after=9)
-Turn 4: Faction2 attacked Faction1 in C and captured the region (success_chance=0.650, attack_strength=14, defense_strength=11, treasury_after=9)
-Turn 5: Faction3 expanded into M9 (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=12)
-Turn 5: Faction1 attacked Faction2 in C and failed against the region (success_chance=0.650, attack_strength=19, defense_strength=16, treasury_after=12)
-Turn 5: Faction4 attacked Faction3 in M9 and captured the region (success_chance=0.700, attack_strength=18, defense_strength=14, treasury_after=14)
-Turn 5: Faction2 attacked Faction3 in I6 and captured the region (success_chance=0.550, attack_strength=16, defense_strength=15, treasury_after=12)
+Turn 1: Akhakiar Tribe invested in O1 (invest_amount=4, new_resources=5)
+Turn 1: Persermia Tribe invested in O5 (invest_amount=4, new_resources=5)
+Turn 1: Noraraand Tribe invested in O9 (invest_amount=4, new_resources=5)
+Turn 1: Veneunar Tribe invested in O13 (invest_amount=4, new_resources=5)
+Turn 2: Persermia Tribe expanded into M4 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
+Turn 2: Noraraand Tribe expanded into M7 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
+Turn 2: Veneunar Tribe expanded into M10 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
+Turn 2: Akhakiar Tribe expanded into M1 (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
+Turn 3: Veneunar Tribe expanded into I8 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
+Turn 3: Noraraand Tribe expanded into I6 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
+Turn 3: Akhakiar Tribe expanded into I2 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
+Turn 3: Persermia Tribe expanded into I4 (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
+Turn 4: Veneunar Tribe expanded into C (score=20, resources=2, neighbors=8, unclaimed_neighbors=4, treasury_after=8)
+Turn 4: Noraraand Tribe attacked Veneunar Tribe in C and captured the region (success_chance=0.700, attack_strength=14, defense_strength=10, treasury_after=9)
+Turn 4: Persermia Tribe attacked Noraraand Tribe in C and failed against the region (success_chance=0.650, attack_strength=14, defense_strength=11, treasury_after=7)
+Turn 4: Akhakiar Tribe attacked Noraraand Tribe in C and captured the region (success_chance=0.650, attack_strength=14, defense_strength=11, treasury_after=9)
+Turn 5: Veneunar Tribe attacked Akhakiar Tribe in C and failed against the region (success_chance=0.600, attack_strength=18, defense_strength=16, treasury_after=11)
+Turn 5: Persermia Tribe expanded into M6 (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=11)
+Turn 5: Noraraand Tribe attacked Persermia Tribe in M6 and failed against the region (success_chance=0.750, attack_strength=18, defense_strength=13, treasury_after=12)
+Turn 5: Akhakiar Tribe attacked Veneunar Tribe in I8 and captured the region (success_chance=0.600, attack_strength=16, defense_strength=14, treasury_after=12)
+Turn 6: Veneunar Tribe attacked Akhakiar Tribe in I8 and captured the region (success_chance=0.450, attack_strength=18, defense_strength=19, treasury_after=14)
+Turn 6: Akhakiar Tribe attacked Veneunar Tribe in I8 and captured the region (success_chance=0.550, attack_strength=18, defense_strength=17, treasury_after=14)
+Turn 6: Persermia Tribe attacked Akhakiar Tribe in C and failed against the region (success_chance=0.650, attack_strength=19, defense_strength=16, treasury_after=12)
+Turn 6: Noraraand Tribe attacked Persermia Tribe in M6 and captured the region (success_chance=0.800, attack_strength=21, defense_strength=14, treasury_after=17)
+Turn 7: Noraraand Tribe attacked Akhakiar Tribe in C and failed against the region (success_chance=0.750, attack_strength=25, defense_strength=20, treasury_after=18)
+Turn 7: Akhakiar Tribe attacked Veneunar Tribe in M10 and failed against the region (success_chance=0.500, attack_strength=21, defense_strength=21, treasury_after=14)
+Turn 7: Persermia Tribe attacked Akhakiar Tribe in C and failed against the region (success_chance=0.800, attack_strength=22, defense_strength=16, treasury_after=15)
+Turn 7: Veneunar Tribe attacked Akhakiar Tribe in I8 and captured the region (success_chance=0.700, attack_strength=21, defense_strength=17, treasury_after=17)
+Turn 8: Noraraand Tribe attacked Akhakiar Tribe in C and failed against the region (success_chance=0.750, attack_strength=26, defense_strength=21, treasury_after=19)
+Turn 8: Akhakiar Tribe expanded into M3 (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=16)
+Turn 8: Veneunar Tribe attacked Akhakiar Tribe in C and failed against the region (success_chance=0.800, attack_strength=27, defense_strength=18, treasury_after=20)
+Turn 8: Persermia Tribe attacked Akhakiar Tribe in M3 and captured the region (success_chance=0.800, attack_strength=24, defense_strength=18, treasury_after=20)
+Turn 9: Noraraand Tribe attacked Akhakiar Tribe in C and captured the region (success_chance=0.700, attack_strength=27, defense_strength=23, treasury_after=22)
+Turn 9: Persermia Tribe attacked Noraraand Tribe in M6 and captured the region (success_chance=0.700, attack_strength=28, defense_strength=24, treasury_after=23)
+Turn 9: Veneunar Tribe attacked Noraraand Tribe in C and captured the region (success_chance=0.800, attack_strength=30, defense_strength=24, treasury_after=25)
+Turn 9: Akhakiar Tribe expanded into M12 (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=18)
+Turn 10: Veneunar Tribe attacked Akhakiar Tribe in I2 and captured the region (success_chance=0.800, attack_strength=32, defense_strength=26, treasury_after=28)
+Turn 10: Noraraand Tribe attacked Persermia Tribe in M6 and captured the region (success_chance=0.650, attack_strength=31, defense_strength=28, treasury_after=27)
+Turn 10: Akhakiar Tribe expanded into O15 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=20)
+Turn 10: Persermia Tribe expanded into O3 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=23)
+Turn 11: Akhakiar Tribe expanded into M2 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=21)
+Turn 11: Noraraand Tribe attacked Persermia Tribe in I4 and captured the region (success_chance=0.750, attack_strength=34, defense_strength=29, treasury_after=30)
+Turn 11: Persermia Tribe attacked Akhakiar Tribe in M2 and failed against the region (success_chance=0.750, attack_strength=28, defense_strength=23, treasury_after=22)
+Turn 11: Veneunar Tribe attacked Persermia Tribe in M3 and failed against the region (success_chance=0.800, attack_strength=35, defense_strength=24, treasury_after=28)
+Turn 12: Veneunar Tribe attacked Persermia Tribe in M3 and failed against the region (success_chance=0.800, attack_strength=35, defense_strength=28, treasury_after=28)
+Turn 12: Persermia Tribe attacked Akhakiar Tribe in M2 and captured the region (success_chance=0.650, attack_strength=28, defense_strength=25, treasury_after=24)
+Turn 12: Akhakiar Tribe expanded into M11 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=20)
+Turn 12: Noraraand Tribe attacked Persermia Tribe in M4 and captured the region (success_chance=0.800, attack_strength=37, defense_strength=26, treasury_after=32)
+Turn 13: Veneunar Tribe attacked Akhakiar Tribe in M12 and captured the region (success_chance=0.800, attack_strength=35, defense_strength=24, treasury_after=30)
+Turn 13: Noraraand Tribe attacked Persermia Tribe in M3 and failed against the region (success_chance=0.800, attack_strength=36, defense_strength=30, treasury_after=30)
+Turn 13: Persermia Tribe attacked Akhakiar Tribe in M1 and captured the region (success_chance=0.800, attack_strength=30, defense_strength=24, treasury_after=26)
+Turn 13: Akhakiar Tribe expanded into O2 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=19)
+Turn 14: Akhakiar Tribe expanded into O14 (score=8, resources=2, neighbors=4, unclaimed_neighbors=0, treasury_after=20)
+Turn 14: Veneunar Tribe attacked Akhakiar Tribe in O15 and captured the region (success_chance=0.800, attack_strength=34, defense_strength=22, treasury_after=30)
+Turn 14: Persermia Tribe attacked Akhakiar Tribe in O1 and captured the region (success_chance=0.750, attack_strength=30, defense_strength=25, treasury_after=26)
+Turn 14: Noraraand Tribe attacked Persermia Tribe in M3 and captured the region (success_chance=0.800, attack_strength=34, defense_strength=28, treasury_after=30)
+Turn 15: Akhakiar Tribe invested in M11 (invest_amount=4, new_resources=5)
+Turn 15: Persermia Tribe attacked Akhakiar Tribe in O2 and failed against the region (success_chance=0.800, attack_strength=36, defense_strength=25, treasury_after=27)
+Turn 15: Noraraand Tribe attacked Persermia Tribe in O3 and captured the region (success_chance=0.650, attack_strength=32, defense_strength=29, treasury_after=28)
+Turn 15: Veneunar Tribe attacked Akhakiar Tribe in M11 and captured the region (success_chance=0.750, attack_strength=33, defense_strength=28, treasury_after=28)
+Turn 16: Akhakiar Tribe invested in O14 (invest_amount=4, new_resources=5)
+Turn 16: Noraraand Tribe expanded into M9 (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=23)
+Turn 16: Veneunar Tribe attacked Noraraand Tribe in M9 and captured the region (success_chance=0.800, attack_strength=31, defense_strength=25, treasury_after=27)
+Turn 16: Persermia Tribe attacked Veneunar Tribe in I2 and captured the region (success_chance=0.800, attack_strength=36, defense_strength=30, treasury_after=32)
+Turn 17: Noraraand Tribe expanded into O7 (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=18)
+Turn 17: Akhakiar Tribe attacked Noraraand Tribe in O3 and captured the region (success_chance=0.800, attack_strength=32, defense_strength=20, treasury_after=28)
+Turn 17: Veneunar Tribe attacked Noraraand Tribe in I6 and failed against the region (success_chance=0.800, attack_strength=29, defense_strength=21, treasury_after=23)
+Turn 17: Persermia Tribe attacked Akhakiar Tribe in O3 and captured the region (success_chance=0.800, attack_strength=40, defense_strength=30, treasury_after=36)
+Turn 18: Veneunar Tribe attacked Noraraand Tribe in I6 and captured the region (success_chance=0.800, attack_strength=25, defense_strength=19, treasury_after=21)
+Turn 18: Akhakiar Tribe attacked Veneunar Tribe in O13 and captured the region (success_chance=0.800, attack_strength=38, defense_strength=26, treasury_after=31)
+Turn 18: Noraraand Tribe expanded into M8 (score=13, resources=2, neighbors=5, unclaimed_neighbors=2, treasury_after=13)
+Turn 18: Persermia Tribe attacked Akhakiar Tribe in O2 and captured the region (success_chance=0.800, attack_strength=45, defense_strength=33, treasury_after=38)
+Turn 19: Akhakiar Tribe attacked Veneunar Tribe in M11 and captured the region (success_chance=0.800, attack_strength=44, defense_strength=24, treasury_after=37)
+Turn 19: Persermia Tribe attacked Noraraand Tribe in M4 and captured the region (success_chance=0.800, attack_strength=45, defense_strength=12, treasury_after=38)
+Turn 19: Noraraand Tribe expanded into O11 (score=12, resources=2, neighbors=4, unclaimed_neighbors=2, treasury_after=7)
+Turn 19: Veneunar Tribe attacked Noraraand Tribe in I4 and captured the region (success_chance=0.800, attack_strength=21, defense_strength=10, treasury_after=17)
+Turn 20: Persermia Tribe attacked Veneunar Tribe in I4 and captured the region (success_chance=0.800, attack_strength=40, defense_strength=16, treasury_after=36)
+Turn 20: Akhakiar Tribe attacked Veneunar Tribe in I8 and captured the region (success_chance=0.800, attack_strength=54, defense_strength=16, treasury_after=47)
+Turn 20: Veneunar Tribe attacked Noraraand Tribe in O11 and failed against the region (success_chance=0.800, attack_strength=15, defense_strength=7, treasury_after=9)
+Turn 20: Noraraand Tribe expanded into M5 (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=2)
 
 Per-Turn Metrics
 
 Turn 1
-  Faction1: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
-  Faction2: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
-  Faction3: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
-  Faction4: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
+  Akhakiar Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
+  Persermia Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
+  Noraraand Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
+  Veneunar Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
 
 Turn 2
-  Faction1: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Faction2: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Faction3: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Faction4: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
+  Akhakiar Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
+  Persermia Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
+  Noraraand Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
+  Veneunar Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
 
 Turn 3
-  Faction1: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Faction2: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Faction3: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Faction4: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Akhakiar Tribe: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Persermia Tribe: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Noraraand Tribe: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Veneunar Tribe: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
 
 Turn 4
-  Faction1: treasury=16, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Faction2: treasury=14, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Faction3: treasury=15, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Faction4: treasury=16, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Akhakiar Tribe: treasury=14, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Persermia Tribe: treasury=14, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Noraraand Tribe: treasury=16, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Veneunar Tribe: treasury=15, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
 
 Turn 5
-  Faction1: treasury=19, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Faction2: treasury=16, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
-  Faction3: treasury=17, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Faction4: treasury=19, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Akhakiar Tribe: treasury=16, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+  Persermia Tribe: treasury=16, regions=4, attacks=0, expansions=1, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Noraraand Tribe: treasury=19, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Veneunar Tribe: treasury=16, regions=2, attacks=1, expansions=0, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
+
+Turn 6
+  Akhakiar Tribe: treasury=18, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+  Persermia Tribe: treasury=19, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Noraraand Tribe: treasury=22, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Veneunar Tribe: treasury=19, regions=2, attacks=1, expansions=0, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
+
+Turn 7
+  Akhakiar Tribe: treasury=19, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Persermia Tribe: treasury=22, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Noraraand Tribe: treasury=23, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Veneunar Tribe: treasury=24, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+
+Turn 8
+  Akhakiar Tribe: treasury=21, regions=4, attacks=0, expansions=1, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Persermia Tribe: treasury=25, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Noraraand Tribe: treasury=24, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Veneunar Tribe: treasury=27, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+
+Turn 9
+  Akhakiar Tribe: treasury=23, regions=4, attacks=0, expansions=1, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Persermia Tribe: treasury=26, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Noraraand Tribe: treasury=29, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Veneunar Tribe: treasury=30, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+
+Turn 10
+  Akhakiar Tribe: treasury=24, regions=4, attacks=0, expansions=1, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4
+  Persermia Tribe: treasury=26, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Noraraand Tribe: treasury=32, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Veneunar Tribe: treasury=32, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+
+Turn 11
+  Akhakiar Tribe: treasury=23, regions=5, attacks=0, expansions=1, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2
+  Persermia Tribe: treasury=26, regions=4, attacks=1, expansions=0, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4
+  Noraraand Tribe: treasury=34, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+  Veneunar Tribe: treasury=32, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+
+Turn 12
+  Akhakiar Tribe: treasury=22, regions=5, attacks=0, expansions=1, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2
+  Persermia Tribe: treasury=28, regions=4, attacks=1, expansions=0, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4
+  Noraraand Tribe: treasury=34, regions=6, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
+  Veneunar Tribe: treasury=32, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+
+Turn 13
+  Akhakiar Tribe: treasury=23, regions=4, attacks=0, expansions=1, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4
+  Persermia Tribe: treasury=28, regions=5, attacks=1, expansions=0, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2
+  Noraraand Tribe: treasury=32, regions=6, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
+  Veneunar Tribe: treasury=32, regions=6, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
+
+Turn 14
+  Akhakiar Tribe: treasury=23, regions=3, attacks=0, expansions=1, investments=0, base_income=6, scale_penalty=0, effective_income=6, maintenance=3, net=3
+  Persermia Tribe: treasury=31, regions=5, attacks=1, expansions=0, investments=0, base_income=16, scale_penalty=6, effective_income=10, maintenance=5, net=5
+  Noraraand Tribe: treasury=30, regions=7, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=12, effective_income=7, maintenance=7, net=0
+  Veneunar Tribe: treasury=30, regions=7, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=12, effective_income=7, maintenance=7, net=0
+
+Turn 15
+  Akhakiar Tribe: treasury=25, regions=2, attacks=0, expansions=0, investments=1, base_income=4, scale_penalty=0, effective_income=4, maintenance=2, net=2
+  Persermia Tribe: treasury=34, regions=4, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=3, effective_income=11, maintenance=4, net=7
+  Noraraand Tribe: treasury=26, regions=8, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=15, effective_income=6, maintenance=8, net=-2
+  Veneunar Tribe: treasury=29, regions=8, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=15, effective_income=9, maintenance=8, net=1
+
+Turn 16
+  Akhakiar Tribe: treasury=30, regions=2, attacks=0, expansions=0, investments=1, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
+  Persermia Tribe: treasury=38, regions=5, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=6, effective_income=11, maintenance=5, net=6
+  Noraraand Tribe: treasury=21, regions=8, attacks=0, expansions=1, investments=0, base_income=21, scale_penalty=15, effective_income=6, maintenance=8, net=-2
+  Veneunar Tribe: treasury=27, regions=8, attacks=1, expansions=0, investments=0, base_income=23, scale_penalty=15, effective_income=8, maintenance=8, net=0
+
+Turn 17
+  Akhakiar Tribe: treasury=33, regions=2, attacks=1, expansions=0, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
+  Persermia Tribe: treasury=40, regions=6, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=9, effective_income=10, maintenance=6, net=4
+  Noraraand Tribe: treasury=16, regions=8, attacks=0, expansions=1, investments=0, base_income=21, scale_penalty=15, effective_income=6, maintenance=8, net=-2
+  Veneunar Tribe: treasury=23, regions=8, attacks=1, expansions=0, investments=0, base_income=23, scale_penalty=15, effective_income=8, maintenance=8, net=0
+
+Turn 18
+  Akhakiar Tribe: treasury=39, regions=2, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=2, net=8
+  Persermia Tribe: treasury=40, regions=7, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=12, effective_income=9, maintenance=7, net=2
+  Noraraand Tribe: treasury=10, regions=8, attacks=0, expansions=1, investments=0, base_income=20, scale_penalty=15, effective_income=5, maintenance=8, net=-3
+  Veneunar Tribe: treasury=19, regions=8, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=15, effective_income=6, maintenance=8, net=-2
+
+Turn 19
+  Akhakiar Tribe: treasury=49, regions=3, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=0, effective_income=15, maintenance=3, net=12
+  Persermia Tribe: treasury=38, regions=8, attacks=1, expansions=0, investments=0, base_income=23, scale_penalty=15, effective_income=8, maintenance=8, net=0
+  Noraraand Tribe: treasury=5, regions=7, attacks=0, expansions=1, investments=0, base_income=17, scale_penalty=12, effective_income=5, maintenance=7, net=-2
+  Veneunar Tribe: treasury=13, regions=8, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=15, effective_income=4, maintenance=8, net=-4
+
+Turn 20
+  Akhakiar Tribe: treasury=58, regions=4, attacks=1, expansions=0, investments=0, base_income=18, scale_penalty=3, effective_income=15, maintenance=4, net=11
+  Persermia Tribe: treasury=35, regions=9, attacks=1, expansions=0, investments=0, base_income=26, scale_penalty=18, effective_income=8, maintenance=9, net=-1
+  Noraraand Tribe: treasury=-2, regions=8, attacks=0, expansions=1, investments=0, base_income=19, scale_penalty=15, effective_income=4, maintenance=8, net=-4
+  Veneunar Tribe: treasury=7, regions=6, attacks=1, expansions=0, investments=0, base_income=13, scale_penalty=9, effective_income=4, maintenance=6, net=-2

@@ -27,9 +27,15 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
     lines.append("Faction Strategies:")
 
     for faction_name, faction in world.factions.items():
+        tradition_labels = ",".join(faction.identity.source_traditions) if faction.identity else ""
         lines.append(
             f"  {faction_name}: strategy={faction.strategy}, "
-            f"starting_treasury={starting_treasuries[faction_name]}"
+            f"starting_treasury={starting_treasuries[faction_name]}, "
+            f"culture={faction.culture_name}, "
+            f"government={faction.government_type}, "
+            f"internal_id={faction.internal_id}, "
+            f"traditions={tradition_labels}, "
+            f"ai_generated={faction.identity.ai_generated if faction.identity else False}"
         )
 
     return lines

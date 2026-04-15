@@ -43,11 +43,13 @@ def get_faction_index(faction_name):
     return None
 
 
-def get_faction_color(faction_name):
-    if faction_name in FACTION_COLORS:
-        return FACTION_COLORS[faction_name]
+def get_faction_color(faction_name, internal_id=None):
+    color_key = internal_id if internal_id is not None else faction_name
 
-    faction_index = get_faction_index(faction_name)
+    if color_key in FACTION_COLORS:
+        return FACTION_COLORS[color_key]
+
+    faction_index = get_faction_index(color_key)
     if faction_index is None:
         return "#7f8c8d"
 
