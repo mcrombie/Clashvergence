@@ -1,6 +1,7 @@
 from src.factions import create_factions, validate_map_factions
 from src.models import Region, WorldState
 from src.maps import MAPS
+from src.region_naming import assign_region_founding_name
 
 
 def create_world(map_name="seven_region_ring", num_factions=4) -> WorldState:
@@ -21,4 +22,20 @@ def create_world(map_name="seven_region_ring", num_factions=4) -> WorldState:
             resources=region_data["resources"],
         )
 
-    return WorldState(regions=regions, factions=factions, map_name=map_name)
+    world = WorldState(regions=regions, factions=factions, map_name=map_name)
+
+    homeland_assigned: dict[str, int] = {}
+    for region_name, region in world.regions.items():
+        if region.owner is None:
+            continue
+
+        owned_count = homeland_assigned.get(region.owner, 0)
+        assign_region_founding_name(
+            world,
+            region_name,
+            region.owner,
+            is_homeland=(owned_count == 0),
+        )
+        homeland_assigned[region.owner] = owned_count + 1
+
+    return world

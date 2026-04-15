@@ -7,6 +7,15 @@ class Region:
     neighbors: list[str]
     owner: str | None
     resources: int
+    display_name: str = ""
+    founding_name: str = ""
+    original_namer_faction_id: str | None = None
+    terrain_tags: list[str] = field(default_factory=list)
+    name_metadata: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def ui_name(self) -> str:
+        return self.display_name or self.name
 
 @dataclass
 class FactionIdentity:

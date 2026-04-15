@@ -1,28 +1,27 @@
 Simulation Chronicle
 
-On turn 2, Persermia Tribe made its first expansion into M4.
-On turn 2, Noraraand Tribe made its first expansion into M7.
-On turn 2, Veneunar Tribe made its first expansion into M10.
-On turn 2, Akhakiar Tribe made its first expansion into M1.
-On turn 3, Veneunar Tribe seized I8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into C.
+On turn 2, Arangoun Tribe made its first expansion into M7.
+On turn 2, Saklian Tribe made its first expansion into M1.
+On turn 2, Yunavaun Tribe made its first expansion into M10.
+On turn 2, Aruangos Tribe made its first expansion into M4.
 
 Opening Phase
 
-The strongest early land grab was Veneunar Tribe's claim of I8 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe led expansion with 2 claim(s).
-Across the first 5 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe invested most often with 1 investment(s).
-By the end of turn 5, Noraraand Tribe held the opening treasury lead at 19.
+The strongest early land grab was Arangoun Tribe's claim of M7 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Saklian Tribe, Aruangos Tribe, Arangoun Tribe, and Yunavaun Tribe led expansion with 2 claim(s).
+Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Arangoun Tribe, and Yunavaun Tribe invested most often with 1 investment(s).
+By the end of turn 5, Arangoun Tribe held the opening treasury lead at 21.
 
 Phase Summaries
 
-Early phase: Noraraand Tribe was strongest by the end of turns 1-6, with Noraraand Tribe on 22 treasury and 4 regions. 6 successful attacks shifted control of 3 regions. 10 expansions added 10 new regions. 4 investments improved existing holdings. Akhakiar Tribe gained 4 regions. Noraraand Tribe improved its standing most during the phase.
-Mid phase: Noraraand Tribe and Veneunar Tribe were strongest by the end of turns 7-13, with Noraraand Tribe on 32 treasury and 6 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 12 successful attacks shifted control of 10 regions. 7 expansions added 7 new regions. Veneunar Tribe gained 4 regions while Akhakiar Tribe lost 1 region. Noraraand Tribe improved its standing most during the phase.
-Late phase: Akhakiar Tribe was strongest by the end of turns 14-20, with Akhakiar Tribe on 58 treasury and 4 regions. 17 successful attacks shifted control of 13 regions. 6 expansions added 6 new regions. 2 investments improved existing holdings. Persermia Tribe gained 4 regions.
+Early phase: Arangoun Tribe was strongest by the end of turns 1-6, with Arangoun Tribe on 24 treasury and 4 regions. 9 successful attacks shifted control of 4 regions. 11 expansions added 11 new regions. 4 investments improved existing holdings. Yunavaun Tribe gained 4 regions. Arangoun Tribe improved its standing most during the phase.
+Mid phase: Yunavaun Tribe was strongest by the end of turns 7-13, with Yunavaun Tribe on 24 treasury and 7 regions. 13 successful attacks shifted control of 10 regions. 6 expansions added 6 new regions. Saklian Tribe gained 6 regions while Aruangos Tribe lost 2 regions.
+Late phase: Aruangos Tribe was strongest by the end of turns 14-20, with Aruangos Tribe on 21 treasury and 0 regions. 12 successful attacks shifted control of 11 regions. 5 expansions added 5 new regions. 3 investments improved existing holdings. Arangoun Tribe gained 5 regions while Saklian Tribe lost 5 regions. Aruangos Tribe improved its standing most during the phase.
 
 Turning Points
 
-Late economic shift: Akhakiar Tribe created a treasury edge that became central to the finish.
-Mid economic shift: Noraraand Tribe created a treasury edge that became central to the finish.
+Early leader change: Aruangos Tribe took the treasury lead.
+Early leader change: Aruangos Tribe took the treasury lead.
 
 Outcome Type
 
@@ -30,26 +29,23 @@ Outcome type: economic_win.
 
 Faction Trajectories
 
-Akhakiar Tribe opened with 2 claims and grew to 5 regions by the end of the opening phase, used the middle turns to scale economically, adding 4 treasury, and finished first with 4 regions, 58 treasury, and 8 total attacks.
-Persermia Tribe opened with 3 claims and grew to 3 regions by the end of the opening phase, built steadily past the opening, reaching 9 regions by turn 20, and finished rank 2 on 35 treasury with 9 regions after gaining 30 treasury overall.
-Noraraand Tribe opened with 2 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 8 regions by turn 20, and finished rank 4 on -2 treasury with 8 regions.
-Veneunar Tribe opened with 3 claims and grew to 2 regions by the end of the opening phase, peaked at 8 regions on turn 15 before slipping to 6 regions, and finished rank 3 on 7 treasury with 6 regions after gaining 2 treasury overall.
+Saklian Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, peaked at 10 regions on turn 13 before slipping to 5 regions, and finished rank 3 on 6 treasury with 5 regions after gaining 1 treasury overall.
+Aruangos Tribe opened with 4 claims and grew to 2 regions by the end of the opening phase, peaked at 4 regions on turn 5 before slipping to 0 regions, and closed on 21 treasury without territory after 1 attacks.
+Arangoun Tribe opened with 2 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 9 regions by turn 20, and finished rank 4 on -6 treasury with 9 regions.
+Yunavaun Tribe opened with 2 claims and grew to 5 regions by the end of the opening phase, built steadily past the opening, reaching 12 regions by turn 20, and finished rank 2 on 13 treasury with 12 regions after gaining 8 treasury overall.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-Territory alone did not decide this run; Akhakiar Tribe finished first on treasury without holding the largest empire at the end.
-Akhakiar Tribe did not win on map share. It finished first on treasury while Persermia Tribe, Veneunar Tribe, and Noraraand Tribe held more territory but failed to turn that size into enough net income.
-Akhakiar Tribe finished first on 58 treasury with 4 regions, while the largest empire finished on 9 regions.
-The closest challenger was Persermia Tribe (balanced) at 35 treasury and 9 regions.
+Aruangos Tribe’s balanced approach won because treasury, not territory, decided the ring: it finished with 21 treasury against Yunavaun Tribe’s 13 even though it held no regions, so map control never translated into a decisive lead. The early treasury shift to Aruangos mattered because it created the resource cushion that the other factions could not overcome, while the board stayed fragmented enough for region gains to matter less than income. Yunavaun’s midgame territorial edge and Arangoun’s late regional surge were not enough because neither converted those swings into the treasury separation needed to break the contest.
+The closest challenger was Yunavaun Tribe (opportunist) at 13 treasury and 12 regions.
 
 Final Standings
 
-Akhakiar Tribe finished first with a treasury of 58 and control of 4 regions.
-Persermia Tribe ended with a treasury of 35 and 9 regions.
-Veneunar Tribe ended with a treasury of 7 and 6 regions.
-Noraraand Tribe ended with a treasury of -2 and 8 regions.
+Aruangos Tribe finished first with a treasury of 21 and control of 0 regions.
+Yunavaun Tribe ended with a treasury of 13 and 12 regions.
+Saklian Tribe ended with a treasury of 6 and 5 regions.
+Arangoun Tribe ended with a treasury of -6 and 9 regions.
 
 Victor's History
 
-Akhakiar Tribe's historians would treat this run as evidence that their advance proved that initiative and rightful growth mattered more than caution. They would point first to the decisive shift: late economic shift: Akhakiar Tribe created a treasury edge that became central to the finish. In their telling, rivals mistook sheer map share for strength, while Akhakiar Tribe finished ahead on treasury with 58 against Persermia Tribe's 35. From that partisan view, Persermia Tribe's resistance was real but never as durable as Akhakiar Tribe's final position.
+The Aruangos Tribe prevailed by prudence and steadier judgment, finishing first on treasury even after conceding the map. Their opening claims and early treasury lead showed a disciplined grasp of the contest, and they held that advantage through a volatile field where others chased territory more aggressively. Yunavaun’s stronger regional position proved real but not decisive, while Arangoun’s early strength and later losses, along with Saklian’s decline, suggest that breadth without durable balance was not enough on this ring.

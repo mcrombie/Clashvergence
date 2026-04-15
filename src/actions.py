@@ -8,6 +8,7 @@ from src.config import (
     INVEST_AMOUNT,
 )
 from src.models import Event
+from src.region_naming import assign_region_founding_name, format_region_reference
 
 
 def get_expandable_regions(faction_name, world):
@@ -258,6 +259,12 @@ def expand(faction_name, target_region_name, world):
     importance_tier = get_importance_tier(score_components["score"])
     faction.treasury -= EXPANSION_COST
     world.regions[target_region_name].owner = faction_name
+    region_display_name = assign_region_founding_name(
+        world,
+        target_region_name,
+        faction_name,
+        is_homeland=False,
+    )
     rank_after = get_faction_rank(world, faction_name)
     rank_change = rank_before - rank_after
     unique_lead_after = has_unique_lead(world, faction_name)
@@ -294,6 +301,11 @@ def expand(faction_name, target_region_name, world):
             "neighbors": score_components["neighbors"],
             "unclaimed_neighbors": score_components["unclaimed_neighbors"],
             "score": score_components["score"],
+            "region_display_name": region_display_name,
+            "region_reference": format_region_reference(
+                world.regions[target_region_name],
+                include_code=True,
+            ),
         },
         context={
             "treasury_before": treasury_before,
@@ -352,6 +364,13 @@ def attack(faction_name, target_region_name, world):
 
     if succeeded:
         target_region.owner = faction_name
+        if not target_region.founding_name:
+            assign_region_founding_name(
+                world,
+                target_region_name,
+                faction_name,
+                is_homeland=False,
+            )
     else:
         actual_failure_penalty = min(ATTACK_FAILURE_PENALTY, attacker.treasury)
         treasury_change -= actual_failure_penalty
@@ -370,6 +389,8 @@ def attack(faction_name, target_region_name, world):
             "success_chance": round(score_components["success_chance"], 3),
             "attack_strength": score_components["attacker_strength"],
             "defense_strength": score_components["defender_strength"],
+            "region_display_name": target_region.display_name,
+            "region_reference": format_region_reference(target_region, include_code=True),
         },
         context={
             "treasury_before": treasury_before,
@@ -427,6 +448,8 @@ def invest(faction_name, target_region_name, world):
         region=target_region_name,
         details={
             "invest_amount": INVEST_AMOUNT,
+            "region_display_name": region.display_name,
+            "region_reference": format_region_reference(region, include_code=True),
         },
         context={
             "resources_before": resources_before,

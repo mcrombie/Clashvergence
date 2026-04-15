@@ -7,6 +7,7 @@ from src.narrative import build_chronicle
 from src.event_analysis import get_event_log
 from src.metrics import get_metrics_log
 from src.simulation_ui import write_simulation_html
+from src.region_naming import format_region_reference
 
 
 REPORTS_DIR = Path("reports")
@@ -41,11 +42,15 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
     return lines
 
 
-def format_event(event):
+def format_event(event, world):
     """Formats one simulation event for the results report."""
+    region_reference = event.region
+    if event.region is not None and event.region in world.regions:
+        region_reference = format_region_reference(world.regions[event.region], include_code=True)
+
     if event["type"] == "expand":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} expanded into {event['region']} "
+            f"Turn {event['turn'] + 1}: {event['faction']} expanded into {region_reference} "
             f"(score={event.get('score', 0)}, resources={event.get('resources', 0)}, "
             f"neighbors={event.get('neighbors', 0)}, "
             f"unclaimed_neighbors={event.get('unclaimed_neighbors', 0)}, "
@@ -54,7 +59,7 @@ def format_event(event):
 
     if event["type"] == "invest":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} invested in {event['region']} "
+            f"Turn {event['turn'] + 1}: {event['faction']} invested in {region_reference} "
             f"(invest_amount={event.get('invest_amount', 0)}, "
             f"new_resources={event.get('new_resources', 0)})"
         )
@@ -63,7 +68,7 @@ def format_event(event):
         defender = event.get("defender", "Unknown")
         outcome = "captured" if event.get("success", False) else "failed against"
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} attacked {defender} in {event['region']} "
+            f"Turn {event['turn'] + 1}: {event['faction']} attacked {defender} in {region_reference} "
             f"and {outcome} the region "
             f"(success_chance={event.get('success_chance', 0):.3f}, "
             f"attack_strength={event.get('attack_strength', 0)}, "
@@ -116,7 +121,7 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
     lines.append("")
 
     for event in get_event_log(world):
-        lines.append(format_event(event))
+        lines.append(format_event(event, world))
 
     lines.append("")
     lines.append("Per-Turn Metrics")

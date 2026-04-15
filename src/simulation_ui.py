@@ -27,33 +27,44 @@ from src.narrative import (
     summarize_strategic_interpretation,
     summarize_victor_history,
 )
+from src.region_naming import format_region_reference, get_region_display_name
 
 
 SIMULATION_VIEWER_OUTPUT = Path("reports/simulation_view.html")
 
 
-def _serialize_event(event):
+def _serialize_event(event, world):
     event_data = event.to_dict()
     event_data["turn_display"] = event.turn + 1
-    event_data["title"] = _get_event_title(event)
-    event_data["summary"] = _get_event_summary(event)
+    if event.region is not None and event.region in world.regions:
+        region = world.regions[event.region]
+        event_data["region_display_name"] = get_region_display_name(region)
+        event_data["region_reference"] = format_region_reference(region, include_code=True)
+    else:
+        event_data["region_display_name"] = event.region
+        event_data["region_reference"] = event.region
+    event_data["title"] = _get_event_title(event, world)
+    event_data["summary"] = _get_event_summary(event, world)
     return event_data
 
 
-def _get_event_title(event):
+def _get_event_title(event, world):
+    region_reference = event.region
+    if event.region is not None and event.region in world.regions:
+        region_reference = format_region_reference(world.regions[event.region], include_code=True)
     if event.type == "expand":
-        return f"{event.faction} expanded into {event.region}"
+        return f"{event.faction} expanded into {region_reference}"
     if event.type == "attack":
         defender = event.get("defender", "Unknown")
         if event.get("success", False):
-            return f"{event.faction} captured {event.region} from {defender}"
-        return f"{event.faction} failed to take {event.region} from {defender}"
+            return f"{event.faction} captured {region_reference} from {defender}"
+        return f"{event.faction} failed to take {region_reference} from {defender}"
     if event.type == "invest":
-        return f"{event.faction} invested in {event.region}"
+        return f"{event.faction} invested in {region_reference}"
     return f"{event.faction} acted"
 
 
-def _get_event_summary(event):
+def _get_event_summary(event, world):
     if event.type == "expand":
         return (
             f"Claimed a region worth R{event.get('resources', 0)} "
@@ -76,6 +87,13 @@ def build_simulation_snapshots(world):
             "owner": initial_state[region_name]["owner"],
             "resources": initial_state[region_name]["resources"],
             "neighbors": list(region.neighbors),
+            "display_name": region.display_name if initial_state[region_name]["owner"] is not None else region.name,
+            "founding_name": region.founding_name if initial_state[region_name]["owner"] is not None else "",
+            "original_namer_faction_id": (
+                region.original_namer_faction_id
+                if initial_state[region_name]["owner"] is not None
+                else None
+            ),
         }
         for region_name, region in world.regions.items()
     }
@@ -88,6 +106,9 @@ def build_simulation_snapshots(world):
             region_name: {
                 "owner": region["owner"],
                 "resources": region["resources"],
+                "display_name": region["display_name"],
+                "founding_name": region["founding_name"],
+                "original_namer_faction_id": region["original_namer_faction_id"],
             }
             for region_name, region in region_state.items()
         },
@@ -107,6 +128,17 @@ def build_simulation_snapshots(world):
 
             if event.type == "expand":
                 region_state[event.region]["owner"] = event.faction
+                region_state[event.region]["display_name"] = event.get(
+                    "region_display_name",
+                    region_state[event.region]["display_name"],
+                )
+                region_state[event.region]["founding_name"] = event.get(
+                    "region_display_name",
+                    region_state[event.region]["founding_name"],
+                )
+                region_state[event.region]["original_namer_faction_id"] = (
+                    world.regions[event.region].original_namer_faction_id
+                )
                 changed_regions.append(event.region)
             elif event.type == "attack":
                 contested_regions.append(event.region)
@@ -123,12 +155,15 @@ def build_simulation_snapshots(world):
         metrics = get_turn_metrics(world, turn_number)
         snapshots.append({
             "turn": turn_number,
-            "events": [_serialize_event(event) for event in turn_events],
+            "events": [_serialize_event(event, world) for event in turn_events],
             "metrics": metrics,
             "regions": {
                 region_name: {
                     "owner": region["owner"],
                     "resources": region["resources"],
+                    "display_name": region["display_name"],
+                    "founding_name": region["founding_name"],
+                    "original_namer_faction_id": region["original_namer_faction_id"],
                 }
                 for region_name, region in region_state.items()
             },
@@ -248,6 +283,7 @@ def build_simulation_view_model(world):
         "regions": [
             {
                 "name": region_name,
+                "display_name": get_region_display_name(world.regions[region_name]),
                 "x": round(positions[region_name][0], 1),
                 "y": round(positions[region_name][1], 1),
                 "neighbors": sorted(region_data["neighbors"], key=natural_sort_key),
@@ -260,6 +296,7 @@ def build_simulation_view_model(world):
         "atlas_regions": [
             {
                 "name": region_name,
+                "display_name": get_region_display_name(world.regions[region_name]),
                 "polygon": [
                     [round(point[0], 1), round(point[1], 1)]
                     for point in atlas_geometry[region_name]["polygon"]
@@ -830,6 +867,11 @@ def render_simulation_html(world):
     }}
 
     function buildStaticMap() {{
+      function attachTitle(element, id) {{
+        const title = svgElement("title", {{ id }});
+        element.appendChild(title);
+      }}
+
       if (data.atlas_regions.length) {{
         atlasBackgroundLayer.appendChild(svgElement("rect", {{
           x: 0,
@@ -857,11 +899,13 @@ def render_simulation_html(world):
         }}
 
         for (const region of data.atlas_regions) {{
-          atlasLayer.appendChild(svgElement("polygon", {{
+          const polygon = svgElement("polygon", {{
             points: polygonPointsText(region.polygon),
             class: "atlas-territory",
             id: `atlas-region-${{region.name}}`,
-          }}));
+          }});
+          attachTitle(polygon, `atlas-title-${{region.name}}`);
+          atlasLayer.appendChild(polygon);
 
           atlasLabelLayer.appendChild(svgElement("text", {{
             x: region.label_x,
@@ -894,13 +938,15 @@ def render_simulation_html(world):
       }}
 
       for (const region of data.regions) {{
-        regionLayer.appendChild(svgElement("circle", {{
+        const node = svgElement("circle", {{
           cx: region.x,
           cy: region.y,
           r: 25,
           class: "region-node",
           id: `region-node-${{region.name}}`,
-        }}));
+        }});
+        attachTitle(node, `region-title-${{region.name}}`);
+        regionLayer.appendChild(node);
 
         labelLayer.appendChild(svgElement("text", {{
           x: region.x,
@@ -1042,7 +1088,7 @@ def render_simulation_html(world):
         <article class="event-item">
           <strong>${{escapeHtml(event.title)}}</strong>
           <div>${{escapeHtml(event.summary)}}</div>
-          <div class="event-meta">Type: ${{escapeHtml(event.type)}}${{event.region ? ` - Region ${{escapeHtml(event.region)}}` : ""}}</div>
+          <div class="event-meta">Type: ${{escapeHtml(event.type)}}${{event.region_reference ? ` - Region ${{escapeHtml(event.region_reference)}}` : ""}}</div>
         </article>
       `).join("");
     }}
@@ -1061,8 +1107,13 @@ def render_simulation_html(world):
         node.setAttribute("fill", fill);
         node.classList.toggle("changed", changed.has(region.name));
         node.classList.toggle("contested", contested.has(region.name));
-        label.textContent = region.name;
+        label.textContent = regionSnapshot.display_name || region.display_name || region.name;
         resource.textContent = `R${{regionSnapshot.resources}}`;
+        const title = document.getElementById(`region-title-${{region.name}}`);
+        if (title) {{
+          const ownerText = regionSnapshot.owner || "Unclaimed";
+          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}}`;
+        }}
       }}
 
       for (const region of data.atlas_regions) {{
@@ -1079,8 +1130,13 @@ def render_simulation_html(world):
         polygon.setAttribute("fill", fill);
         polygon.classList.toggle("changed", changed.has(region.name));
         polygon.classList.toggle("contested", contested.has(region.name));
-        label.textContent = region.name;
+        label.textContent = regionSnapshot.display_name || region.display_name || region.name;
         resource.textContent = `R${{regionSnapshot.resources}}`;
+        const title = document.getElementById(`atlas-title-${{region.name}}`);
+        if (title) {{
+          const ownerText = regionSnapshot.owner || "Unclaimed";
+          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}}`;
+        }}
       }}
     }}
 
