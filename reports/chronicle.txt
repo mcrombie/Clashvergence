@@ -1,51 +1,51 @@
 Simulation Chronicle
 
+On turn 2, Yunavaun Tribe made its first expansion into M10.
 On turn 2, Rnutuan Tribe made its first expansion into M7.
-On turn 2, Saklian Tribe made its first expansion into M1.
-On turn 2, Veneunar Tribe made its first expansion into M10.
 On turn 2, Aruangos Tribe made its first expansion into M4.
+On turn 2, Saklian Tribe made its first expansion into M1.
 
 Opening Phase
 
-The strongest early land grab was Veneunar Tribe's claim of M9 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe led expansion with 2 claim(s).
-Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe invested most often with 1 investment(s).
-By the end of turn 5, Saklian Tribe held the opening treasury lead at 19.
+The strongest early land grab was Yunavaun Tribe's claim of M10 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Yunavaun Tribe led expansion with 2 claim(s).
+Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Yunavaun Tribe invested most often with 1 investment(s).
+By the end of turn 5, Rnutuan Tribe held the opening treasury lead at 18.
 
 Phase Summaries
 
-Early phase: Aruangos Tribe was strongest by the end of turns 1-6, with Aruangos Tribe on 21 treasury and 4 regions. 7 successful attacks shifted control of 5 regions. 12 expansions added 12 new regions. 4 investments improved existing holdings. Saklian Tribe gained 4 regions. Aruangos Tribe improved its standing most during the phase.
-Mid phase: Rnutuan Tribe was strongest by the end of turns 7-13, with Rnutuan Tribe on 37 treasury and 5 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 15 successful attacks shifted control of 5 regions. 1 expansion added 1 new region. Rnutuan Tribe gained 3 regions while Veneunar Tribe lost 2 regions.
-Late phase: Veneunar Tribe was strongest by the end of turns 14-20, with Veneunar Tribe on 35 treasury and 6 regions. 12 successful attacks shifted control of 9 regions. 9 expansions added 9 new regions. Rnutuan Tribe gained 4 regions.
+Early phase: Aruangos Tribe was strongest by the end of turns 1-6, with Aruangos Tribe on 22 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 1-region spread. 7 successful attacks shifted control of 3 regions. 11 expansions added 11 new regions. 4 investments improved existing holdings. Saklian Tribe gained 3 regions.
+Mid phase: Aruangos Tribe was strongest by the end of turns 7-13, with Aruangos Tribe on 28 treasury and 5 regions. 9 successful attacks shifted control of 6 regions. 4 expansions added 4 new regions. Saklian Tribe gained 3 regions while Yunavaun Tribe lost 4 regions.
+Late phase: Aruangos Tribe was strongest by the end of turns 14-20, with Aruangos Tribe on 19 treasury and 10 regions. 11 successful attacks shifted control of 8 regions. 4 expansions added 4 new regions. 3 investments improved existing holdings. Aruangos Tribe gained 5 regions while Rnutuan Tribe lost 4 regions.
 
 Turning Points
 
-Late leader change: Veneunar Tribe took the treasury lead.
-Early leader change: Veneunar Tribe took the treasury lead.
+Late phase break: Aruangos Tribe gained 5 regions while Rnutuan Tribe lost 4 regions.
+Late economic shift: Aruangos Tribe created a treasury edge that became central to the finish.
 
 Outcome Type
 
-Outcome type: economic_win.
+Outcome type: late_snowball.
 
 Faction Trajectories
 
-Saklian Tribe opened with 2 claims and grew to 5 regions by the end of the opening phase, stayed active mid-game with 6 attack attempts while holding 5 regions, and finished rank 3 on 14 treasury with 5 regions after gaining 9 treasury overall.
-Aruangos Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 6 regions by turn 20, and finished rank 4 on 13 treasury with 6 regions after gaining 8 treasury overall.
-Rnutuan Tribe opened with 5 claims and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 9 regions by turn 20, and finished rank 2 on 31 treasury with 9 regions after gaining 26 treasury overall.
-Veneunar Tribe opened with 2 claims and grew to 5 regions by the end of the opening phase, built steadily past the opening, reaching 6 regions by turn 20, and finished first with 6 regions, 35 treasury, and 17 total attacks.
+Saklian Tribe opened with 2 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 10 regions by turn 20, and finished rank 4 on 1 treasury with 10 regions.
+Aruangos Tribe opened with 3 claims and grew to 3 regions by the end of the opening phase, built steadily past the opening, reaching 10 regions by turn 20, and finished first with 10 regions, 19 treasury, and 16 total attacks.
+Rnutuan Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, peaked at 7 regions on turn 12 before slipping to 3 regions, and finished rank 3 on 10 treasury with 3 regions after gaining 5 treasury overall.
+Yunavaun Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, peaked at 4 regions on turn 5 before slipping to 0 regions, and closed on 12 treasury without territory after 8 attacks.
 
 Strategic Interpretation
 
-Veneunar Tribe’s opportunist timing mattered because the board stayed contested for most of the game, so territory alone never settled the result and treasury became the deciding measure. Rnutuan Tribe had the stronger midgame position and more regions, but it could not convert that map edge into a lasting resource lead, which allowed Veneunar to take the treasury advantage early and again late. That late separation mattered because the final margin was only 4 treasury despite a 3-region deficit, so the win came from efficiency rather than expansion.
-The closest challenger was Rnutuan Tribe (economic) at 31 treasury and 9 regions.
+Aruangos Tribe’s balanced approach mattered because it turned a contested ring into a late snowball, with the decisive break coming only in the final phase when it gained 5 regions while Rnutuan Tribe lost 4. That swing mattered because the board had stayed crowded earlier, so the late territorial separation created room for Aruangos to finish 10 regions clear and convert control into a 7-treasury edge. Yunavaun Tribe’s 0-region finish shows why the other contenders failed: they could shift pieces early and midgame, but not sustain enough board presence to stop Aruangos’ late separation.
+The closest challenger was Yunavaun Tribe (opportunist) at 12 treasury and 0 regions.
 
 Final Standings
 
-Veneunar Tribe finished first with a treasury of 35 and control of 6 regions.
-Rnutuan Tribe ended with a treasury of 31 and 9 regions.
-Saklian Tribe ended with a treasury of 14 and 5 regions.
-Aruangos Tribe ended with a treasury of 13 and 6 regions.
+Aruangos Tribe finished first with a treasury of 19 and control of 10 regions.
+Yunavaun Tribe ended with a treasury of 12 and 0 regions.
+Rnutuan Tribe ended with a treasury of 10 and 3 regions.
+Saklian Tribe ended with a treasury of 1 and 10 regions.
 
 Victor's History
 
-In the end, the Veneunar Tribe prevailed not by holding the broadest share of the ring, but by reading the contest more sharply than its rivals and converting that judgment into treasury advantage. Their opportunist course was plain enough: they opened modestly, stayed coherent through the middle turns, and finished first with 35 treasury despite conceding map share. Rnutuan Tribe built with admirable steadiness and reached 9 regions, but its strength remained tied to accumulation rather than decisive timing, while the early promise of Aruangos and the gains of Saklian did not endure. On a contested thirty-seven-region ring, Veneunar’s restraint and realism proved the more effective discipline.
+The Aruangos Tribe prevailed not by reckless reach, but by prudence, adaptability, and steadier judgment across a contested board. They opened with 3 claims, held their ground through the early and midgame, and then separated late as the decisive shift brought them to 10 regions and a clear finish ahead of the field. Their 19 treasury also mattered, for the late economic edge became central to the outcome and showed a discipline the others could not match. By contrast, Yunavaun’s opportunism ended with territory lost entirely, and Rnutuan’s position weakened in the late phase, while Saklian’s early gains did not translate into a sustainable result.

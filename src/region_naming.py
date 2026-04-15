@@ -5,6 +5,7 @@ import random
 import re
 
 from src.models import Faction, Region, WorldState
+from src.terrain import get_terrain_profile
 
 
 TRADITIONAL_MORPHOLOGY = {
@@ -102,21 +103,84 @@ def _build_profile(faction: Faction) -> dict[str, list[str]]:
     }
 
 
-def _candidate_names(faction: Faction, region_name: str, is_homeland: bool) -> list[tuple[str, str]]:
+def _build_terrain_naming_profile(region: Region) -> dict[str, list[str] | str]:
+    terrain_profile = get_terrain_profile(region)
+    terrain_cues = list(terrain_profile["name_cues"])
+    terrain_label = terrain_profile["terrain_label"]
+
+    place_nouns = list(terrain_cues)
+    settlement_suffixes = []
+
+    suffix_overrides = {
+        "Ford": "ford",
+        "Gate": "gate",
+        "Grove": "grove",
+        "Hollow": "hollow",
+        "Wood": "wood",
+        "Hill": "hill",
+        "Height": "height",
+        "Ridge": "ridge",
+        "Bay": "bay",
+        "Cape": "cape",
+        "Bog": "bog",
+        "Fen": "fen",
+        "Mire": "mire",
+        "Field": "field",
+        "Plain": "plain",
+        "Wash": "wash",
+        "Banks": "bank",
+    }
+
+    for cue in terrain_cues:
+        if cue in suffix_overrides:
+            settlement_suffixes.append(suffix_overrides[cue])
+
+    return {
+        "terrain_label": terrain_label,
+        "terrain_cues": terrain_cues,
+        "place_nouns": place_nouns,
+        "settlement_suffixes": settlement_suffixes,
+    }
+
+
+def _candidate_names(
+    faction: Faction,
+    region: Region,
+    is_homeland: bool,
+) -> list[tuple[str, str]]:
     variants = _derive_root_variants(faction.culture_name)
     profile = _build_profile(faction)
-    rng = _stable_random(f"{faction.internal_id}:{region_name}:{faction.culture_name}")
+    terrain_profile = _build_terrain_naming_profile(region)
+    rng = _stable_random(f"{faction.internal_id}:{region.name}:{faction.culture_name}")
 
-    place_noun = rng.choice(profile["place_nouns"])
-    alt_place_noun = rng.choice(profile["place_nouns"])
+    place_noun_pool = profile["place_nouns"] + list(terrain_profile["place_nouns"])
+    settlement_suffix_pool = profile["settlement_suffixes"] + list(terrain_profile["settlement_suffixes"])
+    if not place_noun_pool:
+        place_noun_pool = list(profile["place_nouns"])
+    if not settlement_suffix_pool:
+        settlement_suffix_pool = list(profile["settlement_suffixes"])
+
+    place_noun = rng.choice(place_noun_pool)
+    alt_place_noun = rng.choice(place_noun_pool)
     direction = rng.choice(profile["directions"])
-    settlement_suffix = rng.choice(profile["settlement_suffixes"])
+    settlement_suffix = rng.choice(settlement_suffix_pool)
     coined_suffix = rng.choice(profile["coined_suffixes"])
     other_direction = rng.choice(profile["directions"])
 
     candidates: list[tuple[str, str]] = []
     if is_homeland:
         candidates.append((variants["root"], "homeland_root"))
+
+    terrain_label = terrain_profile["terrain_label"]
+    terrain_cues = terrain_profile["terrain_cues"]
+    if terrain_label and not is_homeland:
+        candidates.extend([
+            (f"{variants['root']} {place_noun}", "terrain_root_place"),
+            (f"{variants['adjectival']} {alt_place_noun}", "terrain_adjectival_place"),
+        ])
+        if terrain_cues:
+            cue = rng.choice(terrain_cues)
+            candidates.append((f"{variants['root']} {cue}", "terrain_cue_place"))
 
     candidates.extend([
         (f"New {variants['root']}", "new_root"),
@@ -175,7 +239,7 @@ def assign_region_founding_name(
 
     chosen_name = None
     chosen_pattern = "fallback"
-    for candidate, pattern in _candidate_names(faction, region_name, is_homeland=is_homeland):
+    for candidate, pattern in _candidate_names(faction, region, is_homeland=is_homeland):
         if candidate.lower() not in existing_names:
             chosen_name = candidate
             chosen_pattern = pattern
@@ -191,5 +255,7 @@ def assign_region_founding_name(
         "pattern": chosen_pattern,
         "is_homeland": is_homeland,
         "named_from": faction.culture_name,
+        "terrain_label": get_terrain_profile(region)["terrain_label"],
+        "terrain_tags": list(region.terrain_tags),
     }
     return chosen_name
