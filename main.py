@@ -8,6 +8,7 @@ from src.event_analysis import get_event_log
 from src.metrics import get_metrics_log
 from src.simulation_ui import write_simulation_html
 from src.region_naming import format_region_reference
+from src.terrain import format_terrain_label
 
 
 REPORTS_DIR = Path("reports")
@@ -45,8 +46,10 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
 def format_event(event, world):
     """Formats one simulation event for the results report."""
     region_reference = event.region
+    terrain_text = ""
     if event.region is not None and event.region in world.regions:
         region_reference = format_region_reference(world.regions[event.region], include_code=True)
+        terrain_text = f", terrain={format_terrain_label(world.regions[event.region].terrain_tags)}"
 
     if event["type"] == "expand":
         return (
@@ -54,14 +57,14 @@ def format_event(event, world):
             f"(score={event.get('score', 0)}, resources={event.get('resources', 0)}, "
             f"neighbors={event.get('neighbors', 0)}, "
             f"unclaimed_neighbors={event.get('unclaimed_neighbors', 0)}, "
-            f"treasury_after={event.get('treasury_after', 0)})"
+            f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
         )
 
     if event["type"] == "invest":
         return (
             f"Turn {event['turn'] + 1}: {event['faction']} invested in {region_reference} "
             f"(invest_amount={event.get('invest_amount', 0)}, "
-            f"new_resources={event.get('new_resources', 0)})"
+            f"new_resources={event.get('new_resources', 0)}{terrain_text})"
         )
 
     if event["type"] == "attack":
@@ -73,7 +76,7 @@ def format_event(event, world):
             f"(success_chance={event.get('success_chance', 0):.3f}, "
             f"attack_strength={event.get('attack_strength', 0)}, "
             f"defense_strength={event.get('defense_strength', 0)}, "
-            f"treasury_after={event.get('treasury_after', 0)})"
+            f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
         )
 
     if event["type"] == "income":

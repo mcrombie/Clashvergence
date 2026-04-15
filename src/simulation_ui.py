@@ -28,6 +28,7 @@ from src.narrative import (
     summarize_victor_history,
 )
 from src.region_naming import format_region_reference, get_region_display_name
+from src.terrain import format_terrain_label
 
 
 SIMULATION_VIEWER_OUTPUT = Path("reports/simulation_view.html")
@@ -40,9 +41,13 @@ def _serialize_event(event, world):
         region = world.regions[event.region]
         event_data["region_display_name"] = get_region_display_name(region)
         event_data["region_reference"] = format_region_reference(region, include_code=True)
+        event_data["terrain_label"] = format_terrain_label(region.terrain_tags)
+        event_data["terrain_tags"] = list(region.terrain_tags)
     else:
         event_data["region_display_name"] = event.region
         event_data["region_reference"] = event.region
+        event_data["terrain_label"] = None
+        event_data["terrain_tags"] = []
     event_data["title"] = _get_event_title(event, world)
     event_data["summary"] = _get_event_summary(event, world)
     return event_data
@@ -65,18 +70,22 @@ def _get_event_title(event, world):
 
 
 def _get_event_summary(event, world):
+    terrain_text = ""
+    if event.region is not None and event.region in world.regions:
+        terrain_text = f" Terrain: {format_terrain_label(world.regions[event.region].terrain_tags)}."
+
     if event.type == "expand":
         return (
             f"Claimed a region worth R{event.get('resources', 0)} "
-            f"with {event.get('neighbors', 0)} links."
+            f"with {event.get('neighbors', 0)} links.{terrain_text}"
         )
     if event.type == "attack":
         chance = event.get("success_chance", 0)
         if event.get("success", False):
-            return f"Successful attack at {chance:.0%} displayed odds."
-        return f"Attack failed at {chance:.0%} displayed odds."
+            return f"Successful attack at {chance:.0%} displayed odds.{terrain_text}"
+        return f"Attack failed at {chance:.0%} displayed odds.{terrain_text}"
     if event.type == "invest":
-        return f"Resources increased to R{event.get('new_resources', 0)}."
+        return f"Resources increased to R{event.get('new_resources', 0)}.{terrain_text}"
     return "No summary available."
 
 
@@ -94,6 +103,8 @@ def build_simulation_snapshots(world):
                 if initial_state[region_name]["owner"] is not None
                 else None
             ),
+            "terrain_tags": list(region.terrain_tags),
+            "terrain_label": format_terrain_label(region.terrain_tags),
         }
         for region_name, region in world.regions.items()
     }
@@ -109,6 +120,8 @@ def build_simulation_snapshots(world):
                 "display_name": region["display_name"],
                 "founding_name": region["founding_name"],
                 "original_namer_faction_id": region["original_namer_faction_id"],
+                "terrain_tags": region["terrain_tags"],
+                "terrain_label": region["terrain_label"],
             }
             for region_name, region in region_state.items()
         },
@@ -164,6 +177,8 @@ def build_simulation_snapshots(world):
                     "display_name": region["display_name"],
                     "founding_name": region["founding_name"],
                     "original_namer_faction_id": region["original_namer_faction_id"],
+                    "terrain_tags": region["terrain_tags"],
+                    "terrain_label": region["terrain_label"],
                 }
                 for region_name, region in region_state.items()
             },
@@ -284,6 +299,8 @@ def build_simulation_view_model(world):
             {
                 "name": region_name,
                 "display_name": get_region_display_name(world.regions[region_name]),
+                "terrain_tags": list(world.regions[region_name].terrain_tags),
+                "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
                 "x": round(positions[region_name][0], 1),
                 "y": round(positions[region_name][1], 1),
                 "neighbors": sorted(region_data["neighbors"], key=natural_sort_key),
@@ -297,6 +314,8 @@ def build_simulation_view_model(world):
             {
                 "name": region_name,
                 "display_name": get_region_display_name(world.regions[region_name]),
+                "terrain_tags": list(world.regions[region_name].terrain_tags),
+                "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
                 "polygon": [
                     [round(point[0], 1), round(point[1], 1)]
                     for point in atlas_geometry[region_name]["polygon"]
@@ -1079,7 +1098,7 @@ def render_simulation_html(world):
     }}
 
     function renderTurnEvents(snapshot) {{
-      if (!snapshot.events.length) {{
+        if (!snapshot.events.length) {{
         turnEvents.innerHTML = `<article class="event-item"><strong>Initial State</strong><div class="event-meta">No turn events yet.</div></article>`;
         return;
       }}
@@ -1088,7 +1107,7 @@ def render_simulation_html(world):
         <article class="event-item">
           <strong>${{escapeHtml(event.title)}}</strong>
           <div>${{escapeHtml(event.summary)}}</div>
-          <div class="event-meta">Type: ${{escapeHtml(event.type)}}${{event.region_reference ? ` - Region ${{escapeHtml(event.region_reference)}}` : ""}}</div>
+          <div class="event-meta">Type: ${{escapeHtml(event.type)}}${{event.region_reference ? ` - Region ${{escapeHtml(event.region_reference)}}` : ""}}${{event.terrain_label ? ` - Terrain ${{escapeHtml(event.terrain_label)}}` : ""}}</div>
         </article>
       `).join("");
     }}
@@ -1112,7 +1131,8 @@ def render_simulation_html(world):
         const title = document.getElementById(`region-title-${{region.name}}`);
         if (title) {{
           const ownerText = regionSnapshot.owner || "Unclaimed";
-          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}}`;
+          const terrainText = regionSnapshot.terrain_label || region.terrain_label || "Plains";
+          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}}`;
         }}
       }}
 
@@ -1135,7 +1155,8 @@ def render_simulation_html(world):
         const title = document.getElementById(`atlas-title-${{region.name}}`);
         if (title) {{
           const ownerText = regionSnapshot.owner || "Unclaimed";
-          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}}`;
+          const terrainText = regionSnapshot.terrain_label || region.terrain_label || "Plains";
+          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}}`;
         }}
       }}
     }}

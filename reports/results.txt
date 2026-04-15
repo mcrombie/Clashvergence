@@ -9,33 +9,33 @@ Factions: 4
 Faction Strategies:
   Saklian Tribe: strategy=expansionist, starting_treasury=1, culture=Saklian, government=Tribe, internal_id=Faction1, traditions=persian,chinese, ai_generated=True
   Aruangos Tribe: strategy=balanced, starting_treasury=1, culture=Aruangos, government=Tribe, internal_id=Faction2, traditions=persian,roman, ai_generated=True
-  Arangoun Tribe: strategy=economic, starting_treasury=1, culture=Arangoun, government=Tribe, internal_id=Faction3, traditions=roman,persian, ai_generated=True
-  Yunavaun Tribe: strategy=opportunist, starting_treasury=1, culture=Yunavaun, government=Tribe, internal_id=Faction4, traditions=roman,chinese, ai_generated=True
+  Rnutuan Tribe: strategy=economic, starting_treasury=1, culture=Rnutuan, government=Tribe, internal_id=Faction3, traditions=roman,persian, ai_generated=True
+  Veneunar Tribe: strategy=opportunist, starting_treasury=1, culture=Veneunar, government=Tribe, internal_id=Faction4, traditions=roman,chinese, ai_generated=True
 
 Simulation Chronicle
 
-On turn 2, Arangoun Tribe made its first expansion into M7.
+On turn 2, Rnutuan Tribe made its first expansion into M7.
 On turn 2, Saklian Tribe made its first expansion into M1.
-On turn 2, Yunavaun Tribe made its first expansion into M10.
+On turn 2, Veneunar Tribe made its first expansion into M10.
 On turn 2, Aruangos Tribe made its first expansion into M4.
 
 Opening Phase
 
-The strongest early land grab was Arangoun Tribe's claim of M7 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Saklian Tribe, Aruangos Tribe, Arangoun Tribe, and Yunavaun Tribe led expansion with 2 claim(s).
-Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Arangoun Tribe, and Yunavaun Tribe invested most often with 1 investment(s).
-By the end of turn 5, Arangoun Tribe held the opening treasury lead at 21.
+The strongest early land grab was Veneunar Tribe's claim of M9 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe led expansion with 2 claim(s).
+Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe invested most often with 1 investment(s).
+By the end of turn 5, Saklian Tribe held the opening treasury lead at 19.
 
 Phase Summaries
 
-Early phase: Arangoun Tribe was strongest by the end of turns 1-6, with Arangoun Tribe on 24 treasury and 4 regions. 9 successful attacks shifted control of 4 regions. 11 expansions added 11 new regions. 4 investments improved existing holdings. Yunavaun Tribe gained 4 regions. Arangoun Tribe improved its standing most during the phase.
-Mid phase: Yunavaun Tribe was strongest by the end of turns 7-13, with Yunavaun Tribe on 24 treasury and 7 regions. 13 successful attacks shifted control of 10 regions. 6 expansions added 6 new regions. Saklian Tribe gained 6 regions while Aruangos Tribe lost 2 regions.
-Late phase: Aruangos Tribe was strongest by the end of turns 14-20, with Aruangos Tribe on 21 treasury and 0 regions. 12 successful attacks shifted control of 11 regions. 5 expansions added 5 new regions. 3 investments improved existing holdings. Arangoun Tribe gained 5 regions while Saklian Tribe lost 5 regions. Aruangos Tribe improved its standing most during the phase.
+Early phase: Aruangos Tribe was strongest by the end of turns 1-6, with Aruangos Tribe on 21 treasury and 4 regions. 7 successful attacks shifted control of 5 regions. 12 expansions added 12 new regions. 4 investments improved existing holdings. Saklian Tribe gained 4 regions. Aruangos Tribe improved its standing most during the phase.
+Mid phase: Rnutuan Tribe was strongest by the end of turns 7-13, with Rnutuan Tribe on 37 treasury and 5 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 15 successful attacks shifted control of 5 regions. 1 expansion added 1 new region. Rnutuan Tribe gained 3 regions while Veneunar Tribe lost 2 regions.
+Late phase: Veneunar Tribe was strongest by the end of turns 14-20, with Veneunar Tribe on 35 treasury and 6 regions. 12 successful attacks shifted control of 9 regions. 9 expansions added 9 new regions. Rnutuan Tribe gained 4 regions.
 
 Turning Points
 
-Early leader change: Aruangos Tribe took the treasury lead.
-Early leader change: Aruangos Tribe took the treasury lead.
+Late leader change: Veneunar Tribe took the treasury lead.
+Early leader change: Veneunar Tribe took the treasury lead.
 
 Outcome Type
 
@@ -43,215 +43,228 @@ Outcome type: economic_win.
 
 Faction Trajectories
 
-Saklian Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, peaked at 10 regions on turn 13 before slipping to 5 regions, and finished rank 3 on 6 treasury with 5 regions after gaining 1 treasury overall.
-Aruangos Tribe opened with 4 claims and grew to 2 regions by the end of the opening phase, peaked at 4 regions on turn 5 before slipping to 0 regions, and closed on 21 treasury without territory after 1 attacks.
-Arangoun Tribe opened with 2 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 9 regions by turn 20, and finished rank 4 on -6 treasury with 9 regions.
-Yunavaun Tribe opened with 2 claims and grew to 5 regions by the end of the opening phase, built steadily past the opening, reaching 12 regions by turn 20, and finished rank 2 on 13 treasury with 12 regions after gaining 8 treasury overall.
+Saklian Tribe opened with 2 claims and grew to 5 regions by the end of the opening phase, stayed active mid-game with 6 attack attempts while holding 5 regions, and finished rank 3 on 14 treasury with 5 regions after gaining 9 treasury overall.
+Aruangos Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 6 regions by turn 20, and finished rank 4 on 13 treasury with 6 regions after gaining 8 treasury overall.
+Rnutuan Tribe opened with 5 claims and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 9 regions by turn 20, and finished rank 2 on 31 treasury with 9 regions after gaining 26 treasury overall.
+Veneunar Tribe opened with 2 claims and grew to 5 regions by the end of the opening phase, built steadily past the opening, reaching 6 regions by turn 20, and finished first with 6 regions, 35 treasury, and 17 total attacks.
 
 Strategic Interpretation
 
-Aruangos Tribe’s balanced approach won because treasury, not territory, decided the thirty-seven-region ring, and its 21 treasury beat Yunavaun Tribe’s 13 even though Aruangos finished with no regions. The decisive shift came early when Aruangos took the treasury lead, which mattered because the map stayed contested and larger regional swings never translated into a durable resource edge. Yunavaun’s midgame regional lead and Arangoun’s late territorial gains could not convert into the income needed to overtake Aruangos, so the resource gap held through the end.
-The closest challenger was Yunavaun Tribe (opportunist) at 13 treasury and 12 regions.
+Veneunar Tribe’s opportunist timing mattered because the board stayed contested through the midgame, so territory alone never produced a decisive lead and the result shifted to treasury efficiency instead. Although Rnutuan Tribe held the strongest midgame position and finished with more regions, it could not convert that board control into enough income, which allowed Veneunar to win by 4 treasury despite trailing by 3 regions. The early and late treasury lead changes show that Veneunar’s gains came from seizing the right moments rather than building the largest empire, which was enough on a map where economic conversion decided the outcome.
+The closest challenger was Rnutuan Tribe (economic) at 31 treasury and 9 regions.
 
 Final Standings
 
-Aruangos Tribe finished first with a treasury of 21 and control of 0 regions.
-Yunavaun Tribe ended with a treasury of 13 and 12 regions.
-Saklian Tribe ended with a treasury of 6 and 5 regions.
-Arangoun Tribe ended with a treasury of -6 and 9 regions.
+Veneunar Tribe finished first with a treasury of 35 and control of 6 regions.
+Rnutuan Tribe ended with a treasury of 31 and 9 regions.
+Saklian Tribe ended with a treasury of 14 and 5 regions.
+Aruangos Tribe ended with a treasury of 13 and 6 regions.
 
 Victor's History
 
-The Aruangos Tribe’s victory was not built on spectacle, but on prudence and steadier judgment: they finished first on treasury despite conceding the map entirely. Their opening claims and early treasury lead showed enough discipline to seize the decisive advantage, and that advantage endured even as their regions fell away. By contrast, the more expansive and opportunist rivals accumulated territory, but not in a way that could dislodge Aruangos from the measure that mattered most. In a 37-region ring, the result confirmed that coherence and adaptability can outlast mere possession of ground.
+The Veneunar Tribe prevailed by timing and realism, not by chasing the widest map share, and that restraint proved decisive on a thirty-seven-region ring. Though they ended with only 6 regions, they finished first with 35 treasury and 17 total attacks, taking the lead both early and late when the contest turned on strength of position rather than mere extent. Rnutuan Tribe built efficiently and reached 9 regions, but its steadiness was not enough to overtake Veneunar’s sharper use of openings, while the other tribes never matched that coherence. In the end, the result favored the faction that read the board most accurately and converted weakness elsewhere into advantage.
 
 Event Log
 
-Turn 1: Arangoun Tribe invested in Arangoun (O9) (invest_amount=4, new_resources=5)
-Turn 1: Yunavaun Tribe invested in Yunavaun (O13) (invest_amount=4, new_resources=5)
-Turn 1: Aruangos Tribe invested in Aruangos (O5) (invest_amount=4, new_resources=5)
-Turn 1: Saklian Tribe invested in Saklian (O1) (invest_amount=4, new_resources=5)
-Turn 2: Arangoun Tribe expanded into New Arangoun (M7) (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
-Turn 2: Saklian Tribe expanded into New Saklian (M1) (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
-Turn 2: Yunavaun Tribe expanded into New Yunavaun (M10) (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
-Turn 2: Aruangos Tribe expanded into New Aruangos (M4) (score=20, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2)
-Turn 3: Aruangos Tribe expanded into Aruangos Hollow (I4) (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
-Turn 3: Arangoun Tribe expanded into Arangoun March (I6) (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
-Turn 3: Yunavaun Tribe expanded into Yunavaun Reach (I8) (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
-Turn 3: Saklian Tribe expanded into Saklian Field (I2) (score=22, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4)
-Turn 4: Aruangos Tribe expanded into Aruangos Reach (C) (score=20, resources=2, neighbors=8, unclaimed_neighbors=4, treasury_after=8)
-Turn 4: Yunavaun Tribe attacked Aruangos Tribe in Aruangos Reach (C) and captured the region (success_chance=0.700, attack_strength=14, defense_strength=10, treasury_after=9)
-Turn 4: Arangoun Tribe attacked Yunavaun Tribe in Aruangos Reach (C) and captured the region (success_chance=0.650, attack_strength=14, defense_strength=11, treasury_after=9)
-Turn 4: Saklian Tribe attacked Arangoun Tribe in Aruangos Reach (C) and captured the region (success_chance=0.650, attack_strength=14, defense_strength=11, treasury_after=9)
-Turn 5: Saklian Tribe expanded into Saklian Edge (M3) (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=11)
-Turn 5: Arangoun Tribe attacked Saklian Tribe in Aruangos Reach (C) and captured the region (success_chance=0.800, attack_strength=19, defense_strength=13, treasury_after=14)
-Turn 5: Aruangos Tribe attacked Saklian Tribe in Saklian Edge (M3) and captured the region (success_chance=0.700, attack_strength=17, defense_strength=13, treasury_after=13)
-Turn 5: Yunavaun Tribe attacked Arangoun Tribe in Aruangos Reach (C) and captured the region (success_chance=0.650, attack_strength=19, defense_strength=16, treasury_after=14)
-Turn 6: Aruangos Tribe expanded into Aruangos Vale (M6) (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=15)
-Turn 6: Yunavaun Tribe attacked Aruangos Tribe in Aruangos Hollow (I4) and captured the region (success_chance=0.650, attack_strength=21, defense_strength=18, treasury_after=17)
-Turn 6: Arangoun Tribe attacked Aruangos Tribe in Aruangos Vale (M6) and captured the region (success_chance=0.800, attack_strength=23, defense_strength=17, treasury_after=19)
-Turn 6: Saklian Tribe attacked Aruangos Tribe in Saklian Edge (M3) and captured the region (success_chance=0.700, attack_strength=21, defense_strength=17, treasury_after=16)
-Turn 7: Aruangos Tribe expanded into Aruangosian Hollow (M5) (score=13, resources=2, neighbors=5, unclaimed_neighbors=2, treasury_after=17)
-Turn 7: Saklian Tribe attacked Aruangos Tribe in New Aruangos (M4) and captured the region (success_chance=0.700, attack_strength=23, defense_strength=19, treasury_after=19)
-Turn 7: Yunavaun Tribe attacked Aruangos Tribe in Aruangosian Hollow (M5) and captured the region (success_chance=0.750, attack_strength=24, defense_strength=19, treasury_after=19)
-Turn 7: Arangoun Tribe attacked Yunavaun Tribe in Aruangos Reach (C) and captured the region (success_chance=0.800, attack_strength=27, defense_strength=21, treasury_after=22)
-Turn 8: Arangoun Tribe attacked Saklian Tribe in Saklian Field (I2) and captured the region (success_chance=0.600, attack_strength=27, defense_strength=25, treasury_after=23)
-Turn 8: Saklian Tribe attacked Aruangos Tribe in Aruangos (O5) and captured the region (success_chance=0.400, attack_strength=24, defense_strength=26, treasury_after=20)
-Turn 8: Yunavaun Tribe attacked Saklian Tribe in New Aruangos (M4) and failed against the region (success_chance=0.700, attack_strength=26, defense_strength=22, treasury_after=19)
-Turn 9: Arangoun Tribe expanded into Arangoun Crossing (M9) (score=18, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=22)
-Turn 9: Yunavaun Tribe attacked Arangoun Tribe in Aruangos Vale (M6) and failed against the region (success_chance=0.600, attack_strength=26, defense_strength=24, treasury_after=19)
-Turn 9: Saklian Tribe attacked Yunavaun Tribe in Aruangosian Hollow (M5) and captured the region (success_chance=0.800, attack_strength=27, defense_strength=21, treasury_after=23)
-Turn 10: Yunavaun Tribe attacked Arangoun Tribe in Aruangos Vale (M6) and captured the region (success_chance=0.700, attack_strength=28, defense_strength=24, treasury_after=23)
-Turn 10: Arangoun Tribe expanded into Arangoun Pass (O11) (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=19)
-Turn 10: Saklian Tribe attacked Arangoun Tribe in Saklian Field (I2) and captured the region (success_chance=0.800, attack_strength=28, defense_strength=22, treasury_after=24)
-Turn 11: Yunavaun Tribe attacked Arangoun Tribe in Arangoun Crossing (M9) and captured the region (success_chance=0.800, attack_strength=29, defense_strength=22, treasury_after=25)
-Turn 11: Arangoun Tribe expanded into Arangoun Edge (I1) (score=13, resources=3, neighbors=5, unclaimed_neighbors=1, treasury_after=17)
-Turn 11: Saklian Tribe attacked Arangoun Tribe in Arangoun Edge (I1) and captured the region (success_chance=0.800, attack_strength=29, defense_strength=20, treasury_after=24)
-Turn 12: Arangoun Tribe expanded into Arangoun Crown (M8) (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=17)
-Turn 12: Saklian Tribe attacked Arangoun Tribe in Aruangos Reach (C) and captured the region (success_chance=0.800, attack_strength=28, defense_strength=19, treasury_after=23)
-Turn 12: Yunavaun Tribe attacked Arangoun Tribe in Arangoun March (I6) and failed against the region (success_chance=0.800, attack_strength=29, defense_strength=20, treasury_after=23)
-Turn 13: Arangoun Tribe expanded into Arangounian Pass (I7) (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=17)
-Turn 13: Saklian Tribe attacked Arangoun Tribe in Arangounian Pass (I7) and captured the region (success_chance=0.700, attack_strength=24, defense_strength=20, treasury_after=20)
-Turn 13: Yunavaun Tribe attacked Arangoun Tribe in Arangoun March (I6) and captured the region (success_chance=0.800, attack_strength=27, defense_strength=20, treasury_after=23)
-Turn 14: Arangoun Tribe expanded into Arangoun Vale (I5) (score=11, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=18)
-Turn 14: Yunavaun Tribe attacked Saklian Tribe in Arangounian Pass (I7) and captured the region (success_chance=0.800, attack_strength=27, defense_strength=21, treasury_after=22)
-Turn 14: Saklian Tribe expanded into Saklstead (M12) (score=16, resources=2, neighbors=6, unclaimed_neighbors=3, treasury_after=15)
-Turn 15: Arangoun Tribe attacked Saklian Tribe in Aruangos Reach (C) and captured the region (success_chance=0.800, attack_strength=24, defense_strength=14, treasury_after=19)
-Turn 15: Yunavaun Tribe attacked Saklian Tribe in Arangoun Edge (I1) and captured the region (success_chance=0.800, attack_strength=25, defense_strength=15, treasury_after=20)
-Turn 15: Saklian Tribe expanded into Saklian Watch (O3) (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=9)
-Turn 16: Yunavaun Tribe attacked Saklian Tribe in Saklian Field (I2) and captured the region (success_chance=0.800, attack_strength=22, defense_strength=10, treasury_after=17)
-Turn 16: Saklian Tribe expanded into Saklian Crossing (O15) (score=14, resources=2, neighbors=4, unclaimed_neighbors=3, treasury_after=4)
-Turn 16: Arangoun Tribe attacked Yunavaun Tribe in Aruangos Vale (M6) and captured the region (success_chance=0.700, attack_strength=23, defense_strength=19, treasury_after=18)
-Turn 17: Yunavaun Tribe attacked Saklian Tribe in Aruangosian Hollow (M5) and failed against the region (success_chance=0.800, attack_strength=20, defense_strength=3, treasury_after=13)
-Turn 17: Arangoun Tribe attacked Saklian Tribe in Aruangosian Hollow (M5) and captured the region (success_chance=0.800, attack_strength=19, defense_strength=3, treasury_after=15)
-Turn 17: Saklian Tribe invested in New Saklian (M1) (invest_amount=4, new_resources=5)
-Turn 18: Arangoun Tribe attacked Saklian Tribe in New Aruangos (M4) and captured the region (success_chance=0.800, attack_strength=14, defense_strength=5, treasury_after=10)
-Turn 18: Saklian Tribe expanded into Saklian Pass (M2) (score=11, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=0)
-Turn 18: Yunavaun Tribe attacked Saklian Tribe in New Saklian (M1) and captured the region (success_chance=0.800, attack_strength=16, defense_strength=5, treasury_after=11)
-Turn 19: Yunavaun Tribe attacked Saklian Tribe in Saklian (O1) and captured the region (success_chance=0.800, attack_strength=17, defense_strength=6, treasury_after=10)
-Turn 19: Saklian Tribe invested in Saklstead (M12) (invest_amount=4, new_resources=5)
-Turn 19: Arangoun Tribe attacked Saklian Tribe in Saklian Edge (M3) and captured the region (success_chance=0.700, attack_strength=7, defense_strength=3, treasury_after=3)
-Turn 20: Arangoun Tribe invested in Aruangos Reach (C) (invest_amount=4, new_resources=5)
-Turn 20: Yunavaun Tribe attacked Saklian Tribe in Saklstead (M12) and captured the region (success_chance=0.800, attack_strength=17, defense_strength=11, treasury_after=10)
-Turn 20: Saklian Tribe attacked Arangoun Tribe in New Aruangos (M4) and captured the region (success_chance=0.800, attack_strength=11, defense_strength=-2, treasury_after=4)
+Turn 1: Rnutuan Tribe invested in Rnutuan (O9) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
+Turn 1: Aruangos Tribe invested in Aruangos (O5) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
+Turn 1: Veneunar Tribe invested in Veneunar (O13) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
+Turn 1: Saklian Tribe invested in Saklian (O1) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
+Turn 2: Rnutuan Tribe expanded into New Rnutuan (M7) (score=23, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2, terrain=Riverland Plains)
+Turn 2: Saklian Tribe expanded into New Saklian (M1) (score=21, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2, terrain=Plains)
+Turn 2: Veneunar Tribe expanded into New Veneunar (M10) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2, terrain=Forest)
+Turn 2: Aruangos Tribe expanded into New Aruangos (M4) (score=18, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2, terrain=Hill Forest)
+Turn 3: Veneunar Tribe expanded into Veneunar Vale (M9) (score=21, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=4, terrain=Plains)
+Turn 3: Saklian Tribe expanded into Saklian Field (I2) (score=21, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4, terrain=Highland Plains)
+Turn 3: Rnutuan Tribe expanded into Rnutuan Edge (M6) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=4, terrain=Forest)
+Turn 3: Aruangos Tribe expanded into Aruangos March (M3) (score=21, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=4, terrain=Riverland Plains)
+Turn 4: Rnutuan Tribe expanded into Rnutuan March (I6) (score=19, resources=3, neighbors=6, unclaimed_neighbors=4, treasury_after=7, terrain=Highland Plains)
+Turn 4: Veneunar Tribe attacked Rnutuan Tribe in Rnutuan March (I6) and failed against the region (success_chance=0.500, attack_strength=12, defense_strength=12, treasury_after=6, terrain=Highland Plains)
+Turn 4: Saklian Tribe attacked Aruangos Tribe in Aruangos March (M3) and captured the region (success_chance=0.600, attack_strength=14, defense_strength=12, treasury_after=9, terrain=Riverland Plains)
+Turn 4: Aruangos Tribe attacked Saklian Tribe in Aruangos March (M3) and captured the region (success_chance=0.550, attack_strength=12, defense_strength=11, treasury_after=8, terrain=Riverland Plains)
+Turn 5: Saklian Tribe attacked Aruangos Tribe in Aruangos March (M3) and captured the region (success_chance=0.650, attack_strength=19, defense_strength=16, treasury_after=14, terrain=Riverland Plains)
+Turn 5: Aruangos Tribe expanded into Aruangos Hollow (I4) (score=17, resources=3, neighbors=6, unclaimed_neighbors=4, treasury_after=11, terrain=Highland Forest)
+Turn 5: Rnutuan Tribe expanded into Rnutuan Vale (C) (score=25, resources=2, neighbors=8, unclaimed_neighbors=5, treasury_after=9, terrain=Riverland Plains)
+Turn 5: Veneunar Tribe attacked Rnutuan Tribe in Rnutuan March (I6) and captured the region (success_chance=0.500, attack_strength=14, defense_strength=14, treasury_after=10, terrain=Highland Plains)
+Turn 6: Rnutuan Tribe expanded into Rnutuan Gate (I8) (score=17, resources=3, neighbors=6, unclaimed_neighbors=4, treasury_after=10, terrain=Highland Forest)
+Turn 6: Saklian Tribe attacked Rnutuan Tribe in Rnutuan Vale (C) and captured the region (success_chance=0.800, attack_strength=22, defense_strength=12, treasury_after=17, terrain=Riverland Plains)
+Turn 6: Veneunar Tribe attacked Rnutuan Tribe in New Rnutuan (M7) and captured the region (success_chance=0.800, attack_strength=18, defense_strength=12, treasury_after=13, terrain=Riverland Plains)
+Turn 6: Aruangos Tribe attacked Rnutuan Tribe in Rnutuan Edge (M6) and captured the region (success_chance=0.800, attack_strength=21, defense_strength=13, treasury_after=16, terrain=Forest)
+Turn 7: Veneunar Tribe attacked Rnutuan Tribe in Rnutuan (O9) and failed against the region (success_chance=0.300, attack_strength=18, defense_strength=22, treasury_after=12, terrain=Coastal Forest)
+Turn 7: Rnutuan Tribe attacked Veneunar Tribe in New Rnutuan (M7) and captured the region (success_chance=0.800, attack_strength=21, defense_strength=14, treasury_after=14, terrain=Riverland Plains)
+Turn 7: Aruangos Tribe attacked Rnutuan Tribe in New Rnutuan (M7) and captured the region (success_chance=0.800, attack_strength=23, defense_strength=16, treasury_after=19, terrain=Riverland Plains)
+Turn 7: Saklian Tribe attacked Veneunar Tribe in Rnutuan March (I6) and failed against the region (success_chance=0.750, attack_strength=22, defense_strength=17, treasury_after=16, terrain=Highland Plains)
+Turn 8: Aruangos Tribe attacked Saklian Tribe in Rnutuan Vale (C) and captured the region (success_chance=0.700, attack_strength=25, defense_strength=21, treasury_after=20, terrain=Riverland Plains)
+Turn 8: Saklian Tribe attacked Aruangos Tribe in Rnutuan Vale (C) and captured the region (success_chance=0.500, attack_strength=22, defense_strength=22, treasury_after=17, terrain=Riverland Plains)
+Turn 8: Rnutuan Tribe attacked Saklian Tribe in Rnutuan Vale (C) and captured the region (success_chance=0.700, attack_strength=23, defense_strength=19, treasury_after=18, terrain=Riverland Plains)
+Turn 8: Veneunar Tribe attacked Rnutuan Tribe in Rnutuan Vale (C) and captured the region (success_chance=0.500, attack_strength=20, defense_strength=20, treasury_after=15, terrain=Riverland Plains)
+Turn 9: Saklian Tribe attacked Veneunar Tribe in Rnutuan Vale (C) and captured the region (success_chance=0.750, attack_strength=25, defense_strength=20, treasury_after=20, terrain=Riverland Plains)
+Turn 9: Veneunar Tribe attacked Saklian Tribe in Rnutuan Vale (C) and failed against the region (success_chance=0.450, attack_strength=21, defense_strength=22, treasury_after=14, terrain=Riverland Plains)
+Turn 9: Aruangos Tribe attacked Veneunar Tribe in Rnutuan March (I6) and failed against the region (success_chance=0.800, attack_strength=25, defense_strength=19, treasury_after=19, terrain=Highland Plains)
+Turn 9: Rnutuan Tribe attacked Aruangos Tribe in New Rnutuan (M7) and captured the region (success_chance=0.800, attack_strength=29, defense_strength=21, treasury_after=22, terrain=Riverland Plains)
+Turn 10: Veneunar Tribe attacked Saklian Tribe in Rnutuan Vale (C) and failed against the region (success_chance=0.350, attack_strength=22, defense_strength=25, treasury_after=15, terrain=Riverland Plains)
+Turn 10: Rnutuan Tribe attacked Veneunar Tribe in Rnutuan March (I6) and captured the region (success_chance=0.800, attack_strength=31, defense_strength=20, treasury_after=27, terrain=Highland Plains)
+Turn 10: Aruangos Tribe attacked Saklian Tribe in Rnutuan Vale (C) and captured the region (success_chance=0.600, attack_strength=27, defense_strength=25, treasury_after=22, terrain=Riverland Plains)
+Turn 10: Saklian Tribe attacked Aruangos Tribe in Rnutuan Vale (C) and failed against the region (success_chance=0.600, attack_strength=26, defense_strength=24, treasury_after=19, terrain=Riverland Plains)
+Turn 11: Aruangos Tribe attacked Saklian Tribe in Aruangos March (M3) and failed against the region (success_chance=0.550, attack_strength=27, defense_strength=26, treasury_after=21, terrain=Riverland Plains)
+Turn 11: Rnutuan Tribe attacked Aruangos Tribe in Rnutuan Vale (C) and captured the region (success_chance=0.800, attack_strength=36, defense_strength=23, treasury_after=31, terrain=Riverland Plains)
+Turn 11: Saklian Tribe attacked Aruangos Tribe in New Aruangos (M4) and failed against the region (success_chance=0.550, attack_strength=26, defense_strength=25, treasury_after=20, terrain=Hill Forest)
+Turn 11: Veneunar Tribe attacked Rnutuan Tribe in Rnutuan Gate (I8) and failed against the region (success_chance=0.200, attack_strength=23, defense_strength=37, treasury_after=17, terrain=Highland Forest)
+Turn 12: Saklian Tribe expanded into Saklian Edge (M12) (score=16, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=22, terrain=Hill Forest)
+Turn 12: Aruangos Tribe attacked Saklian Tribe in Aruangos March (M3) and failed against the region (success_chance=0.700, attack_strength=28, defense_strength=24, treasury_after=22, terrain=Riverland Plains)
+Turn 12: Veneunar Tribe attacked Rnutuan Tribe in Rnutuan Gate (I8) and captured the region (success_chance=0.200, attack_strength=25, defense_strength=41, treasury_after=21, terrain=Highland Forest)
+Turn 12: Rnutuan Tribe attacked Veneunar Tribe in Rnutuan Gate (I8) and captured the region (success_chance=0.800, attack_strength=37, defense_strength=27, treasury_after=33, terrain=Highland Forest)
+Turn 13: Aruangos Tribe attacked Saklian Tribe in Aruangos March (M3) and captured the region (success_chance=0.600, attack_strength=29, defense_strength=27, treasury_after=25, terrain=Riverland Plains)
+Turn 13: Veneunar Tribe attacked Rnutuan Tribe in Rnutuan Gate (I8) and failed against the region (success_chance=0.200, attack_strength=29, defense_strength=43, treasury_after=23, terrain=Highland Forest)
+Turn 13: Saklian Tribe attacked Aruangos Tribe in Aruangos March (M3) and captured the region (success_chance=0.550, attack_strength=28, defense_strength=27, treasury_after=23, terrain=Riverland Plains)
+Turn 13: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Hollow (I4) and failed against the region (success_chance=0.800, attack_strength=39, defense_strength=31, treasury_after=33, terrain=Highland Forest)
+Turn 14: Veneunar Tribe attacked Rnutuan Tribe in Rnutuan Gate (I8) and captured the region (success_chance=0.200, attack_strength=31, defense_strength=43, treasury_after=27, terrain=Highland Forest)
+Turn 14: Saklian Tribe expanded into Saklian Ford (M11) (score=16, resources=2, neighbors=5, unclaimed_neighbors=2, treasury_after=23, terrain=Riverland Plains)
+Turn 14: Aruangos Tribe attacked Saklian Tribe in Aruangos March (M3) and captured the region (success_chance=0.800, attack_strength=32, defense_strength=25, treasury_after=28, terrain=Riverland Plains)
+Turn 14: Rnutuan Tribe attacked Veneunar Tribe in Rnutuan Gate (I8) and captured the region (success_chance=0.800, attack_strength=39, defense_strength=33, treasury_after=35, terrain=Highland Forest)
+Turn 15: Rnutuan Tribe attacked Saklian Tribe in Saklian Field (I2) and captured the region (success_chance=0.800, attack_strength=41, defense_strength=31, treasury_after=37, terrain=Highland Plains)
+Turn 15: Veneunar Tribe attacked Saklian Tribe in Saklian Ford (M11) and failed against the region (success_chance=0.800, attack_strength=35, defense_strength=28, treasury_after=29, terrain=Riverland Plains)
+Turn 15: Aruangos Tribe expanded into Aruangos Pass (O6) (score=14, resources=2, neighbors=4, unclaimed_neighbors=2, treasury_after=28, terrain=Coastal Plains)
+Turn 15: Saklian Tribe expanded into Saklian Gate (O2) (score=14, resources=2, neighbors=4, unclaimed_neighbors=2, treasury_after=23, terrain=Coastal Plains)
+Turn 16: Aruangos Tribe expanded into Aruangos Vale (M5) (score=12, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=26, terrain=Plains)
+Turn 16: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Hollow (I4) and captured the region (success_chance=0.800, attack_strength=42, defense_strength=32, treasury_after=38, terrain=Highland Forest)
+Turn 16: Saklian Tribe expanded into Saklian Watch (O14) (score=12, resources=2, neighbors=4, unclaimed_neighbors=1, treasury_after=22, terrain=Coastal Plains)
+Turn 16: Veneunar Tribe attacked Saklian Tribe in Saklian Watch (O14) and failed against the region (success_chance=0.800, attack_strength=40, defense_strength=24, treasury_after=31, terrain=Coastal Plains)
+Turn 17: Veneunar Tribe attacked Saklian Tribe in Saklian Watch (O14) and captured the region (success_chance=0.800, attack_strength=42, defense_strength=24, treasury_after=35, terrain=Coastal Plains)
+Turn 17: Aruangos Tribe expanded into Aruangosian Gate (I3) (score=12, resources=3, neighbors=5, unclaimed_neighbors=0, treasury_after=23, terrain=Riverland Hill)
+Turn 17: Saklian Tribe expanded into Saklhold (O3) (score=10, resources=2, neighbors=4, unclaimed_neighbors=2, treasury_after=19, terrain=Coastal Marsh)
+Turn 17: Rnutuan Tribe attacked Aruangos Tribe in Aruangosian Gate (I3) and failed against the region (success_chance=0.800, attack_strength=43, defense_strength=27, treasury_after=36, terrain=Riverland Hill)
+Turn 18: Aruangos Tribe attacked Saklian Tribe in Saklhold (O3) and failed against the region (success_chance=0.600, attack_strength=24, defense_strength=22, treasury_after=18, terrain=Coastal Marsh)
+Turn 18: Rnutuan Tribe attacked Aruangos Tribe in Aruangosian Gate (I3) and captured the region (success_chance=0.800, attack_strength=41, defense_strength=22, treasury_after=36, terrain=Riverland Hill)
+Turn 18: Veneunar Tribe attacked Saklian Tribe in Saklian Ford (M11) and captured the region (success_chance=0.800, attack_strength=41, defense_strength=21, treasury_after=37, terrain=Riverland Plains)
+Turn 18: Saklian Tribe attacked Aruangos Tribe in Aruangos March (M3) and failed against the region (success_chance=0.550, attack_strength=21, defense_strength=20, treasury_after=15, terrain=Riverland Plains)
+Turn 19: Aruangos Tribe expanded into Aruangos Ford (O8) (score=9, resources=2, neighbors=3, unclaimed_neighbors=1, treasury_after=15, terrain=Coastal Forest)
+Turn 19: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Ford (O8) and failed against the region (success_chance=0.800, attack_strength=42, defense_strength=18, treasury_after=33, terrain=Coastal Forest)
+Turn 19: Saklian Tribe attacked Aruangos Tribe in Aruangos March (M3) and captured the region (success_chance=0.600, attack_strength=19, defense_strength=17, treasury_after=15, terrain=Riverland Plains)
+Turn 19: Veneunar Tribe attacked Saklian Tribe in Saklian Edge (M12) and failed against the region (success_chance=0.800, attack_strength=41, defense_strength=19, treasury_after=35, terrain=Hill Forest)
+Turn 20: Saklian Tribe expanded into Saklian Reach (O16) (score=9, resources=2, neighbors=3, unclaimed_neighbors=1, treasury_after=12, terrain=Coastal Forest)
+Turn 20: Aruangos Tribe attacked Saklian Tribe in Aruangos March (M3) and captured the region (success_chance=0.650, attack_strength=17, defense_strength=14, treasury_after=13, terrain=Riverland Plains)
+Turn 20: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Ford (O8) and captured the region (success_chance=0.800, attack_strength=39, defense_strength=16, treasury_after=32, terrain=Coastal Forest)
+Turn 20: Veneunar Tribe attacked Saklian Tribe in Saklian Edge (M12) and captured the region (success_chance=0.800, attack_strength=39, defense_strength=16, treasury_after=35, terrain=Hill Forest)
 
 Per-Turn Metrics
 
 Turn 1
   Saklian Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
   Aruangos Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
-  Arangoun Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
-  Yunavaun Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
+  Rnutuan Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
+  Veneunar Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
 
 Turn 2
   Saklian Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
   Aruangos Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Arangoun Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Yunavaun Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
+  Rnutuan Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
+  Veneunar Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
 
 Turn 3
   Saklian Tribe: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Aruangos Tribe: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Arangoun Tribe: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Yunavaun Tribe: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Aruangos Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
+  Rnutuan Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
+  Veneunar Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
 
 Turn 4
-  Saklian Tribe: treasury=14, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Aruangos Tribe: treasury=15, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Arangoun Tribe: treasury=16, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Yunavaun Tribe: treasury=16, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Saklian Tribe: treasury=16, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Aruangos Tribe: treasury=14, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
+  Rnutuan Tribe: treasury=12, regions=4, attacks=0, expansions=1, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Veneunar Tribe: treasury=12, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
 
 Turn 5
-  Saklian Tribe: treasury=18, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Aruangos Tribe: treasury=18, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Arangoun Tribe: treasury=21, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Yunavaun Tribe: treasury=19, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Saklian Tribe: treasury=19, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Aruangos Tribe: treasury=18, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Rnutuan Tribe: treasury=13, regions=4, attacks=0, expansions=1, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4
+  Veneunar Tribe: treasury=15, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
 
 Turn 6
-  Saklian Tribe: treasury=21, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Aruangos Tribe: treasury=20, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Arangoun Tribe: treasury=24, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Yunavaun Tribe: treasury=21, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+  Saklian Tribe: treasury=20, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Aruangos Tribe: treasury=21, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Rnutuan Tribe: treasury=16, regions=2, attacks=0, expansions=1, investments=0, base_income=8, scale_penalty=0, effective_income=8, maintenance=2, net=6
+  Veneunar Tribe: treasury=16, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
 
 Turn 7
-  Saklian Tribe: treasury=22, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Aruangos Tribe: treasury=21, regions=1, attacks=0, expansions=1, investments=0, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
-  Arangoun Tribe: treasury=25, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Yunavaun Tribe: treasury=23, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+  Saklian Tribe: treasury=19, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Aruangos Tribe: treasury=22, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Rnutuan Tribe: treasury=20, regions=2, attacks=1, expansions=0, investments=0, base_income=8, scale_penalty=0, effective_income=8, maintenance=2, net=6
+  Veneunar Tribe: treasury=17, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
 
 Turn 8
-  Saklian Tribe: treasury=25, regions=5, attacks=1, expansions=0, investments=0, base_income=16, scale_penalty=6, effective_income=10, maintenance=5, net=5
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=25, regions=6, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
-  Yunavaun Tribe: treasury=23, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+  Saklian Tribe: treasury=22, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Aruangos Tribe: treasury=23, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Rnutuan Tribe: treasury=24, regions=2, attacks=1, expansions=0, investments=0, base_income=8, scale_penalty=0, effective_income=8, maintenance=2, net=6
+  Veneunar Tribe: treasury=18, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
 
 Turn 9
-  Saklian Tribe: treasury=26, regions=6, attacks=1, expansions=0, investments=0, base_income=18, scale_penalty=9, effective_income=9, maintenance=6, net=3
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=22, regions=7, attacks=0, expansions=1, investments=0, base_income=19, scale_penalty=12, effective_income=7, maintenance=7, net=0
-  Yunavaun Tribe: treasury=25, regions=4, attacks=1, expansions=0, investments=0, base_income=13, scale_penalty=3, effective_income=10, maintenance=4, net=6
+  Saklian Tribe: treasury=23, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Aruangos Tribe: treasury=24, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Rnutuan Tribe: treasury=29, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
+  Veneunar Tribe: treasury=19, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
 
 Turn 10
-  Saklian Tribe: treasury=26, regions=7, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=12, effective_income=9, maintenance=7, net=2
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=20, regions=6, attacks=0, expansions=1, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1
-  Yunavaun Tribe: treasury=27, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+  Saklian Tribe: treasury=24, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Aruangos Tribe: treasury=25, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Rnutuan Tribe: treasury=33, regions=4, attacks=1, expansions=0, investments=0, base_income=13, scale_penalty=3, effective_income=10, maintenance=4, net=6
+  Veneunar Tribe: treasury=21, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
 
 Turn 11
-  Saklian Tribe: treasury=25, regions=8, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=15, effective_income=9, maintenance=8, net=1
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=20, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Yunavaun Tribe: treasury=27, regions=6, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
+  Saklian Tribe: treasury=25, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Aruangos Tribe: treasury=26, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Rnutuan Tribe: treasury=35, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+  Veneunar Tribe: treasury=23, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
 
 Turn 12
-  Saklian Tribe: treasury=22, regions=9, attacks=1, expansions=0, investments=0, base_income=26, scale_penalty=18, effective_income=8, maintenance=9, net=-1
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=20, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Yunavaun Tribe: treasury=25, regions=6, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
+  Saklian Tribe: treasury=25, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Aruangos Tribe: treasury=27, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Rnutuan Tribe: treasury=37, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+  Veneunar Tribe: treasury=27, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
 
 Turn 13
-  Saklian Tribe: treasury=18, regions=10, attacks=1, expansions=0, investments=0, base_income=29, scale_penalty=21, effective_income=8, maintenance=10, net=-2
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=21, regions=4, attacks=0, expansions=1, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4
-  Yunavaun Tribe: treasury=24, regions=7, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1
+  Saklian Tribe: treasury=26, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Aruangos Tribe: treasury=30, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Rnutuan Tribe: treasury=37, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+  Veneunar Tribe: treasury=29, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
 
 Turn 14
-  Saklian Tribe: treasury=12, regions=10, attacks=0, expansions=1, investments=0, base_income=28, scale_penalty=21, effective_income=7, maintenance=10, net=-3
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=21, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Yunavaun Tribe: treasury=22, regions=8, attacks=1, expansions=0, investments=0, base_income=23, scale_penalty=15, effective_income=8, maintenance=8, net=0
+  Saklian Tribe: treasury=26, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Aruangos Tribe: treasury=31, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Rnutuan Tribe: treasury=39, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
+  Veneunar Tribe: treasury=33, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
 
 Turn 15
-  Saklian Tribe: treasury=7, regions=9, attacks=0, expansions=1, investments=0, base_income=25, scale_penalty=18, effective_income=7, maintenance=9, net=-2
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=20, regions=6, attacks=1, expansions=0, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1
-  Yunavaun Tribe: treasury=19, regions=9, attacks=1, expansions=0, investments=0, base_income=26, scale_penalty=18, effective_income=8, maintenance=9, net=-1
+  Saklian Tribe: treasury=25, regions=5, attacks=0, expansions=1, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2
+  Aruangos Tribe: treasury=29, regions=6, attacks=0, expansions=1, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1
+  Rnutuan Tribe: treasury=40, regions=6, attacks=1, expansions=0, investments=0, base_income=18, scale_penalty=9, effective_income=9, maintenance=6, net=3
+  Veneunar Tribe: treasury=35, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
 
 Turn 16
-  Saklian Tribe: treasury=1, regions=9, attacks=0, expansions=1, investments=0, base_income=24, scale_penalty=18, effective_income=6, maintenance=9, net=-3
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=17, regions=7, attacks=1, expansions=0, investments=0, base_income=18, scale_penalty=12, effective_income=6, maintenance=7, net=-1
-  Yunavaun Tribe: treasury=17, regions=9, attacks=1, expansions=0, investments=0, base_income=27, scale_penalty=18, effective_income=9, maintenance=9, net=0
+  Saklian Tribe: treasury=22, regions=6, attacks=0, expansions=1, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0
+  Aruangos Tribe: treasury=26, regions=6, attacks=0, expansions=1, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0
+  Rnutuan Tribe: treasury=40, regions=7, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=12, effective_income=9, maintenance=7, net=2
+  Veneunar Tribe: treasury=37, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
 
 Turn 17
-  Saklian Tribe: treasury=3, regions=8, attacks=0, expansions=0, investments=1, base_income=25, scale_penalty=15, effective_income=10, maintenance=8, net=2
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=12, regions=8, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=15, effective_income=5, maintenance=8, net=-3
-  Yunavaun Tribe: treasury=13, regions=9, attacks=1, expansions=0, investments=0, base_income=27, scale_penalty=18, effective_income=9, maintenance=9, net=0
+  Saklian Tribe: treasury=19, regions=6, attacks=0, expansions=1, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0
+  Aruangos Tribe: treasury=22, regions=7, attacks=0, expansions=1, investments=0, base_income=18, scale_penalty=12, effective_income=6, maintenance=7, net=-1
+  Rnutuan Tribe: treasury=38, regions=7, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=12, effective_income=9, maintenance=7, net=2
+  Veneunar Tribe: treasury=39, regions=4, attacks=1, expansions=0, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4
 
 Turn 18
-  Saklian Tribe: treasury=1, regions=7, attacks=0, expansions=1, investments=0, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=5, regions=9, attacks=1, expansions=0, investments=0, base_income=22, scale_penalty=18, effective_income=4, maintenance=9, net=-5
-  Yunavaun Tribe: treasury=12, regions=10, attacks=1, expansions=0, investments=0, base_income=32, scale_penalty=21, effective_income=11, maintenance=10, net=1
+  Saklian Tribe: treasury=17, regions=5, attacks=1, expansions=0, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2
+  Aruangos Tribe: treasury=18, regions=6, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0
+  Rnutuan Tribe: treasury=37, regions=8, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=15, effective_income=9, maintenance=8, net=1
+  Veneunar Tribe: treasury=39, regions=5, attacks=1, expansions=0, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2
 
 Turn 19
-  Saklian Tribe: treasury=6, regions=5, attacks=0, expansions=0, investments=1, base_income=16, scale_penalty=6, effective_income=10, maintenance=5, net=5
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=-4, regions=10, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=21, effective_income=3, maintenance=10, net=-7
-  Yunavaun Tribe: treasury=12, regions=11, attacks=1, expansions=0, investments=0, base_income=37, scale_penalty=24, effective_income=13, maintenance=11, net=2
+  Saklian Tribe: treasury=15, regions=6, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0
+  Aruangos Tribe: treasury=15, regions=6, attacks=0, expansions=1, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0
+  Rnutuan Tribe: treasury=34, regions=8, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=15, effective_income=9, maintenance=8, net=1
+  Veneunar Tribe: treasury=37, regions=5, attacks=1, expansions=0, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2
 
 Turn 20
-  Saklian Tribe: treasury=6, regions=5, attacks=1, expansions=0, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2
-  Aruangos Tribe: treasury=21, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0
-  Arangoun Tribe: treasury=-6, regions=9, attacks=0, expansions=0, investments=1, base_income=25, scale_penalty=18, effective_income=7, maintenance=9, net=-2
-  Yunavaun Tribe: treasury=13, regions=12, attacks=1, expansions=0, investments=0, base_income=42, scale_penalty=27, effective_income=15, maintenance=12, net=3
+  Saklian Tribe: treasury=14, regions=5, attacks=0, expansions=1, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2
+  Aruangos Tribe: treasury=13, regions=6, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0
+  Rnutuan Tribe: treasury=31, regions=9, attacks=1, expansions=0, investments=0, base_income=26, scale_penalty=18, effective_income=8, maintenance=9, net=-1
+  Veneunar Tribe: treasury=35, regions=6, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0

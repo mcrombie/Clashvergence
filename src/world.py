@@ -20,6 +20,7 @@ def create_world(map_name="seven_region_ring", num_factions=4) -> WorldState:
             neighbors=region_data["neighbors"],
             owner=owner_name_map.get(region_data["owner"], region_data["owner"]),
             resources=region_data["resources"],
+            terrain_tags=region_data.get("terrain_tags", ["plains"]),
         )
 
     world = WorldState(regions=regions, factions=factions, map_name=map_name)

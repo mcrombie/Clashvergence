@@ -9,6 +9,7 @@ from src.config import (
 )
 from src.models import Event
 from src.region_naming import assign_region_founding_name, format_region_reference
+from src.terrain import get_terrain_profile
 
 
 def get_expandable_regions(faction_name, world):
@@ -47,6 +48,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
     """Returns a simple attack score and combat stats for an enemy region."""
 
     region = world.regions[region_name]
+    terrain_profile = get_terrain_profile(region)
     defender_name = region.owner
     staging_regions = [
         world.regions[neighbor_name]
@@ -55,10 +57,18 @@ def get_attack_target_score_components(region_name, faction_name, world):
     ]
     staging_resources = max((staging_region.resources for staging_region in staging_regions), default=0)
     attacker_strength = world.factions[faction_name].treasury + staging_resources
-    defender_strength = world.factions[defender_name].treasury + region.resources
+    defender_strength = (
+        world.factions[defender_name].treasury
+        + region.resources
+        + terrain_profile["defense_modifier"]
+    )
     success_chance = 0.5 + ((attacker_strength - defender_strength) * 0.05)
     success_chance = max(0.2, min(0.8, success_chance))
-    score = int(success_chance * 100) + (region.resources * 3)
+    score = (
+        int(success_chance * 100)
+        + (region.resources * 3)
+        + terrain_profile["economic_modifier"]
+    )
 
     return {
         "defender": defender_name,
@@ -66,6 +76,10 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "staging_resources": staging_resources,
         "attacker_strength": attacker_strength,
         "defender_strength": defender_strength,
+        "terrain_tags": terrain_profile["terrain_tags"],
+        "terrain_label": terrain_profile["terrain_label"],
+        "defense_modifier": terrain_profile["defense_modifier"],
+        "economic_modifier": terrain_profile["economic_modifier"],
         "success_chance": success_chance,
         "score": score,
     }
@@ -75,6 +89,7 @@ def get_expand_target_score_components(region_name, world):
     """Returns the scoring breakdown for an expansion target."""
 
     region = world.regions[region_name]
+    terrain_profile = get_terrain_profile(region)
     unclaimed_neighbors = 0
 
     for neighbor_name in region.neighbors:
@@ -82,12 +97,22 @@ def get_expand_target_score_components(region_name, world):
         if neighbor.owner is None:
             unclaimed_neighbors += 1
 
-    score = (region.resources * 2) + len(region.neighbors) + (unclaimed_neighbors * 2)
+    score = (
+        (region.resources * 2)
+        + len(region.neighbors)
+        + (unclaimed_neighbors * 2)
+        + terrain_profile["expansion_modifier"]
+        + terrain_profile["economic_modifier"]
+    )
 
     return {
         "resources": region.resources,
         "neighbors": len(region.neighbors),
         "unclaimed_neighbors": unclaimed_neighbors,
+        "terrain_tags": terrain_profile["terrain_tags"],
+        "terrain_label": terrain_profile["terrain_label"],
+        "terrain_expansion_modifier": terrain_profile["expansion_modifier"],
+        "terrain_economic_modifier": terrain_profile["economic_modifier"],
         "score": score,
     }
 
@@ -301,6 +326,10 @@ def expand(faction_name, target_region_name, world):
             "neighbors": score_components["neighbors"],
             "unclaimed_neighbors": score_components["unclaimed_neighbors"],
             "score": score_components["score"],
+            "terrain_tags": score_components["terrain_tags"],
+            "terrain_label": score_components["terrain_label"],
+            "terrain_expansion_modifier": score_components["terrain_expansion_modifier"],
+            "terrain_economic_modifier": score_components["terrain_economic_modifier"],
             "region_display_name": region_display_name,
             "region_reference": format_region_reference(
                 world.regions[target_region_name],
@@ -389,6 +418,10 @@ def attack(faction_name, target_region_name, world):
             "success_chance": round(score_components["success_chance"], 3),
             "attack_strength": score_components["attacker_strength"],
             "defense_strength": score_components["defender_strength"],
+            "terrain_tags": score_components["terrain_tags"],
+            "terrain_label": score_components["terrain_label"],
+            "terrain_defense_modifier": score_components["defense_modifier"],
+            "terrain_economic_modifier": score_components["economic_modifier"],
             "region_display_name": target_region.display_name,
             "region_reference": format_region_reference(target_region, include_code=True),
         },
