@@ -899,6 +899,7 @@ def render_simulation_html(world):
       timer: null,
       mapView: data.atlas_regions.length ? "atlas" : "graph",
       showTerrainOverlay: false,
+      colorMode: "ownership",
       focusRegionName: null,
     }};
 
@@ -929,14 +930,14 @@ def render_simulation_html(world):
 
     const colorByFaction = Object.fromEntries(data.factions.map((faction) => [faction.name, faction.color]));
     const terrainBaseColors = {{
-      coast: "#5d92b3",
-      riverland: "#5e9f87",
-      highland: "#8a7457",
-      hills: "#a1865e",
-      marsh: "#7d8a5c",
-      forest: "#5f8556",
-      steppe: "#c9b26f",
-      plains: "#b7c784",
+      coast: "#5a88c7",
+      riverland: "#43b38f",
+      highland: "#8b6a4f",
+      hills: "#c49a63",
+      marsh: "#6d7e4a",
+      forest: "#3d7a48",
+      steppe: "#d4bf63",
+      plains: "#b8d879",
     }};
 
     function getTerrainColor(tags) {{
@@ -946,6 +947,13 @@ def render_simulation_html(world):
 
     function getTerrainAbbreviation(tags) {{
       return (tags || []).map((tag) => tag.slice(0, 2).toUpperCase()).join("/");
+    }}
+
+    function getRegionFill(regionSnapshot, staticRegion) {{
+      if (state.colorMode === "terrain") {{
+        return getTerrainColor(regionSnapshot.terrain_tags || staticRegion.terrain_tags);
+      }}
+      return colorByFaction[regionSnapshot.owner] || unclaimedColor;
     }}
 
     function getRegionDataByName(regionName) {{
@@ -1100,6 +1108,7 @@ def render_simulation_html(world):
     function renderViewToggle() {{
       terrainToggle.innerHTML = `
         <button type="button" class="secondary" data-terrain="overlay">Show Terrain</button>
+        <button type="button" class="secondary" data-terrain="mode">Terrain Mode</button>
       `;
 
       if (!data.atlas_regions.length) {{
@@ -1107,10 +1116,20 @@ def render_simulation_html(world):
         atlasLayer.classList.add("hidden");
         atlasLabelLayer.classList.add("hidden");
         for (const button of terrainToggle.querySelectorAll("[data-terrain]")) {{
-          button.classList.toggle("active", state.showTerrainOverlay);
+          const isActive = (
+            (button.dataset.terrain === "overlay" && state.showTerrainOverlay)
+            || (button.dataset.terrain === "mode" && state.colorMode === "terrain")
+          );
+          button.classList.toggle("active", isActive);
           button.addEventListener("click", () => {{
-            state.showTerrainOverlay = !state.showTerrainOverlay;
+            if (button.dataset.terrain === "overlay") {{
+              state.showTerrainOverlay = !state.showTerrainOverlay;
+            }} else if (button.dataset.terrain === "mode") {{
+              state.colorMode = state.colorMode === "terrain" ? "ownership" : "terrain";
+            }}
             syncMapView();
+            renderLegend();
+            renderTurn(state.currentTurn);
           }});
         }}
         syncMapView();
@@ -1127,14 +1146,25 @@ def render_simulation_html(world):
         button.addEventListener("click", () => {{
           state.mapView = button.dataset.view;
           syncMapView();
+          renderTurn(state.currentTurn);
         }});
       }}
 
       for (const button of terrainToggle.querySelectorAll("[data-terrain]")) {{
-        button.classList.toggle("active", state.showTerrainOverlay);
+        const isActive = (
+          (button.dataset.terrain === "overlay" && state.showTerrainOverlay)
+          || (button.dataset.terrain === "mode" && state.colorMode === "terrain")
+        );
+        button.classList.toggle("active", isActive);
         button.addEventListener("click", () => {{
-          state.showTerrainOverlay = !state.showTerrainOverlay;
+          if (button.dataset.terrain === "overlay") {{
+            state.showTerrainOverlay = !state.showTerrainOverlay;
+          }} else if (button.dataset.terrain === "mode") {{
+            state.colorMode = state.colorMode === "terrain" ? "ownership" : "terrain";
+          }}
           syncMapView();
+          renderLegend();
+          renderTurn(state.currentTurn);
         }});
       }}
 
@@ -1154,15 +1184,36 @@ def render_simulation_html(world):
         button.classList.toggle("active", button.dataset.view === state.mapView);
       }}
       for (const button of terrainToggle.querySelectorAll("[data-terrain]")) {{
-        button.classList.toggle("active", state.showTerrainOverlay);
+        const isActive = (
+          (button.dataset.terrain === "overlay" && state.showTerrainOverlay)
+          || (button.dataset.terrain === "mode" && state.colorMode === "terrain")
+        );
+        button.classList.toggle("active", isActive);
       }}
     }}
 
     function renderLegend() {{
-      const items = [
-        ...data.factions.map((faction) => `<span class="legend-item"><span class="swatch" style="background:${{faction.color}}"></span>${{escapeHtml(faction.name)}} <span class="subtle">${{escapeHtml(faction.strategy)}}</span></span>`),
-        `<span class="legend-item"><span class="swatch" style="background:${{unclaimedColor}}"></span>Unclaimed</span>`,
-      ];
+      let items;
+      if (state.colorMode === "terrain") {{
+        const uniqueTerrain = new Map();
+        for (const region of data.regions) {{
+          const key = region.terrain_label;
+          if (!uniqueTerrain.has(key)) {{
+            uniqueTerrain.set(key, region.terrain_tags);
+          }}
+        }}
+        items = [...uniqueTerrain.entries()].map(([label, tags]) => `
+          <span class="legend-item">
+            <span class="swatch" style="background:${{getTerrainColor(tags)}}"></span>
+            Terrain: ${{escapeHtml(label)}}
+          </span>
+        `);
+      }} else {{
+        items = [
+          ...data.factions.map((faction) => `<span class="legend-item"><span class="swatch" style="background:${{faction.color}}"></span>${{escapeHtml(faction.name)}} <span class="subtle">${{escapeHtml(faction.strategy)}}</span></span>`),
+          `<span class="legend-item"><span class="swatch" style="background:${{unclaimedColor}}"></span>Unclaimed</span>`,
+        ];
+      }}
       legend.innerHTML = items.join("");
     }}
 
@@ -1235,6 +1286,7 @@ def render_simulation_html(world):
           <span>${{eventCount}} event${{eventCount === 1 ? "" : "s"}} on this turn</span>
           <span>${{changedCount}} region${{changedCount === 1 ? "" : "s"}} changed</span>
           <span>${{contestedCount}} contested region${{contestedCount === 1 ? "" : "s"}}</span>
+          <span>Map mode: ${{state.colorMode === "terrain" ? "Terrain" : "Ownership"}}</span>
         </div>
       `;
     }}
@@ -1327,7 +1379,7 @@ def render_simulation_html(world):
 
       for (const region of data.regions) {{
         const regionSnapshot = snapshot.regions[region.name];
-        const fill = colorByFaction[regionSnapshot.owner] || unclaimedColor;
+        const fill = getRegionFill(regionSnapshot, region);
         const node = document.getElementById(`region-node-${{region.name}}`);
         const label = document.getElementById(`region-label-${{region.name}}`);
         const resource = document.getElementById(`region-resource-${{region.name}}`);
@@ -1352,7 +1404,7 @@ def render_simulation_html(world):
 
       for (const region of data.atlas_regions) {{
         const regionSnapshot = snapshot.regions[region.name];
-        const fill = colorByFaction[regionSnapshot.owner] || unclaimedColor;
+        const fill = getRegionFill(regionSnapshot, region);
         const polygon = document.getElementById(`atlas-region-${{region.name}}`);
         const label = document.getElementById(`atlas-label-${{region.name}}`);
         const resource = document.getElementById(`atlas-resource-${{region.name}}`);
