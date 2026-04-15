@@ -14,7 +14,7 @@ def get_owned_region_counts(world):
     return counts
 
 
-def build_turn_metrics(world):
+def build_turn_metrics(world, economy_snapshot=None):
     """Builds a per-faction metrics snapshot for the just-completed turn."""
     turn_events = get_turn_events(world, world.turn)
     owned_region_counts = get_owned_region_counts(world)
@@ -24,10 +24,11 @@ def build_turn_metrics(world):
         attacks = 0
         expansions = 0
         investments = 0
-        income = 0
-        empire_penalty = 0
-        effective_income = 0
-        maintenance = 0
+        economy_data = (economy_snapshot or {}).get(faction_name, {})
+        income = economy_data.get("base_income", 0)
+        empire_penalty = economy_data.get("empire_penalty", 0)
+        effective_income = economy_data.get("effective_income", 0)
+        maintenance = economy_data.get("maintenance", 0)
 
         for event in turn_events:
             if event.faction != faction_name:
@@ -39,15 +40,6 @@ def build_turn_metrics(world):
                 expansions += 1
             elif event.type == "invest":
                 investments += 1
-            elif event.type == "income":
-                income += event.get("income", 0)
-            elif event.type == "empire_scale":
-                empire_penalty += event.get("empire_penalty", 0)
-                effective_income += event.get("effective_income", 0)
-            elif event.type == "maintenance":
-                maintenance += event.get("maintenance", 0)
-                if effective_income == 0:
-                    effective_income += event.get("effective_income", 0)
 
         faction_metrics[faction_name] = {
             "treasury": faction.treasury,
@@ -68,9 +60,9 @@ def build_turn_metrics(world):
     }
 
 
-def record_turn_metrics(world):
+def record_turn_metrics(world, economy_snapshot=None):
     """Appends the latest per-turn metrics snapshot to the world state."""
-    world.metrics.append(build_turn_metrics(world))
+    world.metrics.append(build_turn_metrics(world, economy_snapshot=economy_snapshot))
 
 
 def get_metrics_log(world):

@@ -52,12 +52,6 @@ def _get_event_title(event):
         return f"{event.faction} failed to take {event.region} from {defender}"
     if event.type == "invest":
         return f"{event.faction} invested in {event.region}"
-    if event.type == "income":
-        return f"{event.faction} collected income"
-    if event.type == "empire_scale":
-        return f"{event.faction} paid scale costs"
-    if event.type == "maintenance":
-        return f"{event.faction} paid upkeep"
     return f"{event.faction} acted"
 
 
@@ -74,12 +68,6 @@ def _get_event_summary(event):
         return f"Attack failed at {chance:.0%} displayed odds."
     if event.type == "invest":
         return f"Resources increased to R{event.get('new_resources', 0)}."
-    if event.type == "income":
-        return f"Base income +{event.get('base_income', event.get('income', 0))} treasury."
-    if event.type == "empire_scale":
-        return f"Scale penalty cost {event.get('empire_penalty', 0)} treasury."
-    if event.type == "maintenance":
-        return f"Maintenance cost {event.get('maintenance', 0)} treasury."
     return "No summary available."
 
 
