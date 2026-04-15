@@ -5,6 +5,7 @@ from src.config import (
     EMPIRE_SCALE_COST,
     REGION_MAINTENANCE_COST,
 )
+from src.doctrine import update_faction_doctrines
 from src.metrics import record_turn_metrics
 import random
 
@@ -100,6 +101,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
                 print(f"{faction_name} skipped its turn")
 
     economy_snapshot = apply_turn_economy(world)
+    update_faction_doctrines(world)
     if verbose:
         for faction_name in turn_order:
             data = economy_snapshot[faction_name]

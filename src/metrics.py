@@ -52,6 +52,13 @@ def build_turn_metrics(world, economy_snapshot=None):
             "effective_income": effective_income,
             "maintenance": maintenance,
             "net_income": effective_income - maintenance,
+            "doctrine_label": faction.doctrine_label,
+            "terrain_identity": faction.doctrine_profile.terrain_identity,
+            "homeland_identity": faction.doctrine_profile.homeland_identity,
+            "expansion_posture": faction.doctrine_profile.expansion_posture,
+            "war_posture": faction.doctrine_profile.war_posture,
+            "development_posture": faction.doctrine_profile.development_posture,
+            "insularity": faction.doctrine_profile.insularity,
         }
 
     return {

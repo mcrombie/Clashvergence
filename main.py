@@ -26,12 +26,15 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
     lines.append(f"Turns: {num_turns}")
     lines.append(f"Regions: {len(world.regions)}")
     lines.append(f"Factions: {len(world.factions)}")
-    lines.append("Faction Strategies:")
+    lines.append("Faction Doctrines:")
 
     for faction_name, faction in world.factions.items():
         tradition_labels = ",".join(faction.identity.source_traditions) if faction.identity else ""
         lines.append(
-            f"  {faction_name}: strategy={faction.strategy}, "
+            f"  {faction_name}: doctrine={faction.doctrine_label}, "
+            f"legacy_strategy={faction.strategy}, "
+            f"homeland={faction.doctrine_profile.homeland_identity}, "
+            f"terrain_identity={faction.doctrine_profile.terrain_identity}, "
             f"starting_treasury={starting_treasuries[faction_name]}, "
             f"culture={faction.culture_name}, "
             f"government={faction.government_type}, "
@@ -127,6 +130,34 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
         lines.append(format_event(event, world))
 
     lines.append("")
+    lines.append("Doctrine Evolution")
+    lines.append("")
+
+    for faction_name in world.factions:
+        history = [
+            snapshot["factions"][faction_name]
+            for snapshot in get_metrics_log(world)
+            if faction_name in snapshot["factions"]
+        ]
+        if not history:
+            continue
+
+        opening = history[0]
+        closing = history[-1]
+        doctrine_shifts = sum(
+            1
+            for earlier, later in zip(history, history[1:])
+            if earlier.get("doctrine_label") != later.get("doctrine_label")
+        )
+        lines.append(
+            f"{faction_name}: homeland={closing.get('homeland_identity', 'Unknown')}, "
+            f"opened as {opening.get('doctrine_label', 'Unknown')}, "
+            f"ended as {closing.get('doctrine_label', 'Unknown')}, "
+            f"terrain_identity={closing.get('terrain_identity', 'Unknown')}, "
+            f"doctrine_shifts={doctrine_shifts}"
+        )
+
+    lines.append("")
     lines.append("Per-Turn Metrics")
     lines.append("")
 
@@ -143,7 +174,8 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
                 f"scale_penalty={faction_metrics.get('empire_penalty', 0)}, "
                 f"effective_income={faction_metrics.get('effective_income', 0)}, "
                 f"maintenance={faction_metrics['maintenance']}, "
-                f"net={faction_metrics['net_income']}"
+                f"net={faction_metrics['net_income']}, "
+                f"doctrine={faction_metrics.get('doctrine_label', 'Unknown')}"
             )
         lines.append("")
 

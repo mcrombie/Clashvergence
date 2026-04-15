@@ -724,6 +724,7 @@ TURNING_POINT_MIN_THRESHOLD = {
     "full_domination": 70,
     "midgame_break": 65,
     "late_snowball": 65,
+    "early_snowball": 65,
     "economic_win": 55,
     "balanced_contest": 60,
 }
@@ -1772,7 +1773,7 @@ def build_ai_interpretation_summary(world, phase_analyses, standings, outcome_ty
         "turns": len(world.metrics),
         "outcome_type": outcome_type,
         "winner": winner,
-        "winner_strategy": world.factions[winner].strategy,
+        "winner_strategy": world.factions[winner].doctrine_label,
         "turning_points": turning_points[:2],
         "phase_summary": {
             "early": build_ai_phase_summary(phase_analyses[0] if len(phase_analyses) > 0 else None),
@@ -1800,13 +1801,7 @@ def build_ai_interpretation_summary(world, phase_analyses, standings, outcome_ty
 
 def get_winner_doctrine_hint(strategy):
     """Returns a short doctrinal lens for victor-history framing."""
-    doctrine_hints = {
-        "expansionist": "bold initiative and rightful growth",
-        "balanced": "prudence, adaptability, and steadier judgment",
-        "economic": "discipline, efficiency, and sound stewardship",
-        "opportunist": "timing, realism, and exploiting weakness",
-    }
-    return doctrine_hints.get(strategy, "coherent strategic judgment")
+    return f"{strategy.lower()} habits shaped by geography"
 
 
 def get_winner_path_to_victory(outcome_type, winner, winner_strategy, standings):
@@ -1830,7 +1825,7 @@ def get_winner_path_to_victory(outcome_type, winner, winner_strategy, standings)
 def build_victor_history_summary(world, phase_analyses, standings, outcome_type):
     """Builds the compact structured payload sent to the victor-history layer."""
     winner = standings[0]["faction"]
-    winner_strategy = world.factions[winner].strategy
+    winner_strategy = world.factions[winner].doctrine_label
     runner_up = standings[1] if len(standings) > 1 else None
     turning_points = summarize_turning_points(world, phase_analyses)
 
@@ -1857,7 +1852,7 @@ def build_victor_history_summary(world, phase_analyses, standings, outcome_type)
         "runner_up_summary": (
             {
                 "faction": runner_up["faction"],
-                "strategy": world.factions[runner_up["faction"]].strategy,
+                "strategy": world.factions[runner_up["faction"]].doctrine_label,
                 "treasury": runner_up["treasury"],
                 "regions": runner_up["owned_regions"],
                 "trajectory": get_faction_trajectory_sentence(world, runner_up["faction"]),
@@ -1868,7 +1863,7 @@ def build_victor_history_summary(world, phase_analyses, standings, outcome_type)
             {
                 "rank": index + 1,
                 "faction": standing["faction"],
-                "strategy": world.factions[standing["faction"]].strategy,
+                "strategy": world.factions[standing["faction"]].doctrine_label,
                 "treasury": standing["treasury"],
                 "regions": standing["owned_regions"],
             }
@@ -1905,17 +1900,17 @@ def summarize_strategic_interpretation(world):
     if ai_paragraph is not None:
         lines = [ai_paragraph]
         standings_by_strategy = [
-            f"{standing['faction']} ({world.factions[standing['faction']].strategy})"
+            f"{standing['faction']} ({world.factions[standing['faction']].doctrine_label})"
             for standing in standings[: min(2, len(standings))]
         ]
         if runner_up is not None:
             lines.append(
-                f"The closest challenger was {runner_up['faction']} ({world.factions[runner_up['faction']].strategy}) at "
+                f"The closest challenger was {runner_up['faction']} ({world.factions[runner_up['faction']].doctrine_label}) at "
                 f"{runner_up['treasury']} treasury and {format_count_noun(runner_up['owned_regions'], 'region')}."
             )
         else:
             lines.append(
-                f"The strongest finishing strategy in this run was {standings_by_strategy[0]}."
+                f"The strongest finishing doctrine in this run was {standings_by_strategy[0]}."
             )
         return lines
 
@@ -1951,17 +1946,17 @@ def summarize_strategic_interpretation(world):
         lines.append(result_line)
 
     standings_by_strategy = [
-        f"{standing['faction']} ({world.factions[standing['faction']].strategy})"
+        f"{standing['faction']} ({world.factions[standing['faction']].doctrine_label})"
         for standing in standings[: min(2, len(standings))]
     ]
     if runner_up is not None:
         lines.append(
-            f"The closest challenger was {runner_up['faction']} ({world.factions[runner_up['faction']].strategy}) at "
+            f"The closest challenger was {runner_up['faction']} ({world.factions[runner_up['faction']].doctrine_label}) at "
             f"{runner_up['treasury']} treasury and {format_count_noun(runner_up['owned_regions'], 'region')}."
         )
     else:
         lines.append(
-            f"The strongest finishing strategy in this run was {standings_by_strategy[0]}."
+            f"The strongest finishing doctrine in this run was {standings_by_strategy[0]}."
         )
 
     return lines
@@ -1970,17 +1965,10 @@ def summarize_strategic_interpretation(world):
 def build_victor_history_fallback(world, standings, outcome_type, phase_analyses):
     """Returns a short biased but fact-grounded victor-history paragraph."""
     winner = standings[0]["faction"]
-    winner_strategy = world.factions[winner].strategy
+    winner_strategy = world.factions[winner].doctrine_label
     runner_up = standings[1] if len(standings) > 1 else None
-    doctrine_lines = {
-        "expansionist": "their advance proved that initiative and rightful growth mattered more than caution",
-        "balanced": "their steadier judgment proved sounder than the field's excesses",
-        "economic": "their discipline showed that durable power depended on stewardship as much as territory",
-        "opportunist": "their timing showed that realism and the exploitation of weakness decided the field",
-    }
-    doctrine_line = doctrine_lines.get(
-        winner_strategy,
-        "their coherence proved stronger than the field's scattered efforts",
+    doctrine_line = (
+        f"their {winner_strategy.lower()} habits, forged by geography, proved stronger than the field's scattered efforts"
     )
     turning_points = summarize_turning_points(world, phase_analyses)
     turning_point_line = turning_points[0] if turning_points else None

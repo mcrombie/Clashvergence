@@ -7,6 +7,7 @@ from src.config import (
     MAX_RESOURCES,
     INVEST_AMOUNT,
 )
+from src.doctrine import get_faction_region_alignment
 from src.models import Event
 from src.region_naming import assign_region_founding_name, format_region_reference
 from src.terrain import get_terrain_profile
@@ -49,6 +50,10 @@ def get_attack_target_score_components(region_name, faction_name, world):
 
     region = world.regions[region_name]
     terrain_profile = get_terrain_profile(region)
+    doctrine_alignment = get_faction_region_alignment(
+        world.factions[faction_name],
+        region.terrain_tags,
+    )
     defender_name = region.owner
     staging_regions = [
         world.regions[neighbor_name]
@@ -56,7 +61,11 @@ def get_attack_target_score_components(region_name, faction_name, world):
         if world.regions[neighbor_name].owner == faction_name
     ]
     staging_resources = max((staging_region.resources for staging_region in staging_regions), default=0)
-    attacker_strength = world.factions[faction_name].treasury + staging_resources
+    attacker_strength = (
+        world.factions[faction_name].treasury
+        + staging_resources
+        + doctrine_alignment["combat_modifier"]
+    )
     defender_strength = (
         world.factions[defender_name].treasury
         + region.resources
@@ -68,6 +77,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         int(success_chance * 100)
         + (region.resources * 3)
         + terrain_profile["economic_modifier"]
+        + doctrine_alignment["economic_modifier"]
     )
 
     return {
@@ -80,16 +90,25 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "terrain_label": terrain_profile["terrain_label"],
         "defense_modifier": terrain_profile["defense_modifier"],
         "economic_modifier": terrain_profile["economic_modifier"],
+        "doctrine_combat_modifier": doctrine_alignment["combat_modifier"],
+        "doctrine_economic_modifier": doctrine_alignment["economic_modifier"],
+        "terrain_affinity": doctrine_alignment["average_affinity"],
         "success_chance": success_chance,
         "score": score,
     }
 
 
-def get_expand_target_score_components(region_name, world):
+def get_expand_target_score_components(region_name, world, faction_name=None):
     """Returns the scoring breakdown for an expansion target."""
 
     region = world.regions[region_name]
     terrain_profile = get_terrain_profile(region)
+    doctrine_alignment = None
+    if faction_name is not None and faction_name in world.factions:
+        doctrine_alignment = get_faction_region_alignment(
+            world.factions[faction_name],
+            region.terrain_tags,
+        )
     unclaimed_neighbors = 0
 
     for neighbor_name in region.neighbors:
@@ -103,6 +122,8 @@ def get_expand_target_score_components(region_name, world):
         + (unclaimed_neighbors * 2)
         + terrain_profile["expansion_modifier"]
         + terrain_profile["economic_modifier"]
+        + (doctrine_alignment["expansion_modifier"] if doctrine_alignment is not None else 0)
+        + (doctrine_alignment["economic_modifier"] if doctrine_alignment is not None else 0)
     )
 
     return {
@@ -113,6 +134,21 @@ def get_expand_target_score_components(region_name, world):
         "terrain_label": terrain_profile["terrain_label"],
         "terrain_expansion_modifier": terrain_profile["expansion_modifier"],
         "terrain_economic_modifier": terrain_profile["economic_modifier"],
+        "doctrine_expansion_modifier": (
+            doctrine_alignment["expansion_modifier"]
+            if doctrine_alignment is not None
+            else 0
+        ),
+        "doctrine_economic_modifier": (
+            doctrine_alignment["economic_modifier"]
+            if doctrine_alignment is not None
+            else 0
+        ),
+        "terrain_affinity": (
+            doctrine_alignment["average_affinity"]
+            if doctrine_alignment is not None
+            else 0.0
+        ),
         "score": score,
     }
 
@@ -276,7 +312,11 @@ def expand(faction_name, target_region_name, world):
     treasury_before = faction.treasury
     rank_before = get_faction_rank(world, faction_name)
     owner_before = world.regions[target_region_name].owner
-    score_components = get_expand_target_score_components(target_region_name, world)
+    score_components = get_expand_target_score_components(
+        target_region_name,
+        world,
+        faction_name=faction_name,
+    )
     expand_tags = get_expand_event_tags(score_components)
     strategic_role = get_expand_strategic_role(score_components, expand_tags)
     income_gain = score_components["resources"]
@@ -330,6 +370,9 @@ def expand(faction_name, target_region_name, world):
             "terrain_label": score_components["terrain_label"],
             "terrain_expansion_modifier": score_components["terrain_expansion_modifier"],
             "terrain_economic_modifier": score_components["terrain_economic_modifier"],
+            "doctrine_expansion_modifier": score_components["doctrine_expansion_modifier"],
+            "doctrine_economic_modifier": score_components["doctrine_economic_modifier"],
+            "terrain_affinity": score_components["terrain_affinity"],
             "region_display_name": region_display_name,
             "region_reference": format_region_reference(
                 world.regions[target_region_name],
@@ -422,6 +465,9 @@ def attack(faction_name, target_region_name, world):
             "terrain_label": score_components["terrain_label"],
             "terrain_defense_modifier": score_components["defense_modifier"],
             "terrain_economic_modifier": score_components["economic_modifier"],
+            "doctrine_combat_modifier": score_components["doctrine_combat_modifier"],
+            "doctrine_economic_modifier": score_components["doctrine_economic_modifier"],
+            "terrain_affinity": score_components["terrain_affinity"],
             "region_display_name": target_region.display_name,
             "region_reference": format_region_reference(target_region, include_code=True),
         },

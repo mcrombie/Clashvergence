@@ -3,39 +3,40 @@ Detailed Simulation Results
 Simulation Setup
 
 Map: thirty_seven_region_ring
-Turns: 20
+Turns: 8
 Regions: 37
 Factions: 4
-Faction Strategies:
-  Akhakiar Tribe: strategy=expansionist, starting_treasury=1, culture=Akhakiar, government=Tribe, internal_id=Faction1, traditions=persian,chinese, ai_generated=False
-  Persermia Tribe: strategy=balanced, starting_treasury=1, culture=Persermia, government=Tribe, internal_id=Faction2, traditions=persian,roman, ai_generated=False
-  Noraraand Tribe: strategy=economic, starting_treasury=1, culture=Noraraand, government=Tribe, internal_id=Faction3, traditions=roman,persian, ai_generated=False
-  Veneunar Tribe: strategy=opportunist, starting_treasury=1, culture=Veneunar, government=Tribe, internal_id=Faction4, traditions=roman,chinese, ai_generated=False
+Faction Doctrines:
+  Saklian Tribe: doctrine=Adaptive Coastal Forest, legacy_strategy=expansionist, homeland=Coastal Forest, terrain_identity=Coastal Forest, starting_treasury=1, culture=Saklian, government=Tribe, internal_id=Faction1, traditions=persian,chinese, ai_generated=True
+  Aruangos Tribe: doctrine=Martial Coastal Forest, legacy_strategy=balanced, homeland=Coastal Forest, terrain_identity=Coastal Forest, starting_treasury=1, culture=Aruangos, government=Tribe, internal_id=Faction2, traditions=persian,roman, ai_generated=True
+  Rnutuan Tribe: doctrine=Expansionary Coastal Forest, legacy_strategy=economic, homeland=Coastal Forest, terrain_identity=Coastal Forest, starting_treasury=1, culture=Rnutuan, government=Tribe, internal_id=Faction3, traditions=roman,persian, ai_generated=True
+  Veneunar Tribe: doctrine=Martial Coastal Forest, legacy_strategy=opportunist, homeland=Coastal Forest, terrain_identity=Coastal Forest, starting_treasury=1, culture=Veneunar, government=Tribe, internal_id=Faction4, traditions=roman,chinese, ai_generated=True
 
 Simulation Chronicle
 
-On turn 2, Akhakiar Tribe made its first expansion into M1.
+On turn 2, Aruangos Tribe made its first expansion into M4.
+On turn 2, Rnutuan Tribe made its first expansion into M7.
+On turn 2, Saklian Tribe made its first expansion into M1.
 On turn 2, Veneunar Tribe made its first expansion into M10.
-On turn 2, Persermia Tribe made its first expansion into M4.
-On turn 2, Noraraand Tribe made its first expansion into M7.
+On turn 4, Veneunar Tribe seized C, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M9.
 
 Opening Phase
 
-The strongest early land grab was Persermia Tribe's claim of M3 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe led expansion with 2 claim(s).
-Across the first 5 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe invested most often with 1 investment(s).
-By the end of turn 5, Persermia Tribe held the opening treasury lead at 19.
+The strongest early land grab was Aruangos Tribe's claim of M4 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe led expansion with 2 claim(s).
+Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe invested most often with 1 investment(s).
+By the end of turn 5, Veneunar Tribe held the opening treasury lead at 13.
 
 Phase Summaries
 
-Early phase: Persermia Tribe was strongest by the end of turns 1-6, with Persermia Tribe on 22 treasury and 4 regions. 6 successful attacks shifted control of 5 regions. 13 expansions added 13 new regions. 4 investments improved existing holdings. Akhakiar Tribe gained 5 regions. Persermia Tribe improved its standing most during the phase.
-Mid phase: Noraraand Tribe was strongest by the end of turns 7-13, with Noraraand Tribe on 21 treasury and 7 regions. 17 successful attacks shifted control of 12 regions. 7 expansions added 7 new regions. Noraraand Tribe gained 5 regions while Akhakiar Tribe lost 3 regions.
-Late phase: Akhakiar Tribe was strongest by the end of turns 14-20, with Akhakiar Tribe on 24 treasury and 3 regions. 11 successful attacks shifted control of 8 regions. 1 expansion added 1 new region. 5 investments improved existing holdings. Veneunar Tribe gained 4 regions while Persermia Tribe lost 2 regions. Akhakiar Tribe improved its standing most during the phase.
+Early phase: Saklian Tribe and Aruangos Tribe were strongest by the end of turns 1-2, with Saklian Tribe on 7 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 4 expansions added 4 new regions. 4 investments improved existing holdings. Saklian Tribe gained 1 region.
+Mid phase: Veneunar Tribe was strongest by the end of turns 3-5, with Veneunar Tribe on 13 treasury and 5 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 12 expansions added 12 new regions. Saklian Tribe gained 3 regions. Aruangos Tribe improved its standing most during the phase.
+Late phase: Saklian Tribe was strongest by the end of turns 6-8, with Saklian Tribe on 7 treasury and 5 regions. 2 successful attacks shifted control of 2 regions. 8 expansions added 8 new regions. 1 investment improved existing holdings. Aruangos Tribe gained 3 regions.
 
 Turning Points
 
-Late economic shift: Akhakiar Tribe created a treasury edge that became central to the finish.
-Early leader change: Akhakiar Tribe took the treasury lead.
+Mid leader change: Saklian Tribe took the treasury lead.
+Mid leader change: Veneunar Tribe took the treasury lead.
 
 Outcome Type
 
@@ -43,231 +44,115 @@ Outcome type: economic_win.
 
 Faction Trajectories
 
-Akhakiar Tribe opened with 3 claims and grew to 6 regions by the end of the opening phase, peaked at 7 regions on turn 7 before slipping to 3 regions, and finished first with 3 regions, 24 treasury, and 10 total attacks.
-Persermia Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, peaked at 8 regions on turn 12 before slipping to 6 regions, and finished rank 3 on 6 treasury with 6 regions after gaining 1 treasury overall.
-Noraraand Tribe opened with 5 claims and grew to 2 regions by the end of the opening phase, peaked at 8 regions on turn 14 before slipping to 6 regions, and finished rank 2 on 7 treasury with 6 regions after gaining 2 treasury overall.
-Veneunar Tribe opened with 2 claims and grew to 5 regions by the end of the opening phase, built steadily past the opening, reaching 10 regions by turn 20, and finished rank 4 on 4 treasury with 10 regions.
+Saklian Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, peaked at 7 regions on turn 7 before slipping to 5 regions, and finished first with 5 regions, 7 treasury, and 0 total attacks.
+Aruangos Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 8 regions by turn 8, and finished rank 2 on 3 treasury with 8 regions.
+Rnutuan Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 7 regions by turn 8, and finished rank 4 on 1 treasury with 7 regions.
+Veneunar Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 8 regions by turn 8, and finished rank 3 on 2 treasury with 8 regions.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-Territory alone did not decide this run; Akhakiar Tribe finished first on treasury without holding the largest empire at the end.
-Akhakiar Tribe did not win on map share. It finished first on treasury while Noraraand Tribe, Persermia Tribe, and Veneunar Tribe held more territory but failed to turn that size into enough net income.
-Akhakiar Tribe finished first on 24 treasury with 3 regions, while the largest empire finished on 10 regions.
-The closest challenger was Noraraand Tribe (economic) at 7 treasury and 6 regions.
+Saklian Tribe’s adaptive coastal forest approach won because treasury, not territory, decided the ring map, and their 7-to-3 cash edge outweighed Aruangos Tribe’s 8 regions. After a contested opening, the midgame treasury lead changes mattered because they showed the board was still unsettled, but Saklian converted that instability into income while others could not turn larger holdings into the same resource advantage. Aruangos’ late regional gain was too late because the final margin had already shifted to Saklian’s economic control, which prevented a territorial lead from overturning the result.
+The closest challenger was Aruangos Tribe (Martial Coastal Forest) at 3 treasury and 8 regions.
 
 Final Standings
 
-Akhakiar Tribe finished first with a treasury of 24 and control of 3 regions.
-Noraraand Tribe ended with a treasury of 7 and 6 regions.
-Persermia Tribe ended with a treasury of 6 and 6 regions.
-Veneunar Tribe ended with a treasury of 4 and 10 regions.
+Saklian Tribe finished first with a treasury of 7 and control of 5 regions.
+Aruangos Tribe ended with a treasury of 3 and 8 regions.
+Veneunar Tribe ended with a treasury of 2 and 8 regions.
+Rnutuan Tribe ended with a treasury of 1 and 7 regions.
 
 Victor's History
 
-Akhakiar Tribe's historians would treat this run as evidence that their advance proved that initiative and rightful growth mattered more than caution. They would point first to the decisive shift: late economic shift: Akhakiar Tribe created a treasury edge that became central to the finish. In their telling, rivals mistook sheer map share for strength, while Akhakiar Tribe finished ahead on treasury with 24 against Noraraand Tribe's 7. From that partisan view, Noraraand Tribe's resistance was real but never as durable as Akhakiar Tribe's final position.
+The Saklian Tribe’s victory was not a matter of holding the widest map share, but of keeping the treasury where it mattered most, and that is the mark of sound judgment. They opened modestly, remained strongest in the early contest, and recovered the treasury lead in the middle phase even as the board shifted around them. Others could claim more regions—Aruangos and Veneunar both reached 8—but their strength did not translate into the final measure, while Saklian’s steadier course finished first with 7 treasury and no total attacks. In a ring as contested as this one, the winning side proved that disciplined adaptation was more durable than mere accumulation.
 
 Event Log
 
-Turn 1: Persermia Tribe invested in Persermia (O5) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
 Turn 1: Veneunar Tribe invested in Veneunar (O13) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
-Turn 1: Akhakiar Tribe invested in Akhakiar (O1) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
-Turn 1: Noraraand Tribe invested in Noraraand (O9) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
-Turn 2: Akhakiar Tribe expanded into Akhakiar March (M1) (score=21, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2, terrain=Plains)
-Turn 2: Veneunar Tribe expanded into Veneunar Hollow (M10) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2, terrain=Forest)
-Turn 2: Persermia Tribe expanded into Persermia Rise (M4) (score=18, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2, terrain=Hill Forest)
-Turn 2: Noraraand Tribe expanded into Noraraand Reach (M7) (score=23, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2, terrain=Riverland Plains)
-Turn 3: Persermia Tribe expanded into Persermia Gate (M3) (score=23, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=4, terrain=Riverland Plains)
-Turn 3: Akhakiar Tribe expanded into Akhakiar Edge (I2) (score=19, resources=3, neighbors=6, unclaimed_neighbors=4, treasury_after=4, terrain=Highland Plains)
-Turn 3: Veneunar Tribe expanded into Veneunar Vale (M9) (score=21, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=4, terrain=Plains)
-Turn 3: Noraraand Tribe expanded into Noraraand Grove (M6) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=4, terrain=Forest)
-Turn 4: Persermia Tribe expanded into Persermia Wood (I4) (score=17, resources=3, neighbors=6, unclaimed_neighbors=4, treasury_after=7, terrain=Highland Forest)
-Turn 4: Akhakiar Tribe attacked Persermia Tribe in Persermia Gate (M3) and captured the region (success_chance=0.750, attack_strength=14, defense_strength=9, treasury_after=9, terrain=Riverland Plains)
-Turn 4: Noraraand Tribe expanded into Noraraand Plain (I6) (score=19, resources=3, neighbors=6, unclaimed_neighbors=4, treasury_after=7, terrain=Highland Plains)
-Turn 4: Veneunar Tribe attacked Noraraand Tribe in Noraraand Plain (I6) and failed against the region (success_chance=0.500, attack_strength=12, defense_strength=12, treasury_after=6, terrain=Highland Plains)
-Turn 5: Noraraand Tribe expanded into Noraraand Crossing (C) (score=25, resources=2, neighbors=8, unclaimed_neighbors=5, treasury_after=9, terrain=Riverland Plains)
-Turn 5: Veneunar Tribe attacked Noraraand Tribe in Noraraand Plain (I6) and captured the region (success_chance=0.500, attack_strength=14, defense_strength=14, treasury_after=10, terrain=Highland Plains)
-Turn 5: Persermia Tribe attacked Noraraand Tribe in Noraraand Crossing (C) and captured the region (success_chance=0.800, attack_strength=17, defense_strength=11, treasury_after=12, terrain=Riverland Plains)
-Turn 5: Akhakiar Tribe attacked Persermia Tribe in Noraraand Crossing (C) and captured the region (success_chance=0.650, attack_strength=17, defense_strength=14, treasury_after=12, terrain=Riverland Plains)
-Turn 6: Noraraand Tribe expanded into Noraraandian Reach (O10) (score=14, resources=2, neighbors=4, unclaimed_neighbors=2, treasury_after=12, terrain=Coastal Plains)
-Turn 6: Persermia Tribe attacked Noraraand Tribe in Noraraand Grove (M6) and captured the region (success_chance=0.800, attack_strength=22, defense_strength=15, treasury_after=17, terrain=Forest)
-Turn 6: Veneunar Tribe attacked Noraraand Tribe in Noraraand Reach (M7) and captured the region (success_chance=0.700, attack_strength=18, defense_strength=14, treasury_after=13, terrain=Riverland Plains)
-Turn 6: Akhakiar Tribe expanded into Akhakiar Vale (M12) (score=18, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=12, terrain=Hill Forest)
-Turn 7: Akhakiar Tribe expanded into Akhakiarian Wash (M11) (score=18, resources=2, neighbors=5, unclaimed_neighbors=3, treasury_after=10, terrain=Riverland Plains)
-Turn 7: Noraraand Tribe attacked Veneunar Tribe in Noraraand Reach (M7) and captured the region (success_chance=0.700, attack_strength=22, defense_strength=18, treasury_after=15, terrain=Riverland Plains)
-Turn 7: Veneunar Tribe attacked Akhakiar Tribe in Akhakiarian Wash (M11) and failed against the region (success_chance=0.800, attack_strength=18, defense_strength=12, treasury_after=12, terrain=Riverland Plains)
-Turn 7: Persermia Tribe attacked Noraraand Tribe in Noraraand Reach (M7) and captured the region (success_chance=0.800, attack_strength=24, defense_strength=17, treasury_after=20, terrain=Riverland Plains)
-Turn 8: Persermia Tribe attacked Akhakiar Tribe in Persermia Gate (M3) and captured the region (success_chance=0.800, attack_strength=25, defense_strength=11, treasury_after=21, terrain=Riverland Plains)
-Turn 8: Akhakiar Tribe expanded into Akhakiar Plain (O2) (score=14, resources=2, neighbors=4, unclaimed_neighbors=2, treasury_after=6, terrain=Coastal Plains)
-Turn 8: Noraraand Tribe expanded into Noraraand Ford (O11) (score=10, resources=2, neighbors=4, unclaimed_neighbors=2, treasury_after=17, terrain=Coastal Marsh)
-Turn 8: Veneunar Tribe attacked Akhakiar Tribe in Akhakiarian Wash (M11) and captured the region (success_chance=0.800, attack_strength=19, defense_strength=8, treasury_after=15, terrain=Riverland Plains)
-Turn 9: Noraraand Tribe attacked Veneunar Tribe in Veneunar Vale (M9) and captured the region (success_chance=0.750, attack_strength=25, defense_strength=20, treasury_after=21, terrain=Plains)
-Turn 9: Persermia Tribe attacked Akhakiar Tribe in Akhakiar Edge (I2) and failed against the region (success_chance=0.800, attack_strength=24, defense_strength=12, treasury_after=18, terrain=Highland Plains)
-Turn 9: Akhakiar Tribe expanded into Akhakiar Reach (I7) (score=14, resources=3, neighbors=5, unclaimed_neighbors=1, treasury_after=4, terrain=Riverland Hill)
-Turn 9: Veneunar Tribe attacked Akhakiar Tribe in Akhakiar Reach (I7) and captured the region (success_chance=0.800, attack_strength=21, defense_strength=8, treasury_after=16, terrain=Riverland Hill)
-Turn 10: Persermia Tribe attacked Akhakiar Tribe in Akhakiar Edge (I2) and captured the region (success_chance=0.800, attack_strength=21, defense_strength=10, treasury_after=17, terrain=Highland Plains)
-Turn 10: Noraraand Tribe attacked Persermia Tribe in Noraraand Reach (M7) and failed against the region (success_chance=0.800, attack_strength=30, defense_strength=19, treasury_after=21, terrain=Riverland Plains)
-Turn 10: Veneunar Tribe attacked Akhakiar Tribe in Noraraand Crossing (C) and captured the region (success_chance=0.800, attack_strength=23, defense_strength=7, treasury_after=18, terrain=Riverland Plains)
-Turn 10: Akhakiar Tribe expanded into Akhakiar Wood (I8) (score=11, resources=3, neighbors=6, unclaimed_neighbors=1, treasury_after=2, terrain=Highland Forest)
-Turn 11: Akhakiar Tribe expanded into Akhakiar Mire (O3) (score=10, resources=2, neighbors=4, unclaimed_neighbors=2, treasury_after=2, terrain=Coastal Marsh)
-Turn 11: Noraraand Tribe attacked Persermia Tribe in Noraraand Reach (M7) and captured the region (success_chance=0.800, attack_strength=30, defense_strength=19, treasury_after=23, terrain=Riverland Plains)
-Turn 11: Persermia Tribe attacked Akhakiar Tribe in Akhakiar Mire (O3) and captured the region (success_chance=0.800, attack_strength=19, defense_strength=5, treasury_after=15, terrain=Coastal Marsh)
-Turn 11: Veneunar Tribe attacked Akhakiar Tribe in Akhakiar Wood (I8) and failed against the region (success_chance=0.800, attack_strength=23, defense_strength=8, treasury_after=16, terrain=Highland Forest)
-Turn 12: Veneunar Tribe attacked Akhakiar Tribe in Akhakiar Wood (I8) and captured the region (success_chance=0.800, attack_strength=21, defense_strength=11, treasury_after=16, terrain=Highland Forest)
-Turn 12: Noraraand Tribe attacked Veneunar Tribe in Akhakiar Reach (I7) and captured the region (success_chance=0.800, attack_strength=27, defense_strength=20, treasury_after=23, terrain=Riverland Hill)
-Turn 12: Persermia Tribe attacked Akhakiar Tribe in Akhakiar Plain (O2) and captured the region (success_chance=0.800, attack_strength=17, defense_strength=7, treasury_after=13, terrain=Coastal Plains)
-Turn 12: Akhakiar Tribe expanded into Akhakiar Hollow (O15) (score=10, resources=2, neighbors=4, unclaimed_neighbors=2, treasury_after=2, terrain=Coastal Marsh)
-Turn 13: Noraraand Tribe attacked Veneunar Tribe in Noraraand Crossing (C) and captured the region (success_chance=0.800, attack_strength=27, defense_strength=20, treasury_after=22, terrain=Riverland Plains)
-Turn 13: Persermia Tribe attacked Akhakiar Tribe in Akhakiar March (M1) and captured the region (success_chance=0.800, attack_strength=14, defense_strength=8, treasury_after=9, terrain=Plains)
-Turn 13: Veneunar Tribe attacked Akhakiar Tribe in Akhakiar Hollow (O15) and captured the region (success_chance=0.800, attack_strength=20, defense_strength=9, treasury_after=16, terrain=Coastal Marsh)
-Turn 13: Akhakiar Tribe attacked Persermia Tribe in Akhakiar Plain (O2) and captured the region (success_chance=0.500, attack_strength=11, defense_strength=11, treasury_after=4, terrain=Coastal Plains)
-Turn 14: Akhakiar Tribe attacked Persermia Tribe in Akhakiar March (M1) and failed against the region (success_chance=0.800, attack_strength=15, defense_strength=9, treasury_after=6, terrain=Plains)
-Turn 14: Veneunar Tribe attacked Akhakiar Tribe in Akhakiar Vale (M12) and captured the region (success_chance=0.800, attack_strength=21, defense_strength=10, treasury_after=16, terrain=Hill Forest)
-Turn 14: Noraraand Tribe attacked Persermia Tribe in Persermia Wood (I4) and captured the region (success_chance=0.800, attack_strength=23, defense_strength=13, treasury_after=19, terrain=Highland Forest)
-Turn 14: Persermia Tribe attacked Akhakiar Tribe in Akhakiar Plain (O2) and captured the region (success_chance=0.550, attack_strength=9, defense_strength=8, treasury_after=5, terrain=Coastal Plains)
-Turn 15: Akhakiar Tribe attacked Persermia Tribe in Akhakiar Plain (O2) and captured the region (success_chance=0.800, attack_strength=15, defense_strength=4, treasury_after=8, terrain=Coastal Plains)
-Turn 15: Persermia Tribe invested in Akhakiar March (M1) (invest_amount=4, new_resources=5, terrain=Plains)
-Turn 15: Veneunar Tribe attacked Persermia Tribe in Akhakiar March (M1) and failed against the region (success_chance=0.800, attack_strength=18, defense_strength=7, treasury_after=12, terrain=Plains)
-Turn 15: Noraraand Tribe attacked Persermia Tribe in Akhakiar Edge (I2) and failed against the region (success_chance=0.800, attack_strength=19, defense_strength=7, treasury_after=13, terrain=Highland Plains)
-Turn 16: Persermia Tribe expanded into Persermia Ford (O6) (score=14, resources=2, neighbors=4, unclaimed_neighbors=2, treasury_after=1, terrain=Coastal Plains)
-Turn 16: Noraraand Tribe attacked Persermia Tribe in Akhakiar Edge (I2) and failed against the region (success_chance=0.800, attack_strength=13, defense_strength=6, treasury_after=7, terrain=Highland Plains)
-Turn 16: Veneunar Tribe attacked Persermia Tribe in Akhakiar March (M1) and captured the region (success_chance=0.800, attack_strength=14, defense_strength=6, treasury_after=10, terrain=Plains)
-Turn 16: Akhakiar Tribe attacked Persermia Tribe in Akhakiar Mire (O3) and failed against the region (success_chance=0.800, attack_strength=15, defense_strength=4, treasury_after=9, terrain=Coastal Marsh)
-Turn 17: Noraraand Tribe attacked Persermia Tribe in Noraraand Grove (M6) and failed against the region (success_chance=0.750, attack_strength=8, defense_strength=3, treasury_after=1, terrain=Forest)
-Turn 17: Persermia Tribe invested in Persermia Gate (M3) (invest_amount=4, new_resources=5, terrain=Riverland Plains)
-Turn 17: Akhakiar Tribe attacked Persermia Tribe in Akhakiar Mire (O3) and failed against the region (success_chance=0.800, attack_strength=16, defense_strength=3, treasury_after=10, terrain=Coastal Marsh)
-Turn 17: Veneunar Tribe attacked Noraraand Tribe in Akhakiar Reach (I7) and failed against the region (success_chance=0.800, attack_strength=14, defense_strength=5, treasury_after=7, terrain=Riverland Hill)
-Turn 18: Noraraand Tribe invested in Noraraand Crossing (C) (invest_amount=4, new_resources=5, terrain=Riverland Plains)
-Turn 18: Veneunar Tribe attacked Noraraand Tribe in Noraraand Crossing (C) and captured the region (success_chance=0.800, attack_strength=11, defense_strength=4, treasury_after=6, terrain=Riverland Plains)
-Turn 18: Akhakiar Tribe attacked Veneunar Tribe in Akhakiar March (M1) and failed against the region (success_chance=0.800, attack_strength=20, defense_strength=11, treasury_after=11, terrain=Plains)
-Turn 18: Persermia Tribe attacked Noraraand Tribe in Noraraand Reach (M7) and failed against the region (success_chance=0.650, attack_strength=4, defense_strength=1, treasury_after=0, terrain=Riverland Plains)
-Turn 19: Veneunar Tribe attacked Noraraand Tribe in Akhakiar Reach (I7) and captured the region (success_chance=0.800, attack_strength=13, defense_strength=3, treasury_after=6, terrain=Riverland Hill)
-Turn 19: Persermia Tribe attacked Noraraand Tribe in Noraraand Reach (M7) and captured the region (success_chance=0.650, attack_strength=4, defense_strength=1, treasury_after=0, terrain=Riverland Plains)
-Turn 19: Akhakiar Tribe attacked Veneunar Tribe in Akhakiar March (M1) and failed against the region (success_chance=0.800, attack_strength=21, defense_strength=11, treasury_after=12, terrain=Plains)
-Turn 19: Noraraand Tribe invested in Veneunar Vale (M9) (invest_amount=4, new_resources=5, terrain=Plains)
-Turn 20: Veneunar Tribe attacked Persermia Tribe in Akhakiar Edge (I2) and captured the region (success_chance=0.800, attack_strength=12, defense_strength=5, treasury_after=5, terrain=Highland Plains)
-Turn 20: Persermia Tribe invested in Persermia Rise (M4) (invest_amount=4, new_resources=5, terrain=Hill Forest)
-Turn 20: Noraraand Tribe attacked Persermia Tribe in Noraraand Reach (M7) and captured the region (success_chance=0.800, attack_strength=10, defense_strength=2, treasury_after=3, terrain=Riverland Plains)
-Turn 20: Akhakiar Tribe attacked Veneunar Tribe in Akhakiar March (M1) and captured the region (success_chance=0.800, attack_strength=22, defense_strength=10, treasury_after=15, terrain=Plains)
+Turn 1: Saklian Tribe invested in Saklian (O1) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
+Turn 1: Rnutuan Tribe invested in Rnutuan (O9) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
+Turn 1: Aruangos Tribe invested in Aruangos (O5) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
+Turn 2: Aruangos Tribe expanded into Aruangos Hollow (M4) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2, terrain=Hill Forest)
+Turn 2: Rnutuan Tribe expanded into Rnutuan Reach (M7) (score=21, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2, terrain=Riverland Plains)
+Turn 2: Saklian Tribe expanded into Saklian Crossing (M1) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2, terrain=Plains)
+Turn 2: Veneunar Tribe expanded into Veneunar Hollow (M10) (score=23, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=2, terrain=Forest)
+Turn 3: Saklian Tribe expanded into Saklian Pass (M2) (score=20, resources=2, neighbors=5, unclaimed_neighbors=4, treasury_after=4, terrain=Forest)
+Turn 3: Rnutuan Tribe expanded into Rnutuan Edge (M6) (score=23, resources=2, neighbors=6, unclaimed_neighbors=5, treasury_after=4, terrain=Forest)
+Turn 3: Aruangos Tribe expanded into Aruangos Wash (M3) (score=19, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=4, terrain=Riverland Plains)
+Turn 3: Veneunar Tribe expanded into Veneunar Wood (I8) (score=20, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=4, terrain=Highland Forest)
+Turn 4: Rnutuan Tribe expanded into Rnutuan Height (I6) (score=19, resources=3, neighbors=6, unclaimed_neighbors=5, treasury_after=7, terrain=Highland Plains)
+Turn 4: Veneunar Tribe expanded into Veneunar Watch (C) (score=25, resources=2, neighbors=8, unclaimed_neighbors=6, treasury_after=8, terrain=Riverland Plains)
+Turn 4: Aruangos Tribe expanded into Aruangos Watch (I4) (score=16, resources=3, neighbors=6, unclaimed_neighbors=3, treasury_after=7, terrain=Highland Forest)
+Turn 4: Saklian Tribe expanded into Saklian Ford (M12) (score=17, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=7, terrain=Hill Forest)
+Turn 5: Veneunar Tribe expanded into Veneunar Vale (M9) (score=17, resources=2, neighbors=6, unclaimed_neighbors=4, treasury_after=10, terrain=Plains)
+Turn 5: Rnutuan Tribe expanded into Rnutuan Gate (O10) (score=15, resources=2, neighbors=4, unclaimed_neighbors=2, treasury_after=9, terrain=Coastal Plains)
+Turn 5: Aruangos Tribe expanded into Aruangos Field (O6) (score=15, resources=2, neighbors=4, unclaimed_neighbors=2, treasury_after=9, terrain=Coastal Plains)
+Turn 5: Saklian Tribe expanded into Saklian Gate (M11) (score=14, resources=2, neighbors=5, unclaimed_neighbors=2, treasury_after=8, terrain=Riverland Plains)
+Turn 6: Rnutuan Tribe expanded into Rnutuan Grove (O8) (score=13, resources=2, neighbors=3, unclaimed_neighbors=1, treasury_after=9, terrain=Coastal Forest)
+Turn 6: Saklian Tribe expanded into Saklian Watch (O2) (score=13, resources=2, neighbors=4, unclaimed_neighbors=1, treasury_after=7, terrain=Coastal Plains)
+Turn 6: Aruangos Tribe expanded into Aruangos Vale (O4) (score=13, resources=2, neighbors=3, unclaimed_neighbors=1, treasury_after=9, terrain=Coastal Forest)
+Turn 6: Veneunar Tribe expanded into Veneunar Field (O14) (score=13, resources=2, neighbors=4, unclaimed_neighbors=1, treasury_after=10, terrain=Coastal Plains)
+Turn 7: Rnutuan Tribe expanded into Rnutuanian Crossing (M5) (score=12, resources=2, neighbors=5, unclaimed_neighbors=1, treasury_after=7, terrain=Plains)
+Turn 7: Saklian Tribe expanded into Saklian March (O16) (score=13, resources=2, neighbors=3, unclaimed_neighbors=1, treasury_after=4, terrain=Coastal Forest)
+Turn 7: Veneunar Tribe expanded into Veneunar Bay (O12) (score=13, resources=2, neighbors=3, unclaimed_neighbors=1, treasury_after=8, terrain=Coastal Forest)
+Turn 7: Aruangos Tribe expanded into Aruangos Plain (I2) (score=13, resources=3, neighbors=6, unclaimed_neighbors=2, treasury_after=7, terrain=Highland Plains)
+Turn 8: Veneunar Tribe attacked Saklian Tribe in Saklian Gate (M11) and captured the region (success_chance=0.800, attack_strength=10, defense_strength=4, treasury_after=5, terrain=Riverland Plains)
+Turn 8: Aruangos Tribe attacked Saklian Tribe in Saklian Pass (M2) and captured the region (success_chance=0.800, attack_strength=13, defense_strength=5, treasury_after=5, terrain=Forest)
+Turn 8: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Field (O6) and failed against the region (success_chance=0.650, attack_strength=10, defense_strength=7, treasury_after=2, terrain=Coastal Plains)
+Turn 8: Saklian Tribe invested in Saklian Crossing (M1) (invest_amount=4, new_resources=5, terrain=Plains)
+
+Doctrine Evolution
+
+Saklian Tribe: homeland=Coastal Forest, opened as Developmental Coastal Forest, ended as Adaptive Coastal Forest, terrain_identity=Coastal Forest, doctrine_shifts=3
+Aruangos Tribe: homeland=Coastal Forest, opened as Developmental Coastal Forest, ended as Martial Coastal Forest, terrain_identity=Coastal Forest, doctrine_shifts=3
+Rnutuan Tribe: homeland=Coastal Forest, opened as Developmental Coastal Forest, ended as Expansionary Coastal Forest, terrain_identity=Coastal Forest, doctrine_shifts=2
+Veneunar Tribe: homeland=Coastal Forest, opened as Developmental Coastal Forest, ended as Martial Coastal Forest, terrain_identity=Coastal Forest, doctrine_shifts=3
 
 Per-Turn Metrics
 
 Turn 1
-  Akhakiar Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
-  Persermia Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
-  Noraraand Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
-  Veneunar Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
+  Saklian Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Coastal Forest
+  Aruangos Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Coastal Forest
+  Rnutuan Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Coastal Forest
+  Veneunar Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Coastal Forest
 
 Turn 2
-  Akhakiar Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Persermia Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Noraraand Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Veneunar Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
+  Saklian Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5, doctrine=Adaptive Coastal Forest
+  Aruangos Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5, doctrine=Adaptive Coastal Forest
+  Rnutuan Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5, doctrine=Adaptive Coastal Forest
+  Veneunar Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5, doctrine=Adaptive Coastal Forest
 
 Turn 3
-  Akhakiar Tribe: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Persermia Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
-  Noraraand Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
-  Veneunar Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
+  Saklian Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6, doctrine=Adaptive Coastal Forest
+  Aruangos Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6, doctrine=Adaptive Coastal Forest
+  Rnutuan Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6, doctrine=Adaptive Coastal Forest
+  Veneunar Tribe: treasury=11, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7, doctrine=Adaptive Coastal Forest
 
 Turn 4
-  Akhakiar Tribe: treasury=14, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Persermia Tribe: treasury=14, regions=3, attacks=0, expansions=1, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Noraraand Tribe: treasury=12, regions=4, attacks=0, expansions=1, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Veneunar Tribe: treasury=12, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
+  Saklian Tribe: treasury=11, regions=4, attacks=0, expansions=1, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4, doctrine=Adaptive Coastal Forest
+  Aruangos Tribe: treasury=12, regions=4, attacks=0, expansions=1, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5, doctrine=Adaptive Coastal Forest
+  Rnutuan Tribe: treasury=12, regions=4, attacks=0, expansions=1, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5, doctrine=Adaptive Coastal Forest
+  Veneunar Tribe: treasury=13, regions=4, attacks=0, expansions=1, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5, doctrine=Adaptive Coastal Forest
 
 Turn 5
-  Akhakiar Tribe: treasury=15, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Persermia Tribe: treasury=19, regions=3, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=3, net=7
-  Noraraand Tribe: treasury=15, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
-  Veneunar Tribe: treasury=15, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Saklian Tribe: treasury=10, regions=5, attacks=0, expansions=1, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2, doctrine=Adaptive Coastal Forest
+  Aruangos Tribe: treasury=12, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3, doctrine=Adaptive Coastal Forest
+  Rnutuan Tribe: treasury=12, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3, doctrine=Expansionary Coastal Forest
+  Veneunar Tribe: treasury=13, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3, doctrine=Adaptive Coastal Forest
 
 Turn 6
-  Akhakiar Tribe: treasury=13, regions=6, attacks=0, expansions=1, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1
-  Persermia Tribe: treasury=22, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
-  Noraraand Tribe: treasury=17, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Veneunar Tribe: treasury=16, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
+  Saklian Tribe: treasury=7, regions=6, attacks=0, expansions=1, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0, doctrine=Expansionary Coastal Forest
+  Aruangos Tribe: treasury=10, regions=6, attacks=0, expansions=1, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1, doctrine=Expansionary Coastal Forest
+  Rnutuan Tribe: treasury=10, regions=6, attacks=0, expansions=1, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1, doctrine=Expansionary Coastal Forest
+  Veneunar Tribe: treasury=11, regions=6, attacks=0, expansions=1, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1, doctrine=Expansionary Coastal Forest
 
 Turn 7
-  Akhakiar Tribe: treasury=9, regions=7, attacks=0, expansions=1, investments=0, base_income=18, scale_penalty=12, effective_income=6, maintenance=7, net=-1
-  Persermia Tribe: treasury=23, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Noraraand Tribe: treasury=20, regions=2, attacks=1, expansions=0, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Veneunar Tribe: treasury=17, regions=4, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=3, effective_income=9, maintenance=4, net=5
+  Saklian Tribe: treasury=2, regions=7, attacks=0, expansions=1, investments=0, base_income=17, scale_penalty=12, effective_income=5, maintenance=7, net=-2, doctrine=Expansionary Coastal Forest
+  Aruangos Tribe: treasury=7, regions=7, attacks=0, expansions=1, investments=0, base_income=19, scale_penalty=12, effective_income=7, maintenance=7, net=0, doctrine=Expansionary Coastal Forest
+  Rnutuan Tribe: treasury=6, regions=7, attacks=0, expansions=1, investments=0, base_income=18, scale_penalty=12, effective_income=6, maintenance=7, net=-1, doctrine=Expansionary Coastal Forest
+  Veneunar Tribe: treasury=7, regions=7, attacks=0, expansions=1, investments=0, base_income=18, scale_penalty=12, effective_income=6, maintenance=7, net=-1, doctrine=Expansionary Coastal Forest
 
 Turn 8
-  Akhakiar Tribe: treasury=7, regions=6, attacks=0, expansions=1, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1
-  Persermia Tribe: treasury=22, regions=6, attacks=1, expansions=0, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1
-  Noraraand Tribe: treasury=23, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
-  Veneunar Tribe: treasury=18, regions=5, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-
-Turn 9
-  Akhakiar Tribe: treasury=5, regions=6, attacks=0, expansions=1, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1
-  Persermia Tribe: treasury=19, regions=6, attacks=1, expansions=0, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1
-  Noraraand Tribe: treasury=25, regions=4, attacks=1, expansions=0, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4
-  Veneunar Tribe: treasury=20, regions=5, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=6, effective_income=9, maintenance=5, net=4
-
-Turn 10
-  Akhakiar Tribe: treasury=5, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Persermia Tribe: treasury=17, regions=7, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=12, effective_income=7, maintenance=7, net=0
-  Noraraand Tribe: treasury=25, regions=4, attacks=1, expansions=0, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4
-  Veneunar Tribe: treasury=20, regions=6, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
-
-Turn 11
-  Akhakiar Tribe: treasury=5, regions=5, attacks=0, expansions=1, investments=0, base_income=14, scale_penalty=6, effective_income=8, maintenance=5, net=3
-  Persermia Tribe: treasury=15, regions=7, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=12, effective_income=7, maintenance=7, net=0
-  Noraraand Tribe: treasury=25, regions=5, attacks=1, expansions=0, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2
-  Veneunar Tribe: treasury=18, regions=6, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
-
-Turn 12
-  Akhakiar Tribe: treasury=6, regions=4, attacks=0, expansions=1, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4
-  Persermia Tribe: treasury=11, regions=8, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=15, effective_income=6, maintenance=8, net=-2
-  Noraraand Tribe: treasury=24, regions=6, attacks=1, expansions=0, investments=0, base_income=16, scale_penalty=9, effective_income=7, maintenance=6, net=1
-  Veneunar Tribe: treasury=18, regions=6, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
-
-Turn 13
-  Akhakiar Tribe: treasury=10, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6
-  Persermia Tribe: treasury=7, regions=8, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=15, effective_income=6, maintenance=8, net=-2
-  Noraraand Tribe: treasury=21, regions=7, attacks=1, expansions=0, investments=0, base_income=18, scale_penalty=12, effective_income=6, maintenance=7, net=-1
-  Veneunar Tribe: treasury=18, regions=6, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=9, effective_income=8, maintenance=6, net=2
-
-Turn 14
-  Akhakiar Tribe: treasury=10, regions=1, attacks=1, expansions=0, investments=0, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4
-  Persermia Tribe: treasury=2, regions=8, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=15, effective_income=5, maintenance=8, net=-3
-  Noraraand Tribe: treasury=17, regions=8, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=15, effective_income=6, maintenance=8, net=-2
-  Veneunar Tribe: treasury=16, regions=7, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=12, effective_income=7, maintenance=7, net=0
-
-Turn 15
-  Akhakiar Tribe: treasury=13, regions=2, attacks=1, expansions=0, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Persermia Tribe: treasury=4, regions=7, attacks=0, expansions=0, investments=1, base_income=21, scale_penalty=12, effective_income=9, maintenance=7, net=2
-  Noraraand Tribe: treasury=11, regions=8, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=15, effective_income=6, maintenance=8, net=-2
-  Veneunar Tribe: treasury=12, regions=7, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=12, effective_income=7, maintenance=7, net=0
-
-Turn 16
-  Akhakiar Tribe: treasury=14, regions=2, attacks=1, expansions=0, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Persermia Tribe: treasury=0, regions=7, attacks=0, expansions=1, investments=0, base_income=18, scale_penalty=12, effective_income=6, maintenance=7, net=-1
-  Noraraand Tribe: treasury=5, regions=8, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=15, effective_income=6, maintenance=8, net=-2
-  Veneunar Tribe: treasury=11, regions=8, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=15, effective_income=9, maintenance=8, net=1
-
-Turn 17
-  Akhakiar Tribe: treasury=15, regions=2, attacks=1, expansions=0, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Persermia Tribe: treasury=2, regions=7, attacks=0, expansions=0, investments=1, base_income=21, scale_penalty=12, effective_income=9, maintenance=7, net=2
-  Noraraand Tribe: treasury=-1, regions=8, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=15, effective_income=6, maintenance=8, net=-2
-  Veneunar Tribe: treasury=8, regions=8, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=15, effective_income=9, maintenance=8, net=1
-
-Turn 18
-  Akhakiar Tribe: treasury=16, regions=2, attacks=1, expansions=0, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Persermia Tribe: treasury=2, regions=7, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=12, effective_income=9, maintenance=7, net=2
-  Noraraand Tribe: treasury=-1, regions=7, attacks=0, expansions=0, investments=1, base_income=19, scale_penalty=12, effective_income=7, maintenance=7, net=0
-  Veneunar Tribe: treasury=8, regions=9, attacks=1, expansions=0, investments=0, base_income=29, scale_penalty=18, effective_income=11, maintenance=9, net=2
-
-Turn 19
-  Akhakiar Tribe: treasury=17, regions=2, attacks=1, expansions=0, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5
-  Persermia Tribe: treasury=0, regions=8, attacks=1, expansions=0, investments=0, base_income=23, scale_penalty=15, effective_income=8, maintenance=8, net=0
-  Noraraand Tribe: treasury=5, regions=5, attacks=0, expansions=0, investments=1, base_income=17, scale_penalty=6, effective_income=11, maintenance=5, net=6
-  Veneunar Tribe: treasury=7, regions=10, attacks=1, expansions=0, investments=0, base_income=32, scale_penalty=21, effective_income=11, maintenance=10, net=1
-
-Turn 20
-  Akhakiar Tribe: treasury=24, regions=3, attacks=1, expansions=0, investments=0, base_income=12, scale_penalty=0, effective_income=12, maintenance=3, net=9
-  Persermia Tribe: treasury=6, regions=6, attacks=0, expansions=0, investments=1, base_income=21, scale_penalty=9, effective_income=12, maintenance=6, net=6
-  Noraraand Tribe: treasury=7, regions=6, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=9, effective_income=10, maintenance=6, net=4
-  Veneunar Tribe: treasury=4, regions=10, attacks=1, expansions=0, investments=0, base_income=30, scale_penalty=21, effective_income=9, maintenance=10, net=-1
+  Saklian Tribe: treasury=7, regions=5, attacks=0, expansions=0, investments=1, base_income=16, scale_penalty=6, effective_income=10, maintenance=5, net=5, doctrine=Adaptive Coastal Forest
+  Aruangos Tribe: treasury=3, regions=8, attacks=1, expansions=0, investments=0, base_income=21, scale_penalty=15, effective_income=6, maintenance=8, net=-2, doctrine=Martial Coastal Forest
+  Rnutuan Tribe: treasury=1, regions=7, attacks=1, expansions=0, investments=0, base_income=18, scale_penalty=12, effective_income=6, maintenance=7, net=-1, doctrine=Expansionary Coastal Forest
+  Veneunar Tribe: treasury=2, regions=8, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=15, effective_income=5, maintenance=8, net=-3, doctrine=Martial Coastal Forest

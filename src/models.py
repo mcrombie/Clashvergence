@@ -1,6 +1,42 @@
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+
+@dataclass
+class FactionDoctrineState:
+    homeland_region: str | None = None
+    homeland_terrain_tags: list[str] = field(default_factory=list)
+    terrain_experience: dict[str, float] = field(default_factory=dict)
+    turns_observed: int = 0
+    expansions: int = 0
+    attacks: int = 0
+    successful_attacks: int = 0
+    investments: int = 0
+    turns_with_growth: int = 0
+    turns_with_conflict: int = 0
+    turns_with_investment: int = 0
+    regions_gained_by_expansion: int = 0
+    regions_gained_by_conquest: int = 0
+    cumulative_regions_held: int = 0
+    peak_regions: int = 0
+    starting_regions: int = 0
+    last_region_count: int = 0
+
+
+@dataclass
+class FactionDoctrineProfile:
+    homeland_identity: str = "Plains"
+    terrain_identity: str = "Plains"
+    preferred_terrains: list[str] = field(default_factory=lambda: ["plains"])
+    expansion_posture: float = 0.5
+    war_posture: float = 0.5
+    development_posture: float = 0.5
+    insularity: float = 0.5
+    doctrine_label: str = "Adaptive Plains"
+    summary: str = ""
+    dominant_behavior: str = "adaptive"
+
+
 @dataclass
 class Region:
     name: str
@@ -41,6 +77,8 @@ class Faction:
     treasury: int = 0
     identity: FactionIdentity | None = None
     starting_treasury: int = 0
+    doctrine_state: FactionDoctrineState = field(default_factory=FactionDoctrineState)
+    doctrine_profile: FactionDoctrineProfile = field(default_factory=FactionDoctrineProfile)
 
     def __post_init__(self):
         if self.starting_treasury == 0:
@@ -61,6 +99,18 @@ class Faction:
     @property
     def internal_id(self):
         return self.identity.internal_id if self.identity is not None else self.name
+
+    @property
+    def legacy_strategy(self):
+        return self.strategy
+
+    @property
+    def doctrine_label(self):
+        return self.doctrine_profile.doctrine_label
+
+    @property
+    def doctrine_summary(self):
+        return self.doctrine_profile.summary
 
 
 @dataclass

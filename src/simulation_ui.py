@@ -277,6 +277,10 @@ def build_simulation_view_model(world):
             "name": faction_name,
             "internal_id": world.factions[faction_name].internal_id,
             "strategy": world.factions[faction_name].strategy,
+            "doctrine_label": world.factions[faction_name].doctrine_label,
+            "doctrine_summary": world.factions[faction_name].doctrine_summary,
+            "terrain_identity": world.factions[faction_name].doctrine_profile.terrain_identity,
+            "homeland_identity": world.factions[faction_name].doctrine_profile.homeland_identity,
             "color": get_faction_color(
                 faction_name,
                 internal_id=world.factions[faction_name].internal_id,
@@ -461,6 +465,14 @@ def render_simulation_html(world):
       margin: 0 0 14px;
       font-size: 1.15rem;
     }}
+    .section-header {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }}
     .playback-layout {{
       display: grid;
       grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.62fr);
@@ -541,6 +553,11 @@ def render_simulation_html(world):
     .turn-readout {{
       font-size: 0.95rem;
       color: var(--muted);
+    }}
+    .timeline-controls {{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }}
     input[type="range"] {{
       width: 100%;
@@ -632,6 +649,66 @@ def render_simulation_html(world):
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+    }}
+    .timeline-shell {{
+      background: rgba(255,255,255,0.46);
+      border: 1px solid rgba(63, 74, 89, 0.08);
+      border-radius: 20px;
+      padding: 14px;
+    }}
+    .timeline-caption {{
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.6;
+    }}
+    .timeline-key {{
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }}
+    .timeline-key-item {{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }}
+    .timeline-line-chip {{
+      width: 18px;
+      height: 3px;
+      border-radius: 999px;
+      display: inline-block;
+    }}
+    .timeline-axis {{
+      stroke: rgba(63, 74, 89, 0.22);
+      stroke-width: 1.4;
+    }}
+    .timeline-grid {{
+      stroke: rgba(63, 74, 89, 0.12);
+      stroke-width: 1;
+      stroke-dasharray: 4 6;
+    }}
+    .timeline-label {{
+      fill: var(--muted);
+      font-size: 12px;
+      font-family: Georgia, "Times New Roman", serif;
+    }}
+    .timeline-line {{
+      fill: none;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }}
+    .timeline-dot {{
+      stroke: rgba(255,255,255,0.9);
+      stroke-width: 2;
+    }}
+    .timeline-shift {{
+      fill: #fff7d6;
+      stroke: #9a7a2f;
+      stroke-width: 1.5;
     }}
     .legend-item {{
       display: inline-flex;
@@ -875,6 +952,10 @@ def render_simulation_html(world):
               </div>
             </section>
             <section class="side-section">
+              <h3 class="side-title">Doctrine Evolution</h3>
+              <div class="summary-stack" id="doctrine-panel"></div>
+            </section>
+            <section class="side-section">
               <h3 class="side-title">Region Detail</h3>
               <article class="summary-card" id="region-detail"></article>
             </section>
@@ -886,6 +967,18 @@ def render_simulation_html(world):
       <div class="panel panel-hidden" id="run-summary-panel">
         <h2 class="section-title">Run Summary</h2>
         <div class="summary-stack" id="run-summary"></div>
+      </div>
+
+      <div class="panel">
+        <div class="section-header">
+          <h2 class="section-title">Doctrine Timeline</h2>
+          <div class="timeline-controls" id="doctrine-timeline-controls"></div>
+        </div>
+        <div class="timeline-shell">
+          <svg viewBox="0 0 920 320" role="img" aria-label="Doctrine posture timeline" id="doctrine-timeline"></svg>
+          <div class="timeline-key" id="doctrine-timeline-key"></div>
+          <p class="timeline-caption" id="doctrine-timeline-caption"></p>
+        </div>
       </div>
     </section>
   </div>
@@ -924,9 +1017,14 @@ def render_simulation_html(world):
     const standings = document.getElementById("standings");
     const turnContext = document.getElementById("turn-context");
     const turnEvents = document.getElementById("turn-events");
+    const doctrinePanel = document.getElementById("doctrine-panel");
     const regionDetail = document.getElementById("region-detail");
     const runSummaryPanel = document.getElementById("run-summary-panel");
     const runSummary = document.getElementById("run-summary");
+    const doctrineTimelineControls = document.getElementById("doctrine-timeline-controls");
+    const doctrineTimeline = document.getElementById("doctrine-timeline");
+    const doctrineTimelineKey = document.getElementById("doctrine-timeline-key");
+    const doctrineTimelineCaption = document.getElementById("doctrine-timeline-caption");
 
     const colorByFaction = Object.fromEntries(data.factions.map((faction) => [faction.name, faction.color]));
     const terrainBaseColors = {{
@@ -939,6 +1037,16 @@ def render_simulation_html(world):
       steppe: "#d4bf63",
       plains: "#b8d879",
     }};
+    const doctrineLineColors = {{
+      expansion_posture: "#2d6a4f",
+      war_posture: "#b24c37",
+      development_posture: "#3c78a8",
+      insularity: "#7b5ea7",
+    }};
+
+    if (!state.focusFactionName && data.factions.length) {{
+      state.focusFactionName = data.factions[0].name;
+    }}
 
     function getTerrainColor(tags) {{
       const [primaryTag = "plains"] = tags || [];
@@ -956,10 +1064,24 @@ def render_simulation_html(world):
       return colorByFaction[regionSnapshot.owner] || unclaimedColor;
     }}
 
+    function formatPosture(value) {{
+      if (value >= 0.72) {{
+        return "High";
+      }}
+      if (value >= 0.46) {{
+        return "Medium";
+      }}
+      return "Low";
+    }}
+
     function getRegionDataByName(regionName) {{
       return data.regions.find((region) => region.name === regionName)
         || data.atlas_regions.find((region) => region.name === regionName)
         || null;
+    }}
+
+    function getFactionDataByName(factionName) {{
+      return data.factions.find((faction) => faction.name === factionName) || null;
     }}
 
     function svgElement(name, attrs) {{
@@ -1210,7 +1332,7 @@ def render_simulation_html(world):
         `);
       }} else {{
         items = [
-          ...data.factions.map((faction) => `<span class="legend-item"><span class="swatch" style="background:${{faction.color}}"></span>${{escapeHtml(faction.name)}} <span class="subtle">${{escapeHtml(faction.strategy)}}</span></span>`),
+          ...data.factions.map((faction) => `<span class="legend-item"><span class="swatch" style="background:${{faction.color}}"></span>${{escapeHtml(faction.name)}} <span class="subtle">${{escapeHtml(faction.doctrine_label)}}</span></span>`),
           `<span class="legend-item"><span class="swatch" style="background:${{unclaimedColor}}"></span>Unclaimed</span>`,
         ];
       }}
@@ -1261,6 +1383,116 @@ def render_simulation_html(world):
           </ul>
         </article>
       `;
+    }}
+
+    function buildDoctrineTimelineControls() {{
+      doctrineTimelineControls.innerHTML = data.factions.map((faction) => `
+        <button type="button" class="secondary${{faction.name === state.focusFactionName ? " active" : ""}}" data-faction="${{escapeHtml(faction.name)}}">
+          ${{escapeHtml(faction.name)}}
+        </button>
+      `).join("");
+
+      for (const button of doctrineTimelineControls.querySelectorAll("[data-faction]")) {{
+        button.addEventListener("click", () => {{
+          state.focusFactionName = button.dataset.faction;
+          buildDoctrineTimelineControls();
+          renderDoctrineTimeline();
+        }});
+      }}
+    }}
+
+    function renderDoctrineTimeline() {{
+      const factionName = state.focusFactionName || data.factions[0]?.name;
+      const faction = getFactionDataByName(factionName);
+      if (!faction) {{
+        doctrineTimeline.innerHTML = "";
+        doctrineTimelineKey.innerHTML = "";
+        doctrineTimelineCaption.textContent = "No faction selected.";
+        return;
+      }}
+
+      const history = data.snapshots
+        .filter((snapshot) => snapshot.turn > 0 && snapshot.metrics && snapshot.metrics.factions[factionName])
+        .map((snapshot) => ({{
+          turn: snapshot.turn,
+          ...snapshot.metrics.factions[factionName],
+        }}));
+
+      if (!history.length) {{
+        doctrineTimeline.innerHTML = "";
+        doctrineTimelineKey.innerHTML = "";
+        doctrineTimelineCaption.textContent = `${{factionName}} has no doctrine history yet.`;
+        return;
+      }}
+
+      const width = 920;
+      const height = 320;
+      const margin = {{ top: 24, right: 22, bottom: 42, left: 54 }};
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const maxTurn = Math.max(...history.map((entry) => entry.turn));
+      const xForTurn = (turn) => margin.left + (((turn - 1) / Math.max(1, maxTurn - 1)) * innerWidth);
+      const yForValue = (value) => margin.top + ((1 - value) * innerHeight);
+      const postureKeys = ["expansion_posture", "war_posture", "development_posture", "insularity"];
+      const postureLabels = {{
+        expansion_posture: "Expansion",
+        war_posture: "War",
+        development_posture: "Development",
+        insularity: "Insularity",
+      }};
+      const horizontalTicks = [0, 0.25, 0.5, 0.75, 1];
+      const verticalTicks = history.map((entry) => entry.turn);
+      const shiftPoints = history.filter((entry, index) => index > 0 && history[index - 1].doctrine_label !== entry.doctrine_label);
+      const makePath = (key) => history.map((entry, index) => {{
+        const x = xForTurn(entry.turn).toFixed(1);
+        const y = yForValue(entry[key]).toFixed(1);
+        return `${{index === 0 ? "M" : "L"}}${{x}},${{y}}`;
+      }}).join(" ");
+
+      doctrineTimeline.innerHTML = `
+        <rect x="0" y="0" width="${{width}}" height="${{height}}" rx="16" fill="rgba(255,255,255,0.72)"></rect>
+        ${{horizontalTicks.map((tick) => `
+          <g>
+            <line x1="${{margin.left}}" y1="${{yForValue(tick).toFixed(1)}}" x2="${{(width - margin.right).toFixed(1)}}" y2="${{yForValue(tick).toFixed(1)}}" class="timeline-grid"></line>
+            <text x="${{(margin.left - 12).toFixed(1)}}" y="${{(yForValue(tick) + 4).toFixed(1)}}" text-anchor="end" class="timeline-label">${{tick.toFixed(2)}}</text>
+          </g>
+        `).join("")}}
+        ${{verticalTicks.map((tick) => `
+          <g>
+            <line x1="${{xForTurn(tick).toFixed(1)}}" y1="${{margin.top}}" x2="${{xForTurn(tick).toFixed(1)}}" y2="${{(height - margin.bottom).toFixed(1)}}" class="timeline-grid"></line>
+            <text x="${{xForTurn(tick).toFixed(1)}}" y="${{(height - 16).toFixed(1)}}" text-anchor="middle" class="timeline-label">T${{tick}}</text>
+          </g>
+        `).join("")}}
+        <line x1="${{margin.left}}" y1="${{(height - margin.bottom).toFixed(1)}}" x2="${{(width - margin.right).toFixed(1)}}" y2="${{(height - margin.bottom).toFixed(1)}}" class="timeline-axis"></line>
+        <line x1="${{margin.left}}" y1="${{margin.top}}" x2="${{margin.left}}" y2="${{(height - margin.bottom).toFixed(1)}}" class="timeline-axis"></line>
+        ${{postureKeys.map((key) => `
+          <path d="${{makePath(key)}}" class="timeline-line" stroke="${{doctrineLineColors[key]}}"></path>
+          ${{history.map((entry) => `
+            <circle cx="${{xForTurn(entry.turn).toFixed(1)}}" cy="${{yForValue(entry[key]).toFixed(1)}}" r="4.5" class="timeline-dot" fill="${{doctrineLineColors[key]}}">
+              <title>${{escapeHtml(factionName)}} | Turn ${{entry.turn}} | ${{escapeHtml(postureLabels[key])}}: ${{entry[key].toFixed(2)}} | Doctrine: ${{escapeHtml(entry.doctrine_label)}}</title>
+            </circle>
+          `).join("")}}
+        `).join("")}}
+        ${{shiftPoints.map((entry) => `
+          <g>
+            <circle cx="${{xForTurn(entry.turn).toFixed(1)}}" cy="${{(margin.top - 8).toFixed(1)}}" r="6" class="timeline-shift">
+              <title>${{escapeHtml(factionName)}} | Turn ${{entry.turn}} | Doctrine shift to ${{escapeHtml(entry.doctrine_label)}}</title>
+            </circle>
+          </g>
+        `).join("")}}
+      `;
+
+      doctrineTimelineKey.innerHTML = postureKeys.map((key) => `
+        <span class="timeline-key-item">
+          <span class="timeline-line-chip" style="background:${{doctrineLineColors[key]}}"></span>
+          ${{escapeHtml(postureLabels[key])}}
+        </span>
+      `).join("");
+
+      const openingDoctrine = history[0].doctrine_label;
+      const closingDoctrine = history[history.length - 1].doctrine_label;
+      const shiftCount = shiftPoints.length;
+      doctrineTimelineCaption.textContent = `${{factionName}} began this run as ${{openingDoctrine}}, ended as ${{closingDoctrine}}, and shifted doctrine ${{shiftCount}} time${{shiftCount === 1 ? "" : "s"}} while its posture scores evolved across the simulation.`;
     }}
 
     function syncRunSummaryVisibility(turn) {{
@@ -1346,12 +1578,76 @@ def render_simulation_html(world):
       `;
     }}
 
+    function renderDoctrinePanel(snapshot) {{
+      const previousSnapshot = state.currentTurn > 0 ? data.snapshots[state.currentTurn - 1] : null;
+      const currentMetrics = snapshot.metrics ? snapshot.metrics.factions : null;
+      const previousMetrics = previousSnapshot && previousSnapshot.metrics
+        ? previousSnapshot.metrics.factions
+        : null;
+
+      doctrinePanel.innerHTML = data.factions.map((faction) => {{
+        const metrics = currentMetrics ? currentMetrics[faction.name] : null;
+        const previous = previousMetrics ? previousMetrics[faction.name] : null;
+
+        if (!metrics) {{
+          return `
+            <article class="summary-card">
+              <strong>${{escapeHtml(faction.name)}}</strong>
+              <div class="subtle">${{escapeHtml(faction.homeland_identity)}} homeland</div>
+              <p class="summary-copy">Doctrine is still forming from the starting terrain before the first turn resolves.</p>
+            </article>
+          `;
+        }}
+
+        const doctrineShift = previous && previous.doctrine_label !== metrics.doctrine_label
+          ? `<div class="event-meta">Shifted from ${{escapeHtml(previous.doctrine_label)}} on the previous turn.</div>`
+          : "";
+
+        return `
+          <article class="summary-card">
+            <strong>${{escapeHtml(faction.name)}}</strong>
+            <div class="detail-grid">
+              <div class="detail-row">
+                <div class="detail-label">Doctrine</div>
+                <div class="detail-value">${{escapeHtml(metrics.doctrine_label)}}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Homeland</div>
+                <div class="detail-value">${{escapeHtml(metrics.homeland_identity)}}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Current Terrain Identity</div>
+                <div class="detail-value">${{escapeHtml(metrics.terrain_identity)}}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Expansion</div>
+                <div class="detail-value">${{formatPosture(metrics.expansion_posture)}} (${{metrics.expansion_posture.toFixed(2)}})</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">War</div>
+                <div class="detail-value">${{formatPosture(metrics.war_posture)}} (${{metrics.war_posture.toFixed(2)}})</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Development</div>
+                <div class="detail-value">${{formatPosture(metrics.development_posture)}} (${{metrics.development_posture.toFixed(2)}})</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Insularity</div>
+                <div class="detail-value">${{formatPosture(metrics.insularity)}} (${{metrics.insularity.toFixed(2)}})</div>
+              </div>
+            </div>
+            ${{doctrineShift}}
+          </article>
+        `;
+      }}).join("");
+    }}
+
     function renderStandings(snapshot) {{
       standings.innerHTML = snapshot.standings.map((entry, index) => `
         <article class="standing-item bar">
           <div class="standing-row">
             <strong>#${{index + 1}} ${{escapeHtml(entry.faction)}}</strong>
-            <span class="pill" style="background:${{colorByFaction[entry.faction]}}22;">${{escapeHtml(data.factions.find((faction) => faction.name === entry.faction).strategy)}}</span>
+            <span class="pill" style="background:${{colorByFaction[entry.faction]}}22;">${{escapeHtml(data.factions.find((faction) => faction.name === entry.faction).doctrine_label)}}</span>
           </div>
           <div class="subtle">Treasury $${{entry.treasury}} - Regions ${{entry.owned_regions}}</div>
         </article>
@@ -1442,6 +1738,7 @@ def render_simulation_html(world):
       renderStandings(snapshot);
       renderTurnContext(turn, snapshot);
       renderTurnEvents(snapshot);
+      renderDoctrinePanel(snapshot);
       renderRegionDetail(snapshot);
     }}
 
@@ -1496,6 +1793,8 @@ def render_simulation_html(world):
     renderTerrainLegend();
     renderViewToggle();
     renderRunSummary();
+    buildDoctrineTimelineControls();
+    renderDoctrineTimeline();
     renderTurn(0);
   </script>
 </body>

@@ -1,3 +1,4 @@
+from src.doctrine import initialize_faction_doctrines
 from src.factions import create_factions, validate_map_factions
 from src.models import Region, WorldState
 from src.maps import MAPS
@@ -38,5 +39,7 @@ def create_world(map_name="seven_region_ring", num_factions=4) -> WorldState:
             is_homeland=(owned_count == 0),
         )
         homeland_assigned[region.owner] = owned_count + 1
+
+    initialize_faction_doctrines(world)
 
     return world
