@@ -59,6 +59,7 @@ class Region:
     unrest: float = 0.0
     unrest_event_level: str = "none"
     unrest_event_turns_remaining: int = 0
+    unrest_crisis_streak: int = 0
     ownership_turns: int = 0
     conquest_count: int = 0
 

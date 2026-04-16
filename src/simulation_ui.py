@@ -75,6 +75,8 @@ def _get_event_title(event, world):
         return f"Unrest disturbed {region_reference} under {event.faction}"
     if event.type == "unrest_crisis":
         return f"Unrest crisis hit {region_reference} under {event.faction}"
+    if event.type == "unrest_secession":
+        return f"{region_reference} broke away from {event.faction}"
     return f"{event.faction} acted"
 
 
@@ -104,6 +106,11 @@ def _get_event_summary(event, world):
         return (
             f"Critical unrest triggered a deeper disruption and treasury hit of "
             f"{abs(event.get('treasury_change', 0))}.{terrain_text}"
+        )
+    if event.type == "unrest_secession":
+        return (
+            f"Sustained crisis forced the region out of {event.faction}'s control."
+            f"{terrain_text}"
         )
     return "No summary available."
 
@@ -933,6 +940,14 @@ def render_simulation_html(world):
       background: rgba(143, 74, 66, 0.16);
       color: #7e2f24;
     }}
+    .event-icon-unrest {{
+      background: rgba(173, 95, 33, 0.16);
+      color: #8c4b12;
+    }}
+    .event-icon-secession {{
+      background: rgba(110, 42, 74, 0.18);
+      color: #6e2a4a;
+    }}
     .faction-inline {{
       font-weight: 700;
     }}
@@ -1171,6 +1186,13 @@ def render_simulation_html(world):
       steppe: "#c9c06f",
       tropical: "#4ea56d",
     }};
+    const unrestColors = {{
+      calm: "#9fb4a5",
+      watch: "#d8c46a",
+      disturbance: "#d88b4a",
+      crisis: "#b24c37",
+      secession: "#6e2a4a",
+    }};
     const doctrineLineColors = {{
       expansion_posture: "#2d6a4f",
       war_posture: "#b24c37",
@@ -1191,6 +1213,58 @@ def render_simulation_html(world):
       return climateColors[climate || "temperate"] || climateColors.temperate;
     }}
 
+    function getUnrestTier(regionSnapshot) {{
+      const unrest = Number(regionSnapshot.unrest || 0);
+      const eventLevel = regionSnapshot.unrest_event_level || "none";
+      if (!regionSnapshot.owner) {{
+        return "secession";
+      }}
+      if (eventLevel === "crisis") {{
+        return "crisis";
+      }}
+      if (eventLevel === "disturbance") {{
+        return "disturbance";
+      }}
+      if (unrest >= 7.5) {{
+        return "crisis";
+      }}
+      if (unrest >= 4.0) {{
+        return "disturbance";
+      }}
+      if (unrest >= 2.0) {{
+        return "watch";
+      }}
+      return "calm";
+    }}
+
+    function getUnrestColor(regionSnapshot) {{
+      return unrestColors[getUnrestTier(regionSnapshot)] || unrestColors.calm;
+    }}
+
+    function getUnrestLabel(regionSnapshot) {{
+      const unrest = Number(regionSnapshot.unrest || 0);
+      const eventLevel = regionSnapshot.unrest_event_level || "none";
+      if (!regionSnapshot.owner) {{
+        return "Seceded / Neutral";
+      }}
+      if (eventLevel === "crisis") {{
+        return `Crisis (${{unrest.toFixed(1)}})`;
+      }}
+      if (eventLevel === "disturbance") {{
+        return `Disturbance (${{unrest.toFixed(1)}})`;
+      }}
+      if (unrest >= 7.5) {{
+        return `Critical (${{unrest.toFixed(1)}})`;
+      }}
+      if (unrest >= 4.0) {{
+        return `Moderate (${{unrest.toFixed(1)}})`;
+      }}
+      if (unrest >= 2.0) {{
+        return `Watch (${{unrest.toFixed(1)}})`;
+      }}
+      return `Calm (${{unrest.toFixed(1)}})`;
+    }}
+
     function getTerrainAbbreviation(tags) {{
       const visibleTags = (tags || []).filter((tag) => tag !== "coast");
       return visibleTags.map((tag) => tag.slice(0, 2).toUpperCase()).join("/");
@@ -1203,6 +1277,9 @@ def render_simulation_html(world):
       if (state.colorMode === "climate") {{
         return getClimateColor(regionSnapshot.climate || staticRegion.climate);
       }}
+      if (state.colorMode === "unrest") {{
+        return getUnrestColor(regionSnapshot);
+      }}
       return colorByFaction[regionSnapshot.owner] || unclaimedColor;
     }}
 
@@ -1213,6 +1290,9 @@ def render_simulation_html(world):
       if (state.colorMode === "climate") {{
         return "Climate";
       }}
+      if (state.colorMode === "unrest") {{
+        return "Unrest";
+      }}
       return "Ownership";
     }}
 
@@ -1221,6 +1301,8 @@ def render_simulation_html(world):
         state.colorMode = "terrain";
       }} else if (state.colorMode === "terrain") {{
         state.colorMode = "climate";
+      }} else if (state.colorMode === "climate") {{
+        state.colorMode = "unrest";
       }} else {{
         state.colorMode = "ownership";
       }}
@@ -1721,6 +1803,20 @@ def render_simulation_html(world):
             Climate: ${{escapeHtml(label)}}
           </span>
         `);
+      }} else if (state.colorMode === "unrest") {{
+        const unrestEntries = [
+          ["calm", "Calm"],
+          ["watch", "Watch"],
+          ["disturbance", "Disturbance"],
+          ["crisis", "Crisis"],
+          ["secession", "Seceded / Neutral"],
+        ];
+        items = unrestEntries.map(([tier, label]) => `
+          <span class="legend-item">
+            <span class="swatch" style="background:${{unrestColors[tier]}}"></span>
+            Unrest: ${{escapeHtml(label)}}
+          </span>
+        `);
       }} else {{
         items = [
           ...data.factions.map((faction) => `<span class="legend-item"><span class="swatch" style="background:${{faction.color}}"></span>${{escapeHtml(faction.name)}} <span class="subtle">${{escapeHtml(faction.doctrine_label)}}</span></span>`),
@@ -1894,6 +1990,9 @@ def render_simulation_html(world):
       const eventCount = snapshot.events.length;
       const contestedCount = snapshot.contested_regions.length;
       const changedCount = snapshot.changed_regions.length;
+      const unstableCount = Object.values(snapshot.regions).filter((region) =>
+        Number(region.unrest || 0) >= 4 || ((region.unrest_event_level || "none") !== "none")
+      ).length;
       const leader = snapshot.standings[0];
       const leaderText = leader
         ? `${{leader.faction}} leads on $${{leader.treasury}} with ${{leader.owned_regions}} region${{leader.owned_regions === 1 ? "" : "s"}}.`
@@ -1905,14 +2004,15 @@ def render_simulation_html(world):
       turnContext.innerHTML = `
         <strong>${{turn === 0 ? "Initial State" : `Turn ${{turn}} Snapshot`}}</strong>
         <p class="summary-copy">${{escapeHtml(contextText)}}</p>
-        <div class="mini-stats">
-          <span>${{eventCount}} event${{eventCount === 1 ? "" : "s"}} on this turn</span>
-          <span>${{changedCount}} region${{changedCount === 1 ? "" : "s"}} changed</span>
-          <span>${{contestedCount}} contested region${{contestedCount === 1 ? "" : "s"}}</span>
-          <span>Map mode: ${{getColorModeLabel()}}</span>
-        </div>
-      `;
-    }}
+          <div class="mini-stats">
+            <span>${{eventCount}} event${{eventCount === 1 ? "" : "s"}} on this turn</span>
+            <span>${{changedCount}} region${{changedCount === 1 ? "" : "s"}} changed</span>
+            <span>${{contestedCount}} contested region${{contestedCount === 1 ? "" : "s"}}</span>
+            <span>${{unstableCount}} unstable region${{unstableCount === 1 ? "" : "s"}}</span>
+            <span>Map mode: ${{getColorModeLabel()}}</span>
+          </div>
+        `;
+      }}
 
     function renderRegionDetail(snapshot) {{
       const regionName = state.focusRegionName || snapshot.changed_regions[0] || data.regions[0]?.name;
@@ -1963,6 +2063,20 @@ def render_simulation_html(world):
           <div class="detail-row">
             <div class="detail-label">Integration</div>
             <div class="detail-value">${{escapeHtml(regionSnapshot.core_status || "frontier")}} (${{Number(regionSnapshot.integration_score || 0).toFixed(1)}})</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Unrest</div>
+            <div class="detail-value">
+              <span class="terrain-chip" style="background:${{getUnrestColor(regionSnapshot)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
+              ${{escapeHtml(getUnrestLabel(regionSnapshot))}}
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Unrest Event</div>
+            <div class="detail-value">
+              ${{escapeHtml(regionSnapshot.unrest_event_level || "none")}}
+              ${{Number(regionSnapshot.unrest_event_turns_remaining || 0) > 0 ? ` (${{Number(regionSnapshot.unrest_event_turns_remaining)}} turn${{Number(regionSnapshot.unrest_event_turns_remaining) === 1 ? "" : "s"}} left)` : ""}}
+            </div>
           </div>
           <div class="detail-row">
             <div class="detail-label">Homeland Of</div>
@@ -2076,6 +2190,15 @@ def render_simulation_html(world):
 
       turnEvents.innerHTML = snapshot.events.map((event) => {{
         const icon = getEventIconData(event.type);
+        if (event.type === "unrest_disturbance" || event.type === "unrest_crisis") {{
+          icon.symbol = "!";
+          icon.className = "event-icon-unrest";
+          icon.label = "Unrest";
+        }} else if (event.type === "unrest_secession") {{
+          icon.symbol = "x";
+          icon.className = "event-icon-secession";
+          icon.label = "Secession";
+        }}
         return `
         <article class="event-item">
           <div class="event-header">
@@ -2087,6 +2210,17 @@ def render_simulation_html(world):
         </article>
       `;
       }}).join("");
+    }}
+
+    function applyUnrestStyling(element, regionSnapshot, isGraphView) {{
+      const tier = getUnrestTier(regionSnapshot);
+      if (tier === "disturbance" || tier === "crisis" || tier === "secession") {{
+        element.setAttribute("stroke", getUnrestColor(regionSnapshot));
+        element.setAttribute("stroke-width", isGraphView ? (tier === "crisis" ? 4 : 3) : (tier === "crisis" ? 5 : 4));
+      }} else {{
+        element.removeAttribute("stroke");
+        element.removeAttribute("stroke-width");
+      }}
     }}
 
     function updateMap(snapshot) {{
@@ -2101,17 +2235,20 @@ def render_simulation_html(world):
         const resource = document.getElementById(`region-resource-${{region.name}}`);
 
         node.setAttribute("fill", fill);
+        applyUnrestStyling(node, regionSnapshot, true);
         node.classList.toggle("changed", changed.has(region.name));
         node.classList.toggle("contested", contested.has(region.name));
         label.textContent = regionSnapshot.display_name || region.display_name || region.name;
-        resource.textContent = `R${{regionSnapshot.resources}}`;
+        resource.textContent = `R${{regionSnapshot.resources}}${{(regionSnapshot.unrest_event_level || "none") === "crisis" ? " !!" : (Number(regionSnapshot.unrest || 0) >= 4 ? " !" : "")}}`;
+        resource.setAttribute("fill", getUnrestColor(regionSnapshot));
         const title = document.getElementById(`region-title-${{region.name}}`);
         const terrainOverlay = document.getElementById(`region-terrain-${{region.name}}`);
         if (title) {{
           const ownerText = regionSnapshot.owner || "Unclaimed";
           const terrainText = regionSnapshot.terrain_label || region.terrain_label || "Plains";
           const climateText = regionSnapshot.climate_label || region.climate_label || "Temperate";
-          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}} - ${{climateText}}`;
+          const unrestText = getUnrestLabel(regionSnapshot);
+          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}} - ${{climateText}} - Unrest: ${{unrestText}}`;
         }}
         if (terrainOverlay) {{
           terrainOverlay.textContent = getTerrainAbbreviation(regionSnapshot.terrain_tags || region.terrain_tags);
@@ -2131,17 +2268,20 @@ def render_simulation_html(world):
         }}
 
         polygon.setAttribute("fill", fill);
+        applyUnrestStyling(polygon, regionSnapshot, false);
         polygon.classList.toggle("changed", changed.has(region.name));
         polygon.classList.toggle("contested", contested.has(region.name));
         label.textContent = regionSnapshot.display_name || region.display_name || region.name;
-        resource.textContent = `R${{regionSnapshot.resources}}`;
+        resource.textContent = `R${{regionSnapshot.resources}}${{(regionSnapshot.unrest_event_level || "none") === "crisis" ? " !!" : (Number(regionSnapshot.unrest || 0) >= 4 ? " !" : "")}}`;
+        resource.setAttribute("fill", getUnrestColor(regionSnapshot));
         const title = document.getElementById(`atlas-title-${{region.name}}`);
         const terrainOverlay = document.getElementById(`atlas-terrain-${{region.name}}`);
         if (title) {{
           const ownerText = regionSnapshot.owner || "Unclaimed";
           const terrainText = regionSnapshot.terrain_label || region.terrain_label || "Plains";
           const climateText = regionSnapshot.climate_label || region.climate_label || "Temperate";
-          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}} - ${{climateText}}`;
+          const unrestText = getUnrestLabel(regionSnapshot);
+          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}} - ${{climateText}} - Unrest: ${{unrestText}}`;
         }}
         if (terrainOverlay) {{
           terrainOverlay.textContent = getTerrainAbbreviation(regionSnapshot.terrain_tags || region.terrain_tags);

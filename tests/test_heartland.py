@@ -272,6 +272,34 @@ class HeartlandSystemTests(unittest.TestCase):
         update_region_integration(world)
         self.assertEqual(region.unrest_event_level, "none")
 
+    def test_sustained_crisis_can_force_region_to_secede(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "frontier"
+        region.integration_score = 1.0
+        region.unrest = 9.5
+        region.resources = 4
+
+        resolve_unrest_events(world)
+        self.assertEqual(region.unrest_event_level, "crisis")
+
+        update_region_integration(world)
+        self.assertEqual(region.owner, faction_name)
+        self.assertEqual(region.unrest_crisis_streak, 1)
+
+        region.unrest = 9.5
+        update_region_integration(world)
+
+        self.assertIsNone(region.owner)
+        self.assertEqual(region.integrated_owner, None)
+        self.assertEqual(region.core_status, "frontier")
+        self.assertEqual(region.resources, 3)
+        self.assertEqual(region.unrest_crisis_streak, 0)
+        self.assertEqual(world.events[-1].type, "unrest_secession")
+
     def test_treasury_concentration_declines_with_empire_size(self):
         self.assertEqual(get_treasury_concentration_multiplier(1), 1.0)
         self.assertLess(get_treasury_concentration_multiplier(3), 1.0)

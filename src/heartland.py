@@ -37,6 +37,9 @@ from src.config import (
     UNREST_MAINTENANCE_MAX_FACTOR,
     UNREST_MAX,
     UNREST_MODERATE_THRESHOLD,
+    UNREST_SECESSION_CRISIS_TURNS,
+    UNREST_SECESSION_RESOURCE_LOSS,
+    UNREST_SECESSION_THRESHOLD,
 )
 from src.models import Event, Region, WorldState
 
@@ -232,6 +235,10 @@ def get_region_unrest_event_cost(region: Region) -> int:
     return 0
 
 
+def reset_region_crisis_streak(region: Region) -> None:
+    region.unrest_crisis_streak = 0
+
+
 def initialize_heartlands(world: WorldState) -> None:
     owned_counts: dict[str, int] = {}
 
@@ -242,6 +249,7 @@ def initialize_heartlands(world: WorldState) -> None:
             region.core_status = "frontier"
             region.unrest = 0.0
             clear_region_unrest_event(region)
+            reset_region_crisis_streak(region)
             region.ownership_turns = 0
             continue
 
@@ -266,6 +274,7 @@ def initialize_heartlands(world: WorldState) -> None:
         owned_counts[region.owner] = owned_count + 1
         region.unrest = 0.0
         clear_region_unrest_event(region)
+        reset_region_crisis_streak(region)
 
 
 def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
@@ -287,6 +296,7 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
         )
         set_region_unrest(region, 0.0)
         clear_region_unrest_event(region)
+        reset_region_crisis_streak(region)
         return
 
     base_score = HOMELAND_INTEGRATION_SCORE if region.homeland_faction_id == new_owner else CONQUEST_INTEGRATION_SCORE
@@ -301,12 +311,15 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
     if region.homeland_faction_id == new_owner:
         set_region_unrest(region, 0.0)
         clear_region_unrest_event(region)
+        reset_region_crisis_streak(region)
     elif previous_owner is None:
         set_region_unrest(region, UNREST_EXPANSION_START)
         clear_region_unrest_event(region)
+        reset_region_crisis_streak(region)
     else:
         set_region_unrest(region, UNREST_CONQUEST_START)
         clear_region_unrest_event(region)
+        reset_region_crisis_streak(region)
 
 
 def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
@@ -366,6 +379,36 @@ def resolve_unrest_events(world: WorldState) -> None:
         ))
 
 
+def apply_unrest_secession(world: WorldState, region: Region) -> None:
+    if region.owner is None:
+        return
+
+    former_owner = region.owner
+    resources_before = region.resources
+    unrest_before = region.unrest
+    region.resources = max(1, region.resources - UNREST_SECESSION_RESOURCE_LOSS)
+    handle_region_owner_change(region, None)
+    reset_region_crisis_streak(region)
+
+    world.events.append(Event(
+        turn=world.turn,
+        type="unrest_secession",
+        faction=former_owner,
+        region=region.name,
+        details={
+            "former_owner": former_owner,
+            "unrest": round(unrest_before, 2),
+        },
+        impact={
+            "owner_after": None,
+            "resource_change": region.resources - resources_before,
+            "new_resources": region.resources,
+        },
+        tags=["unrest", "secession", "collapse"],
+        significance=UNREST_SECESSION_THRESHOLD,
+    ))
+
+
 def update_region_integration(world: WorldState) -> None:
     for region in world.regions.values():
         if region.owner is None:
@@ -375,6 +418,7 @@ def update_region_integration(world: WorldState) -> None:
             region.unrest = 0.0
             clear_region_unrest_event(region)
             region.ownership_turns = 0
+            reset_region_crisis_streak(region)
             continue
 
         if region.integrated_owner != region.owner:
@@ -386,6 +430,7 @@ def update_region_integration(world: WorldState) -> None:
             region.ownership_turns += 1
             region.core_status = "homeland"
             set_region_unrest(region, region.unrest - UNREST_DECAY_PER_TURN)
+            reset_region_crisis_streak(region)
             if region.unrest_event_turns_remaining > 0:
                 region.unrest_event_turns_remaining -= 1
                 if region.unrest_event_turns_remaining <= 0:
@@ -393,6 +438,11 @@ def update_region_integration(world: WorldState) -> None:
             continue
 
         region.ownership_turns += 1
+        if region.unrest_event_level == "crisis":
+            region.unrest_crisis_streak += 1
+        else:
+            reset_region_crisis_streak(region)
+
         if region.unrest_event_level != "crisis":
             climate_modifier = get_region_climate_integration_modifier(region, world)
             if region.integration_score < CORE_INTEGRATION_SCORE:
@@ -401,6 +451,13 @@ def update_region_integration(world: WorldState) -> None:
                 region.integration_score += PER_TURN_CORE_GAIN + climate_modifier
         region.core_status = get_region_core_status(region)
         set_region_unrest(region, region.unrest + get_region_unrest_pressure(region, world))
+        if (
+            region.unrest_event_level == "crisis"
+            and region.unrest_crisis_streak >= UNREST_SECESSION_CRISIS_TURNS
+            and region.unrest >= UNREST_SECESSION_THRESHOLD
+        ):
+            apply_unrest_secession(world, region)
+            continue
         if region.unrest_event_turns_remaining > 0:
             region.unrest_event_turns_remaining -= 1
             if region.unrest_event_turns_remaining <= 0:
@@ -424,6 +481,7 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "unrest": round(region.unrest, 2),
             "unrest_event_level": region.unrest_event_level,
             "unrest_event_turns_remaining": region.unrest_event_turns_remaining,
+            "unrest_crisis_streak": region.unrest_crisis_streak,
         }
         for region_name, region in world.regions.items()
     }
