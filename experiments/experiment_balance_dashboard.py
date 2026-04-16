@@ -74,11 +74,6 @@ def parse_args():
         default=DEFAULT_NUM_FACTIONS,
         help="Number of factions to include in each simulation.",
     )
-    parser.add_argument(
-        "--disable-legacy-strategy-bias",
-        action="store_true",
-        help="Disable the legacy strategy utility biases so decisions rely on doctrine only.",
-    )
     return parser.parse_args()
 
 
@@ -121,15 +116,14 @@ def build_phase_action_counts(world):
     return phase_counts
 
 
-def summarize_setting(map_name, num_turns, runs, num_factions, use_legacy_strategy_bias):
+def summarize_setting(map_name, num_turns, runs, num_factions):
     template_world = create_world(
         map_name=map_name,
         num_factions=num_factions,
-        use_legacy_strategy_bias=use_legacy_strategy_bias,
     )
     faction_names = list(template_world.factions.keys())
-    strategies = {
-        faction_name: faction.strategy
+    doctrines = {
+        faction_name: faction.doctrine_label
         for faction_name, faction in template_world.factions.items()
     }
     phase_names = [phase_name for phase_name, _start_turn, _end_turn in get_phase_ranges(num_turns)]
@@ -162,7 +156,6 @@ def summarize_setting(map_name, num_turns, runs, num_factions, use_legacy_strate
         world = create_world(
             map_name=map_name,
             num_factions=num_factions,
-            use_legacy_strategy_bias=use_legacy_strategy_bias,
         )
         world = run_simulation(world, num_turns=num_turns, verbose=False)
         final_regions = count_owned_regions(world)
@@ -223,9 +216,8 @@ def summarize_setting(map_name, num_turns, runs, num_factions, use_legacy_strate
         "map_name": map_name,
         "num_turns": num_turns,
         "runs": runs,
-        "use_legacy_strategy_bias": use_legacy_strategy_bias,
         "factions": faction_names,
-        "strategies": strategies,
+        "doctrines": doctrines,
         "outcome_balance": {
             "outright_win_rate": outright_win_rates,
             "shared_first_rate": shared_first_rates,
@@ -284,11 +276,7 @@ def format_setting_report(result):
     lines.append(f"Map: {result['map_name']}")
     lines.append(f"Turns: {result['num_turns']}")
     lines.append(f"Simulations: {result['runs']}")
-    lines.append(
-        "Decision Model: strategy + doctrine"
-        if result["use_legacy_strategy_bias"]
-        else "Decision Model: doctrine only"
-    )
+    lines.append("Decision Model: doctrine only")
     lines.append("")
     lines.append("Outcome Balance")
     lines.append(
@@ -296,16 +284,16 @@ def format_setting_report(result):
         f"Win-rate stddev: {outcome['win_rate_stddev']:.3f}"
     )
     lines.append(
-        f"{'Faction':<18} {'Strategy':<13} {'Win':>8} {'Shared':>8} {'Treasury':>10} {'Regions':>8} {'Elim':>8} {'ElimTurn':>10}"
+        f"{'Faction':<18} {'Doctrine':<24} {'Win':>8} {'Shared':>8} {'Treasury':>10} {'Regions':>8} {'Elim':>8} {'ElimTurn':>10}"
     )
-    lines.append("-" * 92)
+    lines.append("-" * 103)
 
     for faction_name in result["factions"]:
         elimination_turn = survival["average_elimination_turn"][faction_name]
         elimination_turn_text = f"{elimination_turn:.2f}" if elimination_turn is not None else "n/a"
         lines.append(
             f"{faction_name:<18} "
-            f"{result['strategies'][faction_name]:<13} "
+            f"{result['doctrines'][faction_name]:<24} "
             f"{outcome['outright_win_rate'][faction_name]:>7.2%} "
             f"{outcome['shared_first_rate'][faction_name]:>7.2%} "
             f"{outcome['average_treasury'][faction_name]:>10.2f} "
@@ -356,16 +344,12 @@ def format_setting_report(result):
     return "\n".join(lines)
 
 
-def build_report(results, skipped_maps, seed, use_legacy_strategy_bias):
+def build_report(results, skipped_maps, seed):
     lines = []
     lines.append("Balance Dashboard Report")
     lines.append("")
     lines.append(f"Seed: {seed}")
-    lines.append(
-        "Legacy strategy bias: enabled"
-        if use_legacy_strategy_bias
-        else "Legacy strategy bias: disabled"
-    )
+    lines.append("Legacy strategy bias: removed")
     lines.append("")
 
     for index, result in enumerate(results):
@@ -419,7 +403,6 @@ def main():
                     num_turns=num_turns,
                     runs=args.runs,
                     num_factions=args.num_factions,
-                    use_legacy_strategy_bias=not args.disable_legacy_strategy_bias,
                 )
             )
 
@@ -427,7 +410,6 @@ def main():
         results,
         skipped_maps,
         seed=args.seed,
-        use_legacy_strategy_bias=not args.disable_legacy_strategy_bias,
     )
     print(report_text)
     args.output.parent.mkdir(parents=True, exist_ok=True)

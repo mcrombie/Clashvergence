@@ -12,28 +12,12 @@ FRONTIER_REGION_EXPERIENCE = 0.35
 OPEN_TERRAIN_TAGS = {"plains", "riverland", "steppe", "coast"}
 ROUGH_TERRAIN_TAGS = {"forest", "hills", "highland", "marsh"}
 
-LEGACY_STRATEGY_BIASES = {
-    "expansionist": {"expand": 0.06, "attack": 0.04, "invest": -0.03},
-    "balanced": {"expand": 0.02, "attack": 0.02, "invest": 0.02},
-    "economic": {"expand": -0.03, "attack": -0.04, "invest": 0.07},
-    "opportunist": {"expand": 0.00, "attack": 0.06, "invest": -0.01},
-}
-
-
 def _clamp(value: float, minimum: float, maximum: float) -> float:
     return max(minimum, min(maximum, value))
 
 
 def _round_posture(value: float) -> float:
     return round(_clamp(value, 0.05, 0.95), 3)
-
-
-def get_legacy_strategy_bias(strategy: str) -> dict[str, float]:
-    return LEGACY_STRATEGY_BIASES.get(
-        strategy,
-        {"expand": 0.0, "attack": 0.0, "invest": 0.0},
-    )
-
 
 def get_owned_region_counts(world: WorldState) -> dict[str, int]:
     counts = {faction_name: 0 for faction_name in world.factions}

@@ -79,11 +79,9 @@ class FactionIdentity:
 @dataclass
 class Faction:
     name: str
-    strategy: str
     treasury: int = 0
     identity: FactionIdentity | None = None
     starting_treasury: int = 0
-    use_legacy_strategy_bias: bool = True
     doctrine_state: FactionDoctrineState = field(default_factory=FactionDoctrineState)
     doctrine_profile: FactionDoctrineProfile = field(default_factory=FactionDoctrineProfile)
 
@@ -106,10 +104,6 @@ class Faction:
     @property
     def internal_id(self):
         return self.identity.internal_id if self.identity is not None else self.name
-
-    @property
-    def legacy_strategy(self):
-        return self.strategy
 
     @property
     def doctrine_label(self):

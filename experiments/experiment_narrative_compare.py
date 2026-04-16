@@ -68,10 +68,10 @@ def parse_args():
     return parser.parse_args()
 
 
-def build_strategy_lines(world):
-    lines = ["Strategies:"]
+def build_doctrine_lines(world):
+    lines = ["Doctrines:"]
     for faction_name, faction in world.factions.items():
-        lines.append(f"  {faction_name}: {faction.strategy}")
+        lines.append(f"  {faction_name}: {faction.doctrine_label}")
     return lines
 
 
@@ -85,8 +85,8 @@ def run_narrative_setting(map_name, num_turns, scenario_seed, num_factions):
         "num_turns": num_turns,
         "seed": scenario_seed,
         "factions": list(world.factions),
-        "strategies": {
-            faction_name: faction.strategy
+        "doctrines": {
+            faction_name: faction.doctrine_label
             for faction_name, faction in world.factions.items()
         },
         "chronicle": build_chronicle(world),
@@ -100,9 +100,9 @@ def format_narrative_result(result):
     lines.append(f"Seed: {result['seed']}")
     lines.append(f"Configured factions: {len(result['factions'])}")
     lines.append("")
-    lines.append("Strategies:")
+    lines.append("Doctrines:")
     for faction_name in result["factions"]:
-        lines.append(f"  {faction_name}: {result['strategies'][faction_name]}")
+        lines.append(f"  {faction_name}: {result['doctrines'][faction_name]}")
     lines.append("")
     lines.append(result["chronicle"])
     return "\n".join(lines)

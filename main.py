@@ -32,7 +32,6 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
         tradition_labels = ",".join(faction.identity.source_traditions) if faction.identity else ""
         lines.append(
             f"  {faction_name}: doctrine={faction.doctrine_label}, "
-            f"legacy_strategy={faction.strategy}, "
             f"homeland={faction.doctrine_profile.homeland_identity}, "
             f"terrain_identity={faction.doctrine_profile.terrain_identity}, "
             f"starting_treasury={starting_treasuries[faction_name]}, "

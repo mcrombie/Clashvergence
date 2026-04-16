@@ -301,7 +301,7 @@ def build_simulation_view_model(world):
         {
             "name": faction_name,
             "internal_id": world.factions[faction_name].internal_id,
-            "strategy": world.factions[faction_name].strategy,
+            "strategy": world.factions[faction_name].doctrine_label,
             "doctrine_label": world.factions[faction_name].doctrine_label,
             "doctrine_summary": world.factions[faction_name].doctrine_summary,
             "terrain_identity": world.factions[faction_name].doctrine_profile.terrain_identity,

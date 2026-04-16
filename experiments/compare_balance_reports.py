@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 DEFAULT_BEFORE = ROOT / "reports/maintenance_strategy_comparison.txt"
-DEFAULT_AFTER = ROOT / "reports/combat_strategy_comparison.txt"
+DEFAULT_AFTER = ROOT / "reports/combat_doctrine_comparison.txt"
 DEFAULT_OUTPUT = ROOT / "reports/pre_post_attack_balance_report.txt"
 
 
@@ -36,7 +36,7 @@ def parse_report(path: Path):
             current_turns = int(line.split(": ", 1)[1])
             continue
 
-        if line.startswith("Faction") and "Strategy" in line and "Win" in line:
+        if line.startswith("Faction") and ("Strategy" in line or "Doctrine" in line) and "Win" in line:
             in_table = True
             results[(current_map, current_turns)] = {}
             continue
@@ -55,11 +55,11 @@ def parse_report(path: Path):
                 continue
 
             faction_name = parts[0]
-            strategy = parts[1]
+            doctrine = parts[1]
             values = [parse_numeric(token) for token in parts[2:]]
 
             entry = {
-                "strategy": strategy,
+                "doctrine": doctrine,
                 "win_rate": values[0],
                 "shared_rate": values[1],
                 "treasury": values[2],
@@ -129,7 +129,7 @@ def build_delta_report(before_results, after_results, before_label, after_label)
             f"({after[biggest_treasury_shift]['treasury'] - before[biggest_treasury_shift]['treasury']:+.2f})"
         )
         lines.append(
-            f"{'Faction':<10} {'Strategy':<13} {'WinDiff':>8} {'TreasDiff':>10} {'RegDiff':>8} {'NetDiff':>9} {'AtkAfter':>9}"
+            f"{'Faction':<10} {'Doctrine':<13} {'WinDiff':>8} {'TreasDiff':>10} {'RegDiff':>8} {'NetDiff':>9} {'AtkAfter':>9}"
         )
         lines.append("-" * 74)
 
@@ -138,7 +138,7 @@ def build_delta_report(before_results, after_results, before_label, after_label)
             after_entry = after[faction_name]
             lines.append(
                 f"{faction_name:<10} "
-                f"{after_entry['strategy']:<13} "
+                f"{after_entry['doctrine']:<13} "
                 f"{after_entry['win_rate'] - before_entry['win_rate']:>+7.2f} "
                 f"{after_entry['treasury'] - before_entry['treasury']:>+9.2f} "
                 f"{after_entry['regions'] - before_entry['regions']:>+8.2f} "

@@ -8,7 +8,6 @@ from src.actions import (
     invest,
 )
 from src.config import ATTACK_COST, EXPANSION_COST, MAX_RESOURCES
-from src.doctrine import get_legacy_strategy_bias
 
 
 def _clamp(value, minimum, maximum):
@@ -91,11 +90,6 @@ def choose_attack_target(faction_name, world):
 def choose_action(faction_name, world):
     faction = world.factions[faction_name]
     doctrine = faction.doctrine_profile
-    legacy_bias = (
-        get_legacy_strategy_bias(faction.strategy)
-        if faction.use_legacy_strategy_bias
-        else {"expand": 0.0, "attack": 0.0, "invest": 0.0}
-    )
 
     attackable_regions = get_attackable_regions(faction_name, world)
     expandable_regions = get_expandable_regions(faction_name, world)
@@ -133,7 +127,6 @@ def choose_action(faction_name, world):
             * (0.72 + (doctrine.war_posture * 0.42))
             + (doctrine.expansion_posture * 0.08)
             - (doctrine.insularity * 0.10)
-            + legacy_bias["attack"]
         )
         if faction.treasury <= ATTACK_COST:
             attack_utility -= 0.04
@@ -144,7 +137,6 @@ def choose_action(faction_name, world):
             _normalize_expand_score(best_expand_score)
             * (0.72 + (doctrine.expansion_posture * 0.42))
             + ((1.0 - doctrine.insularity) * 0.08)
-            + legacy_bias["expand"]
         )
         if faction.treasury >= EXPANSION_COST * 2:
             expand_utility += 0.05
@@ -158,7 +150,6 @@ def choose_action(faction_name, world):
             invest_need * (0.68 + (doctrine.development_posture * 0.44))
             + (doctrine.insularity * 0.14)
             - (doctrine.expansion_posture * 0.06)
-            + legacy_bias["invest"]
         )
         if faction.treasury < EXPANSION_COST:
             invest_utility += 0.03

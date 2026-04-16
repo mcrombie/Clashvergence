@@ -9,9 +9,9 @@ class CompetitionMetricsTests(unittest.TestCase):
         world = WorldState(
             regions={},
             factions={
-                "FactionA": Faction(name="FactionA", strategy="balanced"),
-                "FactionB": Faction(name="FactionB", strategy="opportunist"),
-                "FactionC": Faction(name="FactionC", strategy="economic"),
+                "FactionA": Faction(name="FactionA"),
+                "FactionB": Faction(name="FactionB"),
+                "FactionC": Faction(name="FactionC"),
             },
             metrics=[
                 {

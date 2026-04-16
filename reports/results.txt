@@ -3,570 +3,98 @@ Detailed Simulation Results
 Simulation Setup
 
 Map: thirty_seven_region_ring
-Turns: 50
+Turns: 2
 Regions: 37
 Factions: 4
 Faction Doctrines:
-  Saklian Tribe: doctrine=Adaptive Coastal Forest, legacy_strategy=expansionist, homeland=Coastal Forest, terrain_identity=Coastal Forest, starting_treasury=1, culture=Saklian, government=Tribe, internal_id=Faction1, traditions=persian,chinese, ai_generated=True
-  Aruangos Tribe: doctrine=Adaptive Coastal Forest, legacy_strategy=balanced, homeland=Coastal Forest, terrain_identity=Coastal Forest, starting_treasury=1, culture=Aruangos, government=Tribe, internal_id=Faction2, traditions=persian,roman, ai_generated=True
-  Rnutuan Tribe: doctrine=Martial Forest Plains, legacy_strategy=economic, homeland=Coastal Forest, terrain_identity=Forest Plains, starting_treasury=1, culture=Rnutuan, government=Tribe, internal_id=Faction3, traditions=roman,persian, ai_generated=True
-  Veneunar Tribe: doctrine=Adaptive Coastal Forest, legacy_strategy=opportunist, homeland=Coastal Forest, terrain_identity=Coastal Forest, starting_treasury=1, culture=Veneunar, government=Tribe, internal_id=Faction4, traditions=roman,chinese, ai_generated=True
+  Akhakiar Tribe: doctrine=Adaptive Coastal Forest, homeland=Coastal Forest, terrain_identity=Coastal Forest, starting_treasury=1, culture=Akhakiar, government=Tribe, internal_id=Faction1, traditions=persian,chinese, ai_generated=False
+  Persermia Tribe: doctrine=Adaptive Coastal Forest, homeland=Coastal Forest, terrain_identity=Coastal Forest, starting_treasury=1, culture=Persermia, government=Tribe, internal_id=Faction2, traditions=persian,roman, ai_generated=False
+  Noraraand Tribe: doctrine=Adaptive Coastal Forest, homeland=Coastal Forest, terrain_identity=Coastal Forest, starting_treasury=1, culture=Noraraand, government=Tribe, internal_id=Faction3, traditions=roman,persian, ai_generated=False
+  Veneunar Tribe: doctrine=Adaptive Coastal Forest, homeland=Coastal Forest, terrain_identity=Coastal Forest, starting_treasury=1, culture=Veneunar, government=Tribe, internal_id=Faction4, traditions=roman,chinese, ai_generated=False
 
 Simulation Chronicle
 
-On turn 2, Rnutuan Tribe made its first expansion into M7.
-On turn 2, Aruangos Tribe made its first expansion into M4.
-On turn 2, Saklian Tribe made its first expansion into M1.
+On turn 2, Akhakiar Tribe made its first expansion into M1.
 On turn 2, Veneunar Tribe made its first expansion into M10.
+On turn 2, Noraraand Tribe made its first expansion into M7.
+On turn 2, Persermia Tribe made its first expansion into M4.
 
 Opening Phase
 
-The strongest early land grab was Rnutuan Tribe's claim of M7 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe led expansion with 2 claim(s).
-Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe invested most often with 1 investment(s).
-By the end of turn 5, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe held the opening treasury lead at 10.
+The strongest early land grab was Akhakiar Tribe's claim of M1 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe led expansion with 1 claim(s).
+Across the first 5 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe invested most often with 1 investment(s).
+By the end of turn 5, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe held the opening treasury lead at 31.
 
 Phase Summaries
 
-Early phase: Rnutuan Tribe was strongest by the end of turns 1-16, with Rnutuan Tribe on 18 treasury and 9 regions. 13 successful attacks shifted control of 7 regions. 24 expansions added 24 new regions. 12 investments improved existing holdings. Rnutuan Tribe gained 8 regions.
-Mid phase: Rnutuan Tribe was strongest by the end of turns 17-33, with Rnutuan Tribe on 163 treasury and 19 regions. 29 successful attacks shifted control of 18 regions. 7 expansions added 7 new regions. 17 investments improved existing holdings. Rnutuan Tribe gained 10 regions while Veneunar Tribe lost 5 regions.
-Late phase: Rnutuan Tribe was strongest by the end of turns 34-50, with Rnutuan Tribe on 472 treasury and 26 regions. 33 successful attacks shifted control of 16 regions. 2 expansions added 2 new regions. 4 investments improved existing holdings. Rnutuan Tribe gained 7 regions while Saklian Tribe lost 9 regions. Veneunar Tribe improved its standing most during the phase.
-
-Turning Points
-
-Mid phase break: Rnutuan Tribe gained 10 regions while Veneunar Tribe lost 5 regions.
-Late collapse: Rnutuan Tribe's capture of I1 eliminated Saklian Tribe's last territorial hold.
+Early phase: Akhakiar Tribe and Persermia Tribe were strongest by the end of turns 1-1, with Akhakiar Tribe on 5 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
+Mid phase: Akhakiar Tribe and Persermia Tribe were strongest by the end of turns 2-2, with Akhakiar Tribe on 7 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 4 expansions added 4 new regions. Akhakiar Tribe gained 1 region.
 
 Outcome Type
 
-Outcome type: midgame_break.
+Outcome type: balanced_contest.
 
 Faction Trajectories
 
-Saklian Tribe opened with 5 claims and grew to 4 regions by the end of the opening phase, peaked at 9 regions on turn 33 before slipping to 0 regions, and closed on 163 treasury without territory after 30 attacks.
-Aruangos Tribe opened with 6 claims and grew to 7 regions by the end of the opening phase, peaked at 9 regions on turn 15 before slipping to 7 regions, and finished rank 2 on 296 treasury with 7 regions after gaining 291 treasury overall.
-Rnutuan Tribe opened with 7 claims and grew to 9 regions by the end of the opening phase, built steadily past the opening, reaching 26 regions by turn 50, and finished first with 26 regions, 472 treasury, and 39 total attacks.
-Veneunar Tribe opened with 6 claims and grew to 8 regions by the end of the opening phase, peaked at 9 regions on turn 17 before slipping to 4 regions, and finished rank 3 on 270 treasury with 4 regions after gaining 265 treasury overall.
+Akhakiar Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 2, and finished first with 2 regions, 7 treasury, and 0 total attacks.
+Persermia Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 2, and finished rank 2 on 7 treasury with 2 regions after gaining 2 treasury overall.
+Noraraand Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 2, and finished rank 3 on 7 treasury with 2 regions after gaining 2 treasury overall.
+Veneunar Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 2, and finished rank 4 on 7 treasury with 2 regions after gaining 2 treasury overall.
 
 Strategic Interpretation
 
-Rnutuan Tribe’s Martial Forest Plains approach created the midgame break because its 10-region surge coincided with Veneunar Tribe losing 5 regions, which turned an early lead into a separation the ring map could not absorb. That mattered because once the board split, Rnutuan could keep converting territory while rivals were forced into decline, so the late capture of I1 eliminated Saklian Tribe’s last hold and removed any recovery path. The final margin was therefore decided by sustained territorial conversion, not a close endgame, because the mid-phase swing established control before the board could stabilize.
-The closest challenger was Aruangos Tribe (Adaptive Coastal Forest) at 296 treasury and 7 regions.
+On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
+No faction broke the map open. The run stayed competitive to the end, with 4 factions still alive and only 0-region variation across the final board.
+No decisive collapse or phase break separated the field. Akhakiar Tribe edged ahead in a finish that remained close across 4 surviving factions.
+The final margin stayed narrow: Akhakiar Tribe beat Persermia Tribe by 0 treasury.
+The closest challenger was Persermia Tribe (Adaptive Coastal Forest) at 7 treasury and 2 regions.
 
 Final Standings
 
-Rnutuan Tribe finished first with a treasury of 472 and control of 26 regions.
-Aruangos Tribe ended with a treasury of 296 and 7 regions.
-Veneunar Tribe ended with a treasury of 270 and 4 regions.
-Saklian Tribe ended with a treasury of 163 and 0 regions.
+Akhakiar Tribe finished first with a treasury of 7 and control of 2 regions.
+Persermia Tribe ended with a treasury of 7 and 2 regions.
+Noraraand Tribe ended with a treasury of 7 and 2 regions.
+Veneunar Tribe ended with a treasury of 7 and 2 regions.
 
 Victor's History
 
-Rnutuan Tribe’s victory was not accidental but the product of a Martial Forest Plains approach that produced the decisive middle-phase break. They opened with 7 claims, expanded to 9 regions by the end of the opening phase, and then built steadily to 26 regions by turn 50, finishing first with 472 treasury and 39 total attacks. The midgame shift, when Rnutuan Tribe gained 10 regions while Veneunar Tribe lost 5, showed the value of sustained pressure and coherent execution on a thirty-seven-region ring. By the end, the gap was unmistakable: Rnutuan Tribe stood 19 regions clear, while the others could not match that pace or recover their position.
+Akhakiar Tribe's historians would treat this run as evidence that their adaptive coastal forest habits, forged by geography, proved stronger than the field's scattered efforts. The final margin stayed narrow: Akhakiar Tribe beat Persermia Tribe by 0 treasury. From that partisan view, Persermia Tribe's resistance was real but never as durable as Akhakiar Tribe's final position.
 
 Strategic Dynamics
 
-Outright treasury lead changes: 1
-Largest treasury lead: turn 50, Rnutuan Tribe by 176 over Aruangos Tribe
-Largest region lead: turn 44, Rnutuan Tribe by 20 over Aruangos Tribe
-Runaway: yes, Rnutuan Tribe took an uncontested treasury lead for good on turn 11.
-Comeback: no, Rnutuan Tribe faced a max treasury deficit of 3 and trailed by 0 at midpoint turn 26.
-Eliminations: Saklian Tribe on turn 45.
+Outright treasury lead changes: 0
+Runaway: no decisive permanent treasury lead.
+Eliminations: none.
 
 Event Log
 
+Turn 1: Persermia Tribe invested in Persermia (O5) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
 Turn 1: Veneunar Tribe invested in Veneunar (O13) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
-Turn 1: Rnutuan Tribe invested in Rnutuan (O9) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
-Turn 1: Saklian Tribe invested in Saklian (O1) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
-Turn 1: Aruangos Tribe invested in Aruangos (O5) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
-Turn 2: Rnutuan Tribe expanded into Rnutuan Reach (M7) (score=21, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=2, terrain=Riverland Plains)
-Turn 2: Aruangos Tribe expanded into Aruangos Hollow (M4) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=2, terrain=Hill Forest)
-Turn 2: Saklian Tribe expanded into Saklian Crossing (M1) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=2, terrain=Plains)
+Turn 1: Noraraand Tribe invested in Noraraand (O9) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
+Turn 1: Akhakiar Tribe invested in Akhakiar (O1) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
+Turn 2: Akhakiar Tribe expanded into Akhakiar March (M1) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=2, terrain=Plains)
 Turn 2: Veneunar Tribe expanded into Veneunar Hollow (M10) (score=23, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=2, terrain=Forest)
-Turn 3: Aruangos Tribe expanded into Aruangos Wash (M3) (score=21, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=4, terrain=Riverland Plains)
-Turn 3: Saklian Tribe expanded into Saklian Ford (M12) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=4, terrain=Hill Forest)
-Turn 3: Veneunar Tribe expanded into Veneunar Vale (M9) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=4, terrain=Plains)
-Turn 3: Rnutuan Tribe expanded into Rnutuan Edge (M6) (score=23, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=4, terrain=Forest)
-Turn 4: Veneunar Tribe expanded into Veneunar Wash (M11) (score=16, resources=2, neighbors=5, unclaimed_neighbors=3, core_status=frontier, treasury_after=7, terrain=Riverland Plains)
-Turn 4: Rnutuan Tribe expanded into Rnutuan March (I4) (score=16, resources=2, neighbors=6, unclaimed_neighbors=4, core_status=frontier, treasury_after=7, terrain=Highland Forest)
-Turn 4: Aruangos Tribe expanded into Aruangos Crown (M2) (score=18, resources=2, neighbors=5, unclaimed_neighbors=3, core_status=frontier, treasury_after=7, terrain=Forest)
-Turn 4: Saklian Tribe expanded into Saklian Wood (I8) (score=14, resources=2, neighbors=6, unclaimed_neighbors=3, core_status=frontier, treasury_after=7, terrain=Highland Forest)
-Turn 5: Veneunar Tribe expanded into Veneunar Ford (I6) (score=15, resources=2, neighbors=6, unclaimed_neighbors=4, core_status=frontier, treasury_after=8, terrain=Highland Plains)
-Turn 5: Rnutuan Tribe expanded into Rnutuan Wash (C) (score=23, resources=2, neighbors=8, unclaimed_neighbors=5, core_status=frontier, treasury_after=8, terrain=Riverland Plains)
-Turn 5: Saklian Tribe expanded into Saklian Watch (O2) (score=13, resources=2, neighbors=4, unclaimed_neighbors=1, core_status=frontier, treasury_after=8, terrain=Coastal Plains)
-Turn 5: Aruangos Tribe expanded into Aruangos Field (O6) (score=15, resources=2, neighbors=4, unclaimed_neighbors=2, core_status=frontier, treasury_after=8, terrain=Coastal Plains)
-Turn 6: Saklian Tribe expanded into Saklian March (O16) (score=13, resources=2, neighbors=3, unclaimed_neighbors=1, core_status=frontier, treasury_after=7, terrain=Coastal Forest)
-Turn 6: Rnutuan Tribe expanded into Rnutuan Gate (O10) (score=15, resources=2, neighbors=4, unclaimed_neighbors=2, core_status=frontier, treasury_after=7, terrain=Coastal Plains)
-Turn 6: Aruangos Tribe expanded into Aruangos Vale (O4) (score=13, resources=2, neighbors=3, unclaimed_neighbors=1, core_status=frontier, treasury_after=7, terrain=Coastal Forest)
-Turn 6: Veneunar Tribe expanded into Veneunar Field (O14) (score=13, resources=2, neighbors=4, unclaimed_neighbors=1, core_status=frontier, treasury_after=7, terrain=Coastal Plains)
-Turn 7: Veneunar Tribe expanded into Veneunar Bay (O12) (score=13, resources=2, neighbors=3, unclaimed_neighbors=1, core_status=frontier, treasury_after=4, terrain=Coastal Forest)
-Turn 7: Rnutuan Tribe expanded into Rnutuan Grove (O8) (score=13, resources=2, neighbors=3, unclaimed_neighbors=1, core_status=frontier, treasury_after=4, terrain=Coastal Forest)
-Turn 7: Saklian Tribe attacked Veneunar Tribe in Veneunar Hollow (M10) and captured the region (success_chance=0.700, attack_strength=12, defense_strength=8, core_status=core, treasury_after=5, terrain=Forest)
-Turn 7: Aruangos Tribe attacked Saklian Tribe in Saklian Watch (O2) and captured the region (success_chance=0.700, attack_strength=11, defense_strength=7, core_status=frontier, treasury_after=5, terrain=Coastal Plains)
-Turn 8: Aruangos Tribe expanded into Aruangos Plain (I2) (score=11, resources=2, neighbors=6, unclaimed_neighbors=2, core_status=frontier, treasury_after=0, terrain=Highland Plains)
-Turn 8: Veneunar Tribe attacked Saklian Tribe in Veneunar Hollow (M10) and captured the region (success_chance=0.700, attack_strength=12, defense_strength=8, core_status=frontier, treasury_after=2, terrain=Forest)
-Turn 8: Rnutuan Tribe invested in Rnutuan Wash (C) (invest_amount=4, new_resources=5, terrain=Riverland Plains)
-Turn 8: Saklian Tribe attacked Aruangos Tribe in Saklian Watch (O2) and failed against the region (success_chance=0.800, attack_strength=12, defense_strength=2, core_status=frontier, treasury_after=1, terrain=Coastal Plains)
-Turn 9: Veneunar Tribe invested in Veneunar Ford (I6) (invest_amount=4, new_resources=5, terrain=Highland Plains)
-Turn 9: Aruangos Tribe invested in Aruangos Plain (I2) (invest_amount=4, new_resources=5, terrain=Highland Plains)
-Turn 9: Saklian Tribe attacked Aruangos Tribe in Saklian Watch (O2) and captured the region (success_chance=0.800, attack_strength=10, defense_strength=-2, core_status=frontier, treasury_after=1, terrain=Coastal Plains)
-Turn 9: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Plain (I2) and failed against the region (success_chance=0.750, attack_strength=8, defense_strength=3, core_status=frontier, treasury_after=0, terrain=Highland Plains)
-Turn 10: Aruangos Tribe invested in Aruangos Crown (M2) (invest_amount=4, new_resources=5, terrain=Forest)
-Turn 11: Rnutuan Tribe invested in Rnutuan March (I4) (invest_amount=4, new_resources=5, terrain=Highland Forest)
-Turn 11: Veneunar Tribe attacked Rnutuan Tribe in Rnutuan Reach (M7) and captured the region (success_chance=0.650, attack_strength=8, defense_strength=5, core_status=core, treasury_after=0, terrain=Riverland Plains)
-Turn 12: Veneunar Tribe invested in Veneunar Hollow (M10) (invest_amount=4, new_resources=5, terrain=Forest)
-Turn 12: Rnutuan Tribe expanded into Rnutuanian Crossing (M5) (score=12, resources=2, neighbors=5, unclaimed_neighbors=1, core_status=frontier, treasury_after=5, terrain=Plains)
-Turn 12: Aruangos Tribe attacked Saklian Tribe in Saklian Watch (O2) and failed against the region (success_chance=0.800, attack_strength=12, defense_strength=3, core_status=frontier, treasury_after=1, terrain=Coastal Plains)
-Turn 13: Rnutuan Tribe attacked Veneunar Tribe in Veneunar Ford (I6) and captured the region (success_chance=0.750, attack_strength=14, defense_strength=9, core_status=core, treasury_after=7, terrain=Highland Plains)
-Turn 13: Aruangos Tribe attacked Saklian Tribe in Saklian Watch (O2) and captured the region (success_chance=0.800, attack_strength=12, defense_strength=3, core_status=frontier, treasury_after=3, terrain=Coastal Plains)
-Turn 14: Saklian Tribe attacked Aruangos Tribe in Saklian Watch (O2) and captured the region (success_chance=0.650, attack_strength=10, defense_strength=7, core_status=frontier, treasury_after=1, terrain=Coastal Plains)
-Turn 14: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Field (O6) and failed against the region (success_chance=0.800, attack_strength=16, defense_strength=8, core_status=core, treasury_after=8, terrain=Coastal Plains)
-Turn 14: Veneunar Tribe attacked Saklian Tribe in Saklian Wood (I8) and failed against the region (success_chance=0.600, attack_strength=9, defense_strength=7, core_status=core, treasury_after=0, terrain=Highland Forest)
-Turn 14: Aruangos Tribe attacked Saklian Tribe in Saklian Watch (O2) and captured the region (success_chance=0.800, attack_strength=12, defense_strength=3, core_status=frontier, treasury_after=3, terrain=Coastal Plains)
-Turn 15: Veneunar Tribe invested in Veneunar Wash (M11) (invest_amount=4, new_resources=5, terrain=Riverland Plains)
-Turn 15: Saklian Tribe attacked Aruangos Tribe in Saklian Watch (O2) and failed against the region (success_chance=0.650, attack_strength=10, defense_strength=7, core_status=frontier, treasury_after=0, terrain=Coastal Plains)
-Turn 15: Aruangos Tribe attacked Saklian Tribe in Saklian Crossing (M1) and captured the region (success_chance=0.800, attack_strength=11, defense_strength=3, core_status=core, treasury_after=3, terrain=Plains)
-Turn 15: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Plain (I2) and failed against the region (success_chance=0.800, attack_strength=19, defense_strength=11, core_status=core, treasury_after=9, terrain=Highland Plains)
-Turn 16: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Plain (I2) and captured the region (success_chance=0.800, attack_strength=20, defense_strength=11, core_status=core, treasury_after=12, terrain=Highland Plains)
-Turn 16: Aruangos Tribe invested in Saklian Crossing (M1) (invest_amount=4, new_resources=5, terrain=Plains)
-Turn 16: Saklian Tribe attacked Aruangos Tribe in Saklian Watch (O2) and captured the region (success_chance=0.800, attack_strength=11, defense_strength=5, core_status=frontier, treasury_after=2, terrain=Coastal Plains)
-Turn 16: Veneunar Tribe attacked Saklian Tribe in Saklian Ford (M12) and captured the region (success_chance=0.750, attack_strength=12, defense_strength=7, core_status=core, treasury_after=3, terrain=Hill Forest)
-Turn 17: Saklian Tribe attacked Veneunar Tribe in Saklian Ford (M12) and failed against the region (success_chance=0.550, attack_strength=10, defense_strength=9, core_status=frontier, treasury_after=2, terrain=Hill Forest)
-Turn 17: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Crown (M2) and captured the region (success_chance=0.800, attack_strength=26, defense_strength=14, core_status=core, treasury_after=16, terrain=Forest)
-Turn 17: Veneunar Tribe attacked Saklian Tribe in Saklian March (O16) and captured the region (success_chance=0.700, attack_strength=10, defense_strength=6, core_status=core, treasury_after=3, terrain=Coastal Forest)
-Turn 17: Aruangos Tribe attacked Saklian Tribe in Saklian (O1) and captured the region (success_chance=0.750, attack_strength=15, defense_strength=10, core_status=homeland, treasury_after=5, terrain=Coastal Forest)
-Turn 18: Rnutuan Tribe attacked Aruangos Tribe in Saklian Crossing (M1) and failed against the region (success_chance=0.800, attack_strength=29, defense_strength=14, core_status=frontier, treasury_after=19, terrain=Plains)
-Turn 18: Veneunar Tribe expanded into Veneunar Wood (M8) (score=10, resources=2, neighbors=5, unclaimed_neighbors=1, core_status=frontier, treasury_after=0, terrain=Hill Forest)
-Turn 18: Saklian Tribe attacked Veneunar Tribe in Saklian Ford (M12) and captured the region (success_chance=0.700, attack_strength=8, defense_strength=4, core_status=frontier, treasury_after=2, terrain=Hill Forest)
-Turn 18: Aruangos Tribe attacked Veneunar Tribe in Saklian March (O16) and captured the region (success_chance=0.800, attack_strength=17, defense_strength=3, core_status=frontier, treasury_after=7, terrain=Coastal Forest)
-Turn 19: Aruangos Tribe attacked Saklian Tribe in Saklian Watch (O2) and captured the region (success_chance=0.800, attack_strength=16, defense_strength=7, core_status=frontier, treasury_after=7, terrain=Coastal Plains)
-Turn 19: Saklian Tribe attacked Veneunar Tribe in Veneunar Hollow (M10) and failed against the region (success_chance=0.550, attack_strength=10, defense_strength=9, core_status=core, treasury_after=1, terrain=Forest)
-Turn 19: Veneunar Tribe attacked Saklian Tribe in Saklian Ford (M12) and captured the region (success_chance=0.700, attack_strength=9, defense_strength=5, core_status=frontier, treasury_after=0, terrain=Hill Forest)
-Turn 19: Rnutuan Tribe attacked Aruangos Tribe in Saklian Crossing (M1) and captured the region (success_chance=0.800, attack_strength=32, defense_strength=12, core_status=frontier, treasury_after=24, terrain=Plains)
-Turn 20: Aruangos Tribe attacked Veneunar Tribe in Saklian Ford (M12) and captured the region (success_chance=0.800, attack_strength=10, defense_strength=4, core_status=frontier, treasury_after=4, terrain=Hill Forest)
-Turn 20: Saklian Tribe attacked Veneunar Tribe in Veneunar Hollow (M10) and captured the region (success_chance=0.500, attack_strength=7, defense_strength=7, core_status=core, treasury_after=0, terrain=Forest)
-Turn 20: Rnutuan Tribe attacked Aruangos Tribe in Saklian (O1) and failed against the region (success_chance=0.800, attack_strength=40, defense_strength=10, core_status=frontier, treasury_after=28, terrain=Coastal Forest)
-Turn 20: Veneunar Tribe invested in Rnutuan Reach (M7) (invest_amount=4, new_resources=5, terrain=Riverland Plains)
-Turn 21: Veneunar Tribe attacked Aruangos Tribe in Saklian Ford (M12) and captured the region (success_chance=0.800, attack_strength=11, defense_strength=5, core_status=frontier, treasury_after=2, terrain=Hill Forest)
-Turn 21: Rnutuan Tribe attacked Aruangos Tribe in Saklian (O1) and captured the region (success_chance=0.800, attack_strength=44, defense_strength=7, core_status=frontier, treasury_after=34, terrain=Coastal Forest)
-Turn 21: Aruangos Tribe invested in Aruangos Wash (M3) (invest_amount=4, new_resources=5, terrain=Riverland Plains)
-Turn 21: Saklian Tribe attacked Veneunar Tribe in Veneunar Field (O14) and captured the region (success_chance=0.800, attack_strength=11, defense_strength=5, core_status=core, treasury_after=3, terrain=Coastal Plains)
-Turn 22: Saklian Tribe attacked Veneunar Tribe in Veneunar (O13) and failed against the region (success_chance=0.650, attack_strength=17, defense_strength=14, core_status=homeland, treasury_after=5, terrain=Coastal Forest)
-Turn 22: Aruangos Tribe invested in Aruangos Hollow (M4) (invest_amount=4, new_resources=5, terrain=Hill Forest)
-Turn 22: Veneunar Tribe attacked Aruangos Tribe in Saklian March (O16) and captured the region (success_chance=0.800, attack_strength=11, defense_strength=5, core_status=frontier, treasury_after=4, terrain=Coastal Forest)
-Turn 22: Rnutuan Tribe attacked Veneunar Tribe in Rnutuan Reach (M7) and captured the region (success_chance=0.800, attack_strength=49, defense_strength=10, core_status=core, treasury_after=41, terrain=Riverland Plains)
-Turn 23: Aruangos Tribe expanded into Aruangos Down (I3) (score=9, resources=2, neighbors=5, unclaimed_neighbors=0, core_status=frontier, treasury_after=5, terrain=Riverland Hill)
-Turn 23: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Wash (M3) and failed against the region (success_chance=0.800, attack_strength=57, defense_strength=11, core_status=core, treasury_after=47, terrain=Riverland Plains)
-Turn 23: Veneunar Tribe invested in Saklian Ford (M12) (invest_amount=4, new_resources=5, terrain=Hill Forest)
-Turn 23: Saklian Tribe attacked Veneunar Tribe in Veneunar (O13) and captured the region (success_chance=0.800, attack_strength=19, defense_strength=13, core_status=homeland, treasury_after=9, terrain=Coastal Forest)
-Turn 24: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Wash (M3) and failed against the region (success_chance=0.800, attack_strength=63, defense_strength=15, core_status=core, treasury_after=53, terrain=Riverland Plains)
-Turn 24: Saklian Tribe attacked Veneunar Tribe in Veneunar Wash (M11) and captured the region (success_chance=0.800, attack_strength=21, defense_strength=14, core_status=core, treasury_after=14, terrain=Riverland Plains)
-Turn 24: Aruangos Tribe invested in Aruangos Down (I3) (invest_amount=4, new_resources=5, terrain=Riverland Hill)
-Turn 24: Veneunar Tribe expanded into Veneunar Down (I7) (score=9, resources=2, neighbors=5, unclaimed_neighbors=0, core_status=frontier, treasury_after=5, terrain=Riverland Hill)
-Turn 25: Saklian Tribe attacked Veneunar Tribe in Saklian Ford (M12) and failed against the region (success_chance=0.800, attack_strength=29, defense_strength=12, core_status=frontier, treasury_after=18, terrain=Hill Forest)
-Turn 25: Veneunar Tribe invested in Veneunar Down (I7) (invest_amount=4, new_resources=5, terrain=Riverland Hill)
-Turn 25: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Wash (M3) and captured the region (success_chance=0.800, attack_strength=69, defense_strength=22, core_status=core, treasury_after=61, terrain=Riverland Plains)
-Turn 25: Aruangos Tribe invested in Saklian Watch (O2) (invest_amount=4, new_resources=5, terrain=Coastal Plains)
-Turn 26: Veneunar Tribe invested in Veneunar Wood (M8) (invest_amount=4, new_resources=5, terrain=Hill Forest)
-Turn 26: Rnutuan Tribe attacked Aruangos Tribe in Saklian Watch (O2) and captured the region (success_chance=0.800, attack_strength=79, defense_strength=31, core_status=core, treasury_after=70, terrain=Coastal Plains)
-Turn 26: Aruangos Tribe invested in Aruangos Vale (O4) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
-Turn 26: Saklian Tribe attacked Veneunar Tribe in Saklian Ford (M12) and captured the region (success_chance=0.800, attack_strength=33, defense_strength=16, core_status=core, treasury_after=24, terrain=Hill Forest)
-Turn 27: Saklian Tribe attacked Veneunar Tribe in Veneunar Down (I7) and failed against the region (success_chance=0.800, attack_strength=38, defense_strength=19, core_status=frontier, treasury_after=29, terrain=Riverland Hill)
-Turn 27: Veneunar Tribe invested in Veneunar Vale (M9) (invest_amount=4, new_resources=5, terrain=Plains)
-Turn 27: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Vale (O4) and failed against the region (success_chance=0.800, attack_strength=90, defense_strength=43, core_status=core, treasury_after=78, terrain=Coastal Forest)
-Turn 27: Aruangos Tribe invested in Aruangos Field (O6) (invest_amount=4, new_resources=5, terrain=Coastal Plains)
-Turn 28: Aruangos Tribe expanded into Aruangos Gate (O7) (score=7, resources=2, neighbors=4, unclaimed_neighbors=0, core_status=frontier, treasury_after=47, terrain=Coastal Marsh)
-Turn 28: Veneunar Tribe invested in Veneunar Bay (O12) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
-Turn 28: Saklian Tribe attacked Veneunar Tribe in Veneunar Bay (O12) and captured the region (success_chance=0.800, attack_strength=46, defense_strength=28, core_status=core, treasury_after=36, terrain=Coastal Forest)
-Turn 28: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Field (O6) and captured the region (success_chance=0.800, attack_strength=94, defense_strength=53, core_status=core, treasury_after=88, terrain=Coastal Plains)
-Turn 29: Rnutuan Tribe attacked Aruangos Tribe in Aruangos (O5) and captured the region (success_chance=0.800, attack_strength=109, defense_strength=66, core_status=homeland, treasury_after=99, terrain=Coastal Forest)
-Turn 29: Saklian Tribe attacked Veneunar Tribe in Veneunar Vale (M9) and captured the region (success_chance=0.800, attack_strength=51, defense_strength=37, core_status=core, treasury_after=44, terrain=Plains)
-Turn 29: Veneunar Tribe invested in Saklian March (O16) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
-Turn 29: Aruangos Tribe invested in Aruangos Gate (O7) (invest_amount=4, new_resources=5, terrain=Coastal Marsh)
-Turn 30: Aruangos Tribe expanded into Aruangos Cape (O3) (score=7, resources=2, neighbors=4, unclaimed_neighbors=0, core_status=frontier, treasury_after=68, terrain=Coastal Marsh)
-Turn 30: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Vale (O4) and failed against the region (success_chance=0.800, attack_strength=121, defense_strength=75, core_status=core, treasury_after=109, terrain=Coastal Forest)
-Turn 30: Veneunar Tribe expanded into Veneunar Reach (O15) (score=7, resources=2, neighbors=4, unclaimed_neighbors=0, core_status=frontier, treasury_after=40, terrain=Coastal Marsh)
-Turn 30: Saklian Tribe attacked Veneunar Tribe in Saklian March (O16) and failed against the region (success_chance=0.800, attack_strength=63, defense_strength=47, core_status=core, treasury_after=51, terrain=Coastal Forest)
-Turn 31: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Vale (O4) and captured the region (success_chance=0.800, attack_strength=131, defense_strength=86, core_status=core, treasury_after=121, terrain=Coastal Forest)
-Turn 31: Saklian Tribe attacked Veneunar Tribe in Saklian March (O16) and failed against the region (success_chance=0.800, attack_strength=70, defense_strength=57, core_status=core, treasury_after=58, terrain=Coastal Forest)
-Turn 31: Aruangos Tribe invested in Aruangos Cape (O3) (invest_amount=4, new_resources=5, terrain=Coastal Marsh)
-Turn 31: Veneunar Tribe invested in Veneunar Reach (O15) (invest_amount=4, new_resources=5, terrain=Coastal Marsh)
-Turn 32: Veneunar Tribe expanded into Veneunar Watch (O11) (score=7, resources=2, neighbors=4, unclaimed_neighbors=0, core_status=frontier, treasury_after=60, terrain=Coastal Marsh)
-Turn 32: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and captured the region (success_chance=0.200, attack_strength=99, defense_strength=141, core_status=frontier, treasury_after=90, terrain=Coastal Plains)
-Turn 32: Saklian Tribe attacked Veneunar Tribe in Saklian March (O16) and failed against the region (success_chance=0.800, attack_strength=77, defense_strength=67, core_status=core, treasury_after=65, terrain=Coastal Forest)
-Turn 32: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Field (O6) and captured the region (success_chance=0.800, attack_strength=143, defense_strength=95, core_status=frontier, treasury_after=134, terrain=Coastal Plains)
-Turn 33: Rnutuan Tribe attacked Veneunar Tribe in Saklian March (O16) and captured the region (success_chance=0.800, attack_strength=157, defense_strength=78, core_status=core, treasury_after=147, terrain=Coastal Forest)
-Turn 33: Saklian Tribe attacked Veneunar Tribe in Veneunar Reach (O15) and captured the region (success_chance=0.750, attack_strength=82, defense_strength=77, core_status=frontier, treasury_after=74, terrain=Coastal Marsh)
-Turn 33: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and failed against the region (success_chance=0.200, attack_strength=110, defense_strength=152, core_status=frontier, treasury_after=99, terrain=Coastal Plains)
-Turn 33: Veneunar Tribe invested in Veneunar Watch (O11) (invest_amount=4, new_resources=5, terrain=Coastal Marsh)
-Turn 34: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and failed against the region (success_chance=0.200, attack_strength=119, defense_strength=168, core_status=frontier, treasury_after=108, terrain=Coastal Plains)
-Turn 34: Saklian Tribe attacked Veneunar Tribe in Veneunar Watch (O11) and captured the region (success_chance=0.650, attack_strength=92, defense_strength=89, core_status=frontier, treasury_after=84, terrain=Coastal Marsh)
-Turn 34: Rnutuan Tribe attacked Saklian Tribe in Veneunar Vale (M9) and captured the region (success_chance=0.800, attack_strength=170, defense_strength=90, core_status=core, treasury_after=161, terrain=Plains)
-Turn 34: Veneunar Tribe attacked Saklian Tribe in Veneunar Hollow (M10) and captured the region (success_chance=0.500, attack_strength=91, defense_strength=91, core_status=core, treasury_after=81, terrain=Forest)
-Turn 35: Saklian Tribe attacked Veneunar Tribe in Veneunar Hollow (M10) and captured the region (success_chance=0.700, attack_strength=103, defense_strength=99, core_status=frontier, treasury_after=93, terrain=Forest)
-Turn 35: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and failed against the region (success_chance=0.200, attack_strength=128, defense_strength=183, core_status=frontier, treasury_after=117, terrain=Coastal Plains)
-Turn 35: Veneunar Tribe attacked Saklian Tribe in Veneunar Hollow (M10) and captured the region (success_chance=0.600, attack_strength=101, defense_strength=99, core_status=frontier, treasury_after=91, terrain=Forest)
-Turn 35: Rnutuan Tribe attacked Saklian Tribe in Veneunar Bay (O12) and captured the region (success_chance=0.800, attack_strength=186, defense_strength=100, core_status=core, treasury_after=176, terrain=Coastal Forest)
-Turn 36: Saklian Tribe attacked Veneunar Tribe in Veneunar Hollow (M10) and failed against the region (success_chance=0.600, attack_strength=111, defense_strength=109, core_status=frontier, treasury_after=99, terrain=Forest)
-Turn 36: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and failed against the region (success_chance=0.200, attack_strength=137, defense_strength=199, core_status=frontier, treasury_after=126, terrain=Coastal Plains)
-Turn 36: Veneunar Tribe attacked Saklian Tribe in Veneunar (O13) and captured the region (success_chance=0.750, attack_strength=111, defense_strength=106, core_status=core, treasury_after=101, terrain=Coastal Forest)
-Turn 36: Rnutuan Tribe attacked Veneunar Tribe in Veneunar (O13) and failed against the region (success_chance=0.800, attack_strength=202, defense_strength=109, core_status=homeland, treasury_after=190, terrain=Coastal Forest)
-Turn 37: Rnutuan Tribe attacked Veneunar Tribe in Veneunar (O13) and captured the region (success_chance=0.800, attack_strength=216, defense_strength=122, core_status=homeland, treasury_after=206, terrain=Coastal Forest)
-Turn 37: Veneunar Tribe attacked Saklian Tribe in Veneunar Wash (M11) and captured the region (success_chance=0.800, attack_strength=120, defense_strength=114, core_status=core, treasury_after=112, terrain=Riverland Plains)
-Turn 37: Saklian Tribe invested in Saklian Wood (I8) (invest_amount=4, new_resources=5, terrain=Highland Forest)
-Turn 37: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and failed against the region (success_chance=0.200, attack_strength=146, defense_strength=212, core_status=core, treasury_after=135, terrain=Coastal Plains)
-Turn 38: Rnutuan Tribe attacked Veneunar Tribe in Veneunar Hollow (M10) and captured the region (success_chance=0.800, attack_strength=233, defense_strength=131, core_status=frontier, treasury_after=223, terrain=Forest)
-Turn 38: Saklian Tribe invested in Veneunar Field (O14) (invest_amount=4, new_resources=5, terrain=Coastal Plains)
-Turn 38: Veneunar Tribe attacked Saklian Tribe in Veneunar Field (O14) and captured the region (success_chance=0.800, attack_strength=132, defense_strength=125, core_status=core, treasury_after=123, terrain=Coastal Plains)
-Turn 38: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and failed against the region (success_chance=0.200, attack_strength=155, defense_strength=229, core_status=core, treasury_after=144, terrain=Coastal Plains)
-Turn 39: Veneunar Tribe attacked Saklian Tribe in Saklian Ford (M12) and captured the region (success_chance=0.650, attack_strength=143, defense_strength=140, core_status=core, treasury_after=134, terrain=Hill Forest)
-Turn 39: Rnutuan Tribe attacked Veneunar Tribe in Veneunar Field (O14) and captured the region (success_chance=0.800, attack_strength=250, defense_strength=139, core_status=frontier, treasury_after=241, terrain=Coastal Plains)
-Turn 39: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and captured the region (success_chance=0.200, attack_strength=164, defense_strength=247, core_status=core, treasury_after=155, terrain=Coastal Plains)
-Turn 39: Saklian Tribe expanded into Saklian Vale (I1) (score=8, resources=2, neighbors=5, unclaimed_neighbors=0, core_status=frontier, treasury_after=129, terrain=Highland Forest)
-Turn 40: Veneunar Tribe attacked Saklian Tribe in Veneunar Reach (O15) and captured the region (success_chance=0.800, attack_strength=153, defense_strength=146, core_status=core, treasury_after=145, terrain=Coastal Marsh)
-Turn 40: Aruangos Tribe attacked Rnutuan Tribe in Aruangos (O5) and failed against the region (success_chance=0.200, attack_strength=177, defense_strength=268, core_status=core, treasury_after=165, terrain=Coastal Forest)
-Turn 40: Saklian Tribe invested in Saklian Vale (I1) (invest_amount=4, new_resources=5, terrain=Highland Forest)
-Turn 40: Rnutuan Tribe attacked Aruangos Tribe in Aruangos Field (O6) and captured the region (success_chance=0.800, attack_strength=268, defense_strength=170, core_status=frontier, treasury_after=259, terrain=Coastal Plains)
-Turn 41: Saklian Tribe attacked Rnutuan Tribe in Veneunar Bay (O12) and failed against the region (success_chance=0.200, attack_strength=159, defense_strength=287, core_status=core, treasury_after=147, terrain=Coastal Forest)
-Turn 41: Veneunar Tribe attacked Saklian Tribe in Veneunar Watch (O11) and captured the region (success_chance=0.800, attack_strength=165, defense_strength=154, core_status=core, treasury_after=157, terrain=Coastal Marsh)
-Turn 41: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and failed against the region (success_chance=0.200, attack_strength=185, defense_strength=285, core_status=frontier, treasury_after=174, terrain=Coastal Plains)
-Turn 41: Rnutuan Tribe attacked Veneunar Tribe in Veneunar Wash (M11) and failed against the region (success_chance=0.800, attack_strength=286, defense_strength=162, core_status=frontier, treasury_after=276, terrain=Riverland Plains)
-Turn 42: Veneunar Tribe attacked Saklian Tribe in Saklian Wood (I8) and captured the region (success_chance=0.800, attack_strength=179, defense_strength=164, core_status=core, treasury_after=170, terrain=Highland Forest)
-Turn 42: Rnutuan Tribe attacked Veneunar Tribe in Veneunar Wash (M11) and failed against the region (success_chance=0.800, attack_strength=303, defense_strength=176, core_status=core, treasury_after=293, terrain=Riverland Plains)
-Turn 42: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and failed against the region (success_chance=0.200, attack_strength=194, defense_strength=298, core_status=frontier, treasury_after=183, terrain=Coastal Plains)
-Turn 42: Saklian Tribe attacked Rnutuan Tribe in Rnutuan Wash (C) and captured the region (success_chance=0.200, attack_strength=160, defense_strength=299, core_status=core, treasury_after=153, terrain=Riverland Plains)
-Turn 43: Aruangos Tribe attacked Saklian Tribe in Rnutuan Wash (C) and captured the region (success_chance=0.800, attack_strength=202, defense_strength=166, core_status=frontier, treasury_after=194, terrain=Riverland Plains)
-Turn 43: Saklian Tribe attacked Aruangos Tribe in Rnutuan Wash (C) and captured the region (success_chance=0.200, attack_strength=166, defense_strength=199, core_status=frontier, treasury_after=159, terrain=Riverland Plains)
-Turn 43: Veneunar Tribe attacked Saklian Tribe in Rnutuan Wash (C) and captured the region (success_chance=0.800, attack_strength=192, defense_strength=164, core_status=frontier, treasury_after=184, terrain=Riverland Plains)
-Turn 43: Rnutuan Tribe attacked Veneunar Tribe in Veneunar Wash (M11) and captured the region (success_chance=0.800, attack_strength=319, defense_strength=190, core_status=core, treasury_after=311, terrain=Riverland Plains)
-Turn 44: Aruangos Tribe attacked Veneunar Tribe in Rnutuan Wash (C) and captured the region (success_chance=0.800, attack_strength=213, defense_strength=205, core_status=frontier, treasury_after=205, terrain=Riverland Plains)
-Turn 44: Veneunar Tribe attacked Saklian Tribe in Saklian Vale (I1) and failed against the region (success_chance=0.800, attack_strength=207, defense_strength=172, core_status=core, treasury_after=196, terrain=Highland Forest)
-Turn 44: Rnutuan Tribe attacked Veneunar Tribe in Saklian Wood (I8) and captured the region (success_chance=0.800, attack_strength=339, defense_strength=204, core_status=frontier, treasury_after=330, terrain=Highland Forest)
-Turn 44: Saklian Tribe attacked Aruangos Tribe in Rnutuan Wash (C) and failed against the region (success_chance=0.200, attack_strength=168, defense_strength=210, core_status=frontier, treasury_after=159, terrain=Riverland Plains)
-Turn 45: Rnutuan Tribe attacked Saklian Tribe in Saklian Vale (I1) and captured the region (success_chance=0.800, attack_strength=359, defense_strength=172, core_status=core, treasury_after=350, terrain=Highland Forest)
-Turn 45: Aruangos Tribe attacked Veneunar Tribe in Veneunar Down (I7) and captured the region (success_chance=0.800, attack_strength=225, defense_strength=217, core_status=core, treasury_after=217, terrain=Riverland Hill)
-Turn 45: Veneunar Tribe attacked Rnutuan Tribe in Saklian March (O16) and captured the region (success_chance=0.200, attack_strength=218, defense_strength=357, core_status=core, treasury_after=208, terrain=Coastal Forest)
-Turn 46: Veneunar Tribe attacked Rnutuan Tribe in Veneunar Field (O14) and failed against the region (success_chance=0.200, attack_strength=229, defense_strength=378, core_status=core, treasury_after=218, terrain=Coastal Plains)
-Turn 46: Aruangos Tribe expanded into Aruangosian Vale (I5) (score=7, resources=2, neighbors=5, unclaimed_neighbors=0, core_status=frontier, treasury_after=229, terrain=Highland Forest)
-Turn 46: Rnutuan Tribe attacked Veneunar Tribe in Saklian March (O16) and captured the region (success_chance=0.800, attack_strength=380, defense_strength=224, core_status=frontier, treasury_after=370, terrain=Coastal Forest)
-Turn 47: Veneunar Tribe attacked Rnutuan Tribe in Saklian March (O16) and failed against the region (success_chance=0.200, attack_strength=239, defense_strength=399, core_status=frontier, treasury_after=227, terrain=Coastal Forest)
-Turn 47: Rnutuan Tribe attacked Aruangos Tribe in Rnutuan Wash (C) and failed against the region (success_chance=0.800, attack_strength=399, defense_strength=247, core_status=frontier, treasury_after=389, terrain=Riverland Plains)
-Turn 47: Aruangos Tribe invested in Aruangosian Vale (I5) (invest_amount=4, new_resources=5, terrain=Highland Forest)
-Turn 48: Veneunar Tribe attacked Rnutuan Tribe in Saklian March (O16) and captured the region (success_chance=0.200, attack_strength=248, defense_strength=418, core_status=frontier, treasury_after=238, terrain=Coastal Forest)
-Turn 48: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and failed against the region (success_chance=0.200, attack_strength=265, defense_strength=418, core_status=core, treasury_after=254, terrain=Coastal Plains)
-Turn 48: Rnutuan Tribe attacked Veneunar Tribe in Saklian March (O16) and failed against the region (success_chance=0.800, attack_strength=420, defense_strength=244, core_status=frontier, treasury_after=408, terrain=Coastal Forest)
-Turn 49: Veneunar Tribe attacked Rnutuan Tribe in Veneunar Field (O14) and failed against the region (success_chance=0.200, attack_strength=259, defense_strength=436, core_status=core, treasury_after=248, terrain=Coastal Plains)
-Turn 49: Rnutuan Tribe attacked Veneunar Tribe in Saklian March (O16) and captured the region (success_chance=0.800, attack_strength=438, defense_strength=254, core_status=frontier, treasury_after=428, terrain=Coastal Forest)
-Turn 49: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and failed against the region (success_chance=0.200, attack_strength=277, defense_strength=434, core_status=core, treasury_after=266, terrain=Coastal Plains)
-Turn 50: Rnutuan Tribe attacked Aruangos Tribe in Aruangosian Vale (I5) and captured the region (success_chance=0.800, attack_strength=458, defense_strength=290, core_status=frontier, treasury_after=449, terrain=Highland Forest)
-Turn 50: Aruangos Tribe attacked Rnutuan Tribe in Aruangos Field (O6) and captured the region (success_chance=0.200, attack_strength=289, defense_strength=455, core_status=core, treasury_after=280, terrain=Coastal Plains)
-Turn 50: Veneunar Tribe attacked Rnutuan Tribe in Saklian March (O16) and failed against the region (success_chance=0.200, attack_strength=269, defense_strength=455, core_status=frontier, treasury_after=257, terrain=Coastal Forest)
+Turn 2: Noraraand Tribe expanded into Noraraand Reach (M7) (score=21, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=2, terrain=Riverland Plains)
+Turn 2: Persermia Tribe expanded into Persermia Rise (M4) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=2, terrain=Hill Forest)
 
 Doctrine Evolution
 
-Saklian Tribe: homeland=Coastal Forest, opened as Developmental Coastal Forest, ended as Adaptive Coastal Forest, terrain_identity=Coastal Forest, doctrine_shifts=4, homeland_regions=0, core_regions=0, frontier_regions=0
-Aruangos Tribe: homeland=Coastal Forest, opened as Developmental Coastal Forest, ended as Adaptive Coastal Forest, terrain_identity=Coastal Forest, doctrine_shifts=4, homeland_regions=0, core_regions=6, frontier_regions=1
-Rnutuan Tribe: homeland=Coastal Forest, opened as Developmental Coastal Forest, ended as Martial Forest Plains, terrain_identity=Forest Plains, doctrine_shifts=5, homeland_regions=1, core_regions=23, frontier_regions=2
-Veneunar Tribe: homeland=Coastal Forest, opened as Developmental Coastal Forest, ended as Adaptive Coastal Forest, terrain_identity=Coastal Forest, doctrine_shifts=5, homeland_regions=0, core_regions=4, frontier_regions=0
+Akhakiar Tribe: homeland=Coastal Forest, opened as Developmental Coastal Forest, ended as Adaptive Coastal Forest, terrain_identity=Coastal Forest, doctrine_shifts=1, homeland_regions=1, core_regions=0, frontier_regions=1
+Persermia Tribe: homeland=Coastal Forest, opened as Developmental Coastal Forest, ended as Adaptive Coastal Forest, terrain_identity=Coastal Forest, doctrine_shifts=1, homeland_regions=1, core_regions=0, frontier_regions=1
+Noraraand Tribe: homeland=Coastal Forest, opened as Developmental Coastal Forest, ended as Adaptive Coastal Forest, terrain_identity=Coastal Forest, doctrine_shifts=1, homeland_regions=1, core_regions=0, frontier_regions=1
+Veneunar Tribe: homeland=Coastal Forest, opened as Developmental Coastal Forest, ended as Adaptive Coastal Forest, terrain_identity=Coastal Forest, doctrine_shifts=1, homeland_regions=1, core_regions=0, frontier_regions=1
 
 Per-Turn Metrics
 
 Turn 1
-  Saklian Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Coastal Forest, homeland=1, core=0, frontier=0
-  Aruangos Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Coastal Forest, homeland=1, core=0, frontier=0
-  Rnutuan Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Coastal Forest, homeland=1, core=0, frontier=0
+  Akhakiar Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Coastal Forest, homeland=1, core=0, frontier=0
+  Persermia Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Coastal Forest, homeland=1, core=0, frontier=0
+  Noraraand Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Coastal Forest, homeland=1, core=0, frontier=0
   Veneunar Tribe: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Coastal Forest, homeland=1, core=0, frontier=0
 
 Turn 2
-  Saklian Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=1
-  Aruangos Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=1
-  Rnutuan Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=1
+  Akhakiar Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=1
+  Persermia Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=1
+  Noraraand Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=1
   Veneunar Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=1
-
-Turn 3
-  Saklian Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=2
-  Aruangos Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=2
-  Rnutuan Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=2
-  Veneunar Tribe: treasury=10, regions=3, attacks=0, expansions=1, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=2
-
-Turn 4
-  Saklian Tribe: treasury=11, regions=4, attacks=0, expansions=1, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=3
-  Aruangos Tribe: treasury=11, regions=4, attacks=0, expansions=1, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=3
-  Rnutuan Tribe: treasury=11, regions=4, attacks=0, expansions=1, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=3
-  Veneunar Tribe: treasury=11, regions=4, attacks=0, expansions=1, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=3
-
-Turn 5
-  Saklian Tribe: treasury=10, regions=5, attacks=0, expansions=1, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=4
-  Aruangos Tribe: treasury=10, regions=5, attacks=0, expansions=1, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=4
-  Rnutuan Tribe: treasury=10, regions=5, attacks=0, expansions=1, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=4
-  Veneunar Tribe: treasury=10, regions=5, attacks=0, expansions=1, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=0, frontier=4
-
-Turn 6
-  Saklian Tribe: treasury=7, regions=6, attacks=0, expansions=1, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0, doctrine=Expansionary Coastal Forest, homeland=1, core=1, frontier=4
-  Aruangos Tribe: treasury=7, regions=6, attacks=0, expansions=1, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0, doctrine=Expansionary Coastal Forest, homeland=1, core=1, frontier=4
-  Rnutuan Tribe: treasury=7, regions=6, attacks=0, expansions=1, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0, doctrine=Expansionary Coastal Forest, homeland=1, core=1, frontier=4
-  Veneunar Tribe: treasury=7, regions=6, attacks=0, expansions=1, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0, doctrine=Expansionary Coastal Forest, homeland=1, core=1, frontier=4
-
-Turn 7
-  Saklian Tribe: treasury=5, regions=6, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0, doctrine=Martial Coastal Forest, homeland=1, core=2, frontier=3
-  Aruangos Tribe: treasury=3, regions=7, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=12, effective_income=5, maintenance=7, net=-2, doctrine=Martial Coastal Forest, homeland=1, core=2, frontier=4
-  Rnutuan Tribe: treasury=2, regions=7, attacks=0, expansions=1, investments=0, base_income=17, scale_penalty=12, effective_income=5, maintenance=7, net=-2, doctrine=Expansionary Coastal Forest, homeland=1, core=2, frontier=4
-  Veneunar Tribe: treasury=4, regions=6, attacks=0, expansions=1, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0, doctrine=Adaptive Coastal Forest, homeland=1, core=1, frontier=4
-
-Turn 8
-  Saklian Tribe: treasury=3, regions=5, attacks=1, expansions=0, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=3, frontier=1
-  Aruangos Tribe: treasury=-4, regions=8, attacks=0, expansions=1, investments=0, base_income=19, scale_penalty=15, effective_income=4, maintenance=8, net=-4, doctrine=Martial Coastal Forest, homeland=1, core=3, frontier=4
-  Rnutuan Tribe: treasury=3, regions=7, attacks=0, expansions=0, investments=1, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1, doctrine=Adaptive Coastal Forest, homeland=1, core=3, frontier=3
-  Veneunar Tribe: treasury=0, regions=7, attacks=1, expansions=0, investments=0, base_income=17, scale_penalty=12, effective_income=5, maintenance=7, net=-2, doctrine=Martial Coastal Forest, homeland=1, core=2, frontier=4
-
-Turn 9
-  Saklian Tribe: treasury=1, regions=6, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0, doctrine=Adaptive Coastal Forest, homeland=1, core=3, frontier=2
-  Aruangos Tribe: treasury=-3, regions=7, attacks=0, expansions=0, investments=1, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=2
-  Rnutuan Tribe: treasury=1, regions=7, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=2
-  Veneunar Tribe: treasury=1, regions=7, attacks=0, expansions=0, investments=1, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1, doctrine=Adaptive Coastal Forest, homeland=1, core=3, frontier=3
-
-Turn 10
-  Saklian Tribe: treasury=1, regions=6, attacks=0, expansions=0, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=1
-  Aruangos Tribe: treasury=1, regions=7, attacks=0, expansions=0, investments=1, base_income=23, scale_penalty=12, effective_income=11, maintenance=7, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=1
-  Rnutuan Tribe: treasury=2, regions=7, attacks=0, expansions=0, investments=0, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=1
-  Veneunar Tribe: treasury=2, regions=7, attacks=0, expansions=0, investments=0, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=2
-
-Turn 11
-  Saklian Tribe: treasury=1, regions=6, attacks=0, expansions=0, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=1
-  Aruangos Tribe: treasury=5, regions=7, attacks=0, expansions=0, investments=0, base_income=23, scale_penalty=12, effective_income=11, maintenance=7, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=1
-  Rnutuan Tribe: treasury=8, regions=6, attacks=0, expansions=0, investments=1, base_income=21, scale_penalty=9, effective_income=12, maintenance=6, net=6, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=0
-  Veneunar Tribe: treasury=-1, regions=8, attacks=1, expansions=0, investments=0, base_income=22, scale_penalty=15, effective_income=7, maintenance=8, net=-1, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=2
-
-Turn 12
-  Saklian Tribe: treasury=1, regions=6, attacks=0, expansions=0, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=1
-  Aruangos Tribe: treasury=5, regions=7, attacks=1, expansions=0, investments=0, base_income=23, scale_penalty=12, effective_income=11, maintenance=7, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=6, frontier=0
-  Rnutuan Tribe: treasury=9, regions=7, attacks=0, expansions=1, investments=0, base_income=23, scale_penalty=12, effective_income=11, maintenance=7, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=1
-  Veneunar Tribe: treasury=1, regions=8, attacks=0, expansions=0, investments=1, base_income=25, scale_penalty=15, effective_income=10, maintenance=8, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=6, frontier=1
-
-Turn 13
-  Saklian Tribe: treasury=3, regions=5, attacks=0, expansions=0, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=0
-  Aruangos Tribe: treasury=5, regions=8, attacks=1, expansions=0, investments=0, base_income=25, scale_penalty=15, effective_income=10, maintenance=8, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=6, frontier=1
-  Rnutuan Tribe: treasury=12, regions=8, attacks=1, expansions=0, investments=0, base_income=28, scale_penalty=15, effective_income=13, maintenance=8, net=5, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=2
-  Veneunar Tribe: treasury=2, regions=7, attacks=0, expansions=0, investments=0, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=1
-
-Turn 14
-  Saklian Tribe: treasury=3, regions=5, attacks=1, expansions=0, investments=0, base_income=13, scale_penalty=6, effective_income=7, maintenance=5, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=0
-  Aruangos Tribe: treasury=5, regions=8, attacks=1, expansions=0, investments=0, base_income=25, scale_penalty=15, effective_income=10, maintenance=8, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=6, frontier=1
-  Rnutuan Tribe: treasury=13, regions=8, attacks=1, expansions=0, investments=0, base_income=28, scale_penalty=15, effective_income=13, maintenance=8, net=5, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=2
-  Veneunar Tribe: treasury=1, regions=7, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=1
-
-Turn 15
-  Saklian Tribe: treasury=4, regions=4, attacks=1, expansions=0, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=3, frontier=0
-  Aruangos Tribe: treasury=3, regions=9, attacks=1, expansions=0, investments=0, base_income=27, scale_penalty=18, effective_income=9, maintenance=9, net=0, doctrine=Adaptive Coastal Forest, homeland=1, core=6, frontier=2
-  Rnutuan Tribe: treasury=14, regions=8, attacks=1, expansions=0, investments=0, base_income=28, scale_penalty=15, effective_income=13, maintenance=8, net=5, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=2
-  Veneunar Tribe: treasury=5, regions=7, attacks=0, expansions=0, investments=1, base_income=23, scale_penalty=12, effective_income=11, maintenance=7, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=6, frontier=0
-
-Turn 16
-  Saklian Tribe: treasury=6, regions=4, attacks=1, expansions=0, investments=0, base_income=11, scale_penalty=3, effective_income=8, maintenance=4, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=2, frontier=1
-  Aruangos Tribe: treasury=7, regions=7, attacks=0, expansions=0, investments=1, base_income=23, scale_penalty=12, effective_income=11, maintenance=7, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=1
-  Rnutuan Tribe: treasury=18, regions=9, attacks=1, expansions=0, investments=0, base_income=33, scale_penalty=18, effective_income=15, maintenance=9, net=6, doctrine=Adaptive Coastal Forest, homeland=1, core=6, frontier=2
-  Veneunar Tribe: treasury=5, regions=8, attacks=1, expansions=0, investments=0, base_income=25, scale_penalty=15, effective_income=10, maintenance=8, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=6, frontier=1
-
-Turn 17
-  Saklian Tribe: treasury=4, regions=2, attacks=1, expansions=0, investments=0, base_income=4, scale_penalty=0, effective_income=4, maintenance=2, net=2, doctrine=Adaptive Coastal Forest, homeland=0, core=1, frontier=1
-  Aruangos Tribe: treasury=9, regions=7, attacks=1, expansions=0, investments=0, base_income=23, scale_penalty=12, effective_income=11, maintenance=7, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=2
-  Rnutuan Tribe: treasury=23, regions=10, attacks=1, expansions=0, investments=0, base_income=38, scale_penalty=21, effective_income=17, maintenance=10, net=7, doctrine=Adaptive Coastal Forest, homeland=1, core=7, frontier=2
-  Veneunar Tribe: treasury=3, regions=9, attacks=1, expansions=0, investments=0, base_income=27, scale_penalty=18, effective_income=9, maintenance=9, net=0, doctrine=Adaptive Coastal Forest, homeland=1, core=6, frontier=2
-
-Turn 18
-  Saklian Tribe: treasury=5, regions=3, attacks=1, expansions=0, investments=0, base_income=6, scale_penalty=0, effective_income=6, maintenance=3, net=3, doctrine=Adaptive Coastal Forest, homeland=0, core=1, frontier=2
-  Aruangos Tribe: treasury=9, regions=8, attacks=1, expansions=0, investments=0, base_income=25, scale_penalty=15, effective_income=10, maintenance=8, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=3
-  Rnutuan Tribe: treasury=26, regions=10, attacks=1, expansions=0, investments=0, base_income=38, scale_penalty=21, effective_income=17, maintenance=10, net=7, doctrine=Adaptive Coastal Forest, homeland=1, core=7, frontier=2
-  Veneunar Tribe: treasury=2, regions=8, attacks=0, expansions=1, investments=0, base_income=25, scale_penalty=15, effective_income=10, maintenance=8, net=2, doctrine=Adaptive Coastal Forest, homeland=1, core=6, frontier=1
-
-Turn 19
-  Saklian Tribe: treasury=2, regions=1, attacks=1, expansions=0, investments=0, base_income=2, scale_penalty=0, effective_income=2, maintenance=1, net=1, doctrine=Adaptive Coastal Forest, homeland=0, core=1, frontier=0
-  Aruangos Tribe: treasury=6, regions=8, attacks=1, expansions=0, investments=0, base_income=22, scale_penalty=15, effective_income=7, maintenance=8, net=-1, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=3
-  Rnutuan Tribe: treasury=32, regions=11, attacks=1, expansions=0, investments=0, base_income=43, scale_penalty=24, effective_income=19, maintenance=11, net=8, doctrine=Adaptive Coastal Forest, homeland=1, core=7, frontier=3
-  Veneunar Tribe: treasury=0, regions=9, attacks=1, expansions=0, investments=0, base_income=27, scale_penalty=18, effective_income=9, maintenance=9, net=0, doctrine=Adaptive Coastal Forest, homeland=1, core=6, frontier=2
-
-Turn 20
-  Saklian Tribe: treasury=5, regions=2, attacks=1, expansions=0, investments=0, base_income=7, scale_penalty=0, effective_income=7, maintenance=2, net=5, doctrine=Adaptive Coastal Forest, homeland=0, core=1, frontier=1
-  Aruangos Tribe: treasury=1, regions=9, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=18, effective_income=6, maintenance=9, net=-3, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=4
-  Rnutuan Tribe: treasury=36, regions=11, attacks=1, expansions=0, investments=0, base_income=43, scale_penalty=24, effective_income=19, maintenance=11, net=8, doctrine=Adaptive Coastal Forest, homeland=1, core=8, frontier=2
-  Veneunar Tribe: treasury=4, regions=7, attacks=0, expansions=0, investments=1, base_income=23, scale_penalty=12, effective_income=11, maintenance=7, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=1
-
-Turn 21
-  Saklian Tribe: treasury=9, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6, doctrine=Adaptive Coastal Forest, homeland=0, core=1, frontier=2
-  Aruangos Tribe: treasury=2, regions=7, attacks=0, expansions=0, investments=1, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=2
-  Rnutuan Tribe: treasury=43, regions=12, attacks=1, expansions=0, investments=0, base_income=48, scale_penalty=27, effective_income=21, maintenance=12, net=9, doctrine=Adaptive Coastal Forest, homeland=1, core=9, frontier=2
-  Veneunar Tribe: treasury=6, regions=7, attacks=1, expansions=0, investments=0, base_income=23, scale_penalty=12, effective_income=11, maintenance=7, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=2
-
-Turn 22
-  Saklian Tribe: treasury=11, regions=3, attacks=1, expansions=0, investments=0, base_income=9, scale_penalty=0, effective_income=9, maintenance=3, net=6, doctrine=Adaptive Coastal Forest, homeland=0, core=1, frontier=2
-  Aruangos Tribe: treasury=8, regions=6, attacks=0, expansions=0, investments=1, base_income=21, scale_penalty=9, effective_income=12, maintenance=6, net=6, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=1
-  Rnutuan Tribe: treasury=51, regions=13, attacks=1, expansions=0, investments=0, base_income=53, scale_penalty=30, effective_income=23, maintenance=13, net=10, doctrine=Adaptive Coastal Forest, homeland=1, core=9, frontier=3
-  Veneunar Tribe: treasury=5, regions=7, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=12, effective_income=8, maintenance=7, net=1, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=2
-
-Turn 23
-  Saklian Tribe: treasury=16, regions=4, attacks=1, expansions=0, investments=0, base_income=14, scale_penalty=3, effective_income=11, maintenance=4, net=7, doctrine=Adaptive Coastal Forest, homeland=0, core=1, frontier=3
-  Aruangos Tribe: treasury=9, regions=7, attacks=0, expansions=1, investments=0, base_income=23, scale_penalty=12, effective_income=11, maintenance=7, net=4, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=1
-  Rnutuan Tribe: treasury=57, regions=13, attacks=1, expansions=0, investments=0, base_income=53, scale_penalty=30, effective_income=23, maintenance=13, net=10, doctrine=Adaptive Coastal Forest, homeland=1, core=10, frontier=2
-  Veneunar Tribe: treasury=8, regions=6, attacks=0, expansions=0, investments=1, base_income=18, scale_penalty=9, effective_income=9, maintenance=6, net=3, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=2
-
-Turn 24
-  Saklian Tribe: treasury=22, regions=5, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=6, effective_income=13, maintenance=5, net=8, doctrine=Adaptive Coastal Forest, homeland=0, core=2, frontier=3
-  Aruangos Tribe: treasury=16, regions=7, attacks=0, expansions=0, investments=1, base_income=26, scale_penalty=12, effective_income=14, maintenance=7, net=7, doctrine=Adaptive Coastal Forest, homeland=1, core=5, frontier=1
-  Rnutuan Tribe: treasury=63, regions=13, attacks=1, expansions=0, investments=0, base_income=53, scale_penalty=30, effective_income=23, maintenance=13, net=10, doctrine=Adaptive Coastal Forest, homeland=1, core=10, frontier=2
-  Veneunar Tribe: treasury=5, regions=6, attacks=0, expansions=1, investments=0, base_income=15, scale_penalty=9, effective_income=6, maintenance=6, net=0, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=3
-
-Turn 25
-  Saklian Tribe: treasury=26, regions=5, attacks=1, expansions=0, investments=0, base_income=19, scale_penalty=6, effective_income=13, maintenance=5, net=8, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=2
-  Aruangos Tribe: treasury=25, regions=6, attacks=0, expansions=0, investments=1, base_income=24, scale_penalty=9, effective_income=15, maintenance=6, net=9, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=1
-  Rnutuan Tribe: treasury=72, regions=14, attacks=1, expansions=0, investments=0, base_income=58, scale_penalty=33, effective_income=25, maintenance=14, net=11, doctrine=Adaptive Coastal Forest, homeland=1, core=11, frontier=2
-  Veneunar Tribe: treasury=8, regions=6, attacks=0, expansions=0, investments=1, base_income=18, scale_penalty=9, effective_income=9, maintenance=6, net=3, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=2
-
-Turn 26
-  Saklian Tribe: treasury=33, regions=6, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=9, effective_income=15, maintenance=6, net=9, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=3
-  Aruangos Tribe: treasury=36, regions=5, attacks=0, expansions=0, investments=1, base_income=22, scale_penalty=6, effective_income=16, maintenance=5, net=11, doctrine=Adaptive Coastal Forest, homeland=1, core=3, frontier=1
-  Rnutuan Tribe: treasury=82, regions=15, attacks=1, expansions=0, investments=0, base_income=63, scale_penalty=36, effective_income=27, maintenance=15, net=12, doctrine=Adaptive Coastal Forest, homeland=1, core=12, frontier=2
-  Veneunar Tribe: treasury=13, regions=5, attacks=0, expansions=0, investments=1, base_income=16, scale_penalty=6, effective_income=10, maintenance=5, net=5, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=1
-
-Turn 27
-  Saklian Tribe: treasury=38, regions=6, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=9, effective_income=15, maintenance=6, net=9, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=2
-  Aruangos Tribe: treasury=50, regions=5, attacks=0, expansions=0, investments=1, base_income=25, scale_penalty=6, effective_income=19, maintenance=5, net=14, doctrine=Adaptive Coastal Forest, homeland=1, core=4, frontier=0
-  Rnutuan Tribe: treasury=90, regions=15, attacks=1, expansions=0, investments=0, base_income=63, scale_penalty=36, effective_income=27, maintenance=15, net=12, doctrine=Adaptive Coastal Forest, homeland=1, core=12, frontier=2
-  Veneunar Tribe: treasury=21, regions=5, attacks=0, expansions=0, investments=1, base_income=19, scale_penalty=6, effective_income=13, maintenance=5, net=8, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=1
-
-Turn 28
-  Saklian Tribe: treasury=46, regions=7, attacks=1, expansions=0, investments=0, base_income=29, scale_penalty=12, effective_income=17, maintenance=7, net=10, doctrine=Adaptive Coastal Forest, homeland=0, core=5, frontier=2
-  Aruangos Tribe: treasury=58, regions=5, attacks=0, expansions=1, investments=0, base_income=22, scale_penalty=6, effective_income=16, maintenance=5, net=11, doctrine=Adaptive Coastal Forest, homeland=1, core=3, frontier=1
-  Rnutuan Tribe: treasury=101, regions=16, attacks=1, expansions=0, investments=0, base_income=68, scale_penalty=39, effective_income=29, maintenance=16, net=13, doctrine=Adaptive Coastal Forest, homeland=1, core=12, frontier=3
-  Veneunar Tribe: treasury=31, regions=4, attacks=0, expansions=0, investments=1, base_income=17, scale_penalty=3, effective_income=14, maintenance=4, net=10, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-
-Turn 29
-  Saklian Tribe: treasury=55, regions=8, attacks=1, expansions=0, investments=0, base_income=34, scale_penalty=15, effective_income=19, maintenance=8, net=11, doctrine=Adaptive Coastal Forest, homeland=0, core=5, frontier=3
-  Aruangos Tribe: treasury=71, regions=4, attacks=0, expansions=0, investments=1, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=1
-  Rnutuan Tribe: treasury=113, regions=17, attacks=1, expansions=0, investments=0, base_income=73, scale_penalty=42, effective_income=31, maintenance=17, net=14, doctrine=Adaptive Forest Plains, homeland=1, core=13, frontier=3
-  Veneunar Tribe: treasury=43, regions=3, attacks=0, expansions=0, investments=1, base_income=15, scale_penalty=0, effective_income=15, maintenance=3, net=12, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=0
-
-Turn 30
-  Saklian Tribe: treasury=62, regions=8, attacks=1, expansions=0, investments=0, base_income=34, scale_penalty=15, effective_income=19, maintenance=8, net=11, doctrine=Adaptive Coastal Forest, homeland=0, core=6, frontier=2
-  Aruangos Tribe: treasury=79, regions=5, attacks=0, expansions=1, investments=0, base_income=22, scale_penalty=6, effective_income=16, maintenance=5, net=11, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=2
-  Rnutuan Tribe: treasury=123, regions=17, attacks=1, expansions=0, investments=0, base_income=73, scale_penalty=42, effective_income=31, maintenance=17, net=14, doctrine=Adaptive Forest Plains, homeland=1, core=14, frontier=2
-  Veneunar Tribe: treasury=50, regions=4, attacks=0, expansions=1, investments=0, base_income=17, scale_penalty=3, effective_income=14, maintenance=4, net=10, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=1
-
-Turn 31
-  Saklian Tribe: treasury=69, regions=8, attacks=1, expansions=0, investments=0, base_income=34, scale_penalty=15, effective_income=19, maintenance=8, net=11, doctrine=Adaptive Coastal Forest, homeland=0, core=6, frontier=2
-  Aruangos Tribe: treasury=92, regions=4, attacks=0, expansions=0, investments=1, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=2, frontier=2
-  Rnutuan Tribe: treasury=136, regions=18, attacks=1, expansions=0, investments=0, base_income=78, scale_penalty=45, effective_income=33, maintenance=18, net=15, doctrine=Adaptive Forest Plains, homeland=1, core=14, frontier=3
-  Veneunar Tribe: treasury=63, regions=4, attacks=0, expansions=0, investments=1, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=1
-
-Turn 32
-  Saklian Tribe: treasury=76, regions=8, attacks=1, expansions=0, investments=0, base_income=34, scale_penalty=15, effective_income=19, maintenance=8, net=11, doctrine=Adaptive Coastal Forest, homeland=0, core=7, frontier=1
-  Aruangos Tribe: treasury=103, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=1
-  Rnutuan Tribe: treasury=149, regions=18, attacks=1, expansions=0, investments=0, base_income=78, scale_penalty=45, effective_income=33, maintenance=18, net=15, doctrine=Adaptive Forest Plains, homeland=1, core=14, frontier=3
-  Veneunar Tribe: treasury=71, regions=5, attacks=0, expansions=1, investments=0, base_income=22, scale_penalty=6, effective_income=16, maintenance=5, net=11, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=2
-
-Turn 33
-  Saklian Tribe: treasury=86, regions=9, attacks=1, expansions=0, investments=0, base_income=39, scale_penalty=18, effective_income=21, maintenance=9, net=12, doctrine=Adaptive Coastal Forest, homeland=0, core=8, frontier=1
-  Aruangos Tribe: treasury=112, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=1
-  Rnutuan Tribe: treasury=163, regions=19, attacks=1, expansions=0, investments=0, base_income=83, scale_penalty=48, effective_income=35, maintenance=19, net=16, doctrine=Adaptive Forest Plains, homeland=1, core=15, frontier=3
-  Veneunar Tribe: treasury=83, regions=3, attacks=0, expansions=0, investments=1, base_income=15, scale_penalty=0, effective_income=15, maintenance=3, net=12, doctrine=Adaptive Coastal Forest, homeland=0, core=2, frontier=1
-
-Turn 34
-  Saklian Tribe: treasury=95, regions=8, attacks=1, expansions=0, investments=0, base_income=34, scale_penalty=15, effective_income=19, maintenance=8, net=11, doctrine=Adaptive Coastal Forest, homeland=0, core=6, frontier=2
-  Aruangos Tribe: treasury=121, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-  Rnutuan Tribe: treasury=178, regions=20, attacks=1, expansions=0, investments=0, base_income=88, scale_penalty=51, effective_income=37, maintenance=20, net=17, doctrine=Adaptive Forest Plains, homeland=1, core=15, frontier=4
-  Veneunar Tribe: treasury=93, regions=3, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=0, effective_income=15, maintenance=3, net=12, doctrine=Adaptive Coastal Forest, homeland=0, core=2, frontier=1
-
-Turn 35
-  Saklian Tribe: treasury=103, regions=7, attacks=1, expansions=0, investments=0, base_income=29, scale_penalty=12, effective_income=17, maintenance=7, net=10, doctrine=Adaptive Coastal Forest, homeland=0, core=5, frontier=2
-  Aruangos Tribe: treasury=130, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-  Rnutuan Tribe: treasury=194, regions=21, attacks=1, expansions=0, investments=0, base_income=93, scale_penalty=54, effective_income=39, maintenance=21, net=18, doctrine=Adaptive Forest Plains, homeland=1, core=16, frontier=4
-  Veneunar Tribe: treasury=103, regions=3, attacks=1, expansions=0, investments=0, base_income=15, scale_penalty=0, effective_income=15, maintenance=3, net=12, doctrine=Adaptive Coastal Forest, homeland=0, core=2, frontier=1
-
-Turn 36
-  Saklian Tribe: treasury=108, regions=6, attacks=1, expansions=0, investments=0, base_income=24, scale_penalty=9, effective_income=15, maintenance=6, net=9, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=2
-  Aruangos Tribe: treasury=139, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-  Rnutuan Tribe: treasury=208, regions=21, attacks=1, expansions=0, investments=0, base_income=93, scale_penalty=54, effective_income=39, maintenance=21, net=18, doctrine=Adaptive Forest Plains, homeland=1, core=17, frontier=3
-  Veneunar Tribe: treasury=114, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=1, core=2, frontier=1
-
-Turn 37
-  Saklian Tribe: treasury=119, regions=5, attacks=0, expansions=0, investments=1, base_income=22, scale_penalty=6, effective_income=16, maintenance=5, net=11, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=1
-  Aruangos Tribe: treasury=148, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-  Rnutuan Tribe: treasury=225, regions=22, attacks=1, expansions=0, investments=0, base_income=98, scale_penalty=57, effective_income=41, maintenance=22, net=19, doctrine=Adaptive Forest Plains, homeland=1, core=18, frontier=3
-  Veneunar Tribe: treasury=125, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=2, frontier=2
-
-Turn 38
-  Saklian Tribe: treasury=132, regions=4, attacks=0, expansions=0, investments=1, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-  Aruangos Tribe: treasury=157, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-  Rnutuan Tribe: treasury=243, regions=23, attacks=1, expansions=0, investments=0, base_income=103, scale_penalty=60, effective_income=43, maintenance=23, net=20, doctrine=Adaptive Forest Plains, homeland=1, core=19, frontier=3
-  Veneunar Tribe: treasury=136, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=2, frontier=2
-
-Turn 39
-  Saklian Tribe: treasury=139, regions=4, attacks=0, expansions=1, investments=0, base_income=17, scale_penalty=3, effective_income=14, maintenance=4, net=10, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=1
-  Aruangos Tribe: treasury=169, regions=5, attacks=1, expansions=0, investments=0, base_income=25, scale_penalty=6, effective_income=19, maintenance=5, net=14, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=1
-  Rnutuan Tribe: treasury=261, regions=23, attacks=1, expansions=0, investments=0, base_income=103, scale_penalty=60, effective_income=43, maintenance=23, net=20, doctrine=Martial Forest Plains, homeland=1, core=19, frontier=3
-  Veneunar Tribe: treasury=147, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=2, frontier=2
-
-Turn 40
-  Saklian Tribe: treasury=151, regions=3, attacks=0, expansions=0, investments=1, base_income=15, scale_penalty=0, effective_income=15, maintenance=3, net=12, doctrine=Adaptive Coastal Forest, homeland=0, core=2, frontier=1
-  Aruangos Tribe: treasury=178, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-  Rnutuan Tribe: treasury=280, regions=24, attacks=1, expansions=0, investments=0, base_income=108, scale_penalty=63, effective_income=45, maintenance=24, net=21, doctrine=Martial Forest Plains, homeland=1, core=19, frontier=4
-  Veneunar Tribe: treasury=159, regions=5, attacks=1, expansions=0, investments=0, base_income=25, scale_penalty=6, effective_income=19, maintenance=5, net=14, doctrine=Adaptive Coastal Forest, homeland=0, core=2, frontier=3
-
-Turn 41
-  Saklian Tribe: treasury=155, regions=2, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=2, net=8, doctrine=Adaptive Coastal Forest, homeland=0, core=1, frontier=1
-  Aruangos Tribe: treasury=187, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-  Rnutuan Tribe: treasury=297, regions=24, attacks=1, expansions=0, investments=0, base_income=108, scale_penalty=63, effective_income=45, maintenance=24, net=21, doctrine=Martial Forest Plains, homeland=1, core=20, frontier=3
-  Veneunar Tribe: treasury=172, regions=6, attacks=1, expansions=0, investments=0, base_income=30, scale_penalty=9, effective_income=21, maintenance=6, net=15, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=3
-
-Turn 42
-  Saklian Tribe: treasury=161, regions=2, attacks=1, expansions=0, investments=0, base_income=10, scale_penalty=0, effective_income=10, maintenance=2, net=8, doctrine=Adaptive Coastal Forest, homeland=0, core=0, frontier=2
-  Aruangos Tribe: treasury=196, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-  Rnutuan Tribe: treasury=313, regions=23, attacks=1, expansions=0, investments=0, base_income=103, scale_penalty=60, effective_income=43, maintenance=23, net=20, doctrine=Martial Forest Plains, homeland=1, core=20, frontier=2
-  Veneunar Tribe: treasury=186, regions=7, attacks=1, expansions=0, investments=0, base_income=35, scale_penalty=12, effective_income=23, maintenance=7, net=16, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=4
-
-Turn 43
-  Saklian Tribe: treasury=163, regions=1, attacks=1, expansions=0, investments=0, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Adaptive Coastal Forest, homeland=0, core=1, frontier=0
-  Aruangos Tribe: treasury=207, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-  Rnutuan Tribe: treasury=332, regions=24, attacks=1, expansions=0, investments=0, base_income=108, scale_penalty=63, effective_income=45, maintenance=24, net=21, doctrine=Martial Forest Plains, homeland=1, core=21, frontier=2
-  Veneunar Tribe: treasury=200, regions=7, attacks=1, expansions=0, investments=0, base_income=35, scale_penalty=12, effective_income=23, maintenance=7, net=16, doctrine=Adaptive Coastal Forest, homeland=0, core=3, frontier=4
-
-Turn 44
-  Saklian Tribe: treasury=163, regions=1, attacks=1, expansions=0, investments=0, base_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Adaptive Coastal Forest, homeland=0, core=1, frontier=0
-  Aruangos Tribe: treasury=219, regions=5, attacks=1, expansions=0, investments=0, base_income=25, scale_penalty=6, effective_income=19, maintenance=5, net=14, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=1
-  Rnutuan Tribe: treasury=352, regions=25, attacks=1, expansions=0, investments=0, base_income=113, scale_penalty=66, effective_income=47, maintenance=25, net=22, doctrine=Martial Forest Plains, homeland=1, core=22, frontier=2
-  Veneunar Tribe: treasury=210, regions=5, attacks=1, expansions=0, investments=0, base_income=25, scale_penalty=6, effective_income=19, maintenance=5, net=14, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=1
-
-Turn 45
-  Saklian Tribe: treasury=163, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Coastal Forest, homeland=0, core=0, frontier=0
-  Aruangos Tribe: treasury=232, regions=6, attacks=1, expansions=0, investments=0, base_income=30, scale_penalty=9, effective_income=21, maintenance=6, net=15, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=2
-  Rnutuan Tribe: treasury=372, regions=25, attacks=1, expansions=0, investments=0, base_income=113, scale_penalty=66, effective_income=47, maintenance=25, net=22, doctrine=Martial Forest Plains, homeland=1, core=21, frontier=3
-  Veneunar Tribe: treasury=222, regions=5, attacks=1, expansions=0, investments=0, base_income=25, scale_penalty=6, effective_income=19, maintenance=5, net=14, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=1
-
-Turn 46
-  Saklian Tribe: treasury=163, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Coastal Forest, homeland=0, core=0, frontier=0
-  Aruangos Tribe: treasury=242, regions=7, attacks=0, expansions=1, investments=0, base_income=32, scale_penalty=12, effective_income=20, maintenance=7, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=3
-  Rnutuan Tribe: treasury=393, regions=26, attacks=1, expansions=0, investments=0, base_income=118, scale_penalty=69, effective_income=49, maintenance=26, net=23, doctrine=Martial Forest Plains, homeland=1, core=21, frontier=4
-  Veneunar Tribe: treasury=231, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-
-Turn 47
-  Saklian Tribe: treasury=163, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Coastal Forest, homeland=0, core=0, frontier=0
-  Aruangos Tribe: treasury=258, regions=7, attacks=0, expansions=0, investments=1, base_income=35, scale_penalty=12, effective_income=23, maintenance=7, net=16, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=3
-  Rnutuan Tribe: treasury=412, regions=26, attacks=1, expansions=0, investments=0, base_income=118, scale_penalty=69, effective_income=49, maintenance=26, net=23, doctrine=Martial Forest Plains, homeland=1, core=22, frontier=3
-  Veneunar Tribe: treasury=240, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-
-Turn 48
-  Saklian Tribe: treasury=163, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Coastal Forest, homeland=0, core=0, frontier=0
-  Aruangos Tribe: treasury=270, regions=7, attacks=1, expansions=0, investments=0, base_income=35, scale_penalty=12, effective_income=23, maintenance=7, net=16, doctrine=Adaptive Coastal Forest, homeland=0, core=5, frontier=2
-  Rnutuan Tribe: treasury=430, regions=25, attacks=1, expansions=0, investments=0, base_income=113, scale_penalty=66, effective_income=47, maintenance=25, net=22, doctrine=Martial Forest Plains, homeland=1, core=23, frontier=1
-  Veneunar Tribe: treasury=252, regions=5, attacks=1, expansions=0, investments=0, base_income=25, scale_penalty=6, effective_income=19, maintenance=5, net=14, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=1
-
-Turn 49
-  Saklian Tribe: treasury=163, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Coastal Forest, homeland=0, core=0, frontier=0
-  Aruangos Tribe: treasury=282, regions=7, attacks=1, expansions=0, investments=0, base_income=35, scale_penalty=12, effective_income=23, maintenance=7, net=16, doctrine=Adaptive Coastal Forest, homeland=0, core=6, frontier=1
-  Rnutuan Tribe: treasury=451, regions=26, attacks=1, expansions=0, investments=0, base_income=118, scale_penalty=69, effective_income=49, maintenance=26, net=23, doctrine=Martial Forest Plains, homeland=1, core=24, frontier=1
-  Veneunar Tribe: treasury=261, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0
-
-Turn 50
-  Saklian Tribe: treasury=163, regions=0, attacks=0, expansions=0, investments=0, base_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Coastal Forest, homeland=0, core=0, frontier=0
-  Aruangos Tribe: treasury=296, regions=7, attacks=1, expansions=0, investments=0, base_income=35, scale_penalty=12, effective_income=23, maintenance=7, net=16, doctrine=Adaptive Coastal Forest, homeland=0, core=6, frontier=1
-  Rnutuan Tribe: treasury=472, regions=26, attacks=1, expansions=0, investments=0, base_income=118, scale_penalty=69, effective_income=49, maintenance=26, net=23, doctrine=Martial Forest Plains, homeland=1, core=23, frontier=2
-  Veneunar Tribe: treasury=270, regions=4, attacks=1, expansions=0, investments=0, base_income=20, scale_penalty=3, effective_income=17, maintenance=4, net=13, doctrine=Adaptive Coastal Forest, homeland=0, core=4, frontier=0

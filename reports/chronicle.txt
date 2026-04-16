@@ -1,51 +1,48 @@
 Simulation Chronicle
 
-On turn 2, Rnutuan Tribe made its first expansion into M7.
-On turn 2, Aruangos Tribe made its first expansion into M4.
-On turn 2, Saklian Tribe made its first expansion into M1.
+On turn 2, Akhakiar Tribe made its first expansion into M1.
 On turn 2, Veneunar Tribe made its first expansion into M10.
+On turn 2, Noraraand Tribe made its first expansion into M7.
+On turn 2, Persermia Tribe made its first expansion into M4.
 
 Opening Phase
 
-The strongest early land grab was Rnutuan Tribe's claim of M7 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe led expansion with 2 claim(s).
-Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe invested most often with 1 investment(s).
-By the end of turn 5, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe held the opening treasury lead at 10.
+The strongest early land grab was Akhakiar Tribe's claim of M1 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe led expansion with 1 claim(s).
+Across the first 5 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe invested most often with 1 investment(s).
+By the end of turn 5, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe held the opening treasury lead at 31.
 
 Phase Summaries
 
-Early phase: Rnutuan Tribe was strongest by the end of turns 1-16, with Rnutuan Tribe on 18 treasury and 9 regions. 13 successful attacks shifted control of 7 regions. 24 expansions added 24 new regions. 12 investments improved existing holdings. Rnutuan Tribe gained 8 regions.
-Mid phase: Rnutuan Tribe was strongest by the end of turns 17-33, with Rnutuan Tribe on 163 treasury and 19 regions. 29 successful attacks shifted control of 18 regions. 7 expansions added 7 new regions. 17 investments improved existing holdings. Rnutuan Tribe gained 10 regions while Veneunar Tribe lost 5 regions.
-Late phase: Rnutuan Tribe was strongest by the end of turns 34-50, with Rnutuan Tribe on 472 treasury and 26 regions. 33 successful attacks shifted control of 16 regions. 2 expansions added 2 new regions. 4 investments improved existing holdings. Rnutuan Tribe gained 7 regions while Saklian Tribe lost 9 regions. Veneunar Tribe improved its standing most during the phase.
-
-Turning Points
-
-Mid phase break: Rnutuan Tribe gained 10 regions while Veneunar Tribe lost 5 regions.
-Late collapse: Rnutuan Tribe's capture of I1 eliminated Saklian Tribe's last territorial hold.
+Early phase: Akhakiar Tribe and Persermia Tribe were strongest by the end of turns 1-1, with Akhakiar Tribe on 5 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
+Mid phase: Akhakiar Tribe and Persermia Tribe were strongest by the end of turns 2-2, with Akhakiar Tribe on 7 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 4 expansions added 4 new regions. Akhakiar Tribe gained 1 region.
 
 Outcome Type
 
-Outcome type: midgame_break.
+Outcome type: balanced_contest.
 
 Faction Trajectories
 
-Saklian Tribe opened with 5 claims and grew to 4 regions by the end of the opening phase, peaked at 9 regions on turn 33 before slipping to 0 regions, and closed on 163 treasury without territory after 30 attacks.
-Aruangos Tribe opened with 6 claims and grew to 7 regions by the end of the opening phase, peaked at 9 regions on turn 15 before slipping to 7 regions, and finished rank 2 on 296 treasury with 7 regions after gaining 291 treasury overall.
-Rnutuan Tribe opened with 7 claims and grew to 9 regions by the end of the opening phase, built steadily past the opening, reaching 26 regions by turn 50, and finished first with 26 regions, 472 treasury, and 39 total attacks.
-Veneunar Tribe opened with 6 claims and grew to 8 regions by the end of the opening phase, peaked at 9 regions on turn 17 before slipping to 4 regions, and finished rank 3 on 270 treasury with 4 regions after gaining 265 treasury overall.
+Akhakiar Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 2, and finished first with 2 regions, 7 treasury, and 0 total attacks.
+Persermia Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 2, and finished rank 2 on 7 treasury with 2 regions after gaining 2 treasury overall.
+Noraraand Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 2, and finished rank 3 on 7 treasury with 2 regions after gaining 2 treasury overall.
+Veneunar Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 2, and finished rank 4 on 7 treasury with 2 regions after gaining 2 treasury overall.
 
 Strategic Interpretation
 
-Rnutuan Tribe’s Martial Forest Plains approach created the midgame break because its 10-region surge coincided with Veneunar Tribe losing 5 regions, which turned an early lead into a separation the ring map could not absorb. That mattered because once the board stopped being evenly shared, Rnutuan could convert territory into a widening regional and treasury edge, while the others could not recover enough ground to recontest the center. The late capture of I1 then removed Saklian Tribe’s last hold, which prevented any final stabilization and locked in the 19-region margin.
-The closest challenger was Aruangos Tribe (Adaptive Coastal Forest) at 296 treasury and 7 regions.
+On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
+No faction broke the map open. The run stayed competitive to the end, with 4 factions still alive and only 0-region variation across the final board.
+No decisive collapse or phase break separated the field. Akhakiar Tribe edged ahead in a finish that remained close across 4 surviving factions.
+The final margin stayed narrow: Akhakiar Tribe beat Persermia Tribe by 0 treasury.
+The closest challenger was Persermia Tribe (Adaptive Coastal Forest) at 7 treasury and 2 regions.
 
 Final Standings
 
-Rnutuan Tribe finished first with a treasury of 472 and control of 26 regions.
-Aruangos Tribe ended with a treasury of 296 and 7 regions.
-Veneunar Tribe ended with a treasury of 270 and 4 regions.
-Saklian Tribe ended with a treasury of 163 and 0 regions.
+Akhakiar Tribe finished first with a treasury of 7 and control of 2 regions.
+Persermia Tribe ended with a treasury of 7 and 2 regions.
+Noraraand Tribe ended with a treasury of 7 and 2 regions.
+Veneunar Tribe ended with a treasury of 7 and 2 regions.
 
 Victor's History
 
-The Rnutuan Tribe’s victory was not accidental but the product of a Martial Forest Plains approach that gave them the decisive middle-phase break. They opened with 7 claims, grew to 9 regions by the end of the opening phase, and then built steadily past the opening until they reached 26 regions by turn 50, finishing first with 472 treasury and 39 total attacks. The midgame was the turning point: Rnutuan gained 10 regions while Veneunar lost 5, and from that point the contest was effectively set. Aruangos remained the nearest rival, but its rise to 9 regions before slipping back to 7 showed a sound opening without the staying power to match Rnutuan’s steadier advance.
+Akhakiar Tribe's historians would treat this run as evidence that their adaptive coastal forest habits, forged by geography, proved stronger than the field's scattered efforts. The final margin stayed narrow: Akhakiar Tribe beat Persermia Tribe by 0 treasury. From that partisan view, Persermia Tribe's resistance was real but never as durable as Akhakiar Tribe's final position.

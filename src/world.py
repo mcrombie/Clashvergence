@@ -9,14 +9,12 @@ from src.region_naming import assign_region_founding_name
 def create_world(
     map_name="seven_region_ring",
     num_factions=4,
-    use_legacy_strategy_bias=True,
 ) -> WorldState:
     validate_map_factions(map_name, num_factions)
     map_definition = MAPS[map_name]
     factions = create_factions(
         num_factions=num_factions,
         naming_seed=map_name,
-        use_legacy_strategy_bias=use_legacy_strategy_bias,
     )
     owner_name_map = {
         faction.internal_id: faction_name

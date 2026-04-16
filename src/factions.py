@@ -8,12 +8,6 @@ from src.models import Faction
 
 
 DEFAULT_STARTING_TREASURY = 1
-FACTION_STRATEGY_CYCLE = [
-    "expansionist",
-    "balanced",
-    "economic",
-    "opportunist",
-]
 
 
 def get_faction_name(index):
@@ -28,20 +22,16 @@ def create_factions(
     num_factions=4,
     starting_treasury=DEFAULT_STARTING_TREASURY,
     naming_seed="default",
-    use_legacy_strategy_bias=True,
 ):
     identities = generate_faction_identities(num_factions, naming_seed=naming_seed)
 
     factions = {}
     for index, identity in enumerate(identities, start=1):
-        strategy = FACTION_STRATEGY_CYCLE[(index - 1) % len(FACTION_STRATEGY_CYCLE)]
         factions[identity.display_name] = Faction(
             name=identity.display_name,
-            strategy=strategy,
             treasury=starting_treasury,
             identity=identity,
             starting_treasury=starting_treasury,
-            use_legacy_strategy_bias=use_legacy_strategy_bias,
         )
     return factions
 

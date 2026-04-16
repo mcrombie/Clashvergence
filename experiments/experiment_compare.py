@@ -21,14 +21,14 @@ DEFAULT_MAPS = sorted(MAPS)
 DEFAULT_TURNS = [5, 10, 20, 40, 80, 160]
 DEFAULT_RUNS = 200
 DEFAULT_SEED = 12345
-DEFAULT_OUTPUT = ROOT / "reports/combat_strategy_comparison.txt"
+DEFAULT_OUTPUT = ROOT / "reports/combat_doctrine_comparison.txt"
 DEFAULT_INVALID_MAP_POLICY = "skip"
 DEFAULT_NUM_FACTIONS = 4
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Compare faction performance across maps and turn horizons."
+        description="Compare faction doctrine performance across maps and turn horizons."
     )
     parser.add_argument(
         "--maps",
@@ -144,8 +144,8 @@ def validate_map_faction_starts(map_name, num_factions):
 def run_comparison_setting(map_name, num_turns, runs, num_factions):
     template_world = create_world(map_name=map_name, num_factions=num_factions)
     faction_names = list(template_world.factions.keys())
-    faction_strategies = {
-        faction_name: faction.strategy
+    faction_doctrines = {
+        faction_name: faction.doctrine_label
         for faction_name, faction in template_world.factions.items()
     }
 
@@ -221,7 +221,7 @@ def run_comparison_setting(map_name, num_turns, runs, num_factions):
         "num_turns": num_turns,
         "runs": runs,
         "factions": faction_names,
-        "strategies": faction_strategies,
+        "doctrines": faction_doctrines,
         "outright_win_rate": {
             faction_name: outright_wins[faction_name] / runs
             for faction_name in faction_names
@@ -289,22 +289,22 @@ def format_result_table(result):
     lines.append(f"Turns: {result['num_turns']}")
     lines.append(f"Simulations: {result['runs']}")
     lines.append("")
-    lines.append("Strategies:")
+    lines.append("Doctrines:")
     for faction_name in result["factions"]:
-        lines.append(f"  {faction_name}: {result['strategies'][faction_name]}")
+        lines.append(f"  {faction_name}: {result['doctrines'][faction_name]}")
     lines.append("")
     lines.append(
-        f"{'Faction':<10} {'Strategy':<13} {'Win':>8} {'Shared':>8} "
+        f"{'Faction':<18} {'Doctrine':<24} {'Win':>8} {'Shared':>8} "
         f"{'Treasury':>10} {'Regions':>8} {'Attacks':>8} {'Income':>10} {'Scale':>10} {'Maint':>10} {'Net':>10} {'Elim':>8} {'ElimTurn':>10}"
     )
-    lines.append("-" * 138)
+    lines.append("-" * 158)
 
     for faction_name in result["factions"]:
         average_elimination_turn = result["average_elimination_turn"][faction_name]
         elimination_turn_text = f"{average_elimination_turn:>10.2f}" if average_elimination_turn is not None else f"{'n/a':>10}"
         lines.append(
-            f"{faction_name:<10} "
-            f"{result['strategies'][faction_name]:<13} "
+            f"{faction_name:<18} "
+            f"{result['doctrines'][faction_name]:<24} "
             f"{result['outright_win_rate'][faction_name]:>7.2%} "
             f"{result['shared_first_rate'][faction_name]:>7.2%} "
             f"{result['average_treasury'][faction_name]:>10.3f} "
@@ -341,7 +341,7 @@ def format_result_table(result):
 
 def build_report(results, seed):
     lines = []
-    lines.append("Map Strategy Comparison")
+    lines.append("Map Doctrine Comparison")
     lines.append("")
     lines.append(f"Seed: {seed}")
     if results:
