@@ -1,51 +1,53 @@
 Simulation Chronicle
 
-On turn 2, Rnutuan Tribe made its first expansion into M7.
-On turn 2, Veneunar Tribe made its first expansion into M10.
-On turn 2, Aruangos Tribe made its first expansion into M4.
-On turn 2, Saklian Tribe made its first expansion into M1.
+On turn 2, Venhaenen Tribe made its first expansion into M.
+On turn 2, Senorsia Tribe made its first expansion into C.
+On turn 4, Veranian Tribe made its first expansion into F.
+On turn 5, Dranhuon Tribe made its first expansion into K.
 
 Opening Phase
 
-The strongest early land grab was Rnutuan Tribe's claim of M7 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe led expansion with 2 claim(s).
-Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe invested most often with 1 investment(s).
-By the end of turn 5, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe held the opening treasury lead at 10.
+The strongest early land grab was Venhaenen Tribe's claim of M on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Senorsia Tribe led expansion with 2 claim(s).
+Across the first 5 turns, Venhaenen Tribe, Senorsia Tribe, Dranhuon Tribe, and Veranian Tribe invested most often with 1 investment(s).
+By the end of turn 5, Senorsia Tribe and Veranian Tribe held the opening treasury lead at 16.
 
 Phase Summaries
 
-Early phase: Rnutuan Tribe was strongest by the end of turns 1-16, with Rnutuan Tribe on 15 treasury and 10 regions. 15 successful attacks shifted control of 8 regions. 25 expansions added 25 new regions. 14 investments improved existing holdings. Rnutuan Tribe gained 9 regions.
-Mid phase: Saklian Tribe was strongest by the end of turns 17-33, with Saklian Tribe on 209 treasury and 21 regions. 32 successful attacks shifted control of 20 regions. 2 expansions added 2 new regions. 10 investments improved existing holdings. Saklian Tribe gained 15 regions while Rnutuan Tribe lost 6 regions. Veneunar Tribe improved its standing most during the phase.
-Late phase: Saklian Tribe was strongest by the end of turns 34-50, with Saklian Tribe on 573 treasury and 26 regions. 21 successful attacks shifted control of 7 regions. 6 expansions added 6 new regions. 10 investments improved existing holdings. Saklian Tribe gained 5 regions while Veneunar Tribe lost 1 region.
+Early phase: Venhaenen Tribe and Senorsia Tribe were strongest by the end of turns 1-1, with Venhaenen Tribe on 5 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
+Mid phase: Veranian Tribe was strongest by the end of turns 2-3, with Veranian Tribe on 11 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 5 successful attacks shifted control of 1 region. 3 expansions added 3 new regions. Senorsia Tribe gained 2 regions.
+Late phase: Senorsia Tribe and Veranian Tribe were strongest by the end of turns 4-5, with Senorsia Tribe on 16 treasury and 4 regions. 5 successful attacks shifted control of 1 region. 2 expansions added 2 new regions. Senorsia Tribe gained 1 region.
 
 Turning Points
 
-Mid phase break: Saklian Tribe gained 15 regions while Rnutuan Tribe lost 6 regions.
-Mid collapse: Saklian Tribe's capture of O2 eliminated Aruangos Tribe's last territorial hold.
+Late leader change: Senorsia Tribe took the territorial lead.
 
 Outcome Type
 
-Outcome type: midgame_break.
+Outcome type: balanced_contest.
 
 Faction Trajectories
 
-Saklian Tribe opened with 7 claims and grew to 6 regions by the end of the opening phase, built steadily past the opening, reaching 26 regions by turn 50, and finished first with 26 regions, 573 treasury, and 40 total attacks.
-Aruangos Tribe opened with 6 claims and grew to 4 regions by the end of the opening phase, peaked at 7 regions on turn 8 before slipping to 0 regions, and closed on 13 treasury without territory after 10 attacks.
-Rnutuan Tribe opened with 6 claims and grew to 10 regions by the end of the opening phase, peaked at 11 regions on turn 27 before slipping to 6 regions, and finished rank 2 on 264 treasury with 6 regions after gaining 259 treasury overall.
-Veneunar Tribe opened with 6 claims and grew to 9 regions by the end of the opening phase, peaked at 11 regions on turn 21 before slipping to 5 regions, and finished rank 3 on 231 treasury with 5 regions after gaining 226 treasury overall.
+Venhaenen Tribe spent the opening consolidating its start with 1 investment, used the middle turns to scale economically, adding 2 treasury, and finished rank 4 on 10 treasury with 1 region after gaining 5 treasury overall.
+Senorsia Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 4 regions by turn 5, and finished first with 4 regions, 16 treasury, and 2 total attacks.
+Dranhuon Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 5, and finished rank 3 on 14 treasury with 2 regions after gaining 9 treasury overall.
+Veranian Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 5, and finished rank 2 on 16 treasury with 2 regions after gaining 11 treasury overall.
 
 Strategic Interpretation
 
-After a contested opening, Saklian Tribe’s martial forest plains approach created the midgame break because a 15-region surge while Rnutuan Tribe lost 6 regions flipped the board from early Rnutuan strength to Saklian control. That mattered because the map was a 37-region ring, so once Saklian established separation in the middle phase, the late game became a consolidation rather than a race. The capture of O2 that removed Aruangos Tribe’s last hold further reduced resistance, which prevented any recovery path and let Saklian finish with a 20-region lead.
-The closest challenger was Rnutuan Tribe (Adaptive Coastal Forest) at 264 treasury and 6 regions.
+On this compact 13-region map, early contact came quickly.
+No faction broke the map open. The run stayed competitive to the end, with 4 factions still alive and only 3-region variation across the final board.
+No decisive collapse or phase break separated the field. Senorsia Tribe edged ahead in a finish that remained close across 4 surviving factions.
+The final margin stayed narrow: Senorsia Tribe beat Veranian Tribe by 0 treasury.
+The closest challenger was Veranian Tribe (Martial Plains) at 16 treasury and 2 regions.
 
 Final Standings
 
-Saklian Tribe finished first with a treasury of 573 and control of 26 regions.
-Rnutuan Tribe ended with a treasury of 264 and 6 regions.
-Veneunar Tribe ended with a treasury of 231 and 5 regions.
-Aruangos Tribe ended with a treasury of 13 and 0 regions.
+Senorsia Tribe finished first with a treasury of 16 and control of 4 regions.
+Veranian Tribe ended with a treasury of 16 and 2 regions.
+Dranhuon Tribe ended with a treasury of 14 and 2 regions.
+Venhaenen Tribe ended with a treasury of 10 and 1 region.
 
 Victor's History
 
-The result was settled in the middle phase, when the Saklian Tribe’s Martial Forest Plains approach produced the decisive break and carried the contest beyond recovery. After a modest opening, Saklian built steadily and then gained 15 regions in the mid phase, while Rnutuan, despite an early lead, lost 6 regions and could not hold its position. By turn 50, Saklian stood first with 26 regions and 573 treasury, a clear mark of coherent execution over the full campaign. The collapse of Aruangos at O2 and the later narrowing of Rnutuan’s hold only confirmed that the stronger structure belonged to Saklian.
+Senorsia Tribe's historians would treat this run as evidence that their adaptive hill forest habits, forged by geography, proved stronger than the field's scattered efforts. They would point first to the decisive shift: late leader change: Senorsia Tribe took the territorial lead. The final margin stayed narrow: Senorsia Tribe beat Veranian Tribe by 0 treasury. From that partisan view, Veranian Tribe's resistance was real but never as durable as Senorsia Tribe's final position.

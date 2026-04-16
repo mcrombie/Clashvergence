@@ -12,7 +12,7 @@ if str(ROOT) not in sys.path:
 
 from src.factions import get_map_starting_region_counts
 from src.maps import MAPS
-from src.metrics import get_metrics_log
+from src.metrics import analyze_competition_metrics, get_metrics_log
 from src.simulation import run_simulation
 from src.world import create_world
 
@@ -159,6 +159,14 @@ def run_comparison_setting(map_name, num_turns, runs, num_factions):
     average_maintenance = {faction_name: [] for faction_name in faction_names}
     average_net_income = {faction_name: [] for faction_name in faction_names}
     average_attacks = {faction_name: [] for faction_name in faction_names}
+    elimination_counts = {faction_name: 0 for faction_name in faction_names}
+    elimination_turns = {faction_name: [] for faction_name in faction_names}
+    lead_changes = []
+    runaway_count = 0
+    runaway_turns = []
+    comeback_count = 0
+    comeback_deficits = []
+    eliminated_faction_counts = []
 
     for _ in range(runs):
         world = create_world(map_name=map_name, num_factions=num_factions)
@@ -170,6 +178,7 @@ def run_comparison_setting(map_name, num_turns, runs, num_factions):
         }
         final_regions = count_owned_regions(world)
         final_economy = summarize_economy(world)
+        competition = analyze_competition_metrics(world)
         best_treasury = max(final_treasuries.values())
         leaders = [
             faction_name
@@ -192,6 +201,20 @@ def run_comparison_setting(map_name, num_turns, runs, num_factions):
             average_maintenance[faction_name].append(final_economy[faction_name]["maintenance"])
             average_net_income[faction_name].append(final_economy[faction_name]["net_income"])
             average_attacks[faction_name].append(final_economy[faction_name]["attacks"])
+
+            elimination = competition["eliminations"][faction_name]
+            if elimination["eliminated"]:
+                elimination_counts[faction_name] += 1
+                elimination_turns[faction_name].append(elimination["turn"])
+
+        lead_changes.append(competition["lead_changes"])
+        if competition["runaway"]["detected"]:
+            runaway_count += 1
+            runaway_turns.append(competition["runaway"]["start_turn"])
+        if competition["comeback"]["detected"]:
+            comeback_count += 1
+            comeback_deficits.append(competition["comeback"]["max_deficit_overcome"])
+        eliminated_faction_counts.append(competition["eliminated_factions"])
 
     return {
         "map_name": map_name,
@@ -239,6 +262,24 @@ def run_comparison_setting(map_name, num_turns, runs, num_factions):
             faction_name: mean(average_attacks[faction_name])
             for faction_name in faction_names
         },
+        "elimination_rate": {
+            faction_name: elimination_counts[faction_name] / runs
+            for faction_name in faction_names
+        },
+        "average_elimination_turn": {
+            faction_name: (
+                mean(elimination_turns[faction_name])
+                if elimination_turns[faction_name]
+                else None
+            )
+            for faction_name in faction_names
+        },
+        "average_lead_changes": mean(lead_changes) if lead_changes else 0.0,
+        "runaway_rate": runaway_count / runs,
+        "average_runaway_turn": mean(runaway_turns) if runaway_turns else None,
+        "comeback_rate": comeback_count / runs,
+        "average_comeback_deficit": mean(comeback_deficits) if comeback_deficits else 0.0,
+        "average_eliminated_factions": mean(eliminated_faction_counts) if eliminated_faction_counts else 0.0,
     }
 
 
@@ -254,11 +295,13 @@ def format_result_table(result):
     lines.append("")
     lines.append(
         f"{'Faction':<10} {'Strategy':<13} {'Win':>8} {'Shared':>8} "
-        f"{'Treasury':>10} {'Regions':>8} {'Attacks':>8} {'Income':>10} {'Scale':>10} {'Maint':>10} {'Net':>10}"
+        f"{'Treasury':>10} {'Regions':>8} {'Attacks':>8} {'Income':>10} {'Scale':>10} {'Maint':>10} {'Net':>10} {'Elim':>8} {'ElimTurn':>10}"
     )
-    lines.append("-" * 118)
+    lines.append("-" * 138)
 
     for faction_name in result["factions"]:
+        average_elimination_turn = result["average_elimination_turn"][faction_name]
+        elimination_turn_text = f"{average_elimination_turn:>10.2f}" if average_elimination_turn is not None else f"{'n/a':>10}"
         lines.append(
             f"{faction_name:<10} "
             f"{result['strategies'][faction_name]:<13} "
@@ -270,8 +313,28 @@ def format_result_table(result):
             f"{result['average_income'][faction_name]:>10.3f} "
             f"{result['average_empire_penalty'][faction_name]:>10.3f} "
             f"{result['average_maintenance'][faction_name]:>10.3f} "
-            f"{result['average_net_income'][faction_name]:>10.3f}"
+            f"{result['average_net_income'][faction_name]:>10.3f} "
+            f"{result['elimination_rate'][faction_name]:>7.2%} "
+            f"{elimination_turn_text}"
         )
+
+    lines.append("")
+    lines.append("Dynamics:")
+    runaway_turn_text = (
+        f"{result['average_runaway_turn']:.2f}"
+        if result["average_runaway_turn"] is not None
+        else "n/a"
+    )
+    lines.append(
+        f"  Avg lead changes: {result['average_lead_changes']:.2f} | "
+        f"Runaway rate: {result['runaway_rate']:.2%} | "
+        f"Avg runaway turn: {runaway_turn_text}"
+    )
+    lines.append(
+        f"  Comeback rate: {result['comeback_rate']:.2%} | "
+        f"Avg max deficit overcome: {result['average_comeback_deficit']:.2f} | "
+        f"Avg eliminated factions: {result['average_eliminated_factions']:.2f}"
+    )
 
     return "\n".join(lines)
 

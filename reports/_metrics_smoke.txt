@@ -1,0 +1,25 @@
+Map Strategy Comparison
+
+Seed: 12345
+Configured factions: 4
+
+Map: thirteen_region_ring
+Turns: 5
+Simulations: 2
+
+Strategies:
+  Venhaenen Tribe: expansionist
+  Senorsia Tribe: balanced
+  Dranhuon Tribe: economic
+  Veranian Tribe: opportunist
+
+Faction    Strategy           Win   Shared   Treasury  Regions  Attacks     Income      Scale      Maint        Net     Elim   ElimTurn
+------------------------------------------------------------------------------------------------------------------------------------------
+Venhaenen Tribe expansionist   50.00%   0.00%      9.500    2.000    3.000     27.000      1.500      7.500     18.000  50.00%       4.00
+Senorsia Tribe balanced        0.00%   0.00%     15.500    2.500    1.500     35.000      0.000     10.000     25.000   0.00%        n/a
+Dranhuon Tribe economic       50.00%   0.00%     14.000    2.000    3.000     32.000      0.000      7.000     25.000   0.00%        n/a
+Veranian Tribe opportunist     0.00%   0.00%     15.500    2.000    3.500     33.000      0.000      9.000     24.000   0.00%        n/a
+
+Dynamics:
+  Avg lead changes: 0.50 | Runaway rate: 100.00% | Avg runaway turn: 4.00
+  Comeback rate: 50.00% | Avg max deficit overcome: 2.00 | Avg eliminated factions: 0.50

@@ -5,7 +5,7 @@ from src.world import create_world
 from src.simulation import run_simulation
 from src.narrative import build_chronicle
 from src.event_analysis import get_event_log
-from src.metrics import get_metrics_log
+from src.metrics import analyze_competition_metrics, get_metrics_log
 from src.simulation_ui import write_simulation_html
 from src.region_naming import format_region_reference
 from src.terrain import format_terrain_label
@@ -118,12 +118,58 @@ def format_event(event, world):
 def build_results_report(world, map_name, num_turns, starting_treasuries):
     """Builds a detailed simulation report."""
     lines = []
+    competition = analyze_competition_metrics(world)
 
     lines.append("Detailed Simulation Results")
     lines.append("")
     lines.extend(build_simulation_setup(world, map_name, num_turns, starting_treasuries))
     lines.append("")
     lines.append(build_chronicle(world))
+    lines.append("")
+    lines.append("Strategic Dynamics")
+    lines.append("")
+    lines.append(f"Outright treasury lead changes: {competition['lead_changes']}")
+
+    treasury_lead = competition["largest_treasury_lead"]
+    if treasury_lead["leader"] is not None:
+        lines.append(
+            f"Largest treasury lead: turn {treasury_lead['turn']}, "
+            f"{treasury_lead['leader']} by {treasury_lead['margin']} over {treasury_lead['runner_up']}"
+        )
+
+    region_lead = competition["largest_region_lead"]
+    if region_lead["leader"] is not None:
+        lines.append(
+            f"Largest region lead: turn {region_lead['turn']}, "
+            f"{region_lead['leader']} by {region_lead['margin']} over {region_lead['runner_up']}"
+        )
+
+    runaway = competition["runaway"]
+    if runaway["detected"]:
+        lines.append(
+            f"Runaway: yes, {runaway['winner']} took an uncontested treasury lead for good on turn {runaway['start_turn']}."
+        )
+    else:
+        lines.append("Runaway: no decisive permanent treasury lead.")
+
+    comeback = competition["comeback"]
+    if comeback["winner"] is not None:
+        lines.append(
+            f"Comeback: {'yes' if comeback['detected'] else 'no'}, "
+            f"{comeback['winner']} faced a max treasury deficit of {comeback['max_deficit_overcome']} "
+            f"and trailed by {comeback['midpoint_deficit']} at midpoint turn {comeback['midpoint_turn']}."
+        )
+
+    eliminated = [
+        f"{faction_name} on turn {data['turn']}"
+        for faction_name, data in competition["eliminations"].items()
+        if data["eliminated"]
+    ]
+    if eliminated:
+        lines.append(f"Eliminations: {', '.join(eliminated)}.")
+    else:
+        lines.append("Eliminations: none.")
+
     lines.append("")
     lines.append("Event Log")
     lines.append("")
