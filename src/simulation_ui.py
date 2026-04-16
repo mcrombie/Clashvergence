@@ -71,6 +71,10 @@ def _get_event_title(event, world):
         return f"{event.faction} failed to take {region_reference} from {defender}"
     if event.type == "invest":
         return f"{event.faction} invested in {region_reference}"
+    if event.type == "unrest_disturbance":
+        return f"Unrest disturbed {region_reference} under {event.faction}"
+    if event.type == "unrest_crisis":
+        return f"Unrest crisis hit {region_reference} under {event.faction}"
     return f"{event.faction} acted"
 
 
@@ -91,6 +95,16 @@ def _get_event_summary(event, world):
         return f"Attack failed at {chance:.0%} displayed odds.{terrain_text}"
     if event.type == "invest":
         return f"Resources increased to R{event.get('new_resources', 0)}.{terrain_text}"
+    if event.type == "unrest_disturbance":
+        return (
+            f"Moderate unrest stalled integration and forced a treasury hit of "
+            f"{abs(event.get('treasury_change', 0))}.{terrain_text}"
+        )
+    if event.type == "unrest_crisis":
+        return (
+            f"Critical unrest triggered a deeper disruption and treasury hit of "
+            f"{abs(event.get('treasury_change', 0))}.{terrain_text}"
+        )
     return "No summary available."
 
 
@@ -117,6 +131,9 @@ def build_simulation_snapshots(world):
             "integrated_owner": initial_region_history.get(region_name, {}).get("integrated_owner"),
             "integration_score": initial_region_history.get(region_name, {}).get("integration_score", 0.0),
             "core_status": initial_region_history.get(region_name, {}).get("core_status", "frontier"),
+            "unrest": initial_region_history.get(region_name, {}).get("unrest", 0.0),
+            "unrest_event_level": initial_region_history.get(region_name, {}).get("unrest_event_level", "none"),
+            "unrest_event_turns_remaining": initial_region_history.get(region_name, {}).get("unrest_event_turns_remaining", 0),
         }
         for region_name, region in world.regions.items()
     }
@@ -140,6 +157,9 @@ def build_simulation_snapshots(world):
                 "integrated_owner": region["integrated_owner"],
                 "integration_score": region["integration_score"],
                 "core_status": region["core_status"],
+                "unrest": region["unrest"],
+                "unrest_event_level": region["unrest_event_level"],
+                "unrest_event_turns_remaining": region["unrest_event_turns_remaining"],
             }
             for region_name, region in region_state.items()
         },
@@ -194,6 +214,9 @@ def build_simulation_snapshots(world):
             region_state[region_name]["integrated_owner"] = history_region["integrated_owner"]
             region_state[region_name]["integration_score"] = history_region["integration_score"]
             region_state[region_name]["core_status"] = history_region["core_status"]
+            region_state[region_name]["unrest"] = history_region.get("unrest", 0.0)
+            region_state[region_name]["unrest_event_level"] = history_region.get("unrest_event_level", "none")
+            region_state[region_name]["unrest_event_turns_remaining"] = history_region.get("unrest_event_turns_remaining", 0)
             region_state[region_name]["climate"] = history_region.get("climate", region_state[region_name]["climate"])
             region_state[region_name]["climate_label"] = format_climate_label(region_state[region_name]["climate"])
 
@@ -217,6 +240,9 @@ def build_simulation_snapshots(world):
                     "integrated_owner": region["integrated_owner"],
                     "integration_score": region["integration_score"],
                     "core_status": region["core_status"],
+                    "unrest": region["unrest"],
+                    "unrest_event_level": region["unrest_event_level"],
+                    "unrest_event_turns_remaining": region["unrest_event_turns_remaining"],
                 }
                 for region_name, region in region_state.items()
             },

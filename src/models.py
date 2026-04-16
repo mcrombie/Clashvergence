@@ -57,6 +57,8 @@ class Region:
     integration_score: float = 0.0
     core_status: str = "frontier"
     unrest: float = 0.0
+    unrest_event_level: str = "none"
+    unrest_event_turns_remaining: int = 0
     ownership_turns: int = 0
     conquest_count: int = 0
 

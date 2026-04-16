@@ -13,6 +13,7 @@ from src.heartland import (
     get_region_core_status,
     get_region_effective_income,
     get_region_maintenance_cost,
+    resolve_unrest_events,
     update_region_integration,
 )
 from src.metrics import build_turn_metrics
@@ -214,6 +215,62 @@ class HeartlandSystemTests(unittest.TestCase):
         update_region_integration(world)
 
         self.assertLess(homeland_region.unrest, 3.0)
+
+    def test_moderate_unrest_triggers_disturbance_event_without_stalling_integration(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "frontier"
+        region.integration_score = 2.0
+        region.unrest = 5.0
+        treasury_before = world.factions[faction_name].treasury
+
+        resolve_unrest_events(world)
+
+        self.assertEqual(region.unrest_event_level, "disturbance")
+        self.assertEqual(region.unrest_event_turns_remaining, 1)
+        self.assertEqual(world.events[-1].type, "unrest_disturbance")
+        self.assertEqual(world.events[-1].impact["integration_stalled"], False)
+        self.assertEqual(world.factions[faction_name].treasury, treasury_before)
+
+        score_before = region.integration_score
+        disturbed_income = get_region_effective_income(region, world)
+        update_region_integration(world)
+
+        self.assertGreater(region.integration_score, score_before)
+        self.assertEqual(region.unrest_event_level, "none")
+        self.assertLess(disturbed_income, region.resources)
+
+    def test_critical_unrest_triggers_crisis_and_lasts_two_turns(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "frontier"
+        region.integration_score = 2.0
+        region.unrest = 8.5
+
+        resolve_unrest_events(world)
+
+        self.assertEqual(region.unrest_event_level, "crisis")
+        self.assertEqual(region.unrest_event_turns_remaining, 2)
+        crisis_projection = get_region_attack_projection_modifier(
+            region,
+            world=world,
+            faction_name=faction_name,
+        )
+
+        update_region_integration(world)
+        self.assertEqual(region.unrest_event_level, "crisis")
+        self.assertEqual(region.unrest_event_turns_remaining, 1)
+
+        self.assertLess(crisis_projection, -1)
+
+        update_region_integration(world)
+        self.assertEqual(region.unrest_event_level, "none")
 
     def test_treasury_concentration_declines_with_empire_size(self):
         self.assertEqual(get_treasury_concentration_multiplier(1), 1.0)

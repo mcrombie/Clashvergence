@@ -1,0 +1,28 @@
+Balance Dashboard Report
+
+Seed: 12345
+Legacy strategy bias: removed
+
+Map: thirty_seven_region_ring
+Turns: 20
+Simulations: 2
+Decision Model: doctrine only
+
+Outcome Balance
+  Win-rate spread: 0.00% | Win-rate stddev: 0.000
+Faction            Doctrine                      Win   Shared   Treasury  Regions     Elim   ElimTurn
+-------------------------------------------------------------------------------------------------------
+Akhakiar Tribe     Adaptive Plains            0.00% 100.00%      -6.00     4.00   0.00%        n/a
+Persermia Tribe    Adaptive Hill Forest       0.00% 100.00%      -6.00     4.00   0.00%        n/a
+Noraraand Tribe    Adaptive Riverland Plains   0.00% 100.00%      -6.00     4.00   0.00%        n/a
+Veneunar Tribe     Adaptive Forest            0.00% 100.00%      -6.00     4.00   0.00%        n/a
+
+Game Health
+  Avg lead changes: 0.00 | Runaway rate: 0.00% | Avg runaway turn: n/a
+  Comeback rate: 0.00% | Avg comeback deficit overcome: 0.00
+  Avg eliminated factions: 0.00 | Avg largest treasury lead: 0.00 | Avg largest region lead: 0.00
+
+Pacing
+  Early: attacks=0.00, attack_success=0.00%, expansions=12.00, investments=12.00
+  Mid: attacks=0.00, attack_success=0.00%, expansions=0.00, investments=4.00
+  Late: attacks=0.00, attack_success=0.00%, expansions=0.00, investments=0.00

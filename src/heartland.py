@@ -21,6 +21,14 @@ from src.config import (
     UNREST_CLIMATE_PRESSURE_FACTOR,
     UNREST_CONQUEST_START,
     UNREST_DECAY_PER_TURN,
+    UNREST_CRISIS_DURATION,
+    UNREST_CRISIS_INCOME_FACTOR,
+    UNREST_CRISIS_TREASURY_HIT,
+    UNREST_CRITICAL_THRESHOLD,
+    UNREST_DISTURBANCE_DURATION,
+    UNREST_DISTURBANCE_INCOME_FACTOR,
+    UNREST_DISTURBANCE_TREASURY_HIT,
+    UNREST_EVENT_ATTACK_PROJECTION_PENALTY,
     UNREST_EXPANSION_START,
     UNREST_FRONTIER_BURDEN_FACTOR,
     UNREST_FRONTIER_PRESSURE,
@@ -28,8 +36,9 @@ from src.config import (
     UNREST_INTEGRATION_PRESSURE_FACTOR,
     UNREST_MAINTENANCE_MAX_FACTOR,
     UNREST_MAX,
+    UNREST_MODERATE_THRESHOLD,
 )
-from src.models import Region, WorldState
+from src.models import Event, Region, WorldState
 
 
 HOMELAND_INTEGRATION_SCORE = 10.0
@@ -98,7 +107,12 @@ def get_faction_frontier_burden(world: WorldState, faction_name: str) -> float:
 
 def get_region_unrest_income_factor(region: Region) -> float:
     unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
-    return 1.0 - ((1.0 - UNREST_INCOME_MIN_FACTOR) * unrest_ratio)
+    income_factor = 1.0 - ((1.0 - UNREST_INCOME_MIN_FACTOR) * unrest_ratio)
+    if region.unrest_event_level == "disturbance":
+        income_factor *= UNREST_DISTURBANCE_INCOME_FACTOR
+    elif region.unrest_event_level == "crisis":
+        income_factor *= UNREST_CRISIS_INCOME_FACTOR
+    return income_factor
 
 
 def get_region_climate_income_factor(region: Region, world: WorldState) -> float:
@@ -169,6 +183,8 @@ def get_region_attack_projection_modifier(
         round(_clamp(region.unrest / UNREST_MAX, 0.0, 1.0) * UNREST_ATTACK_PROJECTION_MAX_PENALTY)
     )
     modifier -= unrest_penalty
+    if region.unrest_event_level in {"disturbance", "crisis"}:
+        modifier -= UNREST_EVENT_ATTACK_PROJECTION_PENALTY
 
     if world is not None and faction_name is not None and faction_name in world.factions:
         from src.doctrine import get_faction_climate_affinity
@@ -198,6 +214,24 @@ def set_region_unrest(region: Region, unrest: float) -> None:
     region.unrest = round(_clamp(unrest, 0.0, UNREST_MAX), 2)
 
 
+def clear_region_unrest_event(region: Region) -> None:
+    region.unrest_event_level = "none"
+    region.unrest_event_turns_remaining = 0
+
+
+def set_region_unrest_event(region: Region, *, level: str, duration: int) -> None:
+    region.unrest_event_level = level
+    region.unrest_event_turns_remaining = duration
+
+
+def get_region_unrest_event_cost(region: Region) -> int:
+    if region.unrest_event_level == "crisis":
+        return UNREST_CRISIS_TREASURY_HIT
+    if region.unrest_event_level == "disturbance":
+        return UNREST_DISTURBANCE_TREASURY_HIT
+    return 0
+
+
 def initialize_heartlands(world: WorldState) -> None:
     owned_counts: dict[str, int] = {}
 
@@ -207,6 +241,7 @@ def initialize_heartlands(world: WorldState) -> None:
             region.integration_score = 0.0
             region.core_status = "frontier"
             region.unrest = 0.0
+            clear_region_unrest_event(region)
             region.ownership_turns = 0
             continue
 
@@ -230,6 +265,7 @@ def initialize_heartlands(world: WorldState) -> None:
             )
         owned_counts[region.owner] = owned_count + 1
         region.unrest = 0.0
+        clear_region_unrest_event(region)
 
 
 def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
@@ -250,6 +286,7 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
             core_status="frontier",
         )
         set_region_unrest(region, 0.0)
+        clear_region_unrest_event(region)
         return
 
     base_score = HOMELAND_INTEGRATION_SCORE if region.homeland_faction_id == new_owner else CONQUEST_INTEGRATION_SCORE
@@ -263,10 +300,13 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
     )
     if region.homeland_faction_id == new_owner:
         set_region_unrest(region, 0.0)
+        clear_region_unrest_event(region)
     elif previous_owner is None:
         set_region_unrest(region, UNREST_EXPANSION_START)
+        clear_region_unrest_event(region)
     else:
         set_region_unrest(region, UNREST_CONQUEST_START)
+        clear_region_unrest_event(region)
 
 
 def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
@@ -288,6 +328,44 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
     return climate_pressure + integration_pressure + frontier_pressure + frontier_burden - UNREST_DECAY_PER_TURN
 
 
+def resolve_unrest_events(world: WorldState) -> None:
+    for region in world.regions.values():
+        if region.owner is None or region.owner not in world.factions:
+            clear_region_unrest_event(region)
+            continue
+        if region.unrest_event_turns_remaining > 0:
+            continue
+
+        if region.unrest >= UNREST_CRITICAL_THRESHOLD:
+            set_region_unrest_event(region, level="crisis", duration=UNREST_CRISIS_DURATION)
+        elif region.unrest >= UNREST_MODERATE_THRESHOLD:
+            set_region_unrest_event(region, level="disturbance", duration=UNREST_DISTURBANCE_DURATION)
+        else:
+            continue
+
+        faction = world.factions[region.owner]
+        treasury_hit = min(get_region_unrest_event_cost(region), faction.treasury)
+        faction.treasury -= treasury_hit
+        world.events.append(Event(
+            turn=world.turn,
+            type=f"unrest_{region.unrest_event_level}",
+            faction=region.owner,
+            region=region.name,
+            details={
+                "unrest": round(region.unrest, 2),
+                "event_level": region.unrest_event_level,
+                "duration": region.unrest_event_turns_remaining,
+            },
+            impact={
+                "treasury_change": -treasury_hit,
+                "treasury_after": faction.treasury,
+                "integration_stalled": region.unrest_event_level == "crisis",
+            },
+            tags=["unrest", region.unrest_event_level],
+            significance=region.unrest,
+        ))
+
+
 def update_region_integration(world: WorldState) -> None:
     for region in world.regions.values():
         if region.owner is None:
@@ -295,6 +373,7 @@ def update_region_integration(world: WorldState) -> None:
             region.integration_score = 0.0
             region.core_status = "frontier"
             region.unrest = 0.0
+            clear_region_unrest_event(region)
             region.ownership_turns = 0
             continue
 
@@ -307,16 +386,25 @@ def update_region_integration(world: WorldState) -> None:
             region.ownership_turns += 1
             region.core_status = "homeland"
             set_region_unrest(region, region.unrest - UNREST_DECAY_PER_TURN)
+            if region.unrest_event_turns_remaining > 0:
+                region.unrest_event_turns_remaining -= 1
+                if region.unrest_event_turns_remaining <= 0:
+                    clear_region_unrest_event(region)
             continue
 
         region.ownership_turns += 1
-        climate_modifier = get_region_climate_integration_modifier(region, world)
-        if region.integration_score < CORE_INTEGRATION_SCORE:
-            region.integration_score += PER_TURN_FRONTIER_GAIN + climate_modifier
-        else:
-            region.integration_score += PER_TURN_CORE_GAIN + climate_modifier
+        if region.unrest_event_level != "crisis":
+            climate_modifier = get_region_climate_integration_modifier(region, world)
+            if region.integration_score < CORE_INTEGRATION_SCORE:
+                region.integration_score += PER_TURN_FRONTIER_GAIN + climate_modifier
+            else:
+                region.integration_score += PER_TURN_CORE_GAIN + climate_modifier
         region.core_status = get_region_core_status(region)
         set_region_unrest(region, region.unrest + get_region_unrest_pressure(region, world))
+        if region.unrest_event_turns_remaining > 0:
+            region.unrest_event_turns_remaining -= 1
+            if region.unrest_event_turns_remaining <= 0:
+                clear_region_unrest_event(region)
 
 
 def build_region_snapshot(world: WorldState) -> dict[str, dict]:
@@ -334,6 +422,8 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "integration_score": round(region.integration_score, 2),
             "core_status": region.core_status,
             "unrest": round(region.unrest, 2),
+            "unrest_event_level": region.unrest_event_level,
+            "unrest_event_turns_remaining": region.unrest_event_turns_remaining,
         }
         for region_name, region in world.regions.items()
     }
