@@ -1136,7 +1136,8 @@ def render_simulation_html(world):
     }}
 
     function getTerrainAbbreviation(tags) {{
-      return (tags || []).map((tag) => tag.slice(0, 2).toUpperCase()).join("/");
+      const visibleTags = (tags || []).filter((tag) => tag !== "coast");
+      return visibleTags.map((tag) => tag.slice(0, 2).toUpperCase()).join("/");
     }}
 
     function getRegionFill(regionSnapshot, staticRegion) {{
@@ -1250,7 +1251,7 @@ def render_simulation_html(world):
     }}
 
     function getDisplayTerrainTags(tags) {{
-      const filtered = (tags || []).filter((tag) => tag !== "plains");
+      const filtered = (tags || []).filter((tag) => tag !== "plains" && tag !== "coast");
       if (filtered.length) {{
         return filtered.slice(0, 3);
       }}
