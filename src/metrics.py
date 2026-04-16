@@ -32,6 +32,7 @@ def build_turn_metrics(world, economy_snapshot=None):
         frontier_regions = 0
         economy_data = (economy_snapshot or {}).get(faction_name, {})
         income = economy_data.get("base_income", 0)
+        nominal_income = economy_data.get("nominal_income", income)
         empire_penalty = economy_data.get("empire_penalty", 0)
         effective_income = economy_data.get("effective_income", 0)
         maintenance = economy_data.get("maintenance", 0)
@@ -65,6 +66,7 @@ def build_turn_metrics(world, economy_snapshot=None):
             "expansions": expansions,
             "investments": investments,
             "income": income,
+            "nominal_income": nominal_income,
             "empire_penalty": empire_penalty,
             "effective_income": effective_income,
             "maintenance": maintenance,

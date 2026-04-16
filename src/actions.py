@@ -8,7 +8,12 @@ from src.config import (
     INVEST_AMOUNT,
 )
 from src.doctrine import get_faction_region_alignment
-from src.heartland import get_region_core_defense_bonus, get_region_core_status, handle_region_owner_change
+from src.heartland import (
+    get_region_attack_projection_modifier,
+    get_region_core_defense_bonus,
+    get_region_core_status,
+    handle_region_owner_change,
+)
 from src.models import Event
 from src.region_naming import assign_region_founding_name, format_region_reference
 from src.terrain import get_terrain_profile
@@ -64,9 +69,16 @@ def get_attack_target_score_components(region_name, faction_name, world):
         if world.regions[neighbor_name].owner == faction_name
     ]
     staging_resources = max((staging_region.resources for staging_region in staging_regions), default=0)
+    staging_projection = max(
+        (
+            staging_region.resources + get_region_attack_projection_modifier(staging_region)
+            for staging_region in staging_regions
+        ),
+        default=0,
+    )
     attacker_strength = (
         world.factions[faction_name].treasury
-        + staging_resources
+        + staging_projection
         + doctrine_alignment["combat_modifier"]
     )
     defender_strength = (
@@ -88,6 +100,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "defender": defender_name,
         "target_resources": region.resources,
         "staging_resources": staging_resources,
+        "staging_projection": staging_projection,
         "attacker_strength": attacker_strength,
         "defender_strength": defender_strength,
         "terrain_tags": terrain_profile["terrain_tags"],

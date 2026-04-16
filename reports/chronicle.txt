@@ -1,48 +1,51 @@
 Simulation Chronicle
 
-On turn 2, Akhakiar Tribe made its first expansion into M1.
+On turn 2, Aruangos Tribe made its first expansion into M4.
 On turn 2, Veneunar Tribe made its first expansion into M10.
-On turn 2, Noraraand Tribe made its first expansion into M7.
-On turn 2, Persermia Tribe made its first expansion into M4.
+On turn 2, Saklian Tribe made its first expansion into M1.
+On turn 2, Rnutuan Tribe made its first expansion into M7.
 
 Opening Phase
 
-The strongest early land grab was Akhakiar Tribe's claim of M1 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe led expansion with 1 claim(s).
-Across the first 5 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe invested most often with 1 investment(s).
-By the end of turn 5, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe held the opening treasury lead at 31.
+The strongest early land grab was Rnutuan Tribe's claim of M6 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe led expansion with 2 claim(s).
+Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe invested most often with 2 investment(s).
+By the end of turn 5, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe held the opening treasury lead at -1.
 
 Phase Summaries
 
-Early phase: Akhakiar Tribe and Persermia Tribe were strongest by the end of turns 1-1, with Akhakiar Tribe on 5 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
-Mid phase: Akhakiar Tribe and Persermia Tribe were strongest by the end of turns 2-2, with Akhakiar Tribe on 7 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 4 expansions added 4 new regions. Akhakiar Tribe gained 1 region.
+Early phase: Saklian Tribe was strongest by the end of turns 1-16, with Saklian Tribe on 17 treasury and 9 regions. 10 successful attacks shifted control of 9 regions. 25 expansions added 25 new regions. 23 investments improved existing holdings. Rnutuan Tribe gained 10 regions. Veneunar Tribe improved its standing most during the phase.
+Mid phase: Veneunar Tribe was strongest by the end of turns 17-33, with Veneunar Tribe on 134 treasury and 19 regions. 31 successful attacks shifted control of 18 regions. 2 expansions added 2 new regions. 5 investments improved existing holdings. Veneunar Tribe gained 11 regions while Saklian Tribe lost 5 regions. Rnutuan Tribe improved its standing most during the phase.
+Late phase: Veneunar Tribe was strongest by the end of turns 34-50, with Veneunar Tribe on 433 treasury and 34 regions. 19 successful attacks shifted control of 14 regions. 3 expansions added 3 new regions. 4 investments improved existing holdings. Veneunar Tribe gained 15 regions while Rnutuan Tribe lost 8 regions.
+
+Turning Points
+
+Late phase break: Veneunar Tribe gained 15 regions while Rnutuan Tribe lost 8 regions.
+Mid phase break: Veneunar Tribe gained 11 regions while Saklian Tribe lost 5 regions.
 
 Outcome Type
 
-Outcome type: balanced_contest.
+Outcome type: full_domination.
 
 Faction Trajectories
 
-Akhakiar Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 2, and finished first with 2 regions, 7 treasury, and 0 total attacks.
-Persermia Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 2, and finished rank 2 on 7 treasury with 2 regions after gaining 2 treasury overall.
-Noraraand Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 2, and finished rank 3 on 7 treasury with 2 regions after gaining 2 treasury overall.
-Veneunar Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 2, and finished rank 4 on 7 treasury with 2 regions after gaining 2 treasury overall.
+Saklian Tribe opened with 6 claims and grew to 9 regions by the end of the opening phase, peaked at 12 regions on turn 22 before slipping to 0 regions, and closed on 105 treasury without territory after 21 attacks.
+Aruangos Tribe spent the opening consolidating its start with 7 investments, peaked at 5 regions on turn 8 before slipping to 0 regions, and closed on 1 treasury without territory after 1 attacks.
+Rnutuan Tribe opened with 5 claims and grew to 11 regions by the end of the opening phase, peaked at 11 regions on turn 15 before slipping to 0 regions, and closed on 170 treasury without territory after 35 attacks.
+Veneunar Tribe opened with 7 claims and grew to 8 regions by the end of the opening phase, built steadily past the opening, reaching 34 regions by turn 50, and finished first with 34 regions, 433 treasury, and 34 total attacks.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-No faction broke the map open. The run stayed competitive to the end, with 4 factions still alive and only 0-region variation across the final board.
-No decisive collapse or phase break separated the field. Akhakiar Tribe edged ahead in a finish that remained close across 4 surviving factions.
-The final margin stayed narrow: Akhakiar Tribe beat Persermia Tribe by 0 treasury.
-The closest challenger was Persermia Tribe (Adaptive Coastal Forest) at 7 treasury and 2 regions.
+Veneunar Tribe’s Frontier Coastal Forest approach won because its midphase break created separation on a 37-region ring, which turned a contested board into a one-sided map before the endgame could recover. The mid and late swings mattered because Veneunar gained 11 regions while Saklian lost 5, then added 15 more while Rnutuan lost 8, which prevented either rival from stabilizing a counterposition. Rnutuan’s early expansionist gain of 10 regions did not convert into control because the later territorial collapse left it with no regions and only 170 treasury, while Veneunar finished with 34 regions and 433 treasury, so the result became full domination rather than a close contest.
+The closest challenger was Rnutuan Tribe (Adaptive Forest) at 170 treasury and 0 regions.
 
 Final Standings
 
-Akhakiar Tribe finished first with a treasury of 7 and control of 2 regions.
-Persermia Tribe ended with a treasury of 7 and 2 regions.
-Noraraand Tribe ended with a treasury of 7 and 2 regions.
-Veneunar Tribe ended with a treasury of 7 and 2 regions.
+Veneunar Tribe finished first with a treasury of 433 and control of 34 regions.
+Rnutuan Tribe ended with a treasury of 170 and 0 regions.
+Saklian Tribe ended with a treasury of 105 and 0 regions.
+Aruangos Tribe ended with a treasury of 1 and 0 regions.
 
 Victor's History
 
-Akhakiar Tribe's historians would treat this run as evidence that their adaptive coastal forest habits, forged by geography, proved stronger than the field's scattered efforts. The final margin stayed narrow: Akhakiar Tribe beat Persermia Tribe by 0 treasury. From that partisan view, Persermia Tribe's resistance was real but never as durable as Akhakiar Tribe's final position.
+The outcome was a plain vindication of Veneunar discipline: a Frontier Coastal Forest approach, shaped by geography, that reduced the field and ended in complete territorial control. While Saklian began strongest and Rnutuan briefly expanded to 11 regions, neither could sustain that position once the contest tightened; the decisive breaks came when Veneunar gained 11 regions in the mid phase and 15 more in the late phase. Veneunar’s advance was steady rather than erratic, closing at 34 regions and 433 treasury after 34 total attacks, a record of coherent judgment and efficient execution. The others were left with no territory, their early promise undone by weaker structure and poorer timing.

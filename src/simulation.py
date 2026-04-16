@@ -3,10 +3,15 @@ from src.actions import attack, expand, invest
 from src.config import (
     EMPIRE_FREE_REGIONS,
     EMPIRE_SCALE_COST,
-    REGION_MAINTENANCE_COST,
 )
 from src.doctrine import update_faction_doctrines
-from src.heartland import record_region_history, update_region_integration
+from src.heartland import (
+    get_region_effective_income,
+    get_region_maintenance_cost,
+    get_region_core_status,
+    record_region_history,
+    update_region_integration,
+)
 from src.metrics import record_turn_metrics
 import random
 
@@ -17,10 +22,14 @@ def get_faction_economy_snapshot(world):
         faction_name: {
             "owned_regions": 0,
             "base_income": 0,
+            "nominal_income": 0,
             "empire_penalty": 0,
             "effective_income": 0,
             "maintenance": 0,
             "net": 0,
+            "homeland_regions": 0,
+            "core_regions": 0,
+            "frontier_regions": 0,
         }
         for faction_name in world.factions
     }
@@ -28,7 +37,16 @@ def get_faction_economy_snapshot(world):
     for region in world.regions.values():
         if region.owner is not None:
             snapshot[region.owner]["owned_regions"] += 1
-            snapshot[region.owner]["base_income"] += region.resources
+            snapshot[region.owner]["nominal_income"] += region.resources
+            snapshot[region.owner]["base_income"] += get_region_effective_income(region)
+            snapshot[region.owner]["maintenance"] += get_region_maintenance_cost(region)
+            core_status = get_region_core_status(region)
+            if core_status == "homeland":
+                snapshot[region.owner]["homeland_regions"] += 1
+            elif core_status == "core":
+                snapshot[region.owner]["core_regions"] += 1
+            else:
+                snapshot[region.owner]["frontier_regions"] += 1
 
     for faction_name, data in snapshot.items():
         data["empire_penalty"] = max(
@@ -36,7 +54,6 @@ def get_faction_economy_snapshot(world):
             data["owned_regions"] - EMPIRE_FREE_REGIONS,
         ) * EMPIRE_SCALE_COST
         data["effective_income"] = data["base_income"] - data["empire_penalty"]
-        data["maintenance"] = data["owned_regions"] * REGION_MAINTENANCE_COST
         data["net"] = data["effective_income"] - data["maintenance"]
 
     return snapshot

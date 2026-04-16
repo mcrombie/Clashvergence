@@ -2,6 +2,14 @@ from __future__ import annotations
 
 from copy import deepcopy
 
+from src.config import (
+    CORE_INCOME_FACTOR,
+    FRONTIER_ATTACK_PROJECTION_PENALTY,
+    FRONTIER_INCOME_FACTOR,
+    FRONTIER_MAINTENANCE_SURCHARGE,
+    HOMELAND_INCOME_FACTOR,
+    REGION_MAINTENANCE_COST,
+)
 from src.models import Region, WorldState
 
 
@@ -28,6 +36,32 @@ def get_region_core_defense_bonus(region: Region) -> int:
         return 2
     if status == "core":
         return 1
+    return 0
+
+
+def get_region_income_factor(region: Region) -> float:
+    status = get_region_core_status(region)
+    if status == "homeland":
+        return HOMELAND_INCOME_FACTOR
+    if status == "core":
+        return CORE_INCOME_FACTOR
+    return FRONTIER_INCOME_FACTOR
+
+
+def get_region_effective_income(region: Region) -> int:
+    return int(round(region.resources * get_region_income_factor(region)))
+
+
+def get_region_maintenance_cost(region: Region) -> int:
+    status = get_region_core_status(region)
+    if status == "frontier":
+        return REGION_MAINTENANCE_COST + FRONTIER_MAINTENANCE_SURCHARGE
+    return REGION_MAINTENANCE_COST
+
+
+def get_region_attack_projection_modifier(region: Region) -> int:
+    if get_region_core_status(region) == "frontier":
+        return -FRONTIER_ATTACK_PROJECTION_PENALTY
     return 0
 
 

@@ -4,10 +4,14 @@ from unittest.mock import patch
 from src.actions import attack, get_attack_target_score_components
 from src.heartland import (
     CORE_INTEGRATION_SCORE,
+    get_region_attack_projection_modifier,
     get_region_core_status,
+    get_region_effective_income,
+    get_region_maintenance_cost,
     update_region_integration,
 )
 from src.metrics import build_turn_metrics
+from src.simulation import get_faction_economy_snapshot
 from src.world import create_world
 
 
@@ -110,6 +114,39 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertIn("frontier_regions", faction_metrics)
         self.assertGreaterEqual(faction_metrics["homeland_regions"], 1)
         self.assertGreaterEqual(faction_metrics["frontier_regions"], 1)
+
+    def test_frontier_friction_reduces_income_and_attack_projection(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        homeland_region = next(
+            region
+            for region in world.regions.values()
+            if region.owner == faction_name and region.core_status == "homeland"
+        )
+        frontier_region = world.regions["M"]
+        frontier_region.owner = faction_name
+        frontier_region.integrated_owner = faction_name
+        frontier_region.core_status = "frontier"
+        frontier_region.integration_score = 1.0
+        frontier_region.resources = 5
+
+        self.assertEqual(get_region_effective_income(homeland_region), homeland_region.resources)
+        self.assertEqual(get_region_effective_income(frontier_region), 3)
+        self.assertEqual(get_region_maintenance_cost(homeland_region), 1)
+        self.assertEqual(get_region_maintenance_cost(frontier_region), 2)
+        self.assertEqual(get_region_attack_projection_modifier(frontier_region), -1)
+
+        economy = get_faction_economy_snapshot(world)[faction_name]
+
+        self.assertEqual(
+            economy["nominal_income"],
+            homeland_region.resources + frontier_region.resources,
+        )
+        self.assertEqual(
+            economy["base_income"],
+            homeland_region.resources + 3,
+        )
+        self.assertEqual(economy["maintenance"], 3)
 
 
 if __name__ == "__main__":
