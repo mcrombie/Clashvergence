@@ -28,6 +28,7 @@ def create_factions(
     num_factions=4,
     starting_treasury=DEFAULT_STARTING_TREASURY,
     naming_seed="default",
+    use_legacy_strategy_bias=True,
 ):
     identities = generate_faction_identities(num_factions, naming_seed=naming_seed)
 
@@ -40,6 +41,7 @@ def create_factions(
             treasury=starting_treasury,
             identity=identity,
             starting_treasury=starting_treasury,
+            use_legacy_strategy_bias=use_legacy_strategy_bias,
         )
     return factions
 

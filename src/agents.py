@@ -91,7 +91,11 @@ def choose_attack_target(faction_name, world):
 def choose_action(faction_name, world):
     faction = world.factions[faction_name]
     doctrine = faction.doctrine_profile
-    legacy_bias = get_legacy_strategy_bias(faction.strategy)
+    legacy_bias = (
+        get_legacy_strategy_bias(faction.strategy)
+        if faction.use_legacy_strategy_bias
+        else {"expand": 0.0, "attack": 0.0, "invest": 0.0}
+    )
 
     attackable_regions = get_attackable_regions(faction_name, world)
     expandable_regions = get_expandable_regions(faction_name, world)

@@ -1,0 +1,28 @@
+Balance Dashboard Report
+
+Seed: 12345
+Legacy strategy bias: disabled
+
+Map: thirty_seven_region_ring
+Turns: 50
+Simulations: 10
+Decision Model: doctrine only
+
+Outcome Balance
+  Win-rate spread: 40.00% | Win-rate stddev: 0.150
+Faction            Strategy           Win   Shared   Treasury  Regions     Elim   ElimTurn
+--------------------------------------------------------------------------------------------
+Akhakiar Tribe     expansionist   50.00%   0.00%     532.40    17.70   0.00%        n/a
+Persermia Tribe    balanced       20.00%   0.00%     316.40     7.80  50.00%      42.60
+Noraraand Tribe    economic       20.00%   0.00%     301.70     7.40  30.00%      35.67
+Veneunar Tribe     opportunist    10.00%   0.00%     148.70     2.70  70.00%      30.00
+
+Game Health
+  Avg lead changes: 1.90 | Runaway rate: 100.00% | Avg runaway turn: 14.80
+  Comeback rate: 0.00% | Avg comeback deficit overcome: 0.00
+  Avg eliminated factions: 1.50 | Avg largest treasury lead: 236.30 | Avg largest region lead: 22.30
+
+Pacing
+  Early: attacks=22.70, attack_success=75.33%, expansions=25.00, investments=15.40
+  Mid: attacks=44.40, attack_success=66.44%, expansions=4.60, investments=14.50
+  Late: attacks=44.20, attack_success=44.34%, expansions=2.00, investments=3.50

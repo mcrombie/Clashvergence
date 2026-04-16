@@ -83,6 +83,7 @@ class Faction:
     treasury: int = 0
     identity: FactionIdentity | None = None
     starting_treasury: int = 0
+    use_legacy_strategy_bias: bool = True
     doctrine_state: FactionDoctrineState = field(default_factory=FactionDoctrineState)
     doctrine_profile: FactionDoctrineProfile = field(default_factory=FactionDoctrineProfile)
 
