@@ -60,6 +60,7 @@ def format_event(event, world):
             f"(score={event.get('score', 0)}, resources={event.get('resources', 0)}, "
             f"neighbors={event.get('neighbors', 0)}, "
             f"unclaimed_neighbors={event.get('unclaimed_neighbors', 0)}, "
+            f"core_status={event.get('core_status', 'frontier')}, "
             f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
         )
 
@@ -79,6 +80,7 @@ def format_event(event, world):
             f"(success_chance={event.get('success_chance', 0):.3f}, "
             f"attack_strength={event.get('attack_strength', 0)}, "
             f"defense_strength={event.get('defense_strength', 0)}, "
+            f"core_status={event.get('core_status', 'frontier')}, "
             f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
         )
 
@@ -154,7 +156,10 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
             f"opened as {opening.get('doctrine_label', 'Unknown')}, "
             f"ended as {closing.get('doctrine_label', 'Unknown')}, "
             f"terrain_identity={closing.get('terrain_identity', 'Unknown')}, "
-            f"doctrine_shifts={doctrine_shifts}"
+            f"doctrine_shifts={doctrine_shifts}, "
+            f"homeland_regions={closing.get('homeland_regions', 0)}, "
+            f"core_regions={closing.get('core_regions', 0)}, "
+            f"frontier_regions={closing.get('frontier_regions', 0)}"
         )
 
     lines.append("")
@@ -175,7 +180,10 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
                 f"effective_income={faction_metrics.get('effective_income', 0)}, "
                 f"maintenance={faction_metrics['maintenance']}, "
                 f"net={faction_metrics['net_income']}, "
-                f"doctrine={faction_metrics.get('doctrine_label', 'Unknown')}"
+                f"doctrine={faction_metrics.get('doctrine_label', 'Unknown')}, "
+                f"homeland={faction_metrics.get('homeland_regions', 0)}, "
+                f"core={faction_metrics.get('core_regions', 0)}, "
+                f"frontier={faction_metrics.get('frontier_regions', 0)}"
             )
         lines.append("")
 

@@ -1,55 +1,51 @@
 Simulation Chronicle
 
-On turn 2, Veneunar Tribe made its first expansion into M10.
-On turn 2, Saklian Tribe made its first expansion into M1.
 On turn 2, Rnutuan Tribe made its first expansion into M7.
+On turn 2, Veneunar Tribe made its first expansion into M10.
 On turn 2, Aruangos Tribe made its first expansion into M4.
-On turn 3, Veneunar Tribe seized I8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into C.
-On turn 4, Veneunar Tribe seized C, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into O14. The move proved a genuine turning point in the opening contest.
-On turn 5, Rnutuan Tribe seized M9, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into O10.
-On turn 5, Veneunar Tribe seized O14, a valuable prize that mattered because it combined strong income with strong positional value and later supported its expansion into O12.
+On turn 2, Saklian Tribe made its first expansion into M1.
 
 Opening Phase
 
-The strongest early land grab was Veneunar Tribe's claim of I8 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+The strongest early land grab was Rnutuan Tribe's claim of M7 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe led expansion with 2 claim(s).
 Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe invested most often with 1 investment(s).
-By the end of turn 5, Veneunar Tribe held the opening treasury lead at 13.
+By the end of turn 5, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe held the opening treasury lead at 10.
 
 Phase Summaries
 
-Early phase: Saklian Tribe and Aruangos Tribe were strongest by the end of turns 1-2, with Saklian Tribe on 7 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 4 expansions added 4 new regions. 4 investments improved existing holdings. Saklian Tribe gained 1 region.
-Mid phase: Veneunar Tribe was strongest by the end of turns 3-5, with Veneunar Tribe on 13 treasury and 5 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 12 expansions added 12 new regions. Saklian Tribe gained 3 regions. Aruangos Tribe improved its standing most during the phase.
-Late phase: Veneunar Tribe and Aruangos Tribe were strongest by the end of turns 6-8, with Veneunar Tribe on 4 treasury and 7 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 2 successful attacks shifted control of 1 region. 8 expansions added 8 new regions. Rnutuan Tribe gained 3 regions.
+Early phase: Rnutuan Tribe was strongest by the end of turns 1-16, with Rnutuan Tribe on 15 treasury and 10 regions. 15 successful attacks shifted control of 8 regions. 25 expansions added 25 new regions. 14 investments improved existing holdings. Rnutuan Tribe gained 9 regions.
+Mid phase: Saklian Tribe was strongest by the end of turns 17-33, with Saklian Tribe on 209 treasury and 21 regions. 32 successful attacks shifted control of 20 regions. 2 expansions added 2 new regions. 10 investments improved existing holdings. Saklian Tribe gained 15 regions while Rnutuan Tribe lost 6 regions. Veneunar Tribe improved its standing most during the phase.
+Late phase: Saklian Tribe was strongest by the end of turns 34-50, with Saklian Tribe on 573 treasury and 26 regions. 21 successful attacks shifted control of 7 regions. 6 expansions added 6 new regions. 10 investments improved existing holdings. Saklian Tribe gained 5 regions while Veneunar Tribe lost 1 region.
 
 Turning Points
 
-Early leader change: Veneunar Tribe took the treasury lead.
-Mid leader change: Veneunar Tribe took the treasury lead.
+Mid phase break: Saklian Tribe gained 15 regions while Rnutuan Tribe lost 6 regions.
+Mid collapse: Saklian Tribe's capture of O2 eliminated Aruangos Tribe's last territorial hold.
 
 Outcome Type
 
-Outcome type: economic_win.
+Outcome type: midgame_break.
 
 Faction Trajectories
 
-Saklian Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 7 regions by turn 8, and finished rank 3 on 0 treasury with 7 regions.
-Aruangos Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 6 regions by turn 8, and finished first with 6 regions, 4 treasury, and 2 total attacks.
-Rnutuan Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 8 regions by turn 8, and finished rank 4 on 0 treasury with 8 regions.
-Veneunar Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 7 regions by turn 8, and finished rank 2 on 4 treasury with 7 regions.
+Saklian Tribe opened with 7 claims and grew to 6 regions by the end of the opening phase, built steadily past the opening, reaching 26 regions by turn 50, and finished first with 26 regions, 573 treasury, and 40 total attacks.
+Aruangos Tribe opened with 6 claims and grew to 4 regions by the end of the opening phase, peaked at 7 regions on turn 8 before slipping to 0 regions, and closed on 13 treasury without territory after 10 attacks.
+Rnutuan Tribe opened with 6 claims and grew to 10 regions by the end of the opening phase, peaked at 11 regions on turn 27 before slipping to 6 regions, and finished rank 2 on 264 treasury with 6 regions after gaining 259 treasury overall.
+Veneunar Tribe opened with 6 claims and grew to 9 regions by the end of the opening phase, peaked at 11 regions on turn 21 before slipping to 5 regions, and finished rank 3 on 231 treasury with 5 regions after gaining 226 treasury overall.
 
 Strategic Interpretation
 
-Because the board stayed contested throughout, territory never separated the field, so the result came down to treasury efficiency and Aruangos Tribe’s Adaptive Coastal Forest approach. Veneunar Tribe’s repeated treasury leads mattered, but they did not convert into a region advantage, which meant the late territorial gains by other tribes only preserved a crowded map rather than overturning the resource balance. Saklian Tribe’s early and midgame strength also failed to create lasting separation, so Aruangos won by holding the decisive economic edge in a board that never fully broke open.
-The closest challenger was Veneunar Tribe (Adaptive Coastal Forest) at 4 treasury and 7 regions.
+After a contested opening, Saklian Tribe’s martial forest plains approach created the midgame break because a 15-region surge while Rnutuan Tribe lost 6 regions flipped the board from early Rnutuan strength to Saklian control. That mattered because the map was a 37-region ring, so once Saklian established separation in the middle phase, the late game became a consolidation rather than a race. The capture of O2 that removed Aruangos Tribe’s last hold further reduced resistance, which prevented any recovery path and let Saklian finish with a 20-region lead.
+The closest challenger was Rnutuan Tribe (Adaptive Coastal Forest) at 264 treasury and 6 regions.
 
 Final Standings
 
-Aruangos Tribe finished first with a treasury of 4 and control of 6 regions.
-Veneunar Tribe ended with a treasury of 4 and 7 regions.
-Saklian Tribe ended with a treasury of 0 and 7 regions.
-Rnutuan Tribe ended with a treasury of 0 and 8 regions.
+Saklian Tribe finished first with a treasury of 573 and control of 26 regions.
+Rnutuan Tribe ended with a treasury of 264 and 6 regions.
+Veneunar Tribe ended with a treasury of 231 and 5 regions.
+Aruangos Tribe ended with a treasury of 13 and 0 regions.
 
 Victor's History
 
-The Aruangos Tribe prevailed by treating the contest as a matter of steady stewardship rather than mere territorial count, finishing first on treasury despite conceding map share. Their Adaptive Coastal Forest approach was measured and coherent: they opened with 1 claim, reached 2 regions by the end of the opening phase, and continued to build until they stood at 6 regions with 4 treasury after 8 turns. Veneunar Tribe remained a serious rival and even led the treasury at points, but their stronger regional total did not translate into the final result. In the end, Aruangos showed the better judgment in converting limited expansion into the decisive measure of victory.
+The result was settled in the middle phase, when the Saklian Tribe’s Martial Forest Plains approach produced the decisive break and carried the contest beyond recovery. After a modest opening, Saklian built steadily and then gained 15 regions in the mid phase, while Rnutuan, despite an early lead, lost 6 regions and could not hold its position. By turn 50, Saklian stood first with 26 regions and 573 treasury, a clear mark of coherent execution over the full campaign. The collapse of Aruangos at O2 and the later narrowing of Rnutuan’s hold only confirmed that the stronger structure belonged to Saklian.

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from src.heartland import get_region_core_status
 from src.models import Faction, FactionDoctrineProfile, WorldState
-from src.terrain import TERRAIN_RULES, format_terrain_label, normalize_terrain_tags
+from src.terrain import format_terrain_label, normalize_terrain_tags
 
 
 HOMELAND_IMPRINT_WEIGHT = 12.0
-OWNED_REGION_EXPERIENCE = 0.8
+CORE_REGION_EXPERIENCE = 0.8
+FRONTIER_REGION_EXPERIENCE = 0.35
 
 OPEN_TERRAIN_TAGS = {"plains", "riverland", "steppe", "coast"}
 ROUGH_TERRAIN_TAGS = {"forest", "hills", "highland", "marsh"}
@@ -268,8 +270,15 @@ def update_faction_doctrines(world: WorldState) -> None:
         for region in world.regions.values():
             if region.owner != faction_name:
                 continue
+            status = get_region_core_status(region)
+            if status == "homeland":
+                experience_gain = HOMELAND_IMPRINT_WEIGHT / 10
+            elif status == "core":
+                experience_gain = CORE_REGION_EXPERIENCE
+            else:
+                experience_gain = FRONTIER_REGION_EXPERIENCE
             for tag in normalize_terrain_tags(region.terrain_tags):
-                state.terrain_experience[tag] = state.terrain_experience.get(tag, 0.0) + OWNED_REGION_EXPERIENCE
+                state.terrain_experience[tag] = state.terrain_experience.get(tag, 0.0) + experience_gain
 
         faction_events = events_by_faction[faction_name]
         if any(event.type in {"expand", "attack"} for event in faction_events):

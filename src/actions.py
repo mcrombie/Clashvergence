@@ -8,6 +8,7 @@ from src.config import (
     INVEST_AMOUNT,
 )
 from src.doctrine import get_faction_region_alignment
+from src.heartland import get_region_core_defense_bonus, get_region_core_status, handle_region_owner_change
 from src.models import Event
 from src.region_naming import assign_region_founding_name, format_region_reference
 from src.terrain import get_terrain_profile
@@ -54,6 +55,8 @@ def get_attack_target_score_components(region_name, faction_name, world):
         world.factions[faction_name],
         region.terrain_tags,
     )
+    region_core_status = get_region_core_status(region)
+    core_defense_bonus = get_region_core_defense_bonus(region)
     defender_name = region.owner
     staging_regions = [
         world.regions[neighbor_name]
@@ -70,6 +73,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         world.factions[defender_name].treasury
         + region.resources
         + terrain_profile["defense_modifier"]
+        + core_defense_bonus
     )
     success_chance = 0.5 + ((attacker_strength - defender_strength) * 0.05)
     success_chance = max(0.2, min(0.8, success_chance))
@@ -93,6 +97,8 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "doctrine_combat_modifier": doctrine_alignment["combat_modifier"],
         "doctrine_economic_modifier": doctrine_alignment["economic_modifier"],
         "terrain_affinity": doctrine_alignment["average_affinity"],
+        "core_status": region_core_status,
+        "core_defense_bonus": core_defense_bonus,
         "success_chance": success_chance,
         "score": score,
     }
@@ -109,6 +115,7 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
             world.factions[faction_name],
             region.terrain_tags,
         )
+    region_core_status = get_region_core_status(region)
     unclaimed_neighbors = 0
 
     for neighbor_name in region.neighbors:
@@ -149,6 +156,7 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
             if doctrine_alignment is not None
             else 0.0
         ),
+        "core_status": region_core_status,
         "score": score,
     }
 
@@ -323,7 +331,7 @@ def expand(faction_name, target_region_name, world):
     future_expansion_opened = score_components["unclaimed_neighbors"]
     importance_tier = get_importance_tier(score_components["score"])
     faction.treasury -= EXPANSION_COST
-    world.regions[target_region_name].owner = faction_name
+    handle_region_owner_change(world.regions[target_region_name], faction_name)
     region_display_name = assign_region_founding_name(
         world,
         target_region_name,
@@ -373,6 +381,7 @@ def expand(faction_name, target_region_name, world):
             "doctrine_expansion_modifier": score_components["doctrine_expansion_modifier"],
             "doctrine_economic_modifier": score_components["doctrine_economic_modifier"],
             "terrain_affinity": score_components["terrain_affinity"],
+            "core_status": score_components["core_status"],
             "region_display_name": region_display_name,
             "region_reference": format_region_reference(
                 world.regions[target_region_name],
@@ -435,7 +444,7 @@ def attack(faction_name, target_region_name, world):
     actual_failure_penalty = 0
 
     if succeeded:
-        target_region.owner = faction_name
+        handle_region_owner_change(target_region, faction_name)
         if not target_region.founding_name:
             assign_region_founding_name(
                 world,
@@ -468,6 +477,8 @@ def attack(faction_name, target_region_name, world):
             "doctrine_combat_modifier": score_components["doctrine_combat_modifier"],
             "doctrine_economic_modifier": score_components["doctrine_economic_modifier"],
             "terrain_affinity": score_components["terrain_affinity"],
+            "core_status": score_components["core_status"],
+            "core_defense_bonus": score_components["core_defense_bonus"],
             "region_display_name": target_region.display_name,
             "region_reference": format_region_reference(target_region, include_code=True),
         },

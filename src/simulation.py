@@ -6,6 +6,7 @@ from src.config import (
     REGION_MAINTENANCE_COST,
 )
 from src.doctrine import update_faction_doctrines
+from src.heartland import record_region_history, update_region_integration
 from src.metrics import record_turn_metrics
 import random
 
@@ -101,6 +102,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
                 print(f"{faction_name} skipped its turn")
 
     economy_snapshot = apply_turn_economy(world)
+    update_region_integration(world)
     update_faction_doctrines(world)
     if verbose:
         for faction_name in turn_order:
@@ -113,6 +115,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
                 f"treasury={world.factions[faction_name].treasury}"
             )
     record_turn_metrics(world, economy_snapshot=economy_snapshot)
+    record_region_history(world)
     world.turn += 1
 
 def run_simulation(world, num_turns, faction_order=None, verbose=True):

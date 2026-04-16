@@ -91,6 +91,7 @@ def _get_event_summary(event, world):
 
 def build_simulation_snapshots(world):
     initial_state = build_initial_opening_state(world)
+    initial_region_history = world.region_history[0] if world.region_history else {}
     region_state = {
         region_name: {
             "owner": initial_state[region_name]["owner"],
@@ -105,6 +106,10 @@ def build_simulation_snapshots(world):
             ),
             "terrain_tags": list(region.terrain_tags),
             "terrain_label": format_terrain_label(region.terrain_tags),
+            "homeland_faction_id": initial_region_history.get(region_name, {}).get("homeland_faction_id"),
+            "integrated_owner": initial_region_history.get(region_name, {}).get("integrated_owner"),
+            "integration_score": initial_region_history.get(region_name, {}).get("integration_score", 0.0),
+            "core_status": initial_region_history.get(region_name, {}).get("core_status", "frontier"),
         }
         for region_name, region in world.regions.items()
     }
@@ -122,6 +127,10 @@ def build_simulation_snapshots(world):
                 "original_namer_faction_id": region["original_namer_faction_id"],
                 "terrain_tags": region["terrain_tags"],
                 "terrain_label": region["terrain_label"],
+                "homeland_faction_id": region["homeland_faction_id"],
+                "integrated_owner": region["integrated_owner"],
+                "integration_score": region["integration_score"],
+                "core_status": region["core_status"],
             }
             for region_name, region in region_state.items()
         },
@@ -132,6 +141,7 @@ def build_simulation_snapshots(world):
 
     for turn_number in range(1, world.turn + 1):
         turn_events = [event for event in world.events if event.turn == turn_number - 1]
+        history_snapshot = world.region_history[turn_number] if len(world.region_history) > turn_number else {}
         changed_regions = []
         contested_regions = []
 
@@ -165,6 +175,17 @@ def build_simulation_snapshots(world):
                 )
                 changed_regions.append(event.region)
 
+        for region_name, history_region in history_snapshot.items():
+            region_state[region_name]["owner"] = history_region["owner"]
+            region_state[region_name]["resources"] = history_region["resources"]
+            region_state[region_name]["display_name"] = history_region["display_name"] or region_state[region_name]["display_name"]
+            region_state[region_name]["founding_name"] = history_region["founding_name"]
+            region_state[region_name]["original_namer_faction_id"] = history_region["original_namer_faction_id"]
+            region_state[region_name]["homeland_faction_id"] = history_region["homeland_faction_id"]
+            region_state[region_name]["integrated_owner"] = history_region["integrated_owner"]
+            region_state[region_name]["integration_score"] = history_region["integration_score"]
+            region_state[region_name]["core_status"] = history_region["core_status"]
+
         metrics = get_turn_metrics(world, turn_number)
         snapshots.append({
             "turn": turn_number,
@@ -179,6 +200,10 @@ def build_simulation_snapshots(world):
                     "original_namer_faction_id": region["original_namer_faction_id"],
                     "terrain_tags": region["terrain_tags"],
                     "terrain_label": region["terrain_label"],
+                    "homeland_faction_id": region["homeland_faction_id"],
+                    "integrated_owner": region["integrated_owner"],
+                    "integration_score": region["integration_score"],
+                    "core_status": region["core_status"],
                 }
                 for region_name, region in region_state.items()
             },
@@ -833,6 +858,40 @@ def render_simulation_html(world):
       color: var(--muted);
       font-size: 0.9rem;
     }}
+    .event-header {{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }}
+    .event-icon {{
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      font-size: 0.95rem;
+      line-height: 1;
+      border: 1px solid rgba(31, 41, 51, 0.12);
+      background: rgba(255,255,255,0.9);
+      color: var(--ink);
+    }}
+    .event-icon-expand {{
+      background: rgba(61, 122, 72, 0.14);
+      color: #2f6a39;
+    }}
+    .event-icon-invest {{
+      background: rgba(189, 140, 58, 0.18);
+      color: #8a5a12;
+    }}
+    .event-icon-attack {{
+      background: rgba(143, 74, 66, 0.16);
+      color: #7e2f24;
+    }}
+    .faction-inline {{
+      font-weight: 700;
+    }}
     .pill {{
       padding: 4px 9px;
       border-radius: 999px;
@@ -1120,6 +1179,34 @@ def render_simulation_html(world):
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;");
+    }}
+
+    function colorizeFactionNames(text) {{
+      let highlighted = escapeHtml(text ?? "");
+      const factionsByLength = [...data.factions]
+        .sort((left, right) => right.name.length - left.name.length);
+
+      for (const faction of factionsByLength) {{
+        const safeName = escapeHtml(faction.name);
+        highlighted = highlighted.split(safeName).join(
+          `<span class="faction-inline" style="color:${{faction.color}};">${{safeName}}</span>`,
+        );
+      }}
+
+      return highlighted;
+    }}
+
+    function getEventIconData(type) {{
+      if (type === "expand") {{
+        return {{ symbol: "◌", className: "event-icon-expand", label: "Expansion" }};
+      }}
+      if (type === "invest") {{
+        return {{ symbol: "▲", className: "event-icon-invest", label: "Investment" }};
+      }}
+      if (type === "attack") {{
+        return {{ symbol: "⚔", className: "event-icon-attack", label: "Attack" }};
+      }}
+      return {{ symbol: "•", className: "", label: "Event" }};
     }}
 
     function polygonPointsText(points) {{
@@ -1774,6 +1861,14 @@ def render_simulation_html(world):
             <div class="detail-value">${{escapeHtml(ownerText)}}</div>
           </div>
           <div class="detail-row">
+            <div class="detail-label">Integration</div>
+            <div class="detail-value">${{escapeHtml(regionSnapshot.core_status || "frontier")}} (${{Number(regionSnapshot.integration_score || 0).toFixed(1)}})</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Homeland Of</div>
+            <div class="detail-value">${{escapeHtml(regionSnapshot.homeland_faction_id || "None")}}</div>
+          </div>
+          <div class="detail-row">
             <div class="detail-label">Resources</div>
             <div class="detail-value">R${{regionSnapshot.resources}}</div>
           </div>
@@ -1831,6 +1926,10 @@ def render_simulation_html(world):
                 <div class="detail-value">${{escapeHtml(metrics.terrain_identity)}}</div>
               </div>
               <div class="detail-row">
+                <div class="detail-label">Realm Structure</div>
+                <div class="detail-value">H${{metrics.homeland_regions}} / C${{metrics.core_regions}} / F${{metrics.frontier_regions}}</div>
+              </div>
+              <div class="detail-row">
                 <div class="detail-label">Expansion</div>
                 <div class="detail-value">${{formatPosture(metrics.expansion_posture)}} (${{metrics.expansion_posture.toFixed(2)}})</div>
               </div>
@@ -1871,13 +1970,19 @@ def render_simulation_html(world):
         return;
       }}
 
-      turnEvents.innerHTML = snapshot.events.map((event) => `
+      turnEvents.innerHTML = snapshot.events.map((event) => {{
+        const icon = getEventIconData(event.type);
+        return `
         <article class="event-item">
-          <strong>${{escapeHtml(event.title)}}</strong>
-          <div>${{escapeHtml(event.summary)}}</div>
+          <div class="event-header">
+            <span class="event-icon ${{icon.className}}" title="${{escapeHtml(icon.label)}}">${{icon.symbol}}</span>
+            <strong>${{colorizeFactionNames(event.title)}}</strong>
+          </div>
+          <div>${{colorizeFactionNames(event.summary)}}</div>
           <div class="event-meta">Type: ${{escapeHtml(event.type)}}${{event.region_reference ? ` - Region ${{escapeHtml(event.region_reference)}}` : ""}}${{event.terrain_label ? ` - Terrain ${{escapeHtml(event.terrain_label)}}` : ""}}</div>
         </article>
-      `).join("");
+      `;
+      }}).join("");
     }}
 
     function updateMap(snapshot) {{

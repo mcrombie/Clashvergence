@@ -1,3 +1,6 @@
+from src.heartland import get_region_core_status
+
+
 def get_turn_events(world, turn):
     """Returns all events recorded for a specific turn."""
     return [event for event in world.events if event.turn == turn]
@@ -24,6 +27,9 @@ def build_turn_metrics(world, economy_snapshot=None):
         attacks = 0
         expansions = 0
         investments = 0
+        homeland_regions = 0
+        core_regions = 0
+        frontier_regions = 0
         economy_data = (economy_snapshot or {}).get(faction_name, {})
         income = economy_data.get("base_income", 0)
         empire_penalty = economy_data.get("empire_penalty", 0)
@@ -40,6 +46,17 @@ def build_turn_metrics(world, economy_snapshot=None):
                 expansions += 1
             elif event.type == "invest":
                 investments += 1
+
+        for region in world.regions.values():
+            if region.owner != faction_name:
+                continue
+            status = get_region_core_status(region)
+            if status == "homeland":
+                homeland_regions += 1
+            elif status == "core":
+                core_regions += 1
+            else:
+                frontier_regions += 1
 
         faction_metrics[faction_name] = {
             "treasury": faction.treasury,
@@ -59,6 +76,9 @@ def build_turn_metrics(world, economy_snapshot=None):
             "war_posture": faction.doctrine_profile.war_posture,
             "development_posture": faction.doctrine_profile.development_posture,
             "insularity": faction.doctrine_profile.insularity,
+            "homeland_regions": homeland_regions,
+            "core_regions": core_regions,
+            "frontier_regions": frontier_regions,
         }
 
     return {

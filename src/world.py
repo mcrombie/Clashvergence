@@ -1,5 +1,6 @@
 from src.doctrine import initialize_faction_doctrines
 from src.factions import create_factions, validate_map_factions
+from src.heartland import initialize_heartlands, initialize_region_history
 from src.models import Region, WorldState
 from src.maps import MAPS
 from src.region_naming import assign_region_founding_name
@@ -25,6 +26,7 @@ def create_world(map_name="seven_region_ring", num_factions=4) -> WorldState:
         )
 
     world = WorldState(regions=regions, factions=factions, map_name=map_name)
+    initialize_heartlands(world)
 
     homeland_assigned: dict[str, int] = {}
     for region_name, region in world.regions.items():
@@ -41,5 +43,6 @@ def create_world(map_name="seven_region_ring", num_factions=4) -> WorldState:
         homeland_assigned[region.owner] = owned_count + 1
 
     initialize_faction_doctrines(world)
+    initialize_region_history(world)
 
     return world

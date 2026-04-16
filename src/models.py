@@ -48,6 +48,12 @@ class Region:
     original_namer_faction_id: str | None = None
     terrain_tags: list[str] = field(default_factory=list)
     name_metadata: dict[str, Any] = field(default_factory=dict)
+    homeland_faction_id: str | None = None
+    integrated_owner: str | None = None
+    integration_score: float = 0.0
+    core_status: str = "frontier"
+    ownership_turns: int = 0
+    conquest_count: int = 0
 
     @property
     def ui_name(self) -> str:
@@ -187,3 +193,4 @@ class WorldState:
     turn: int = 0
     events: list[Event] = field(default_factory=list)
     metrics: list = field(default_factory=list)
+    region_history: list[dict[str, dict[str, Any]]] = field(default_factory=list)
