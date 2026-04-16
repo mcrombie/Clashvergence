@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from math import ceil
 
 from src.config import (
     CLIMATE_ATTACK_PROJECTION_MAX_PENALTY,
@@ -16,6 +17,17 @@ from src.config import (
     FRONTIER_MAINTENANCE_SURCHARGE,
     HOMELAND_INCOME_FACTOR,
     REGION_MAINTENANCE_COST,
+    UNREST_ATTACK_PROJECTION_MAX_PENALTY,
+    UNREST_CLIMATE_PRESSURE_FACTOR,
+    UNREST_CONQUEST_START,
+    UNREST_DECAY_PER_TURN,
+    UNREST_EXPANSION_START,
+    UNREST_FRONTIER_BURDEN_FACTOR,
+    UNREST_FRONTIER_PRESSURE,
+    UNREST_INCOME_MIN_FACTOR,
+    UNREST_INTEGRATION_PRESSURE_FACTOR,
+    UNREST_MAINTENANCE_MAX_FACTOR,
+    UNREST_MAX,
 )
 from src.models import Region, WorldState
 
@@ -25,6 +37,10 @@ CORE_INTEGRATION_SCORE = 6.0
 CONQUEST_INTEGRATION_SCORE = 1.0
 PER_TURN_FRONTIER_GAIN = 1.0
 PER_TURN_CORE_GAIN = 0.35
+
+
+def _clamp(value: float, minimum: float, maximum: float) -> float:
+    return max(minimum, min(maximum, value))
 
 
 def get_region_core_status(region: Region) -> str:
@@ -63,6 +79,28 @@ def get_region_income_factor(region: Region) -> float:
     return FRONTIER_INCOME_FACTOR
 
 
+def get_faction_frontier_burden(world: WorldState, faction_name: str) -> float:
+    owned_regions = [
+        region
+        for region in world.regions.values()
+        if region.owner == faction_name
+    ]
+    if not owned_regions:
+        return 0.0
+
+    frontier_regions = sum(
+        1
+        for region in owned_regions
+        if get_region_core_status(region) == "frontier"
+    )
+    return frontier_regions / len(owned_regions)
+
+
+def get_region_unrest_income_factor(region: Region) -> float:
+    unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
+    return 1.0 - ((1.0 - UNREST_INCOME_MIN_FACTOR) * unrest_ratio)
+
+
 def get_region_climate_income_factor(region: Region, world: WorldState) -> float:
     affinity = get_region_climate_affinity(region, world)
     return CLIMATE_INCOME_MIN_FACTOR + (
@@ -74,6 +112,7 @@ def get_region_effective_income(region: Region, world: WorldState | None = None)
     income_factor = get_region_income_factor(region)
     if world is not None:
         income_factor *= get_region_climate_income_factor(region, world)
+    income_factor *= get_region_unrest_income_factor(region)
     return int(round(region.resources * income_factor))
 
 
@@ -91,8 +130,13 @@ def get_region_maintenance_cost(region: Region, world: WorldState | None = None)
     else:
         base_cost = REGION_MAINTENANCE_COST
     if world is None:
-        return base_cost
-    return int(round(base_cost * get_region_climate_maintenance_factor(region, world)))
+        unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
+        unrest_factor = 1.0 + ((UNREST_MAINTENANCE_MAX_FACTOR - 1.0) * unrest_ratio)
+        return int(ceil(base_cost * unrest_factor))
+    climate_factor = get_region_climate_maintenance_factor(region, world)
+    unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
+    unrest_factor = 1.0 + ((UNREST_MAINTENANCE_MAX_FACTOR - 1.0) * unrest_ratio)
+    return int(ceil(base_cost * climate_factor * unrest_factor))
 
 
 def get_region_climate_integration_modifier(region: Region, world: WorldState) -> float:
@@ -121,6 +165,11 @@ def get_region_attack_projection_modifier(
     if get_region_core_status(region) == "frontier":
         modifier -= FRONTIER_ATTACK_PROJECTION_PENALTY
 
+    unrest_penalty = int(
+        round(_clamp(region.unrest / UNREST_MAX, 0.0, 1.0) * UNREST_ATTACK_PROJECTION_MAX_PENALTY)
+    )
+    modifier -= unrest_penalty
+
     if world is not None and faction_name is not None and faction_name in world.factions:
         from src.doctrine import get_faction_climate_affinity
 
@@ -145,6 +194,10 @@ def set_region_integration(
     region.core_status = core_status or get_region_core_status(region)
 
 
+def set_region_unrest(region: Region, unrest: float) -> None:
+    region.unrest = round(_clamp(unrest, 0.0, UNREST_MAX), 2)
+
+
 def initialize_heartlands(world: WorldState) -> None:
     owned_counts: dict[str, int] = {}
 
@@ -153,6 +206,7 @@ def initialize_heartlands(world: WorldState) -> None:
             region.integrated_owner = None
             region.integration_score = 0.0
             region.core_status = "frontier"
+            region.unrest = 0.0
             region.ownership_turns = 0
             continue
 
@@ -175,6 +229,7 @@ def initialize_heartlands(world: WorldState) -> None:
                 core_status="core",
             )
         owned_counts[region.owner] = owned_count + 1
+        region.unrest = 0.0
 
 
 def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
@@ -194,6 +249,7 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
             ownership_turns=0,
             core_status="frontier",
         )
+        set_region_unrest(region, 0.0)
         return
 
     base_score = HOMELAND_INTEGRATION_SCORE if region.homeland_faction_id == new_owner else CONQUEST_INTEGRATION_SCORE
@@ -205,6 +261,31 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
         ownership_turns=1,
         core_status=base_status,
     )
+    if region.homeland_faction_id == new_owner:
+        set_region_unrest(region, 0.0)
+    elif previous_owner is None:
+        set_region_unrest(region, UNREST_EXPANSION_START)
+    else:
+        set_region_unrest(region, UNREST_CONQUEST_START)
+
+
+def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
+    if region.owner is None or region.owner not in world.factions:
+        return 0.0
+    if region.homeland_faction_id == region.owner:
+        return -UNREST_DECAY_PER_TURN
+
+    climate_affinity = get_region_climate_affinity(region, world)
+    climate_pressure = (1.0 - climate_affinity) * UNREST_CLIMATE_PRESSURE_FACTOR
+    integration_gap = max(0.0, CORE_INTEGRATION_SCORE - region.integration_score) / CORE_INTEGRATION_SCORE
+    integration_pressure = integration_gap * UNREST_INTEGRATION_PRESSURE_FACTOR
+    frontier_pressure = (
+        UNREST_FRONTIER_PRESSURE
+        if get_region_core_status(region) == "frontier"
+        else 0.0
+    )
+    frontier_burden = get_faction_frontier_burden(world, region.owner) * UNREST_FRONTIER_BURDEN_FACTOR
+    return climate_pressure + integration_pressure + frontier_pressure + frontier_burden - UNREST_DECAY_PER_TURN
 
 
 def update_region_integration(world: WorldState) -> None:
@@ -213,6 +294,7 @@ def update_region_integration(world: WorldState) -> None:
             region.integrated_owner = None
             region.integration_score = 0.0
             region.core_status = "frontier"
+            region.unrest = 0.0
             region.ownership_turns = 0
             continue
 
@@ -224,6 +306,7 @@ def update_region_integration(world: WorldState) -> None:
             region.integration_score = max(region.integration_score, HOMELAND_INTEGRATION_SCORE)
             region.ownership_turns += 1
             region.core_status = "homeland"
+            set_region_unrest(region, region.unrest - UNREST_DECAY_PER_TURN)
             continue
 
         region.ownership_turns += 1
@@ -233,6 +316,7 @@ def update_region_integration(world: WorldState) -> None:
         else:
             region.integration_score += PER_TURN_CORE_GAIN + climate_modifier
         region.core_status = get_region_core_status(region)
+        set_region_unrest(region, region.unrest + get_region_unrest_pressure(region, world))
 
 
 def build_region_snapshot(world: WorldState) -> dict[str, dict]:
@@ -249,6 +333,7 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "integrated_owner": region.integrated_owner,
             "integration_score": round(region.integration_score, 2),
             "core_status": region.core_status,
+            "unrest": round(region.unrest, 2),
         }
         for region_name, region in world.regions.items()
     }

@@ -59,6 +59,7 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertEqual(target_region.core_status, "frontier")
         self.assertEqual(target_region.integration_score, 1.0)
         self.assertEqual(target_region.conquest_count, 1)
+        self.assertGreater(target_region.unrest, 0.0)
 
     def test_frontier_region_promotes_to_core_after_long_hold(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
@@ -152,6 +153,67 @@ class HeartlandSystemTests(unittest.TestCase):
             homeland_region.resources + 3,
         )
         self.assertEqual(economy["maintenance"], 3)
+
+    def test_unrest_reduces_income_and_increases_maintenance(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "frontier"
+        region.integration_score = 1.0
+        region.resources = 5
+
+        region.unrest = 0.0
+        calm_income = get_region_effective_income(region, world)
+        calm_maintenance = get_region_maintenance_cost(region, world)
+
+        region.unrest = 8.0
+        unstable_income = get_region_effective_income(region, world)
+        unstable_maintenance = get_region_maintenance_cost(region, world)
+
+        self.assertLess(unstable_income, calm_income)
+        self.assertGreater(unstable_maintenance, calm_maintenance)
+
+    def test_unrest_reduces_attack_projection(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "frontier"
+        region.integration_score = 1.0
+        region.climate = world.factions[faction_name].doctrine_state.homeland_climate
+
+        region.unrest = 0.0
+        calm_projection = get_region_attack_projection_modifier(
+            region,
+            world=world,
+            faction_name=faction_name,
+        )
+
+        region.unrest = 8.0
+        unstable_projection = get_region_attack_projection_modifier(
+            region,
+            world=world,
+            faction_name=faction_name,
+        )
+
+        self.assertLess(unstable_projection, calm_projection)
+
+    def test_homeland_unrest_decays_toward_zero(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        homeland_region = next(
+            region
+            for region in world.regions.values()
+            if region.owner == faction_name and region.core_status == "homeland"
+        )
+        homeland_region.unrest = 3.0
+
+        update_region_integration(world)
+
+        self.assertLess(homeland_region.unrest, 3.0)
 
     def test_treasury_concentration_declines_with_empire_size(self):
         self.assertEqual(get_treasury_concentration_multiplier(1), 1.0)

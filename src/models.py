@@ -56,6 +56,7 @@ class Region:
     integrated_owner: str | None = None
     integration_score: float = 0.0
     core_status: str = "frontier"
+    unrest: float = 0.0
     ownership_turns: int = 0
     conquest_count: int = 0
 
