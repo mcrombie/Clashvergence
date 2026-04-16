@@ -1,0 +1,155 @@
+import unittest
+
+from src.actions import get_attack_target_score_components, get_attackable_regions
+from src.diplomacy import (
+    get_attack_diplomacy_modifier,
+    get_faction_diplomacy_summary,
+    get_relationship_state,
+    get_relationship_status,
+    initialize_relationships,
+    update_relationships,
+)
+from src.models import Event, Faction, Region, RelationshipState, WorldState
+
+
+class DiplomacySystemTests(unittest.TestCase):
+    def _make_two_faction_border_world(self) -> WorldState:
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=4,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionB",
+                    resources=4,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", treasury=8),
+                "FactionB": Faction(name="FactionB", treasury=8),
+            },
+        )
+        initialize_relationships(world)
+        return world
+
+    def test_initialize_relationships_starts_all_pairs_neutral(self):
+        world = WorldState(
+            regions={},
+            factions={
+                "FactionA": Faction(name="FactionA"),
+                "FactionB": Faction(name="FactionB"),
+                "FactionC": Faction(name="FactionC"),
+            },
+        )
+
+        initialize_relationships(world)
+
+        self.assertEqual(len(world.relationships), 3)
+        self.assertEqual(get_relationship_status(world, "FactionA", "FactionB"), "neutral")
+        self.assertEqual(get_relationship_status(world, "FactionA", "FactionC"), "neutral")
+        self.assertEqual(get_relationship_status(world, "FactionB", "FactionC"), "neutral")
+
+    def test_attack_event_generates_grievance_and_negative_relation(self):
+        world = self._make_two_faction_border_world()
+        world.turn = 1
+        world.events.append(Event(
+            turn=1,
+            type="attack",
+            faction="FactionA",
+            region="B",
+            details={
+                "defender": "FactionB",
+                "success": True,
+            },
+        ))
+
+        update_relationships(world)
+        state = get_relationship_state(world, "FactionA", "FactionB")
+
+        self.assertGreater(state.grievance, 0.0)
+        self.assertEqual(state.years_at_peace, 0)
+        self.assertEqual(state.last_conflict_turn, 1)
+        self.assertLess(state.score, 0.0)
+
+    def test_alliance_blocks_attackable_regions(self):
+        world = self._make_two_faction_border_world()
+        world.relationships[("FactionA", "FactionB")] = RelationshipState(
+            score=82.0,
+            status="alliance",
+            years_at_peace=4,
+            trust=20.0,
+        )
+
+        attackable = get_attackable_regions("FactionA", world)
+
+        self.assertEqual(attackable, [])
+        modifier, status = get_attack_diplomacy_modifier(world, "FactionA", "FactionB")
+        self.assertEqual(status, "alliance")
+        self.assertLess(modifier, -100)
+
+    def test_non_aggression_pact_reduces_attack_score_vs_neutral(self):
+        neutral_world = self._make_two_faction_border_world()
+        neutral_score = get_attack_target_score_components("B", "FactionA", neutral_world)
+
+        pact_world = self._make_two_faction_border_world()
+        pact_world.relationships[("FactionA", "FactionB")] = RelationshipState(
+            score=50.0,
+            status="non_aggression_pact",
+            years_at_peace=3,
+            trust=18.0,
+        )
+        pact_score = get_attack_target_score_components("B", "FactionA", pact_world)
+
+        self.assertEqual(pact_score["diplomacy_status"], "non_aggression_pact")
+        self.assertEqual(pact_score["diplomacy_attack_modifier"], -60)
+        self.assertLess(pact_score["score"], neutral_score["score"])
+
+    def test_diplomacy_summary_picks_top_ally_and_rival(self):
+        world = WorldState(
+            regions={},
+            factions={
+                "FactionA": Faction(name="FactionA"),
+                "FactionB": Faction(name="FactionB"),
+                "FactionC": Faction(name="FactionC"),
+                "FactionD": Faction(name="FactionD"),
+            },
+        )
+        initialize_relationships(world)
+        world.relationships[("FactionA", "FactionB")] = RelationshipState(
+            score=78.0,
+            status="alliance",
+            years_at_peace=5,
+            trust=24.0,
+        )
+        world.relationships[("FactionA", "FactionC")] = RelationshipState(
+            score=46.0,
+            status="non_aggression_pact",
+            years_at_peace=3,
+            trust=16.0,
+        )
+        world.relationships[("FactionA", "FactionD")] = RelationshipState(
+            score=-58.0,
+            status="rival",
+            grievance=25.0,
+        )
+
+        summary = get_faction_diplomacy_summary(world, "FactionA")
+
+        self.assertEqual(summary["top_ally"], "FactionB")
+        self.assertEqual(summary["top_rival"], "FactionD")
+        self.assertEqual(summary["alliance_count"], 1)
+        self.assertEqual(summary["pact_count"], 1)
+        self.assertEqual(summary["rival_count"], 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

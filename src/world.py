@@ -1,3 +1,4 @@
+from src.diplomacy import initialize_relationships
 from src.doctrine import initialize_faction_doctrines
 from src.factions import create_factions, validate_map_factions
 from src.heartland import initialize_heartlands, initialize_region_history
@@ -50,6 +51,7 @@ def create_world(
         homeland_assigned[region.owner] = owned_count + 1
 
     initialize_faction_doctrines(world)
+    initialize_relationships(world)
     initialize_region_history(world)
 
     return world

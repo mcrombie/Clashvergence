@@ -1,3 +1,4 @@
+from src.diplomacy import get_faction_diplomacy_summary
 from src.heartland import get_region_core_status
 
 
@@ -82,6 +83,7 @@ def build_turn_metrics(world, economy_snapshot=None):
             "homeland_regions": homeland_regions,
             "core_regions": core_regions,
             "frontier_regions": frontier_regions,
+            **get_faction_diplomacy_summary(world, faction_name),
         }
 
     return {

@@ -4,6 +4,7 @@ from src.config import (
     EMPIRE_FREE_REGIONS,
     EMPIRE_SCALE_COST,
 )
+from src.diplomacy import update_relationships
 from src.doctrine import update_faction_doctrines
 from src.heartland import (
     get_region_effective_income,
@@ -124,6 +125,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     economy_snapshot = apply_turn_economy(world)
     update_region_integration(world)
     update_rebel_faction_status(world)
+    update_relationships(world)
     update_faction_doctrines(world)
     if verbose:
         for faction_name in turn_order:

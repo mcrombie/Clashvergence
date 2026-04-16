@@ -1,5 +1,6 @@
 import random
 
+from src.diplomacy import get_attack_diplomacy_modifier, get_relationship_status
 from src.config import (
     ATTACK_COST,
     ATTACK_FAILURE_PENALTY,
@@ -54,7 +55,11 @@ def get_attackable_regions(faction_name, world):
 
         for neighbor_name in region.neighbors:
             neighbor = world.regions[neighbor_name]
-            if neighbor.owner is not None and neighbor.owner != faction_name:
+            if (
+                neighbor.owner is not None
+                and neighbor.owner != faction_name
+                and get_relationship_status(world, faction_name, neighbor.owner) != "alliance"
+            ):
                 attackable_regions.add(neighbor_name)
 
     return sorted(attackable_regions)
@@ -140,6 +145,11 @@ def get_attack_target_score_components(region_name, faction_name, world):
         world,
     )
     attacker_strength += rebel_reclaim_bonus
+    diplomacy_attack_modifier, diplomacy_status = get_attack_diplomacy_modifier(
+        world,
+        faction_name,
+        defender_name,
+    )
     defender_strength = (
         defender_deployable_treasury
         + region.resources
@@ -155,6 +165,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + (region.resources * 3)
         + terrain_profile["economic_modifier"]
         + doctrine_alignment["economic_modifier"]
+        + diplomacy_attack_modifier
     )
 
     return {
@@ -177,6 +188,8 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "doctrine_combat_modifier": doctrine_alignment["combat_modifier"],
         "doctrine_economic_modifier": doctrine_alignment["economic_modifier"],
         "rebel_reclaim_bonus": rebel_reclaim_bonus,
+        "diplomacy_status": diplomacy_status,
+        "diplomacy_attack_modifier": diplomacy_attack_modifier,
         "terrain_affinity": doctrine_alignment["average_affinity"],
         "core_status": region_core_status,
         "core_defense_bonus": core_defense_bonus,

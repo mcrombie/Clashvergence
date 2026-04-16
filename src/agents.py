@@ -116,6 +116,13 @@ def choose_action(faction_name, world):
     if can_attack:
         best_attack_target = choose_attack_target(faction_name, world)
         best_attack_score = score_attack_target(best_attack_target, faction_name, world)
+        best_attack_components = get_attack_target_score_components(
+            best_attack_target,
+            faction_name,
+            world,
+        )
+    else:
+        best_attack_components = None
 
     if can_expand:
         best_expand_target = choose_expand_target(faction_name, world)
@@ -139,6 +146,11 @@ def choose_action(faction_name, world):
             attack_utility -= 0.04
         if is_proto_state:
             attack_utility -= REBEL_PROTO_ATTACK_UTILITY_PENALTY
+        if best_attack_components is not None:
+            if best_attack_components["diplomacy_status"] == "non_aggression_pact":
+                attack_utility -= 0.45
+            elif best_attack_components["diplomacy_status"] == "rival":
+                attack_utility += 0.08
         action_utilities["attack"] = attack_utility
 
     if can_expand:

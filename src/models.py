@@ -195,6 +195,18 @@ class Event:
 
 
 @dataclass
+class RelationshipState:
+    score: float = 0.0
+    status: str = "neutral"
+    years_at_peace: int = 0
+    wars_fought: int = 0
+    last_conflict_turn: int | None = None
+    border_friction: float = 0.0
+    trust: float = 0.0
+    grievance: float = 0.0
+
+
+@dataclass
 class WorldState:
     regions: dict[str, Region]
     factions: dict[str, Faction]
@@ -203,3 +215,4 @@ class WorldState:
     events: list[Event] = field(default_factory=list)
     metrics: list = field(default_factory=list)
     region_history: list[dict[str, dict[str, Any]]] = field(default_factory=list)
+    relationships: dict[tuple[str, str], RelationshipState] = field(default_factory=dict)

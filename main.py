@@ -150,6 +150,31 @@ def format_event(event, world):
             f"treasury_after={event.get('treasury_after', 0)})"
         )
 
+    if event["type"] == "diplomacy_rivalry":
+        return (
+            f"Turn {event['turn'] + 1}: {event['faction']} and {event.get('counterpart', 'another faction')} "
+            f"became rivals (score={event.get('score', 0):.2f})"
+        )
+
+    if event["type"] == "diplomacy_pact":
+        return (
+            f"Turn {event['turn'] + 1}: {event['faction']} and {event.get('counterpart', 'another faction')} "
+            f"entered a non-aggression pact (score={event.get('score', 0):.2f})"
+        )
+
+    if event["type"] == "diplomacy_alliance":
+        return (
+            f"Turn {event['turn'] + 1}: {event['faction']} and {event.get('counterpart', 'another faction')} "
+            f"formed an alliance (score={event.get('score', 0):.2f})"
+        )
+
+    if event["type"] == "diplomacy_break":
+        return (
+            f"Turn {event['turn'] + 1}: {event['faction']} and {event.get('counterpart', 'another faction')} "
+            f"broke their {event.get('previous_status', 'diplomatic')} relationship "
+            f"(score={event.get('score', 0):.2f})"
+        )
+
     return f"Turn {event['turn'] + 1}: {event}"
 
 
