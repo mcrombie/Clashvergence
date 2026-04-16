@@ -589,6 +589,27 @@ def render_simulation_html(world):
       stroke-linecap: round;
       stroke-dasharray: 8 8;
     }}
+    .atlas-symbol {{
+      fill: none;
+      stroke: rgba(66, 59, 46, 0.44);
+      stroke-width: 1.35;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.72;
+      pointer-events: none;
+    }}
+    .atlas-symbol.soft-fill {{
+      fill: rgba(250, 244, 232, 0.1);
+    }}
+    .atlas-symbol.water {{
+      stroke: rgba(54, 105, 150, 0.58);
+    }}
+    .atlas-symbol.vegetation {{
+      stroke: rgba(55, 98, 60, 0.58);
+    }}
+    .atlas-symbol.earth {{
+      stroke: rgba(104, 81, 56, 0.58);
+    }}
     .atlas-territory {{
       stroke: rgba(60, 51, 36, 0.82);
       stroke-width: 2.2;
@@ -930,6 +951,7 @@ def render_simulation_html(world):
               <svg id="simulation-map" viewBox="0 0 900 900" role="img" aria-label="Simulation map">
                 <g id="atlas-background-layer" class="map-layer"></g>
                 <g id="atlas-layer" class="map-layer"></g>
+                <g id="atlas-symbol-layer" class="map-layer"></g>
                 <g id="atlas-label-layer" class="map-layer"></g>
                 <g id="atlas-terrain-layer" class="map-layer hidden"></g>
                 <g id="graph-layer" class="map-layer">
@@ -1005,6 +1027,7 @@ def render_simulation_html(world):
     const terrainToggle = document.getElementById("terrain-toggle");
     const atlasBackgroundLayer = document.getElementById("atlas-background-layer");
     const atlasLayer = document.getElementById("atlas-layer");
+    const atlasSymbolLayer = document.getElementById("atlas-symbol-layer");
     const atlasLabelLayer = document.getElementById("atlas-label-layer");
     const atlasTerrainLayer = document.getElementById("atlas-terrain-layer");
     const graphLayer = document.getElementById("graph-layer");
@@ -1103,6 +1126,175 @@ def render_simulation_html(world):
       return points.map((point) => `${{point[0]}},${{point[1]}}`).join(" ");
     }}
 
+    function getAtlasSymbolOffsets(count) {{
+      if (count <= 1) {{
+        return [
+          [-32, -24],
+          [0, -32],
+          [32, -24],
+          [-34, 0],
+          [34, 0],
+          [-24, 24],
+          [24, 24],
+        ];
+      }}
+      if (count === 2) {{
+        return [
+          [-36, -26],
+          [0, -34],
+          [36, -26],
+          [-38, 2],
+          [38, 2],
+          [-28, 26],
+          [0, 32],
+          [28, 26],
+        ];
+      }}
+      return [
+        [-38, -28],
+        [-10, -36],
+        [20, -34],
+        [40, -6],
+        [36, 24],
+        [8, 34],
+        [-22, 32],
+        [-40, 6],
+      ];
+    }}
+
+    function getDisplayTerrainTags(tags) {{
+      const filtered = (tags || []).filter((tag) => tag !== "plains");
+      if (filtered.length) {{
+        return filtered.slice(0, 3);
+      }}
+      return ["plains"];
+    }}
+
+    function appendAtlasTerrainSymbol(group, tag, centerX, centerY, size) {{
+      if (tag === "forest") {{
+        for (const offset of [-size * 0.62, 0, size * 0.62]) {{
+          group.appendChild(svgElement("path", {{
+            d: `M ${{(centerX + offset).toFixed(1)}} ${{(centerY + (size * 0.72)).toFixed(1)}} L ${{(centerX + offset).toFixed(1)}} ${{(centerY - (size * 0.2)).toFixed(1)}}`,
+            class: "atlas-symbol vegetation",
+          }}));
+          group.appendChild(svgElement("path", {{
+            d: `M ${{(centerX + offset - (size * 0.18)).toFixed(1)}} ${{(centerY - (size * 0.62)).toFixed(1)}} L ${{(centerX + offset - (size * 0.42)).toFixed(1)}} ${{(centerY - (size * 0.18)).toFixed(1)}} L ${{(centerX + offset + (size * 0.08)).toFixed(1)}} ${{(centerY - (size * 0.18)).toFixed(1)}} Z`,
+            class: "atlas-symbol vegetation soft-fill",
+          }}));
+          group.appendChild(svgElement("path", {{
+            d: `M ${{(centerX + offset + (size * 0.12)).toFixed(1)}} ${{(centerY - (size * 0.68)).toFixed(1)}} L ${{(centerX + offset - (size * 0.22)).toFixed(1)}} ${{(centerY - (size * 0.1)).toFixed(1)}} L ${{(centerX + offset + (size * 0.42)).toFixed(1)}} ${{(centerY - (size * 0.08)).toFixed(1)}} Z`,
+            class: "atlas-symbol vegetation soft-fill",
+          }}));
+          group.appendChild(svgElement("path", {{
+            d: `M ${{(centerX + offset - (size * 0.46)).toFixed(1)}} ${{(centerY + (size * 0.1)).toFixed(1)}} Q ${{(centerX + offset - (size * 0.12)).toFixed(1)}} ${{(centerY - (size * 0.52)).toFixed(1)}} ${{(centerX + offset + (size * 0.18)).toFixed(1)}} ${{(centerY + (size * 0.08)).toFixed(1)}}`,
+            class: "atlas-symbol vegetation",
+          }}));
+          group.appendChild(svgElement("path", {{
+            d: `M ${{(centerX + offset - (size * 0.36)).toFixed(1)}} ${{(centerY + (size * 0.28)).toFixed(1)}} Q ${{(centerX + offset).toFixed(1)}} ${{(centerY - (size * 0.18)).toFixed(1)}} ${{(centerX + offset + (size * 0.38)).toFixed(1)}} ${{(centerY + (size * 0.26)).toFixed(1)}}`,
+            class: "atlas-symbol vegetation",
+          }}));
+        }}
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX - (size * 0.95)).toFixed(1)}} ${{(centerY + (size * 0.62)).toFixed(1)}} Q ${{centerX.toFixed(1)}} ${{(centerY + (size * 0.9)).toFixed(1)}} ${{(centerX + (size * 0.95)).toFixed(1)}} ${{(centerY + (size * 0.62)).toFixed(1)}}`,
+          class: "atlas-symbol vegetation",
+        }}));
+        return;
+      }}
+
+      if (tag === "highland") {{
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX - size).toFixed(1)}} ${{(centerY + (size * 0.55)).toFixed(1)}} L ${{(centerX - (size * 0.32)).toFixed(1)}} ${{(centerY - (size * 0.5)).toFixed(1)}} L ${{(centerX + (size * 0.08)).toFixed(1)}} ${{(centerY + (size * 0.18)).toFixed(1)}} L ${{(centerX + (size * 0.62)).toFixed(1)}} ${{(centerY - (size * 0.38)).toFixed(1)}} L ${{(centerX + size).toFixed(1)}} ${{(centerY + (size * 0.48)).toFixed(1)}}`,
+          class: "atlas-symbol earth",
+        }}));
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX - (size * 0.3)).toFixed(1)}} ${{(centerY + (size * 0.15)).toFixed(1)}} L ${{(centerX - (size * 0.12)).toFixed(1)}} ${{(centerY - (size * 0.18)).toFixed(1)}}`,
+          class: "atlas-symbol earth",
+        }}));
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX - (size * 0.72)).toFixed(1)}} ${{(centerY + (size * 0.46)).toFixed(1)}} L ${{(centerX - (size * 0.46)).toFixed(1)}} ${{(centerY - (size * 0.12)).toFixed(1)}} L ${{(centerX - (size * 0.18)).toFixed(1)}} ${{(centerY + (size * 0.34)).toFixed(1)}}`,
+          class: "atlas-symbol earth",
+        }}));
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX + (size * 0.08)).toFixed(1)}} ${{(centerY + (size * 0.34)).toFixed(1)}} L ${{(centerX + (size * 0.34)).toFixed(1)}} ${{(centerY - (size * 0.16)).toFixed(1)}} L ${{(centerX + (size * 0.7)).toFixed(1)}} ${{(centerY + (size * 0.38)).toFixed(1)}}`,
+          class: "atlas-symbol earth",
+        }}));
+        return;
+      }}
+
+      if (tag === "riverland") {{
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX - size).toFixed(1)}} ${{(centerY - (size * 0.18)).toFixed(1)}} C ${{(centerX - (size * 0.58)).toFixed(1)}} ${{(centerY - (size * 0.82)).toFixed(1)}}, ${{(centerX - (size * 0.18)).toFixed(1)}} ${{(centerY + (size * 0.42)).toFixed(1)}}, ${{centerX.toFixed(1)}} ${{centerY.toFixed(1)}} C ${{(centerX + (size * 0.2)).toFixed(1)}} ${{(centerY - (size * 0.42)).toFixed(1)}}, ${{(centerX + (size * 0.56)).toFixed(1)}} ${{(centerY + (size * 0.82)).toFixed(1)}}, ${{(centerX + size).toFixed(1)}} ${{(centerY + (size * 0.18)).toFixed(1)}}`,
+          class: "atlas-symbol water",
+        }}));
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX - (size * 0.68)).toFixed(1)}} ${{(centerY + (size * 0.22)).toFixed(1)}} C ${{(centerX - (size * 0.3)).toFixed(1)}} ${{(centerY + (size * 0.04)).toFixed(1)}}, ${{(centerX - (size * 0.12)).toFixed(1)}} ${{(centerY + (size * 0.62)).toFixed(1)}}, ${{(centerX + (size * 0.08)).toFixed(1)}} ${{(centerY + (size * 0.42)).toFixed(1)}}`,
+          class: "atlas-symbol water",
+        }}));
+        return;
+      }}
+
+      if (tag === "coast") {{
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX - size).toFixed(1)}} ${{(centerY - (size * 0.12)).toFixed(1)}} C ${{(centerX - (size * 0.55)).toFixed(1)}} ${{(centerY - (size * 0.72)).toFixed(1)}}, ${{(centerX + (size * 0.18)).toFixed(1)}} ${{(centerY + (size * 0.08)).toFixed(1)}}, ${{(centerX + size).toFixed(1)}} ${{(centerY - (size * 0.3)).toFixed(1)}}`,
+          class: "atlas-symbol water",
+        }}));
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX - (size * 0.74)).toFixed(1)}} ${{(centerY + (size * 0.34)).toFixed(1)}} Q ${{(centerX - (size * 0.28)).toFixed(1)}} ${{(centerY + (size * 0.06)).toFixed(1)}} ${{centerX.toFixed(1)}} ${{(centerY + (size * 0.32)).toFixed(1)}} Q ${{(centerX + (size * 0.28)).toFixed(1)}} ${{(centerY + (size * 0.58)).toFixed(1)}} ${{(centerX + (size * 0.74)).toFixed(1)}} ${{(centerY + (size * 0.28)).toFixed(1)}}`,
+          class: "atlas-symbol water",
+        }}));
+        return;
+      }}
+
+      if (tag === "marsh") {{
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX - size).toFixed(1)}} ${{(centerY + (size * 0.62)).toFixed(1)}} Q ${{(centerX - (size * 0.55)).toFixed(1)}} ${{(centerY + (size * 0.22)).toFixed(1)}} ${{(centerX - (size * 0.12)).toFixed(1)}} ${{(centerY + (size * 0.48)).toFixed(1)}} T ${{(centerX + size).toFixed(1)}} ${{(centerY + (size * 0.44)).toFixed(1)}}`,
+          class: "atlas-symbol water",
+        }}));
+        for (const offsetX of [-size * 0.48, 0, size * 0.48]) {{
+          group.appendChild(svgElement("path", {{
+            d: `M ${{(centerX + offsetX).toFixed(1)}} ${{(centerY + (size * 0.72)).toFixed(1)}} Q ${{(centerX + offsetX - (size * 0.08)).toFixed(1)}} ${{centerY.toFixed(1)}} ${{(centerX + offsetX).toFixed(1)}} ${{(centerY - (size * 0.46)).toFixed(1)}}`,
+            class: "atlas-symbol vegetation",
+          }}));
+        }}
+        return;
+      }}
+
+      if (tag === "hills") {{
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX - size).toFixed(1)}} ${{(centerY + (size * 0.5)).toFixed(1)}} Q ${{(centerX - (size * 0.58)).toFixed(1)}} ${{(centerY - (size * 0.18)).toFixed(1)}} ${{(centerX - (size * 0.16)).toFixed(1)}} ${{(centerY + (size * 0.22)).toFixed(1)}} Q ${{(centerX + (size * 0.16)).toFixed(1)}} ${{(centerY - (size * 0.22)).toFixed(1)}} ${{(centerX + size).toFixed(1)}} ${{(centerY + (size * 0.42)).toFixed(1)}}`,
+          class: "atlas-symbol earth",
+        }}));
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX - (size * 0.72)).toFixed(1)}} ${{(centerY + (size * 0.2)).toFixed(1)}} Q ${{centerX.toFixed(1)}} ${{(centerY - (size * 0.46)).toFixed(1)}} ${{(centerX + (size * 0.72)).toFixed(1)}} ${{(centerY + (size * 0.18)).toFixed(1)}}`,
+          class: "atlas-symbol earth",
+        }}));
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX - (size * 0.92)).toFixed(1)}} ${{(centerY + (size * 0.58)).toFixed(1)}} Q ${{(centerX - (size * 0.54)).toFixed(1)}} ${{(centerY + (size * 0.1)).toFixed(1)}} ${{(centerX - (size * 0.2)).toFixed(1)}} ${{(centerY + (size * 0.42)).toFixed(1)}}`,
+          class: "atlas-symbol earth",
+        }}));
+        group.appendChild(svgElement("path", {{
+          d: `M ${{(centerX + (size * 0.08)).toFixed(1)}} ${{(centerY + (size * 0.34)).toFixed(1)}} Q ${{(centerX + (size * 0.42)).toFixed(1)}} ${{(centerY - (size * 0.12)).toFixed(1)}} ${{(centerX + (size * 0.92)).toFixed(1)}} ${{(centerY + (size * 0.52)).toFixed(1)}}`,
+          class: "atlas-symbol earth",
+        }}));
+        return;
+      }}
+
+      if (tag === "steppe") {{
+        for (const offsetX of [-size * 0.55, 0, size * 0.55]) {{
+          group.appendChild(svgElement("path", {{
+            d: `M ${{(centerX + offsetX).toFixed(1)}} ${{(centerY + (size * 0.72)).toFixed(1)}} Q ${{(centerX + offsetX - (size * 0.18)).toFixed(1)}} ${{(centerY + (size * 0.18)).toFixed(1)}} ${{(centerX + offsetX).toFixed(1)}} ${{(centerY - (size * 0.36)).toFixed(1)}} Q ${{(centerX + offsetX + (size * 0.22)).toFixed(1)}} ${{(centerY + (size * 0.06)).toFixed(1)}} ${{(centerX + offsetX).toFixed(1)}} ${{(centerY + (size * 0.64)).toFixed(1)}}`,
+            class: "atlas-symbol vegetation",
+          }}));
+        }}
+        return;
+      }}
+
+      group.appendChild(svgElement("path", {{
+        d: `M ${{(centerX - size).toFixed(1)}} ${{(centerY + (size * 0.42)).toFixed(1)}} Q ${{(centerX - (size * 0.45)).toFixed(1)}} ${{(centerY + (size * 0.1)).toFixed(1)}} ${{centerX.toFixed(1)}} ${{(centerY + (size * 0.26)).toFixed(1)}} Q ${{(centerX + (size * 0.45)).toFixed(1)}} ${{(centerY - (size * 0.04)).toFixed(1)}} ${{(centerX + size).toFixed(1)}} ${{(centerY + (size * 0.24)).toFixed(1)}}`,
+        class: "atlas-symbol earth",
+      }}));
+    }}
+
     function buildStaticMap() {{
       function attachTitle(element, id) {{
         const title = svgElement("title", {{ id }});
@@ -1147,6 +1339,24 @@ def render_simulation_html(world):
             renderRegionDetail(data.snapshots[state.currentTurn]);
           }});
           atlasLayer.appendChild(polygon);
+
+          const terrainTags = getDisplayTerrainTags(region.terrain_tags);
+          const symbolOffsets = getAtlasSymbolOffsets(terrainTags.length);
+          const terrainGroup = svgElement("g", {{
+            id: `atlas-symbols-${{region.name}}`,
+          }});
+          symbolOffsets.forEach((offset, index) => {{
+            const tag = terrainTags[index % terrainTags.length];
+            const [offsetX, offsetY] = offset;
+            appendAtlasTerrainSymbol(
+              terrainGroup,
+              tag,
+              region.label_x + offsetX,
+              region.label_y + offsetY,
+              8,
+            );
+          }});
+          atlasSymbolLayer.appendChild(terrainGroup);
 
           atlasLabelLayer.appendChild(svgElement("text", {{
             x: region.label_x,
@@ -1297,6 +1507,7 @@ def render_simulation_html(world):
       const showAtlas = state.mapView === "atlas" && data.atlas_regions.length;
       atlasBackgroundLayer.classList.toggle("hidden", !showAtlas);
       atlasLayer.classList.toggle("hidden", !showAtlas);
+      atlasSymbolLayer.classList.toggle("hidden", !showAtlas);
       atlasLabelLayer.classList.toggle("hidden", !showAtlas);
       atlasTerrainLayer.classList.toggle("hidden", !showAtlas || !state.showTerrainOverlay);
       graphLayer.classList.toggle("hidden", showAtlas);

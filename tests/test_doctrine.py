@@ -156,6 +156,13 @@ class FactionDoctrineTests(unittest.TestCase):
         self.assertIn('id="doctrine-timeline-controls"', html)
         self.assertIn("Doctrine Timeline", html)
 
+    def test_viewer_html_contains_atlas_symbol_layer(self):
+        world = create_world(map_name="thirty_seven_region_ring", num_factions=4)
+        html = render_simulation_html(world)
+
+        self.assertIn('id="atlas-symbol-layer"', html)
+        self.assertIn("atlas-symbol", html)
+
 
 if __name__ == "__main__":
     unittest.main()
