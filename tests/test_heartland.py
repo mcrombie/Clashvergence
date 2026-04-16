@@ -1,7 +1,12 @@
 import unittest
 from unittest.mock import patch
 
-from src.actions import attack, get_attack_target_score_components
+from src.config import MIN_TREASURY_CONCENTRATION
+from src.actions import (
+    attack,
+    get_attack_target_score_components,
+    get_treasury_concentration_multiplier,
+)
 from src.heartland import (
     CORE_INTEGRATION_SCORE,
     get_region_attack_projection_modifier,
@@ -147,6 +152,43 @@ class HeartlandSystemTests(unittest.TestCase):
             homeland_region.resources + 3,
         )
         self.assertEqual(economy["maintenance"], 3)
+
+    def test_treasury_concentration_declines_with_empire_size(self):
+        self.assertEqual(get_treasury_concentration_multiplier(1), 1.0)
+        self.assertLess(get_treasury_concentration_multiplier(3), 1.0)
+        self.assertLess(
+            get_treasury_concentration_multiplier(5),
+            get_treasury_concentration_multiplier(3),
+        )
+        self.assertGreaterEqual(
+            get_treasury_concentration_multiplier(20),
+            MIN_TREASURY_CONCENTRATION,
+        )
+
+    def test_attack_score_uses_only_part_of_large_empire_treasury(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_names = list(world.factions)
+        attacker_name = faction_names[0]
+        defender_name = faction_names[1]
+
+        world.factions[attacker_name].treasury = 12
+        world.factions[defender_name].treasury = 12
+        world.regions["D"].owner = defender_name
+
+        small_empire_score = get_attack_target_score_components("D", attacker_name, world)
+
+        world.regions["M"].owner = attacker_name
+        world.regions["B"].owner = attacker_name
+        large_empire_score = get_attack_target_score_components("D", attacker_name, world)
+
+        self.assertEqual(small_empire_score["attacker_region_count"], 1)
+        self.assertEqual(large_empire_score["attacker_region_count"], 3)
+        self.assertEqual(small_empire_score["attacker_deployable_treasury"], 12)
+        self.assertLess(large_empire_score["attacker_deployable_treasury"], 12)
+        self.assertLess(
+            large_empire_score["attacker_treasury_multiplier"],
+            small_empire_score["attacker_treasury_multiplier"],
+        )
 
 
 if __name__ == "__main__":

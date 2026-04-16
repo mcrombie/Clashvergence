@@ -3,9 +3,14 @@ import random
 from src.config import (
     ATTACK_COST,
     ATTACK_FAILURE_PENALTY,
+    ATTACK_SUCCESS_MAX,
+    ATTACK_SUCCESS_MIN,
+    ATTACK_SUCCESS_STRENGTH_FACTOR,
     EXPANSION_COST,
     MAX_RESOURCES,
     INVEST_AMOUNT,
+    MIN_TREASURY_CONCENTRATION,
+    TREASURY_CONCENTRATION_REGION_FACTOR,
 )
 from src.doctrine import get_faction_region_alignment
 from src.heartland import (
@@ -51,6 +56,28 @@ def get_attackable_regions(faction_name, world):
     return sorted(attackable_regions)
 
 
+def get_owned_region_count(faction_name, world):
+    """Returns the number of regions currently owned by the faction."""
+
+    return sum(
+        1
+        for region in world.regions.values()
+        if region.owner == faction_name
+    )
+
+
+def get_treasury_concentration_multiplier(region_count):
+    """Returns the share of treasury a faction can focus on a single front."""
+
+    if region_count <= 1:
+        return 1.0
+
+    multiplier = 1.0 / (
+        1.0 + (TREASURY_CONCENTRATION_REGION_FACTOR * (region_count - 1))
+    )
+    return max(MIN_TREASURY_CONCENTRATION, round(multiplier, 3))
+
+
 def get_attack_target_score_components(region_name, faction_name, world):
     """Returns a simple attack score and combat stats for an enemy region."""
 
@@ -63,6 +90,16 @@ def get_attack_target_score_components(region_name, faction_name, world):
     region_core_status = get_region_core_status(region)
     core_defense_bonus = get_region_core_defense_bonus(region)
     defender_name = region.owner
+    attacker_region_count = get_owned_region_count(faction_name, world)
+    defender_region_count = get_owned_region_count(defender_name, world)
+    attacker_treasury_multiplier = get_treasury_concentration_multiplier(attacker_region_count)
+    defender_treasury_multiplier = get_treasury_concentration_multiplier(defender_region_count)
+    attacker_deployable_treasury = int(
+        round(world.factions[faction_name].treasury * attacker_treasury_multiplier)
+    )
+    defender_deployable_treasury = int(
+        round(world.factions[defender_name].treasury * defender_treasury_multiplier)
+    )
     staging_regions = [
         world.regions[neighbor_name]
         for neighbor_name in region.neighbors
@@ -77,18 +114,20 @@ def get_attack_target_score_components(region_name, faction_name, world):
         default=0,
     )
     attacker_strength = (
-        world.factions[faction_name].treasury
+        attacker_deployable_treasury
         + staging_projection
         + doctrine_alignment["combat_modifier"]
     )
     defender_strength = (
-        world.factions[defender_name].treasury
+        defender_deployable_treasury
         + region.resources
         + terrain_profile["defense_modifier"]
         + core_defense_bonus
     )
-    success_chance = 0.5 + ((attacker_strength - defender_strength) * 0.05)
-    success_chance = max(0.2, min(0.8, success_chance))
+    success_chance = 0.5 + (
+        (attacker_strength - defender_strength) * ATTACK_SUCCESS_STRENGTH_FACTOR
+    )
+    success_chance = max(ATTACK_SUCCESS_MIN, min(ATTACK_SUCCESS_MAX, success_chance))
     score = (
         int(success_chance * 100)
         + (region.resources * 3)
@@ -99,6 +138,12 @@ def get_attack_target_score_components(region_name, faction_name, world):
     return {
         "defender": defender_name,
         "target_resources": region.resources,
+        "attacker_region_count": attacker_region_count,
+        "defender_region_count": defender_region_count,
+        "attacker_treasury_multiplier": attacker_treasury_multiplier,
+        "defender_treasury_multiplier": defender_treasury_multiplier,
+        "attacker_deployable_treasury": attacker_deployable_treasury,
+        "defender_deployable_treasury": defender_deployable_treasury,
         "staging_resources": staging_resources,
         "staging_projection": staging_projection,
         "attacker_strength": attacker_strength,
