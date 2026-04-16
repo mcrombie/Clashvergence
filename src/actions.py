@@ -10,6 +10,7 @@ from src.config import (
     MAX_RESOURCES,
     INVEST_AMOUNT,
     MIN_TREASURY_CONCENTRATION,
+    REBEL_PROTO_TREASURY_CONCENTRATION_FACTOR,
     REBEL_REABSORPTION_UNREST,
     TREASURY_CONCENTRATION_REGION_FACTOR,
 )
@@ -98,11 +99,17 @@ def get_attack_target_score_components(region_name, faction_name, world):
     defender_region_count = get_owned_region_count(defender_name, world)
     attacker_treasury_multiplier = get_treasury_concentration_multiplier(attacker_region_count)
     defender_treasury_multiplier = get_treasury_concentration_multiplier(defender_region_count)
+    attacker_faction = world.factions[faction_name]
+    if attacker_faction.is_rebel and attacker_faction.proto_state:
+        attacker_treasury_multiplier *= REBEL_PROTO_TREASURY_CONCENTRATION_FACTOR
+    defender_faction_state = world.factions[defender_name]
+    if defender_faction_state.is_rebel and defender_faction_state.proto_state:
+        defender_treasury_multiplier *= REBEL_PROTO_TREASURY_CONCENTRATION_FACTOR
     attacker_deployable_treasury = int(
-        round(world.factions[faction_name].treasury * attacker_treasury_multiplier)
+        round(attacker_faction.treasury * attacker_treasury_multiplier)
     )
     defender_deployable_treasury = int(
-        round(world.factions[defender_name].treasury * defender_treasury_multiplier)
+        round(defender_faction_state.treasury * defender_treasury_multiplier)
     )
     staging_regions = [
         world.regions[neighbor_name]
@@ -155,8 +162,8 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "target_resources": region.resources,
         "attacker_region_count": attacker_region_count,
         "defender_region_count": defender_region_count,
-        "attacker_treasury_multiplier": attacker_treasury_multiplier,
-        "defender_treasury_multiplier": defender_treasury_multiplier,
+        "attacker_treasury_multiplier": round(attacker_treasury_multiplier, 3),
+        "defender_treasury_multiplier": round(defender_treasury_multiplier, 3),
         "attacker_deployable_treasury": attacker_deployable_treasury,
         "defender_deployable_treasury": defender_deployable_treasury,
         "staging_resources": staging_resources,
@@ -523,10 +530,15 @@ def attack(faction_name, target_region_name, world):
         and defender_faction.is_rebel
         and defender_faction.origin_faction == faction_name
     )
+    is_proto_reintegration_attempt = (
+        is_reintegration_attempt
+        and defender_faction is not None
+        and defender_faction.proto_state
+    )
 
     if succeeded:
         handle_region_owner_change(target_region, faction_name)
-        if is_reintegration_attempt:
+        if is_proto_reintegration_attempt:
             set_region_unrest(
                 target_region,
                 min(target_region.unrest, REBEL_REABSORPTION_UNREST),
@@ -578,7 +590,8 @@ def attack(faction_name, target_region_name, world):
             "treasury_after": attacker.treasury,
             "treasury_change": treasury_change,
             "success": succeeded,
-            "reintegrated_rebel": succeeded and is_reintegration_attempt,
+            "reintegrated_rebel": succeeded and is_proto_reintegration_attempt,
+            "reclaimed_successor": succeeded and is_reintegration_attempt and not is_proto_reintegration_attempt,
         },
         tags=[
             "combat",

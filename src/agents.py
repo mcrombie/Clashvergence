@@ -7,7 +7,13 @@ from src.actions import (
     get_investable_regions,
     invest,
 )
-from src.config import ATTACK_COST, EXPANSION_COST, MAX_RESOURCES
+from src.config import (
+    ATTACK_COST,
+    EXPANSION_COST,
+    MAX_RESOURCES,
+    REBEL_PROTO_ATTACK_UTILITY_PENALTY,
+    REBEL_PROTO_INVEST_UTILITY_BONUS,
+)
 
 
 def _clamp(value, minimum, maximum):
@@ -90,6 +96,7 @@ def choose_attack_target(faction_name, world):
 def choose_action(faction_name, world):
     faction = world.factions[faction_name]
     doctrine = faction.doctrine_profile
+    is_proto_state = faction.is_rebel and faction.proto_state
 
     attackable_regions = get_attackable_regions(faction_name, world)
     expandable_regions = get_expandable_regions(faction_name, world)
@@ -130,6 +137,8 @@ def choose_action(faction_name, world):
         )
         if faction.treasury <= ATTACK_COST:
             attack_utility -= 0.04
+        if is_proto_state:
+            attack_utility -= REBEL_PROTO_ATTACK_UTILITY_PENALTY
         action_utilities["attack"] = attack_utility
 
     if can_expand:
@@ -153,6 +162,8 @@ def choose_action(faction_name, world):
         )
         if faction.treasury < EXPANSION_COST:
             invest_utility += 0.03
+        if is_proto_state:
+            invest_utility += REBEL_PROTO_INVEST_UTILITY_BONUS
         action_utilities["invest"] = invest_utility
 
     if action_utilities:

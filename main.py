@@ -140,6 +140,16 @@ def format_event(event, world):
             f"new_resources={event.get('new_resources', 0)}{terrain_text})"
         )
 
+    if event["type"] == "rebel_independence":
+        return (
+            f"Turn {event['turn'] + 1}: {event['faction']} declared full independence "
+            f"from {event.get('origin_faction', 'its former ruler')} "
+            f"(rebel_age={event.get('rebel_age', 0)}, "
+            f"independence_score={event.get('independence_score', 0):.2f}, "
+            f"government={event.get('government_type', 'State')}, "
+            f"treasury_after={event.get('treasury_after', 0)})"
+        )
+
     return f"Turn {event['turn'] + 1}: {event}"
 
 

@@ -80,6 +80,11 @@ def _get_event_title(event, world):
         if rebel_faction:
             return f"{region_reference} broke away from {event.faction} as {rebel_faction}"
         return f"{region_reference} broke away from {event.faction}"
+    if event.type == "rebel_independence":
+        origin_faction = event.get("origin_faction")
+        if origin_faction:
+            return f"{event.faction} declared full independence from {origin_faction}"
+        return f"{event.faction} consolidated into an independent successor state"
     return f"{event.faction} acted"
 
 
@@ -118,6 +123,12 @@ def _get_event_summary(event, world):
                 if rebel_faction
                 else f"Sustained crisis forced the region out of {event.faction}'s control."
             )
+            + terrain_text
+        )
+    if event.type == "rebel_independence":
+        government_type = event.get("government_type", "State")
+        return (
+            f"After surviving its fragile rebellion, the polity hardened into a full {government_type.lower()}."
             + terrain_text
         )
     return "No summary available."
@@ -364,6 +375,9 @@ def build_simulation_view_model(world):
             "is_rebel": world.factions[faction_name].is_rebel,
             "origin_faction": world.factions[faction_name].origin_faction,
             "proto_state": world.factions[faction_name].proto_state,
+            "government_type": world.factions[faction_name].government_type,
+            "rebel_age": world.factions[faction_name].rebel_age,
+            "independence_score": world.factions[faction_name].independence_score,
             "color": get_faction_color(
                 faction_name,
                 internal_id=world.factions[faction_name].internal_id,
@@ -2134,8 +2148,25 @@ def render_simulation_html(world):
           ? `<div class="event-meta">Shifted from ${{escapeHtml(previous.doctrine_label)}} on the previous turn.</div>`
           : "";
         const polityStatus = faction.is_rebel
-          ? `${{faction.proto_state ? "Proto-state rebellion" : "Independent successor"}}${{faction.origin_faction ? ` from ${{escapeHtml(faction.origin_faction)}}` : ""}}`
+          ? (
+              (faction.proto_state
+                ? "Proto-state rebellion"
+                : `${{escapeHtml(faction.government_type || "State")}} successor`)
+              + (faction.origin_faction ? ` from ${{escapeHtml(faction.origin_faction)}}` : "")
+            )
           : "Established faction";
+        const rebelLifecycle = faction.is_rebel
+          ? `
+              <div class="detail-row">
+                <div class="detail-label">Rebel Age</div>
+                <div class="detail-value">${{Number(faction.rebel_age || 0)}} turn${{Number(faction.rebel_age || 0) === 1 ? "" : "s"}}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Independence</div>
+                <div class="detail-value">${{Number(faction.independence_score || 0).toFixed(1)}}</div>
+              </div>
+            `
+          : "";
 
         return `
           <article class="summary-card">
@@ -2145,6 +2176,7 @@ def render_simulation_html(world):
                 <div class="detail-label">Polity</div>
                 <div class="detail-value">${{polityStatus}}</div>
               </div>
+              ${{rebelLifecycle}}
               <div class="detail-row">
                 <div class="detail-label">Doctrine</div>
                 <div class="detail-value">${{escapeHtml(metrics.doctrine_label)}}</div>
@@ -2216,6 +2248,10 @@ def render_simulation_html(world):
           icon.symbol = "x";
           icon.className = "event-icon-secession";
           icon.label = "Secession";
+        }} else if (event.type === "rebel_independence") {{
+          icon.symbol = "*";
+          icon.className = "event-icon-success";
+          icon.label = "Independence";
         }}
         return `
         <article class="event-item">

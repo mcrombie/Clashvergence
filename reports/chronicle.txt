@@ -1,65 +1,85 @@
 Simulation Chronicle
 
-On turn 2, Persermia Tribe made its first expansion into M3.
-On turn 2, Akhakiar Tribe made its first expansion into M12.
-On turn 2, Noraraand Tribe made its first expansion into M6.
-On turn 2, Veneunar Tribe made its first expansion into M9.
-On turn 10, Akhakiar Tribe seized O2, a frontier foothold that mattered because it opened new directions for future expansion.
-On turn 11, Noraraand Plain Rebels made its first expansion into I7.
-On turn 11, Persermia Tribe seized O4, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into I4.
+On turn 2, Aruangos Tribe made its first expansion into M3.
+On turn 2, Carhaen Tribe made its first expansion into M9.
+On turn 2, Saklian Tribe made its first expansion into M12.
+On turn 2, Rnutuan Tribe made its first expansion into M6.
+On turn 10, Carhaen Tribe seized O12, a frontier foothold that mattered because it opened new directions for future expansion.
+On turn 13, Aruangos Down Rebels made its first expansion into I2.
+On turn 13, Saklian Watch Rebels made its first expansion into O1.
+On turn 13, Carhaen Crossing Rebels made its first expansion into I8.
+On turn 17, Aruangos Vale Rebels made its first expansion into O5.
+On turn 19, Carhaen Gate Rebels made its first expansion into O13.
 
 Opening Phase
 
-The strongest early land grab was Noraraand Tribe's claim of M5 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe led expansion with 2 claim(s).
-Across the first 5 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe invested most often with 2 investment(s).
-By the end of turn 5, Veneunar Tribe held the opening treasury lead at 1.
+The strongest early land grab was Aruangos Tribe's claim of M3 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Carhaen Tribe led expansion with 2 claim(s).
+Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Carhaen Tribe invested most often with 2 investment(s).
+By the end of turn 5, Saklian Tribe and Rnutuan Tribe held the opening treasury lead at -2.
 
 Phase Summaries
 
-Early phase: Veneunar Tribe was strongest by the end of turns 1-4, with Veneunar Tribe on 2 treasury and 4 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 12 expansions added 12 new regions. 4 investments improved existing holdings. Akhakiar Tribe gained 3 regions. Veneunar Tribe improved its standing most during the phase.
-Mid phase: Persermia Tribe and Veneunar Tribe were strongest by the end of turns 5-8, with Persermia Tribe on 3 treasury and 4 regions. 1 successful attacks shifted control of 1 region. 1 expansion added 1 new region. 12 investments improved existing holdings. Noraraand Tribe gained 1 region while Akhakiar Tribe lost 1 region. Persermia Tribe improved its standing most during the phase.
-Late phase: Noraraand Tribe was strongest by the end of turns 9-12, with Noraraand Tribe on 15 treasury and 5 regions. 4 successful attacks shifted control of 3 regions. 8 expansions added 8 new regions. 6 investments improved existing holdings. Noraraand Plain Rebels gained 3 regions while Akhakiar Edge Rebels lost 1 region. Veneunar Field Rebels improved its standing most during the phase.
+Early phase: Rnutuan Tribe was strongest by the end of turns 1-16, with Rnutuan Tribe on 10 treasury and 4 regions. 10 successful attacks shifted control of 6 regions. 22 expansions added 22 new regions. 29 investments improved existing holdings. Carhaen Tribe gained 6 regions. Rnutuan Tribe improved its standing most during the phase.
+Mid phase: Aruangos Down Rebels was strongest by the end of turns 17-33, with Aruangos Down Rebels on 17 treasury and 6 regions. 67 successful attacks shifted control of 21 regions. 7 expansions added 7 new regions. 17 investments improved existing holdings. Aruangos Tribe gained 5 regions while Saklian Tribe lost 4 regions. Carhaen Tribe improved its standing most during the phase.
+Late phase: Aruangos Tribe was strongest by the end of turns 34-50, with Aruangos Tribe on 20 treasury and 5 regions. 56 successful attacks shifted control of 18 regions. 2 expansions added 2 new regions. 3 investments improved existing holdings. Saklian Watch Rebels gained 3 regions while Rnutuan Grove Rebels lost 2 regions. Carhaen Crossing Rebels improved its standing most during the phase.
 
 Turning Points
 
-Late leader change: Noraraand Tribe took the treasury lead.
-Early leader change: Noraraand Tribe took the treasury lead.
+Mid economic shift: Aruangos Tribe created a treasury edge that became central to the finish.
+Late economic shift: Aruangos Tribe created a treasury edge that became central to the finish.
 
 Outcome Type
 
-Outcome type: late_snowball.
+Outcome type: economic_win.
 
 Faction Trajectories
 
-Akhakiar Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 5 regions by turn 12, and finished rank 4 on 1 treasury with 5 regions.
-Persermia Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 5 regions by turn 12, and finished rank 7 on -2 treasury with 5 regions.
-Noraraand Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 5 regions by turn 12, and finished first with 5 regions, 15 treasury, and 2 total attacks.
-Veneunar Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, held steady at 4 regions through the middle turns, and finished rank 8 on -6 treasury with 4 regions.
-Akhakiar Edge Rebels struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Persermia Vale Rebels struggled to add territory in the opening turns, built steadily past the opening, reaching 2 regions by turn 12, and finished rank 2 on 7 treasury with 2 regions after gaining 6 treasury overall.
-Noraraand Plain Rebels struggled to add territory in the opening turns, built steadily past the opening, reaching 3 regions by turn 12, and finished rank 3 on 5 treasury with 3 regions after gaining 4 treasury overall.
-Veneunar Field Rebels struggled to add territory in the opening turns, had little mid-game activity, and finished rank 6 on 1 treasury with 1 region.
+Saklian Tribe opened with 4 claims and grew to 4 regions by the end of the opening phase, peaked at 6 regions on turn 20 before slipping to 0 regions, and closed on -5 treasury without territory after 13 attacks.
+Aruangos Tribe spent the opening consolidating its start with 5 investments, built steadily past the opening, reaching 5 regions by turn 50, and finished first with 5 regions, 20 treasury, and 33 total attacks.
+Rnutuan Tribe opened with 4 claims and grew to 4 regions by the end of the opening phase, peaked at 6 regions on turn 21 before slipping to 0 regions, and closed on -5 treasury without territory after 8 attacks.
+Carhaen Tribe opened with 5 claims and grew to 7 regions by the end of the opening phase, peaked at 8 regions on turn 24 before slipping to 3 regions, and finished rank 3 on 4 treasury with 3 regions.
+Saklian Watch Rebels opened with 3 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 7 regions by turn 50, and finished rank 2 on 6 treasury with 7 regions after gaining 5 treasury overall.
+Aruangos Down Rebels opened with 2 claims and grew to 6 regions by the end of the opening phase, peaked at 8 regions on turn 43 before slipping to 6 regions, and finished rank 4 on 4 treasury with 6 regions after gaining 3 treasury overall.
+Carhaen Crossing Rebels opened with 3 claims and grew to 5 regions by the end of the opening phase, peaked at 10 regions on turn 31 before slipping to 7 regions, and finished rank 6 on 3 treasury with 7 regions after gaining 2 treasury overall.
+Aruangos Vale Rebels spent the opening consolidating its start with 3 investments, peaked at 3 regions on turn 19 before slipping to 0 regions, and closed on 3 treasury without territory after 2 attacks.
+Saklian Plain Rebels opened with 4 attack attempts and contested neighboring borders immediately, peaked at 2 regions on turn 19 before slipping to 0 regions, and closed on -3 treasury without territory after 4 attacks.
+Carhaen Gate Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 4 treasury without territory after 0 attacks.
+Rnutuan Ford Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
+Aruangosvale Cape Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 3 treasury without territory after 1 attacks.
+Rnutuan Ford Rebels 2 opened with 6 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 3 regions by turn 50, and finished rank 16 on -3 treasury with 3 regions.
+Carhaen Gate Rebels 2 opened with 4 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 2 regions by turn 50, and finished rank 12 on 0 treasury with 2 regions.
+Aruangos Vale Rebels 2 opened with 3 attack attempts and contested neighboring borders immediately, peaked at 2 regions on turn 30 before slipping to 0 regions, and closed on 0 treasury without territory after 3 attacks.
+Rnutuan Grove Rebels spent the opening consolidating its start with 2 investments, peaked at 4 regions on turn 42 before slipping to 2 regions, and finished rank 10 on 2 treasury with 2 regions after gaining 1 treasury overall.
+Rnutuan Gate Rebels opened with 2 attack attempts and contested neighboring borders immediately, peaked at 2 regions on turn 34 before slipping to 0 regions, and closed on 3 treasury without territory after 4 attacks.
+Saklian Plain Rebels 2 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 0 treasury without territory after 1 attacks.
 
 Strategic Interpretation
 
-On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-No faction controlled the run early, but Noraraand Tribe stayed close until the late phase and then separated decisively.
-The board stayed crowded into the late phase, but Noraraand Tribe separated only at the end, opened a decisive lead, and closed out the run.
-That break left Noraraand Tribe ahead at the finish with 5 regions and 15 treasury.
-The closest challenger was Persermia Vale Rebels (Adaptive Riverland Hill) at 7 treasury and 2 regions.
+Aruangos Tribe’s adaptive hill forest approach won because the result was decided by treasury rather than territory, and its midgame economic shift created the only durable edge on a map that kept changing hands. While other factions gained and lost regions across the ring, that income advantage mattered because the board never produced a stable territorial lead, so the 14-treasury margin outweighed the runner-up’s larger 7-region footprint. The late gains by Saklian Watch Rebels and the losses by Rnutuan Grove Rebels were not enough to reverse the finish because they changed control too late to overcome the resource gap.
+The closest challenger was Saklian Watch Rebels (Adaptive Coast) at 6 treasury and 7 regions.
 
 Final Standings
 
-Noraraand Tribe finished first with a treasury of 15 and control of 5 regions.
-Persermia Vale Rebels ended with a treasury of 7 and 2 regions.
-Noraraand Plain Rebels ended with a treasury of 5 and 3 regions.
-Akhakiar Tribe ended with a treasury of 1 and 5 regions.
-Akhakiar Edge Rebels ended with a treasury of 1 and 0 regions.
-Veneunar Field Rebels ended with a treasury of 1 and 1 region.
-Persermia Tribe ended with a treasury of -2 and 5 regions.
-Veneunar Tribe ended with a treasury of -6 and 4 regions.
+Aruangos Tribe finished first with a treasury of 20 and control of 5 regions.
+Saklian Watch Rebels ended with a treasury of 6 and 7 regions.
+Carhaen Tribe ended with a treasury of 4 and 3 regions.
+Aruangos Down Rebels ended with a treasury of 4 and 6 regions.
+Carhaen Gate Rebels ended with a treasury of 4 and 0 regions.
+Carhaen Crossing Rebels ended with a treasury of 3 and 7 regions.
+Aruangos Vale Rebels ended with a treasury of 3 and 0 regions.
+Aruangosvale Cape Rebels ended with a treasury of 3 and 0 regions.
+Rnutuan Gate Rebels ended with a treasury of 3 and 0 regions.
+Rnutuan Grove Rebels ended with a treasury of 2 and 2 regions.
+Rnutuan Ford Rebels ended with a treasury of 1 and 0 regions.
+Carhaen Gate Rebels 2 ended with a treasury of 0 and 2 regions.
+Aruangos Vale Rebels 2 ended with a treasury of 0 and 0 regions.
+Saklian Plain Rebels 2 ended with a treasury of 0 and 0 regions.
+Saklian Plain Rebels ended with a treasury of -3 and 0 regions.
+Rnutuan Ford Rebels 2 ended with a treasury of -3 and 3 regions.
+Saklian Tribe ended with a treasury of -5 and 0 regions.
+Rnutuan Tribe ended with a treasury of -5 and 0 regions.
 
 Victor's History
 
-Noraraand Tribe's historians would treat this run as evidence that their adaptive riverland plains habits, forged by geography, proved stronger than the field's scattered efforts. They would point first to the decisive shift: late leader change: Noraraand Tribe took the treasury lead. That break left Noraraand Tribe ahead at the finish with 5 regions and 15 treasury. From that partisan view, Persermia Vale Rebels's resistance was real but never as durable as Noraraand Tribe's final position.
+The Aruangos Tribe prevailed not by chasing the widest map share, but by keeping its hill-forest discipline intact and turning early consolidation into lasting treasury strength. While others pressed borders or accumulated regions, Aruangos built steadily and created the economic edge that decided both the midgame and the close. The Saklian Watch Rebels showed real reach with 7 regions, yet their advance never matched the winner’s balance of investment and restraint, and they finished well behind on treasury. In the end, the result favored coherence over mere expansion: Aruangos held to its geography, spent with judgment, and finished first where it mattered most.

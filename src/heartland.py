@@ -39,8 +39,10 @@ from src.config import (
     UNREST_MAX,
     UNREST_MODERATE_THRESHOLD,
     REBEL_FULL_INDEPENDENCE_THRESHOLD,
+    REBEL_INDEPENDENCE_TREASURY_BONUS,
     REBEL_INDEPENDENCE_PER_EXTRA_REGION,
     REBEL_INDEPENDENCE_PER_TURN,
+    REBEL_MATURE_GOVERNMENT_TYPE,
     REBEL_PARENT_RECLAIM_MAX_BONUS,
     REBEL_RECURSIVE_UNREST_REDUCTION,
     REBEL_SECESSION_COOLDOWN_TURNS,
@@ -309,6 +311,39 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
     return rebel_name
 
 
+def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
+    faction = world.factions[faction_name]
+    if not faction.is_rebel or not faction.proto_state:
+        return
+
+    faction.proto_state = False
+    faction.treasury += REBEL_INDEPENDENCE_TREASURY_BONUS
+    if faction.identity is not None:
+        faction.identity.government_type = REBEL_MATURE_GOVERNMENT_TYPE
+        faction.identity.display_name = (
+            f"{faction.identity.culture_name} {REBEL_MATURE_GOVERNMENT_TYPE}"
+        )
+
+    world.events.append(Event(
+        turn=world.turn,
+        type="rebel_independence",
+        faction=faction_name,
+        details={
+            "origin_faction": faction.origin_faction,
+            "rebel_age": faction.rebel_age,
+            "independence_score": round(faction.independence_score, 2),
+            "government_type": faction.government_type,
+        },
+        impact={
+            "treasury_after": faction.treasury,
+            "treasury_change": REBEL_INDEPENDENCE_TREASURY_BONUS,
+            "proto_state": False,
+        },
+        tags=["rebel", "independence", "statehood"],
+        significance=faction.independence_score,
+    ))
+
+
 def get_rebel_reclaim_bonus(
     attacker_faction_name: str,
     defender_faction_name: str | None,
@@ -364,7 +399,7 @@ def update_rebel_faction_status(world: WorldState) -> None:
             faction.proto_state
             and faction.independence_score >= REBEL_FULL_INDEPENDENCE_THRESHOLD
         ):
-            faction.proto_state = False
+            mature_rebel_faction(world, faction_name)
 
 
 def initialize_heartlands(world: WorldState) -> None:
