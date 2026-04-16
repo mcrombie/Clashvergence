@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from math import ceil
+import re
 
 from src.config import (
     CLIMATE_ATTACK_PROJECTION_MAX_PENALTY,
@@ -37,11 +38,19 @@ from src.config import (
     UNREST_MAINTENANCE_MAX_FACTOR,
     UNREST_MAX,
     UNREST_MODERATE_THRESHOLD,
+    REBEL_FULL_INDEPENDENCE_THRESHOLD,
+    REBEL_INDEPENDENCE_PER_EXTRA_REGION,
+    REBEL_INDEPENDENCE_PER_TURN,
+    REBEL_PARENT_RECLAIM_MAX_BONUS,
+    REBEL_RECURSIVE_UNREST_REDUCTION,
+    REBEL_SECESSION_COOLDOWN_TURNS,
+    REBEL_STARTING_TREASURY,
+    REBEL_STARTING_UNREST,
     UNREST_SECESSION_CRISIS_TURNS,
     UNREST_SECESSION_RESOURCE_LOSS,
     UNREST_SECESSION_THRESHOLD,
 )
-from src.models import Event, Region, WorldState
+from src.models import Event, Faction, FactionIdentity, Region, WorldState
 
 
 HOMELAND_INTEGRATION_SCORE = 10.0
@@ -239,6 +248,125 @@ def reset_region_crisis_streak(region: Region) -> None:
     region.unrest_crisis_streak = 0
 
 
+def set_region_secession_cooldown(region: Region, turns: int) -> None:
+    region.secession_cooldown_turns = max(0, turns)
+
+
+def _normalize_rebel_name_seed(value: str) -> str:
+    return re.sub(r"\s+", " ", value or "").strip()
+
+
+def _build_rebel_faction_name(world: WorldState, region: Region) -> str:
+    base_name = _normalize_rebel_name_seed(f"{region.ui_name} Rebels")
+    candidate = base_name
+    suffix = 2
+    while candidate in world.factions:
+        candidate = f"{base_name} {suffix}"
+        suffix += 1
+    return candidate
+
+
+def _next_dynamic_internal_id(world: WorldState) -> str:
+    existing_ids = {
+        faction.internal_id
+        for faction in world.factions.values()
+    }
+    next_index = 1
+    while f"Faction{next_index}" in existing_ids:
+        next_index += 1
+    return f"Faction{next_index}"
+
+
+def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -> str:
+    from src.doctrine import initialize_rebel_faction_doctrine
+
+    rebel_name = _build_rebel_faction_name(world, region)
+    rebel_identity = FactionIdentity(
+        internal_id=_next_dynamic_internal_id(world),
+        culture_name=_normalize_rebel_name_seed(region.ui_name),
+        government_type="Rebels",
+        display_name=rebel_name,
+        generation_method="rebel_secession",
+        inspirations=[former_owner],
+    )
+    world.factions[rebel_name] = Faction(
+        name=rebel_name,
+        treasury=REBEL_STARTING_TREASURY,
+        identity=rebel_identity,
+        starting_treasury=REBEL_STARTING_TREASURY,
+        is_rebel=True,
+        origin_faction=former_owner,
+        rebel_age=0,
+        independence_score=0.0,
+        proto_state=True,
+    )
+    initialize_rebel_faction_doctrine(
+        world,
+        rebel_name,
+        former_owner,
+        region.name,
+    )
+    return rebel_name
+
+
+def get_rebel_reclaim_bonus(
+    attacker_faction_name: str,
+    defender_faction_name: str | None,
+    world: WorldState,
+) -> int:
+    if defender_faction_name is None or defender_faction_name not in world.factions:
+        return 0
+
+    defender_faction = world.factions[defender_faction_name]
+    if (
+        not defender_faction.is_rebel
+        or defender_faction.origin_faction != attacker_faction_name
+        or not defender_faction.proto_state
+    ):
+        return 0
+
+    independence_ratio = min(
+        1.0,
+        defender_faction.independence_score / max(0.1, REBEL_FULL_INDEPENDENCE_THRESHOLD),
+    )
+    bonus = int(round(REBEL_PARENT_RECLAIM_MAX_BONUS * (1.0 - independence_ratio)))
+    return max(0, bonus)
+
+
+def update_rebel_faction_status(world: WorldState) -> None:
+    owned_region_counts: dict[str, int] = {
+        faction_name: 0
+        for faction_name in world.factions
+    }
+    for region in world.regions.values():
+        if region.owner in owned_region_counts:
+            owned_region_counts[region.owner] += 1
+
+    for faction_name, faction in world.factions.items():
+        if not faction.is_rebel:
+            continue
+
+        owned_regions = owned_region_counts.get(faction_name, 0)
+        if owned_regions <= 0:
+            continue
+
+        faction.rebel_age += 1
+        faction.independence_score = round(
+            min(
+                REBEL_FULL_INDEPENDENCE_THRESHOLD,
+                faction.independence_score
+                + REBEL_INDEPENDENCE_PER_TURN
+                + max(0, owned_regions - 1) * REBEL_INDEPENDENCE_PER_EXTRA_REGION,
+            ),
+            2,
+        )
+        if (
+            faction.proto_state
+            and faction.independence_score >= REBEL_FULL_INDEPENDENCE_THRESHOLD
+        ):
+            faction.proto_state = False
+
+
 def initialize_heartlands(world: WorldState) -> None:
     owned_counts: dict[str, int] = {}
 
@@ -297,6 +425,7 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
         set_region_unrest(region, 0.0)
         clear_region_unrest_event(region)
         reset_region_crisis_streak(region)
+        set_region_secession_cooldown(region, REBEL_SECESSION_COOLDOWN_TURNS)
         return
 
     base_score = HOMELAND_INTEGRATION_SCORE if region.homeland_faction_id == new_owner else CONQUEST_INTEGRATION_SCORE
@@ -312,6 +441,7 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
         set_region_unrest(region, 0.0)
         clear_region_unrest_event(region)
         reset_region_crisis_streak(region)
+        set_region_secession_cooldown(region, REBEL_SECESSION_COOLDOWN_TURNS)
     elif previous_owner is None:
         set_region_unrest(region, UNREST_EXPANSION_START)
         clear_region_unrest_event(region)
@@ -320,6 +450,7 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
         set_region_unrest(region, UNREST_CONQUEST_START)
         clear_region_unrest_event(region)
         reset_region_crisis_streak(region)
+        set_region_secession_cooldown(region, REBEL_SECESSION_COOLDOWN_TURNS)
 
 
 def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
@@ -387,8 +518,19 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
     resources_before = region.resources
     unrest_before = region.unrest
     region.resources = max(1, region.resources - UNREST_SECESSION_RESOURCE_LOSS)
-    handle_region_owner_change(region, None)
+    rebel_faction_name = create_rebel_faction(world, region, former_owner)
+    region.owner = rebel_faction_name
+    set_region_integration(
+        region,
+        owner=rebel_faction_name,
+        score=CORE_INTEGRATION_SCORE,
+        ownership_turns=1,
+        core_status="core",
+    )
+    set_region_unrest(region, REBEL_STARTING_UNREST)
+    clear_region_unrest_event(region)
     reset_region_crisis_streak(region)
+    set_region_secession_cooldown(region, REBEL_SECESSION_COOLDOWN_TURNS)
 
     world.events.append(Event(
         turn=world.turn,
@@ -397,10 +539,11 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
         region=region.name,
         details={
             "former_owner": former_owner,
+            "rebel_faction": rebel_faction_name,
             "unrest": round(unrest_before, 2),
         },
         impact={
-            "owner_after": None,
+            "owner_after": rebel_faction_name,
             "resource_change": region.resources - resources_before,
             "new_resources": region.resources,
         },
@@ -419,7 +562,11 @@ def update_region_integration(world: WorldState) -> None:
             clear_region_unrest_event(region)
             region.ownership_turns = 0
             reset_region_crisis_streak(region)
+            set_region_secession_cooldown(region, 0)
             continue
+
+        if region.secession_cooldown_turns > 0:
+            region.secession_cooldown_turns -= 1
 
         if region.integrated_owner != region.owner:
             handle_region_owner_change(region, region.owner)
@@ -451,8 +598,30 @@ def update_region_integration(world: WorldState) -> None:
                 region.integration_score += PER_TURN_CORE_GAIN + climate_modifier
         region.core_status = get_region_core_status(region)
         set_region_unrest(region, region.unrest + get_region_unrest_pressure(region, world))
+        owner_faction = world.factions.get(region.owner)
+        if owner_faction is not None and owner_faction.is_rebel:
+            if (
+                region.unrest_event_level == "crisis"
+                and region.unrest_crisis_streak >= UNREST_SECESSION_CRISIS_TURNS
+                and region.unrest >= UNREST_SECESSION_THRESHOLD
+            ):
+                set_region_unrest(
+                    region,
+                    max(
+                        UNREST_CRITICAL_THRESHOLD - 0.5,
+                        region.unrest - REBEL_RECURSIVE_UNREST_REDUCTION,
+                    ),
+                )
+                clear_region_unrest_event(region)
+                reset_region_crisis_streak(region)
+            if region.unrest_event_turns_remaining > 0:
+                region.unrest_event_turns_remaining -= 1
+                if region.unrest_event_turns_remaining <= 0:
+                    clear_region_unrest_event(region)
+            continue
         if (
             region.unrest_event_level == "crisis"
+            and region.secession_cooldown_turns <= 0
             and region.unrest_crisis_streak >= UNREST_SECESSION_CRISIS_TURNS
             and region.unrest >= UNREST_SECESSION_THRESHOLD
         ):

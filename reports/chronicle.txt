@@ -1,50 +1,65 @@
 Simulation Chronicle
 
+On turn 2, Persermia Tribe made its first expansion into M3.
+On turn 2, Akhakiar Tribe made its first expansion into M12.
 On turn 2, Noraraand Tribe made its first expansion into M6.
 On turn 2, Veneunar Tribe made its first expansion into M9.
-On turn 2, Akhakiar Tribe made its first expansion into I2.
-On turn 2, Persermia Tribe made its first expansion into M3.
-On turn 3, Veneunar Tribe seized M11, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M12.
+On turn 10, Akhakiar Tribe seized O2, a frontier foothold that mattered because it opened new directions for future expansion.
+On turn 11, Noraraand Plain Rebels made its first expansion into I7.
+On turn 11, Persermia Tribe seized O4, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into I4.
 
 Opening Phase
 
-The strongest early land grab was Veneunar Tribe's claim of M11 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+The strongest early land grab was Noraraand Tribe's claim of M5 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe led expansion with 2 claim(s).
 Across the first 5 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe invested most often with 2 investment(s).
 By the end of turn 5, Veneunar Tribe held the opening treasury lead at 1.
 
 Phase Summaries
 
-Early phase: Persermia Tribe and Noraraand Tribe were strongest by the end of turns 1-2, with Persermia Tribe on 7 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 4 expansions added 4 new regions. 4 investments improved existing holdings. Akhakiar Tribe gained 1 region. Persermia Tribe improved its standing most during the phase.
-Mid phase: Veneunar Tribe was strongest by the end of turns 3-4, with Veneunar Tribe on 2 treasury and 4 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 8 expansions added 8 new regions. Akhakiar Tribe gained 2 regions. Veneunar Tribe improved its standing most during the phase.
-Late phase: Veneunar Tribe was strongest by the end of turns 5-6, with Veneunar Tribe on 2 treasury and 4 regions. The board stabilized after turn 5 with little territorial change.
+Early phase: Veneunar Tribe was strongest by the end of turns 1-4, with Veneunar Tribe on 2 treasury and 4 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 12 expansions added 12 new regions. 4 investments improved existing holdings. Akhakiar Tribe gained 3 regions. Veneunar Tribe improved its standing most during the phase.
+Mid phase: Persermia Tribe and Veneunar Tribe were strongest by the end of turns 5-8, with Persermia Tribe on 3 treasury and 4 regions. 1 successful attacks shifted control of 1 region. 1 expansion added 1 new region. 12 investments improved existing holdings. Noraraand Tribe gained 1 region while Akhakiar Tribe lost 1 region. Persermia Tribe improved its standing most during the phase.
+Late phase: Noraraand Tribe was strongest by the end of turns 9-12, with Noraraand Tribe on 15 treasury and 5 regions. 4 successful attacks shifted control of 3 regions. 8 expansions added 8 new regions. 6 investments improved existing holdings. Noraraand Plain Rebels gained 3 regions while Akhakiar Edge Rebels lost 1 region. Veneunar Field Rebels improved its standing most during the phase.
+
+Turning Points
+
+Late leader change: Noraraand Tribe took the treasury lead.
+Early leader change: Noraraand Tribe took the treasury lead.
 
 Outcome Type
 
-Outcome type: balanced_contest.
+Outcome type: late_snowball.
 
 Faction Trajectories
 
-Akhakiar Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 3 regions by turn 6, and finished rank 2 on 1 treasury with 3 regions.
-Persermia Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 6, and finished rank 4 on -3 treasury with 4 regions.
-Noraraand Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 6, and finished rank 3 on -1 treasury with 4 regions.
-Veneunar Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 6, and finished first with 4 regions, 2 treasury, and 0 total attacks.
+Akhakiar Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 5 regions by turn 12, and finished rank 4 on 1 treasury with 5 regions.
+Persermia Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 5 regions by turn 12, and finished rank 7 on -2 treasury with 5 regions.
+Noraraand Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 5 regions by turn 12, and finished first with 5 regions, 15 treasury, and 2 total attacks.
+Veneunar Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, held steady at 4 regions through the middle turns, and finished rank 8 on -6 treasury with 4 regions.
+Akhakiar Edge Rebels struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
+Persermia Vale Rebels struggled to add territory in the opening turns, built steadily past the opening, reaching 2 regions by turn 12, and finished rank 2 on 7 treasury with 2 regions after gaining 6 treasury overall.
+Noraraand Plain Rebels struggled to add territory in the opening turns, built steadily past the opening, reaching 3 regions by turn 12, and finished rank 3 on 5 treasury with 3 regions after gaining 4 treasury overall.
+Veneunar Field Rebels struggled to add territory in the opening turns, had little mid-game activity, and finished rank 6 on 1 treasury with 1 region.
 
 Strategic Interpretation
 
 On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-No faction broke the map open. The run stayed competitive to the end, with 4 factions still alive and only 1-region variation across the final board.
-No decisive collapse or phase break separated the field. Veneunar Tribe edged ahead in a finish that remained close across 4 surviving factions.
-The final margin stayed narrow: Veneunar Tribe beat Akhakiar Tribe by 1 treasury.
-The closest challenger was Akhakiar Tribe (Adaptive Plains) at 1 treasury and 3 regions.
+No faction controlled the run early, but Noraraand Tribe stayed close until the late phase and then separated decisively.
+The board stayed crowded into the late phase, but Noraraand Tribe separated only at the end, opened a decisive lead, and closed out the run.
+That break left Noraraand Tribe ahead at the finish with 5 regions and 15 treasury.
+The closest challenger was Persermia Vale Rebels (Adaptive Riverland Hill) at 7 treasury and 2 regions.
 
 Final Standings
 
-Veneunar Tribe finished first with a treasury of 2 and control of 4 regions.
-Akhakiar Tribe ended with a treasury of 1 and 3 regions.
-Noraraand Tribe ended with a treasury of -1 and 4 regions.
-Persermia Tribe ended with a treasury of -3 and 4 regions.
+Noraraand Tribe finished first with a treasury of 15 and control of 5 regions.
+Persermia Vale Rebels ended with a treasury of 7 and 2 regions.
+Noraraand Plain Rebels ended with a treasury of 5 and 3 regions.
+Akhakiar Tribe ended with a treasury of 1 and 5 regions.
+Akhakiar Edge Rebels ended with a treasury of 1 and 0 regions.
+Veneunar Field Rebels ended with a treasury of 1 and 1 region.
+Persermia Tribe ended with a treasury of -2 and 5 regions.
+Veneunar Tribe ended with a treasury of -6 and 4 regions.
 
 Victor's History
 
-Veneunar Tribe's historians would treat this run as evidence that their adaptive forest habits, forged by geography, proved stronger than the field's scattered efforts. The final margin stayed narrow: Veneunar Tribe beat Akhakiar Tribe by 1 treasury. From that partisan view, Akhakiar Tribe's resistance was real but never as durable as Veneunar Tribe's final position.
+Noraraand Tribe's historians would treat this run as evidence that their adaptive riverland plains habits, forged by geography, proved stronger than the field's scattered efforts. They would point first to the decisive shift: late leader change: Noraraand Tribe took the treasury lead. That break left Noraraand Tribe ahead at the finish with 5 regions and 15 treasury. From that partisan view, Persermia Vale Rebels's resistance was real but never as durable as Noraraand Tribe's final position.

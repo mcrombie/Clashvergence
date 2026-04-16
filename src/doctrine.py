@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copy import deepcopy
+
 from src.climate import format_climate_label, normalize_climate
 from src.heartland import get_region_core_status
 from src.models import Faction, FactionDoctrineProfile, WorldState
@@ -10,6 +12,8 @@ HOMELAND_IMPRINT_WEIGHT = 12.0
 CORE_REGION_EXPERIENCE = 0.8
 FRONTIER_REGION_EXPERIENCE = 0.35
 CLIMATE_EXPERIENCE_MULTIPLIER = 1.8
+REBEL_DOCTRINE_INHERITANCE_FACTOR = 0.7
+REBEL_LOCAL_HOMELAND_IMPRINT = HOMELAND_IMPRINT_WEIGHT * 1.15
 
 OPEN_TERRAIN_TAGS = {"plains", "riverland", "steppe", "coast"}
 ROUGH_TERRAIN_TAGS = {"forest", "hills", "highland", "marsh"}
@@ -264,6 +268,63 @@ def initialize_faction_doctrines(world: WorldState) -> None:
             faction,
             total_regions=len(world.regions),
         )
+
+
+def initialize_rebel_faction_doctrine(
+    world: WorldState,
+    rebel_faction_name: str,
+    parent_faction_name: str,
+    homeland_region_name: str,
+) -> None:
+    parent_faction = world.factions[parent_faction_name]
+    rebel_faction = world.factions[rebel_faction_name]
+    homeland_region = world.regions[homeland_region_name]
+    homeland_tags = normalize_terrain_tags(homeland_region.terrain_tags)
+    homeland_climate = normalize_climate(homeland_region.climate)
+
+    inherited_state = deepcopy(parent_faction.doctrine_state)
+    inherited_state.homeland_region = homeland_region_name
+    inherited_state.homeland_terrain_tags = homeland_tags
+    inherited_state.homeland_climate = homeland_climate
+    inherited_state.terrain_experience = {
+        tag: (value * REBEL_DOCTRINE_INHERITANCE_FACTOR)
+        for tag, value in inherited_state.terrain_experience.items()
+    }
+    inherited_state.climate_experience = {
+        climate: (value * REBEL_DOCTRINE_INHERITANCE_FACTOR)
+        for climate, value in inherited_state.climate_experience.items()
+    }
+
+    for tag in homeland_tags:
+        inherited_state.terrain_experience[tag] = (
+            inherited_state.terrain_experience.get(tag, 0.0)
+            + REBEL_LOCAL_HOMELAND_IMPRINT
+        )
+    inherited_state.climate_experience[homeland_climate] = (
+        inherited_state.climate_experience.get(homeland_climate, 0.0)
+        + (REBEL_LOCAL_HOMELAND_IMPRINT * CLIMATE_EXPERIENCE_MULTIPLIER)
+    )
+
+    inherited_state.turns_observed = 0
+    inherited_state.expansions = 0
+    inherited_state.attacks = 0
+    inherited_state.successful_attacks = 0
+    inherited_state.investments = 0
+    inherited_state.turns_with_growth = 0
+    inherited_state.turns_with_conflict = 0
+    inherited_state.turns_with_investment = 0
+    inherited_state.regions_gained_by_expansion = 0
+    inherited_state.regions_gained_by_conquest = 0
+    inherited_state.cumulative_regions_held = 1
+    inherited_state.peak_regions = 1
+    inherited_state.starting_regions = 1
+    inherited_state.last_region_count = 1
+
+    rebel_faction.doctrine_state = inherited_state
+    rebel_faction.doctrine_profile = compute_faction_doctrine_profile(
+        rebel_faction,
+        total_regions=len(world.regions),
+    )
 
 
 def update_faction_doctrines(world: WorldState) -> None:

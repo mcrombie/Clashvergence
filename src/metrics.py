@@ -146,7 +146,10 @@ def _get_metric_leaders(snapshot, metric_key):
 def analyze_competition_metrics(world):
     """Builds high-level dynamics metrics from the recorded turn snapshots."""
     snapshots = get_metrics_log(world)
-    faction_names = list(world.factions)
+    faction_names = set(world.factions)
+    for snapshot in snapshots:
+        faction_names.update(snapshot["factions"])
+    faction_names = list(faction_names)
     eliminations = {
         faction_name: {
             "eliminated": False,
@@ -224,7 +227,7 @@ def analyze_competition_metrics(world):
                 }
 
         for faction_name in faction_names:
-            region_count = snapshot["factions"][faction_name]["regions"]
+            region_count = snapshot["factions"].get(faction_name, {}).get("regions", 0)
             if region_count > 0:
                 had_regions[faction_name] = True
             elif had_regions[faction_name] and not eliminations[faction_name]["eliminated"]:
@@ -260,13 +263,14 @@ def analyze_competition_metrics(world):
     midpoint_index = len(snapshots) // 2
     midpoint_snapshot = snapshots[midpoint_index]
     midpoint_ranked = _get_ranked_factions(midpoint_snapshot, "treasury")
-    midpoint_treasury = midpoint_snapshot["factions"][winner]["treasury"]
+    midpoint_treasury = midpoint_snapshot["factions"].get(winner, {}).get("treasury", 0)
     midpoint_deficit = midpoint_ranked[0][1]["treasury"] - midpoint_treasury
     max_deficit_overcome = 0
 
     for snapshot in snapshots:
         ranked = _get_ranked_factions(snapshot, "treasury")
-        deficit = ranked[0][1]["treasury"] - snapshot["factions"][winner]["treasury"]
+        winner_treasury = snapshot["factions"].get(winner, {}).get("treasury", 0)
+        deficit = ranked[0][1]["treasury"] - winner_treasury
         if deficit > max_deficit_overcome:
             max_deficit_overcome = deficit
 

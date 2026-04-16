@@ -3,73 +3,93 @@ Detailed Simulation Results
 Simulation Setup
 
 Map: thirty_seven_region_ring
-Turns: 6
+Turns: 12
 Regions: 37
-Factions: 4
+Factions: 8
 Faction Doctrines:
-  Akhakiar Tribe: doctrine=Adaptive Plains, homeland=Plains, terrain_identity=Plains, starting_treasury=1, culture=Akhakiar, government=Tribe, internal_id=Faction1, traditions=persian,chinese, ai_generated=False
-  Persermia Tribe: doctrine=Adaptive Hill Forest, homeland=Hill Forest, terrain_identity=Hill Forest, starting_treasury=1, culture=Persermia, government=Tribe, internal_id=Faction2, traditions=persian,roman, ai_generated=False
-  Noraraand Tribe: doctrine=Adaptive Riverland Plains, homeland=Riverland Plains, terrain_identity=Riverland Plains, starting_treasury=1, culture=Noraraand, government=Tribe, internal_id=Faction3, traditions=roman,persian, ai_generated=False
-  Veneunar Tribe: doctrine=Adaptive Forest, homeland=Forest, terrain_identity=Forest, starting_treasury=1, culture=Veneunar, government=Tribe, internal_id=Faction4, traditions=roman,chinese, ai_generated=False
+  Akhakiar Tribe: doctrine=Adaptive Plains, homeland=Plains, terrain_identity=Plains, starting_treasury=1, culture=Akhakiar, government=Tribe, internal_id=Faction1, traditions=persian,chinese, ai_generated=False, is_rebel=False, origin_faction=None, proto_state=False
+  Persermia Tribe: doctrine=Adaptive Hill Forest, homeland=Hill Forest, terrain_identity=Hill Forest, starting_treasury=1, culture=Persermia, government=Tribe, internal_id=Faction2, traditions=persian,roman, ai_generated=False, is_rebel=False, origin_faction=None, proto_state=False
+  Noraraand Tribe: doctrine=Adaptive Riverland Plains, homeland=Riverland Plains, terrain_identity=Riverland Plains, starting_treasury=1, culture=Noraraand, government=Tribe, internal_id=Faction3, traditions=roman,persian, ai_generated=False, is_rebel=False, origin_faction=None, proto_state=False
+  Veneunar Tribe: doctrine=Adaptive Forest, homeland=Forest, terrain_identity=Forest, starting_treasury=1, culture=Veneunar, government=Tribe, internal_id=Faction4, traditions=roman,chinese, ai_generated=False, is_rebel=False, origin_faction=None, proto_state=False
+  Akhakiar Edge Rebels: doctrine=Adaptive Plains, homeland=Highland Plains, terrain_identity=Plains, starting_treasury=1, culture=Akhakiar Edge, government=Rebels, internal_id=Faction5, traditions=, ai_generated=False, is_rebel=True, origin_faction=Akhakiar Tribe, proto_state=True
+  Persermia Vale Rebels: doctrine=Adaptive Riverland Hill, homeland=Riverland Hill, terrain_identity=Riverland Hill, starting_treasury=1, culture=Persermia Vale, government=Rebels, internal_id=Faction6, traditions=, ai_generated=False, is_rebel=True, origin_faction=Persermia Tribe, proto_state=True
+  Noraraand Plain Rebels: doctrine=Adaptive Plains, homeland=Highland Plains, terrain_identity=Plains, starting_treasury=1, culture=Noraraand Plain, government=Rebels, internal_id=Faction7, traditions=, ai_generated=False, is_rebel=True, origin_faction=Noraraand Tribe, proto_state=True
+  Veneunar Field Rebels: doctrine=Adaptive Forest Plains, homeland=Coastal Plains, terrain_identity=Forest Plains, starting_treasury=1, culture=Veneunar Field, government=Rebels, internal_id=Faction8, traditions=, ai_generated=False, is_rebel=True, origin_faction=Veneunar Tribe, proto_state=True
 
 Simulation Chronicle
 
+On turn 2, Persermia Tribe made its first expansion into M3.
+On turn 2, Akhakiar Tribe made its first expansion into M12.
 On turn 2, Noraraand Tribe made its first expansion into M6.
 On turn 2, Veneunar Tribe made its first expansion into M9.
-On turn 2, Akhakiar Tribe made its first expansion into I2.
-On turn 2, Persermia Tribe made its first expansion into M3.
-On turn 3, Veneunar Tribe seized M11, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into M12.
+On turn 10, Akhakiar Tribe seized O2, a frontier foothold that mattered because it opened new directions for future expansion.
+On turn 11, Noraraand Plain Rebels made its first expansion into I7.
+On turn 11, Persermia Tribe seized O4, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into I4.
 
 Opening Phase
 
-The strongest early land grab was Veneunar Tribe's claim of M11 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+The strongest early land grab was Noraraand Tribe's claim of M5 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
 In the first 3 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe led expansion with 2 claim(s).
 Across the first 5 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe invested most often with 2 investment(s).
 By the end of turn 5, Veneunar Tribe held the opening treasury lead at 1.
 
 Phase Summaries
 
-Early phase: Persermia Tribe and Noraraand Tribe were strongest by the end of turns 1-2, with Persermia Tribe on 7 treasury and 2 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 4 expansions added 4 new regions. 4 investments improved existing holdings. Akhakiar Tribe gained 1 region. Persermia Tribe improved its standing most during the phase.
-Mid phase: Veneunar Tribe was strongest by the end of turns 3-4, with Veneunar Tribe on 2 treasury and 4 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 8 expansions added 8 new regions. Akhakiar Tribe gained 2 regions. Veneunar Tribe improved its standing most during the phase.
-Late phase: Veneunar Tribe was strongest by the end of turns 5-6, with Veneunar Tribe on 2 treasury and 4 regions. The board stabilized after turn 5 with little territorial change.
+Early phase: Veneunar Tribe was strongest by the end of turns 1-4, with Veneunar Tribe on 2 treasury and 4 regions. No faction pulled clear; 4 factions remained within a 0-region spread. 12 expansions added 12 new regions. 4 investments improved existing holdings. Akhakiar Tribe gained 3 regions. Veneunar Tribe improved its standing most during the phase.
+Mid phase: Persermia Tribe and Veneunar Tribe were strongest by the end of turns 5-8, with Persermia Tribe on 3 treasury and 4 regions. 1 successful attacks shifted control of 1 region. 1 expansion added 1 new region. 12 investments improved existing holdings. Noraraand Tribe gained 1 region while Akhakiar Tribe lost 1 region. Persermia Tribe improved its standing most during the phase.
+Late phase: Noraraand Tribe was strongest by the end of turns 9-12, with Noraraand Tribe on 15 treasury and 5 regions. 4 successful attacks shifted control of 3 regions. 8 expansions added 8 new regions. 6 investments improved existing holdings. Noraraand Plain Rebels gained 3 regions while Akhakiar Edge Rebels lost 1 region. Veneunar Field Rebels improved its standing most during the phase.
+
+Turning Points
+
+Late leader change: Noraraand Tribe took the treasury lead.
+Early leader change: Noraraand Tribe took the treasury lead.
 
 Outcome Type
 
-Outcome type: balanced_contest.
+Outcome type: late_snowball.
 
 Faction Trajectories
 
-Akhakiar Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 3 regions by turn 6, and finished rank 2 on 1 treasury with 3 regions.
-Persermia Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 6, and finished rank 4 on -3 treasury with 4 regions.
-Noraraand Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 6, and finished rank 3 on -1 treasury with 4 regions.
-Veneunar Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 6, and finished first with 4 regions, 2 treasury, and 0 total attacks.
+Akhakiar Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 5 regions by turn 12, and finished rank 4 on 1 treasury with 5 regions.
+Persermia Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 5 regions by turn 12, and finished rank 7 on -2 treasury with 5 regions.
+Noraraand Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 5 regions by turn 12, and finished first with 5 regions, 15 treasury, and 2 total attacks.
+Veneunar Tribe opened with 3 claims and grew to 4 regions by the end of the opening phase, held steady at 4 regions through the middle turns, and finished rank 8 on -6 treasury with 4 regions.
+Akhakiar Edge Rebels struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
+Persermia Vale Rebels struggled to add territory in the opening turns, built steadily past the opening, reaching 2 regions by turn 12, and finished rank 2 on 7 treasury with 2 regions after gaining 6 treasury overall.
+Noraraand Plain Rebels struggled to add territory in the opening turns, built steadily past the opening, reaching 3 regions by turn 12, and finished rank 3 on 5 treasury with 3 regions after gaining 4 treasury overall.
+Veneunar Field Rebels struggled to add territory in the opening turns, had little mid-game activity, and finished rank 6 on 1 treasury with 1 region.
 
 Strategic Interpretation
 
 On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
-No faction broke the map open. The run stayed competitive to the end, with 4 factions still alive and only 1-region variation across the final board.
-No decisive collapse or phase break separated the field. Veneunar Tribe edged ahead in a finish that remained close across 4 surviving factions.
-The final margin stayed narrow: Veneunar Tribe beat Akhakiar Tribe by 1 treasury.
-The closest challenger was Akhakiar Tribe (Adaptive Plains) at 1 treasury and 3 regions.
+No faction controlled the run early, but Noraraand Tribe stayed close until the late phase and then separated decisively.
+The board stayed crowded into the late phase, but Noraraand Tribe separated only at the end, opened a decisive lead, and closed out the run.
+That break left Noraraand Tribe ahead at the finish with 5 regions and 15 treasury.
+The closest challenger was Persermia Vale Rebels (Adaptive Riverland Hill) at 7 treasury and 2 regions.
 
 Final Standings
 
-Veneunar Tribe finished first with a treasury of 2 and control of 4 regions.
-Akhakiar Tribe ended with a treasury of 1 and 3 regions.
-Noraraand Tribe ended with a treasury of -1 and 4 regions.
-Persermia Tribe ended with a treasury of -3 and 4 regions.
+Noraraand Tribe finished first with a treasury of 15 and control of 5 regions.
+Persermia Vale Rebels ended with a treasury of 7 and 2 regions.
+Noraraand Plain Rebels ended with a treasury of 5 and 3 regions.
+Akhakiar Tribe ended with a treasury of 1 and 5 regions.
+Akhakiar Edge Rebels ended with a treasury of 1 and 0 regions.
+Veneunar Field Rebels ended with a treasury of 1 and 1 region.
+Persermia Tribe ended with a treasury of -2 and 5 regions.
+Veneunar Tribe ended with a treasury of -6 and 4 regions.
 
 Victor's History
 
-Veneunar Tribe's historians would treat this run as evidence that their adaptive forest habits, forged by geography, proved stronger than the field's scattered efforts. The final margin stayed narrow: Veneunar Tribe beat Akhakiar Tribe by 1 treasury. From that partisan view, Akhakiar Tribe's resistance was real but never as durable as Veneunar Tribe's final position.
+Noraraand Tribe's historians would treat this run as evidence that their adaptive riverland plains habits, forged by geography, proved stronger than the field's scattered efforts. They would point first to the decisive shift: late leader change: Noraraand Tribe took the treasury lead. That break left Noraraand Tribe ahead at the finish with 5 regions and 15 treasury. From that partisan view, Persermia Vale Rebels's resistance was real but never as durable as Noraraand Tribe's final position.
 
 Strategic Dynamics
 
-Outright treasury lead changes: 0
-Largest treasury lead: turn 5, Veneunar Tribe by 3 over Noraraand Tribe
-Runaway: yes, Veneunar Tribe took an uncontested treasury lead for good on turn 4.
-Comeback: no, Veneunar Tribe faced a max treasury deficit of 0 and trailed by 0 at midpoint turn 4.
-Eliminations: none.
+Outright treasury lead changes: 2
+Largest treasury lead: turn 12, Noraraand Tribe by 8 over Persermia Vale Rebels
+Largest region lead: turn 7, Veneunar Tribe by 1 over Akhakiar Tribe
+Runaway: yes, Noraraand Tribe took an uncontested treasury lead for good on turn 10.
+Comeback: no, Noraraand Tribe faced a max treasury deficit of 7 and trailed by 0 at midpoint turn 7.
+Eliminations: Akhakiar Edge Rebels on turn 9.
 
 Event Log
 
@@ -77,61 +97,145 @@ Turn 1: Persermia Tribe invested in Persermia (M4) (invest_amount=4, new_resourc
 Turn 1: Veneunar Tribe invested in Veneunar (M10) (invest_amount=4, new_resources=5, terrain=Forest)
 Turn 1: Akhakiar Tribe invested in Akhakiar (M1) (invest_amount=4, new_resources=5, terrain=Plains)
 Turn 1: Noraraand Tribe invested in Noraraand (M7) (invest_amount=4, new_resources=5, terrain=Riverland Plains)
+Turn 2: Persermia Tribe expanded into Persermia Gate (M3) (score=23, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=3, terrain=Riverland Plains)
+Turn 2: Akhakiar Tribe expanded into Akhakiar Vale (M12) (score=18, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=3, terrain=Hill Forest)
 Turn 2: Noraraand Tribe expanded into Noraraand Grove (M6) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=3, terrain=Forest)
 Turn 2: Veneunar Tribe expanded into Veneunar Vale (M9) (score=21, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=3, terrain=Plains)
-Turn 2: Akhakiar Tribe expanded into Akhakiar Edge (I2) (score=19, resources=2, neighbors=6, unclaimed_neighbors=5, core_status=frontier, treasury_after=3, terrain=Highland Plains)
-Turn 2: Persermia Tribe expanded into Persermia Gate (M3) (score=21, resources=2, neighbors=6, unclaimed_neighbors=4, core_status=frontier, treasury_after=3, terrain=Riverland Plains)
-Turn 3: Veneunar Tribe expanded into Veneunar Wash (M11) (score=20, resources=2, neighbors=5, unclaimed_neighbors=4, core_status=frontier, treasury_after=4, terrain=Riverland Plains)
 Turn 3: Noraraand Tribe expanded into Noraraand Edge (M5) (score=21, resources=2, neighbors=5, unclaimed_neighbors=3, core_status=frontier, treasury_after=4, terrain=Plains)
-Turn 3: Akhakiar Tribe expanded into Akhakiar Field (C) (score=32, resources=2, neighbors=8, unclaimed_neighbors=7, core_status=frontier, treasury_after=3, terrain=Riverland Plains)
-Turn 3: Persermia Tribe expanded into Persermia Hollow (M2) (score=17, resources=2, neighbors=5, unclaimed_neighbors=2, core_status=frontier, treasury_after=4, terrain=Forest)
-Turn 3: Event(turn=2, type='unrest_disturbance', faction='Akhakiar Tribe', region='I2', details={'unrest': 5.3, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 3, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.3)
-Turn 4: Persermia Tribe expanded into Persermia Vale (I3) (score=13, resources=2, neighbors=5, unclaimed_neighbors=1, core_status=frontier, treasury_after=4, terrain=Riverland Hill)
-Turn 4: Noraraand Tribe expanded into Noraraand Reach (O10) (score=16, resources=2, neighbors=4, unclaimed_neighbors=3, core_status=frontier, treasury_after=4, terrain=Coastal Plains)
-Turn 4: Veneunar Tribe expanded into Veneunar Gate (M12) (score=19, resources=2, neighbors=6, unclaimed_neighbors=4, core_status=frontier, treasury_after=4, terrain=Hill Forest)
-Turn 4: Akhakiar Tribe expanded into Akhakiarian Gate (I6) (score=16, resources=2, neighbors=6, unclaimed_neighbors=3, core_status=frontier, treasury_after=1, terrain=Highland Plains)
-Turn 4: Event(turn=3, type='unrest_disturbance', faction='Persermia Tribe', region='M3', details={'unrest': 4.9, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 4, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=4.9)
-Turn 4: Event(turn=3, type='unrest_disturbance', faction='Noraraand Tribe', region='M6', details={'unrest': 4.9, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 4, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=4.9)
-Turn 4: Event(turn=3, type='unrest_disturbance', faction='Veneunar Tribe', region='M9', details={'unrest': 4.9, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 4, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=4.9)
-Turn 4: Event(turn=3, type='unrest_crisis', faction='Akhakiar Tribe', region='I2', details={'unrest': 8.05, 'event_level': 'crisis', 'duration': 2}, context={}, impact={'treasury_change': -1, 'treasury_after': 0, 'integration_stalled': True}, tags=['unrest', 'crisis'], significance=8.05)
-Turn 5: Akhakiar Tribe invested in Akhakiar Field (C) (invest_amount=4, new_resources=5, terrain=Riverland Plains)
+Turn 3: Persermia Tribe expanded into Persermia Hollow (M2) (score=19, resources=2, neighbors=5, unclaimed_neighbors=3, core_status=frontier, treasury_after=4, terrain=Forest)
+Turn 3: Veneunar Tribe expanded into Veneunar Wash (M11) (score=18, resources=2, neighbors=5, unclaimed_neighbors=3, core_status=frontier, treasury_after=4, terrain=Riverland Plains)
+Turn 3: Akhakiar Tribe expanded into Akhakiar Edge (I2) (score=15, resources=2, neighbors=6, unclaimed_neighbors=3, core_status=frontier, treasury_after=4, terrain=Highland Plains)
+Turn 4: Persermia Tribe expanded into Persermia Vale (I3) (score=15, resources=2, neighbors=5, unclaimed_neighbors=2, core_status=frontier, treasury_after=4, terrain=Riverland Hill)
+Turn 4: Noraraand Tribe expanded into Noraraand Plain (I6) (score=17, resources=2, neighbors=6, unclaimed_neighbors=4, core_status=frontier, treasury_after=4, terrain=Highland Plains)
+Turn 4: Akhakiar Tribe expanded into Akhakiar Field (C) (score=28, resources=2, neighbors=8, unclaimed_neighbors=5, core_status=frontier, treasury_after=3, terrain=Riverland Plains)
+Turn 4: Veneunar Tribe expanded into Veneunar Wood (M8) (score=14, resources=2, neighbors=5, unclaimed_neighbors=2, core_status=frontier, treasury_after=4, terrain=Hill Forest)
+Turn 4: unrest disturbed Persermia Gate (M3) under Persermia Tribe (unrest=4.47, duration=1, treasury_after=4, terrain=Riverland Plains)
+Turn 4: unrest disturbed Noraraand Grove (M6) under Noraraand Tribe (unrest=4.47, duration=1, treasury_after=4, terrain=Forest)
+Turn 4: unrest disturbed Veneunar Vale (M9) under Veneunar Tribe (unrest=4.47, duration=1, treasury_after=4, terrain=Plains)
+Turn 4: unrest disturbed Akhakiar Vale (M12) under Akhakiar Tribe (unrest=4.47, duration=1, treasury_after=3, terrain=Hill Forest)
+Turn 4: unrest disturbed Akhakiar Edge (I2) under Akhakiar Tribe (unrest=5.17, duration=1, treasury_after=3, terrain=Highland Plains)
 Turn 5: Veneunar Tribe invested in Veneunar Wash (M11) (invest_amount=4, new_resources=5, terrain=Riverland Plains)
 Turn 5: Persermia Tribe invested in Persermia Vale (I3) (invest_amount=4, new_resources=5, terrain=Riverland Hill)
-Turn 5: Noraraand Tribe invested in Noraraand Edge (M5) (invest_amount=4, new_resources=5, terrain=Plains)
-Turn 5: Event(turn=4, type='unrest_disturbance', faction='Noraraand Tribe', region='O10', details={'unrest': 5.5, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 1, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.5)
-Turn 5: Event(turn=4, type='unrest_disturbance', faction='Persermia Tribe', region='M2', details={'unrest': 5.1, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 1, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.1)
-Turn 5: Event(turn=4, type='unrest_disturbance', faction='Persermia Tribe', region='M3', details={'unrest': 5.63, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 1, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.63)
-Turn 5: Event(turn=4, type='unrest_disturbance', faction='Noraraand Tribe', region='M5', details={'unrest': 5.1, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 1, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.1)
-Turn 5: Event(turn=4, type='unrest_disturbance', faction='Noraraand Tribe', region='M6', details={'unrest': 5.63, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 1, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.63)
-Turn 5: Event(turn=4, type='unrest_disturbance', faction='Veneunar Tribe', region='M9', details={'unrest': 5.63, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 2, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.63)
-Turn 5: Event(turn=4, type='unrest_disturbance', faction='Veneunar Tribe', region='M11', details={'unrest': 5.1, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 2, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.1)
-Turn 5: Event(turn=4, type='unrest_disturbance', faction='Veneunar Tribe', region='M12', details={'unrest': 4.03, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 2, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=4.03)
-Turn 5: Event(turn=4, type='unrest_disturbance', faction='Persermia Tribe', region='I3', details={'unrest': 5.5, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 1, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.5)
-Turn 5: Event(turn=4, type='unrest_disturbance', faction='Akhakiar Tribe', region='I6', details={'unrest': 5.42, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 5, 'treasury_after': 0, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.42)
-Turn 5: Event(turn=4, type='unrest_disturbance', faction='Akhakiar Tribe', region='C', details={'unrest': 5.1, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 0, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.1)
-Turn 5: Event(turn=4, type='unrest_secession', faction='Akhakiar Tribe', region='I2', details={'former_owner': 'Akhakiar Tribe', 'unrest': 10.0}, context={}, impact={'owner_after': None, 'resource_change': -1, 'new_resources': 1}, tags=['unrest', 'secession', 'collapse'], significance=9.0)
-Turn 6: Akhakiar Tribe invested in Akhakiarian Gate (I6) (invest_amount=4, new_resources=5, terrain=Highland Plains)
-Turn 6: Veneunar Tribe invested in Veneunar Gate (M12) (invest_amount=4, new_resources=5, terrain=Hill Forest)
-Turn 6: Noraraand Tribe invested in Noraraand Grove (M6) (invest_amount=4, new_resources=5, terrain=Forest)
+Turn 5: Akhakiar Tribe invested in Akhakiar Field (C) (invest_amount=4, new_resources=5, terrain=Riverland Plains)
+Turn 5: Noraraand Tribe invested in Noraraand Plain (I6) (invest_amount=4, new_resources=5, terrain=Highland Plains)
+Turn 5: unrest disturbed Persermia Hollow (M2) under Persermia Tribe (unrest=4.66, duration=1, treasury_after=1, terrain=Forest)
+Turn 5: unrest disturbed Persermia Gate (M3) under Persermia Tribe (unrest=5.04, duration=1, treasury_after=1, terrain=Riverland Plains)
+Turn 5: unrest disturbed Noraraand Edge (M5) under Noraraand Tribe (unrest=4.66, duration=1, treasury_after=1, terrain=Plains)
+Turn 5: unrest disturbed Noraraand Grove (M6) under Noraraand Tribe (unrest=5.04, duration=1, treasury_after=1, terrain=Forest)
+Turn 5: unrest disturbed Veneunar Vale (M9) under Veneunar Tribe (unrest=5.04, duration=1, treasury_after=2, terrain=Plains)
+Turn 5: unrest disturbed Veneunar Wash (M11) under Veneunar Tribe (unrest=4.66, duration=1, treasury_after=2, terrain=Riverland Plains)
+Turn 5: unrest disturbed Akhakiar Vale (M12) under Akhakiar Tribe (unrest=5.04, duration=1, treasury_after=0, terrain=Hill Forest)
+Turn 5: unrest disturbed Akhakiar Edge (I2) under Akhakiar Tribe (unrest=7.75, duration=1, treasury_after=0, terrain=Highland Plains)
+Turn 5: unrest disturbed Persermia Vale (I3) under Persermia Tribe (unrest=5.24, duration=1, treasury_after=1, terrain=Riverland Hill)
+Turn 5: unrest disturbed Noraraand Plain (I6) under Noraraand Tribe (unrest=5.24, duration=1, treasury_after=1, terrain=Highland Plains)
 Turn 6: Persermia Tribe invested in Persermia Hollow (M2) (invest_amount=4, new_resources=5, terrain=Forest)
-Turn 6: Event(turn=5, type='unrest_crisis', faction='Noraraand Tribe', region='O10', details={'unrest': 8.33, 'event_level': 'crisis', 'duration': 2}, context={}, impact={'treasury_change': 2, 'treasury_after': 0, 'integration_stalled': True}, tags=['unrest', 'crisis'], significance=8.33)
-Turn 6: Event(turn=5, type='unrest_disturbance', faction='Persermia Tribe', region='M2', details={'unrest': 5.83, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 3, 'treasury_after': 0, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.83)
-Turn 6: Event(turn=5, type='unrest_disturbance', faction='Persermia Tribe', region='M3', details={'unrest': 5.43, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 0, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.43)
-Turn 6: Event(turn=5, type='unrest_disturbance', faction='Noraraand Tribe', region='M5', details={'unrest': 5.83, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 0, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.83)
-Turn 6: Event(turn=5, type='unrest_disturbance', faction='Noraraand Tribe', region='M6', details={'unrest': 5.43, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 0, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.43)
-Turn 6: Event(turn=5, type='unrest_disturbance', faction='Veneunar Tribe', region='M9', details={'unrest': 5.43, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 1, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.43)
-Turn 6: Event(turn=5, type='unrest_disturbance', faction='Veneunar Tribe', region='M11', details={'unrest': 5.63, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 1, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.63)
-Turn 6: Event(turn=5, type='unrest_disturbance', faction='Veneunar Tribe', region='M12', details={'unrest': 4.96, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 1, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=4.96)
-Turn 6: Event(turn=5, type='unrest_crisis', faction='Persermia Tribe', region='I3', details={'unrest': 8.13, 'event_level': 'crisis', 'duration': 2}, context={}, impact={'treasury_change': 0, 'treasury_after': 0, 'integration_stalled': True}, tags=['unrest', 'crisis'], significance=8.13)
-Turn 6: Event(turn=5, type='unrest_crisis', faction='Akhakiar Tribe', region='I6', details={'unrest': 8.06, 'event_level': 'crisis', 'duration': 2}, context={}, impact={'treasury_change': 6, 'treasury_after': 0, 'integration_stalled': True}, tags=['unrest', 'crisis'], significance=8.06)
-Turn 6: Event(turn=5, type='unrest_disturbance', faction='Akhakiar Tribe', region='C', details={'unrest': 5.77, 'event_level': 'disturbance', 'duration': 1}, context={}, impact={'treasury_change': 0, 'treasury_after': 0, 'integration_stalled': False}, tags=['unrest', 'disturbance'], significance=5.77)
+Turn 6: Akhakiar Tribe invested in Akhakiar Edge (I2) (invest_amount=4, new_resources=5, terrain=Highland Plains)
+Turn 6: Noraraand Tribe invested in Noraraand Edge (M5) (invest_amount=4, new_resources=5, terrain=Plains)
+Turn 6: Veneunar Tribe invested in Veneunar Wood (M8) (invest_amount=4, new_resources=5, terrain=Hill Forest)
+Turn 6: unrest disturbed Persermia Hollow (M2) under Persermia Tribe (unrest=5.23, duration=1, treasury_after=0, terrain=Forest)
+Turn 6: unrest disturbed Persermia Gate (M3) under Persermia Tribe (unrest=4.84, duration=1, treasury_after=0, terrain=Riverland Plains)
+Turn 6: unrest disturbed Noraraand Edge (M5) under Noraraand Tribe (unrest=5.23, duration=1, treasury_after=0, terrain=Plains)
+Turn 6: unrest disturbed Noraraand Grove (M6) under Noraraand Tribe (unrest=4.84, duration=1, treasury_after=0, terrain=Forest)
+Turn 6: unrest disturbed Veneunar Wood (M8) under Veneunar Tribe (unrest=4.73, duration=1, treasury_after=1, terrain=Hill Forest)
+Turn 6: unrest disturbed Veneunar Vale (M9) under Veneunar Tribe (unrest=4.84, duration=1, treasury_after=1, terrain=Plains)
+Turn 6: unrest disturbed Veneunar Wash (M11) under Veneunar Tribe (unrest=5.03, duration=1, treasury_after=1, terrain=Riverland Plains)
+Turn 6: unrest disturbed Akhakiar Vale (M12) under Akhakiar Tribe (unrest=4.84, duration=1, treasury_after=0, terrain=Hill Forest)
+Turn 6: crisis gripped Akhakiar Edge (I2) under Akhakiar Tribe (unrest=9.97, duration=2, treasury_after=0, terrain=Highland Plains)
+Turn 6: unrest disturbed Persermia Vale (I3) under Persermia Tribe (unrest=7.62, duration=1, treasury_after=0, terrain=Riverland Hill)
+Turn 6: unrest disturbed Noraraand Plain (I6) under Noraraand Tribe (unrest=7.62, duration=1, treasury_after=0, terrain=Highland Plains)
+Turn 6: unrest disturbed Akhakiar Field (C) under Akhakiar Tribe (unrest=4.53, duration=1, treasury_after=0, terrain=Riverland Plains)
+Turn 7: Akhakiar Tribe invested in Akhakiar Vale (M12) (invest_amount=4, new_resources=5, terrain=Hill Forest)
+Turn 7: Veneunar Tribe expanded into Veneunar Field (O14) (score=12, resources=2, neighbors=4, unclaimed_neighbors=2, core_status=frontier, treasury_after=0, terrain=Coastal Plains)
+Turn 7: Persermia Tribe invested in Persermia Gate (M3) (invest_amount=4, new_resources=5, terrain=Riverland Plains)
+Turn 7: Noraraand Tribe invested in Noraraand Grove (M6) (invest_amount=4, new_resources=5, terrain=Forest)
+Turn 7: unrest disturbed Persermia Hollow (M2) under Persermia Tribe (unrest=4.83, duration=1, treasury_after=0, terrain=Forest)
+Turn 7: unrest disturbed Persermia Gate (M3) under Persermia Tribe (unrest=4.44, duration=1, treasury_after=0, terrain=Riverland Plains)
+Turn 7: unrest disturbed Noraraand Edge (M5) under Noraraand Tribe (unrest=4.83, duration=1, treasury_after=0, terrain=Plains)
+Turn 7: unrest disturbed Noraraand Grove (M6) under Noraraand Tribe (unrest=4.44, duration=1, treasury_after=0, terrain=Forest)
+Turn 7: unrest disturbed Veneunar Wood (M8) under Veneunar Tribe (unrest=5.10, duration=1, treasury_after=0, terrain=Hill Forest)
+Turn 7: unrest disturbed Veneunar Vale (M9) under Veneunar Tribe (unrest=4.64, duration=1, treasury_after=0, terrain=Plains)
+Turn 7: unrest disturbed Veneunar Wash (M11) under Veneunar Tribe (unrest=4.63, duration=1, treasury_after=0, terrain=Riverland Plains)
+Turn 7: unrest disturbed Akhakiar Vale (M12) under Akhakiar Tribe (unrest=4.64, duration=1, treasury_after=0, terrain=Hill Forest)
+Turn 7: crisis gripped Persermia Vale (I3) under Persermia Tribe (unrest=9.65, duration=2, treasury_after=0, terrain=Riverland Hill)
+Turn 7: crisis gripped Noraraand Plain (I6) under Noraraand Tribe (unrest=9.65, duration=2, treasury_after=0, terrain=Highland Plains)
+Turn 7: unrest disturbed Akhakiar Field (C) under Akhakiar Tribe (unrest=4.90, duration=1, treasury_after=0, terrain=Riverland Plains)
+Turn 8: Noraraand Tribe attacked Veneunar Tribe in Veneunar Wood (M8) and captured the region (success_chance=0.470, attack_strength=7, defense_strength=8, core_status=core, treasury_after=0, terrain=Hill Forest)
+Turn 8: Persermia Tribe attacked Noraraand Tribe in Noraraand Edge (M5) and failed against the region (success_chance=0.530, attack_strength=7, defense_strength=6, core_status=core, treasury_after=0, terrain=Plains)
+Turn 8: Veneunar Tribe invested in Veneunar Vale (M9) (invest_amount=4, new_resources=5, terrain=Plains)
+Turn 8: unrest disturbed Veneunar Field (O14) under Veneunar Tribe (unrest=4.96, duration=1, treasury_after=0, terrain=Coastal Plains)
+Turn 8: unrest disturbed Persermia Hollow (M2) under Persermia Tribe (unrest=4.43, duration=1, treasury_after=0, terrain=Forest)
+Turn 8: unrest disturbed Persermia Gate (M3) under Persermia Tribe (unrest=4.04, duration=1, treasury_after=0, terrain=Riverland Plains)
+Turn 8: unrest disturbed Noraraand Edge (M5) under Noraraand Tribe (unrest=4.43, duration=1, treasury_after=0, terrain=Plains)
+Turn 8: unrest disturbed Noraraand Grove (M6) under Noraraand Tribe (unrest=4.04, duration=1, treasury_after=0, terrain=Forest)
+Turn 8: unrest disturbed Veneunar Wood (M8) under Noraraand Tribe (unrest=6.00, duration=1, treasury_after=0, terrain=Hill Forest)
+Turn 8: unrest disturbed Veneunar Vale (M9) under Veneunar Tribe (unrest=4.20, duration=1, treasury_after=0, terrain=Plains)
+Turn 8: unrest disturbed Veneunar Wash (M11) under Veneunar Tribe (unrest=4.19, duration=1, treasury_after=0, terrain=Riverland Plains)
+Turn 8: unrest disturbed Akhakiar Vale (M12) under Akhakiar Tribe (unrest=4.44, duration=1, treasury_after=0, terrain=Hill Forest)
+Turn 8: crisis gripped Akhakiar Edge (I2) under Akhakiar Tribe (unrest=10.00, duration=2, treasury_after=0, terrain=Highland Plains)
+Turn 8: unrest disturbed Akhakiar Field (C) under Akhakiar Tribe (unrest=4.50, duration=1, treasury_after=0, terrain=Riverland Plains)
+Turn 8: Akhakiar Edge (I2) seceded from Akhakiar Tribe as Akhakiar Edge Rebels (unrest=10.00, new_resources=4, terrain=Highland Plains)
+Turn 9: Akhakiar Edge Rebels invested in Akhakiar Edge (I2) (invest_amount=4, new_resources=5, terrain=Highland Plains)
+Turn 9: Persermia Tribe expanded into Persermia Ford (O6) (score=12, resources=2, neighbors=4, unclaimed_neighbors=2, core_status=frontier, treasury_after=0, terrain=Coastal Plains)
+Turn 9: Veneunar Tribe expanded into Veneunar Bay (O12) (score=12, resources=2, neighbors=3, unclaimed_neighbors=2, core_status=frontier, treasury_after=0, terrain=Coastal Forest)
+Turn 9: Akhakiar Tribe attacked Akhakiar Edge Rebels in Akhakiar Edge (I2) and captured the region (success_chance=0.560, attack_strength=11, defense_strength=9, core_status=core, treasury_after=0, terrain=Highland Plains)
+Turn 9: unrest disturbed Veneunar Field (O14) under Veneunar Tribe (unrest=7.16, duration=1, treasury_after=0, terrain=Coastal Plains)
+Turn 9: unrest disturbed Persermia Hollow (M2) under Persermia Tribe (unrest=4.03, duration=1, treasury_after=0, terrain=Forest)
+Turn 9: unrest disturbed Noraraand Edge (M5) under Noraraand Tribe (unrest=4.15, duration=1, treasury_after=0, terrain=Plains)
+Turn 9: unrest disturbed Veneunar Wood (M8) under Noraraand Tribe (unrest=7.02, duration=1, treasury_after=0, terrain=Hill Forest)
+Turn 9: unrest disturbed Akhakiar Vale (M12) under Akhakiar Tribe (unrest=4.04, duration=1, treasury_after=0, terrain=Hill Forest)
+Turn 9: crisis gripped Persermia Vale (I3) under Persermia Tribe (unrest=10.00, duration=2, treasury_after=0, terrain=Riverland Hill)
+Turn 9: crisis gripped Noraraand Plain (I6) under Noraraand Tribe (unrest=10.00, duration=2, treasury_after=0, terrain=Highland Plains)
+Turn 9: Persermia Vale (I3) seceded from Persermia Tribe as Persermia Vale Rebels (unrest=10.00, new_resources=4, terrain=Riverland Hill)
+Turn 9: Noraraand Plain (I6) seceded from Noraraand Tribe as Noraraand Plain Rebels (unrest=10.00, new_resources=4, terrain=Highland Plains)
+Turn 10: Noraraand Plain Rebels invested in Noraraand Plain (I6) (invest_amount=4, new_resources=5, terrain=Highland Plains)
+Turn 10: Veneunar Tribe invested in Veneunar Bay (O12) (invest_amount=4, new_resources=5, terrain=Coastal Forest)
+Turn 10: Akhakiar Tribe expanded into Akhakiar Plain (O2) (score=14, resources=2, neighbors=4, unclaimed_neighbors=2, core_status=frontier, treasury_after=5, terrain=Coastal Plains)
+Turn 10: Persermia Vale Rebels invested in Persermia Vale (I3) (invest_amount=4, new_resources=5, terrain=Riverland Hill)
+Turn 10: Persermia Tribe invested in Persermia Ford (O6) (invest_amount=4, new_resources=5, terrain=Coastal Plains)
+Turn 10: unrest disturbed Persermia Ford (O6) under Persermia Tribe (unrest=4.96, duration=1, treasury_after=0, terrain=Coastal Plains)
+Turn 10: unrest disturbed Veneunar Bay (O12) under Veneunar Tribe (unrest=4.92, duration=1, treasury_after=2, terrain=Coastal Forest)
+Turn 10: crisis gripped Veneunar Field (O14) under Veneunar Tribe (unrest=9.34, duration=2, treasury_after=1, terrain=Coastal Plains)
+Turn 10: unrest disturbed Veneunar Wood (M8) under Noraraand Tribe (unrest=7.67, duration=1, treasury_after=1, terrain=Hill Forest)
+Turn 10: unrest disturbed Akhakiar Edge (I2) under Akhakiar Tribe (unrest=4.74, duration=1, treasury_after=5, terrain=Highland Plains)
+Turn 11: Noraraand Plain Rebels expanded into Noraraandplain Watch (I7) (score=13, resources=2, neighbors=5, unclaimed_neighbors=1, core_status=frontier, treasury_after=2, terrain=Riverland Hill)
+Turn 11: Persermia Vale Rebels attacked Persermia Tribe in Persermia Gate (M3) and failed against the region (success_chance=0.590, attack_strength=12, defense_strength=9, core_status=core, treasury_after=1, terrain=Riverland Plains)
+Turn 11: Veneunar Tribe invested in Veneunar Field (O14) (invest_amount=4, new_resources=5, terrain=Coastal Plains)
+Turn 11: Persermia Tribe expanded into Persermia Bay (O4) (score=12, resources=2, neighbors=3, unclaimed_neighbors=2, core_status=frontier, treasury_after=5, terrain=Coastal Forest)
+Turn 11: Akhakiar Tribe attacked Veneunar Tribe in Veneunar Wash (M11) and failed against the region (success_chance=0.560, attack_strength=9, defense_strength=7, core_status=core, treasury_after=4, terrain=Riverland Plains)
+Turn 11: Noraraand Tribe expanded into Noraraand Reach (O10) (score=14, resources=2, neighbors=4, unclaimed_neighbors=2, core_status=frontier, treasury_after=7, terrain=Coastal Plains)
+Turn 11: unrest disturbed Akhakiar Plain (O2) under Akhakiar Tribe (unrest=4.96, duration=1, treasury_after=4, terrain=Coastal Plains)
+Turn 11: unrest disturbed Persermia Ford (O6) under Persermia Tribe (unrest=7.16, duration=1, treasury_after=5, terrain=Coastal Plains)
+Turn 11: unrest disturbed Veneunar Bay (O12) under Veneunar Tribe (unrest=7.18, duration=1, treasury_after=2, terrain=Coastal Forest)
+Turn 11: unrest disturbed Veneunar Wood (M8) under Noraraand Tribe (unrest=7.84, duration=1, treasury_after=7, terrain=Hill Forest)
+Turn 11: unrest disturbed Akhakiar Edge (I2) under Akhakiar Tribe (unrest=6.95, duration=1, treasury_after=4, terrain=Highland Plains)
+Turn 12: Akhakiar Tribe attacked Veneunar Tribe in Veneunar Wash (M11) and failed against the region (success_chance=0.530, attack_strength=8, defense_strength=7, core_status=core, treasury_after=2, terrain=Riverland Plains)
+Turn 12: Noraraand Tribe attacked Veneunar Tribe in Veneunar Vale (M9) and captured the region (success_chance=0.620, attack_strength=11, defense_strength=7, core_status=core, treasury_after=9, terrain=Plains)
+Turn 12: Noraraand Plain Rebels expanded into Noraraandplain Hollow (I8) (score=12, resources=2, neighbors=6, unclaimed_neighbors=1, core_status=frontier, treasury_after=2, terrain=Highland Forest)
+Turn 12: Persermia Tribe expanded into Persermia Wood (I4) (score=10, resources=2, neighbors=6, unclaimed_neighbors=1, core_status=frontier, treasury_after=5, terrain=Highland Forest)
+Turn 12: Persermia Vale Rebels attacked Persermia Tribe in Persermia Gate (M3) and captured the region (success_chance=0.650, attack_strength=12, defense_strength=7, core_status=core, treasury_after=3, terrain=Riverland Plains)
+Turn 12: Veneunar Tribe attacked Noraraand Tribe in Veneunar Vale (M9) and captured the region (success_chance=0.500, attack_strength=8, defense_strength=8, core_status=frontier, treasury_after=1, terrain=Plains)
+Turn 12: unrest disturbed Akhakiar Plain (O2) under Akhakiar Tribe (unrest=7.28, duration=1, treasury_after=2, terrain=Coastal Plains)
+Turn 12: unrest disturbed Persermia Bay (O4) under Persermia Tribe (unrest=4.93, duration=1, treasury_after=5, terrain=Coastal Forest)
+Turn 12: crisis gripped Persermia Ford (O6) under Persermia Tribe (unrest=9.34, duration=2, treasury_after=4, terrain=Coastal Plains)
+Turn 12: unrest disturbed Noraraand Reach (O10) under Noraraand Tribe (unrest=4.96, duration=1, treasury_after=9, terrain=Coastal Plains)
+Turn 12: crisis gripped Veneunar Bay (O12) under Veneunar Tribe (unrest=9.29, duration=2, treasury_after=0, terrain=Coastal Forest)
+Turn 12: crisis gripped Veneunar Field (O14) under Veneunar Tribe (unrest=10.00, duration=2, treasury_after=0, terrain=Coastal Plains)
+Turn 12: unrest disturbed Persermia Gate (M3) under Persermia Vale Rebels (unrest=6.00, duration=1, treasury_after=3, terrain=Riverland Plains)
+Turn 12: unrest disturbed Veneunar Wood (M8) under Noraraand Tribe (unrest=7.40, duration=1, treasury_after=9, terrain=Hill Forest)
+Turn 12: unrest disturbed Veneunar Vale (M9) under Veneunar Tribe (unrest=6.00, duration=1, treasury_after=0, terrain=Plains)
+Turn 12: crisis gripped Akhakiar Edge (I2) under Akhakiar Tribe (unrest=9.01, duration=2, treasury_after=1, terrain=Highland Plains)
+Turn 12: Veneunar Field (O14) seceded from Veneunar Tribe as Veneunar Field Rebels (unrest=10.00, new_resources=4, terrain=Coastal Plains)
 
 Doctrine Evolution
 
-Akhakiar Tribe: homeland=Plains, opened as Developmental Plains, ended as Adaptive Plains, terrain_identity=Plains, doctrine_shifts=3, homeland_regions=1, core_regions=1, frontier_regions=1
-Persermia Tribe: homeland=Hill Forest, opened as Insular Hill Forest, ended as Adaptive Hill Forest, terrain_identity=Hill Forest, doctrine_shifts=1, homeland_regions=1, core_regions=2, frontier_regions=1
-Noraraand Tribe: homeland=Riverland Plains, opened as Developmental Riverland Plains, ended as Adaptive Riverland Plains, terrain_identity=Riverland Plains, doctrine_shifts=3, homeland_regions=1, core_regions=2, frontier_regions=1
-Veneunar Tribe: homeland=Forest, opened as Insular Forest, ended as Adaptive Forest, terrain_identity=Forest, doctrine_shifts=1, homeland_regions=1, core_regions=2, frontier_regions=1
+Akhakiar Tribe: homeland=Plains, opened as Developmental Plains, ended as Adaptive Plains, terrain_identity=Plains, doctrine_shifts=3, homeland_regions=1, core_regions=2, frontier_regions=2
+Persermia Tribe: homeland=Hill Forest, opened as Insular Hill Forest, ended as Adaptive Hill Forest, terrain_identity=Hill Forest, doctrine_shifts=1, homeland_regions=1, core_regions=1, frontier_regions=3
+Noraraand Tribe: homeland=Riverland Plains, opened as Developmental Riverland Plains, ended as Adaptive Riverland Plains, terrain_identity=Riverland Plains, doctrine_shifts=3, homeland_regions=1, core_regions=3, frontier_regions=1
+Veneunar Tribe: homeland=Forest, opened as Insular Forest, ended as Adaptive Forest, terrain_identity=Forest, doctrine_shifts=1, homeland_regions=1, core_regions=1, frontier_regions=2
+Akhakiar Edge Rebels: homeland=Highland Plains, opened as Adaptive Plains, ended as Adaptive Plains, terrain_identity=Plains, doctrine_shifts=0, homeland_regions=0, core_regions=0, frontier_regions=0
+Persermia Vale Rebels: homeland=Riverland Hill, opened as Developmental Hills, ended as Adaptive Riverland Hill, terrain_identity=Riverland Hill, doctrine_shifts=1, homeland_regions=0, core_regions=1, frontier_regions=1
+Noraraand Plain Rebels: homeland=Highland Plains, opened as Adaptive Plains, ended as Adaptive Plains, terrain_identity=Plains, doctrine_shifts=2, homeland_regions=0, core_regions=1, frontier_regions=2
+Veneunar Field Rebels: homeland=Coastal Plains, opened as Adaptive Forest Plains, ended as Adaptive Forest Plains, terrain_identity=Forest Plains, doctrine_shifts=0, homeland_regions=0, core_regions=1, frontier_regions=0
 
 Per-Turn Metrics
 
@@ -142,31 +246,81 @@ Turn 1
   Veneunar Tribe: treasury=6, regions=1, attacks=0, expansions=0, investments=1, base_income=6, nominal_income=5, scale_penalty=0, effective_income=6, maintenance=1, net=5, doctrine=Insular Forest, homeland=1, core=0, frontier=0
 
 Turn 2
-  Akhakiar Tribe: treasury=6, regions=2, attacks=0, expansions=1, investments=0, base_income=7, nominal_income=7, scale_penalty=0, effective_income=7, maintenance=4, net=3, doctrine=Adaptive Plains, homeland=1, core=0, frontier=1
+  Akhakiar Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, nominal_income=7, scale_penalty=0, effective_income=7, maintenance=3, net=4, doctrine=Adaptive Plains, homeland=1, core=0, frontier=1
   Persermia Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, nominal_income=7, scale_penalty=0, effective_income=7, maintenance=3, net=4, doctrine=Adaptive Hill Forest, homeland=1, core=0, frontier=1
   Noraraand Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, nominal_income=7, scale_penalty=0, effective_income=7, maintenance=3, net=4, doctrine=Adaptive Riverland Plains, homeland=1, core=0, frontier=1
   Veneunar Tribe: treasury=7, regions=2, attacks=0, expansions=1, investments=0, base_income=7, nominal_income=7, scale_penalty=0, effective_income=7, maintenance=3, net=4, doctrine=Adaptive Forest, homeland=1, core=0, frontier=1
 
 Turn 3
-  Akhakiar Tribe: treasury=4, regions=3, attacks=0, expansions=1, investments=0, base_income=8, nominal_income=9, scale_penalty=0, effective_income=8, maintenance=7, net=1, doctrine=Adaptive Plains, homeland=1, core=0, frontier=2
+  Akhakiar Tribe: treasury=6, regions=3, attacks=0, expansions=1, investments=0, base_income=8, nominal_income=9, scale_penalty=0, effective_income=8, maintenance=6, net=2, doctrine=Adaptive Plains, homeland=1, core=0, frontier=2
   Persermia Tribe: treasury=7, regions=3, attacks=0, expansions=1, investments=0, base_income=8, nominal_income=9, scale_penalty=0, effective_income=8, maintenance=5, net=3, doctrine=Adaptive Hill Forest, homeland=1, core=0, frontier=2
   Noraraand Tribe: treasury=7, regions=3, attacks=0, expansions=1, investments=0, base_income=8, nominal_income=9, scale_penalty=0, effective_income=8, maintenance=5, net=3, doctrine=Adaptive Riverland Plains, homeland=1, core=0, frontier=2
   Veneunar Tribe: treasury=7, regions=3, attacks=0, expansions=1, investments=0, base_income=8, nominal_income=9, scale_penalty=0, effective_income=8, maintenance=5, net=3, doctrine=Adaptive Forest, homeland=1, core=0, frontier=2
 
 Turn 4
-  Akhakiar Tribe: treasury=-5, regions=4, attacks=0, expansions=1, investments=0, base_income=9, nominal_income=11, scale_penalty=3, effective_income=6, maintenance=11, net=-5, doctrine=Expansionary Plains, homeland=1, core=0, frontier=3
+  Akhakiar Tribe: treasury=-1, regions=4, attacks=0, expansions=1, investments=0, base_income=9, nominal_income=11, scale_penalty=3, effective_income=6, maintenance=10, net=-4, doctrine=Expansionary Plains, homeland=1, core=0, frontier=3
   Persermia Tribe: treasury=1, regions=4, attacks=0, expansions=1, investments=0, base_income=9, nominal_income=11, scale_penalty=3, effective_income=6, maintenance=9, net=-3, doctrine=Adaptive Hill Forest, homeland=1, core=0, frontier=3
   Noraraand Tribe: treasury=1, regions=4, attacks=0, expansions=1, investments=0, base_income=9, nominal_income=11, scale_penalty=3, effective_income=6, maintenance=9, net=-3, doctrine=Expansionary Riverland Plains, homeland=1, core=0, frontier=3
   Veneunar Tribe: treasury=2, regions=4, attacks=0, expansions=1, investments=0, base_income=9, nominal_income=11, scale_penalty=3, effective_income=6, maintenance=8, net=-2, doctrine=Adaptive Forest, homeland=1, core=0, frontier=3
 
 Turn 5
-  Akhakiar Tribe: treasury=-6, regions=3, attacks=0, expansions=0, investments=1, base_income=10, nominal_income=14, scale_penalty=3, effective_income=7, maintenance=13, net=-6, doctrine=Adaptive Plains, homeland=1, core=0, frontier=2
+  Akhakiar Tribe: treasury=-2, regions=4, attacks=0, expansions=0, investments=1, base_income=11, nominal_income=14, scale_penalty=3, effective_income=8, maintenance=10, net=-2, doctrine=Adaptive Plains, homeland=1, core=1, frontier=2
   Persermia Tribe: treasury=-3, regions=4, attacks=0, expansions=0, investments=1, base_income=10, nominal_income=14, scale_penalty=3, effective_income=7, maintenance=11, net=-4, doctrine=Adaptive Hill Forest, homeland=1, core=1, frontier=2
-  Noraraand Tribe: treasury=-2, regions=4, attacks=0, expansions=0, investments=1, base_income=11, nominal_income=14, scale_penalty=3, effective_income=8, maintenance=11, net=-3, doctrine=Adaptive Riverland Plains, homeland=1, core=1, frontier=2
+  Noraraand Tribe: treasury=-3, regions=4, attacks=0, expansions=0, investments=1, base_income=10, nominal_income=14, scale_penalty=3, effective_income=7, maintenance=11, net=-4, doctrine=Adaptive Riverland Plains, homeland=1, core=1, frontier=2
   Veneunar Tribe: treasury=1, regions=4, attacks=0, expansions=0, investments=1, base_income=11, nominal_income=14, scale_penalty=3, effective_income=8, maintenance=9, net=-1, doctrine=Adaptive Forest, homeland=1, core=1, frontier=2
 
 Turn 6
-  Akhakiar Tribe: treasury=1, regions=3, attacks=0, expansions=0, investments=1, base_income=9, nominal_income=15, scale_penalty=0, effective_income=9, maintenance=8, net=1, doctrine=Adaptive Plains, homeland=1, core=1, frontier=1
-  Persermia Tribe: treasury=-3, regions=4, attacks=0, expansions=0, investments=1, base_income=11, nominal_income=17, scale_penalty=3, effective_income=8, maintenance=11, net=-3, doctrine=Adaptive Hill Forest, homeland=1, core=2, frontier=1
-  Noraraand Tribe: treasury=-1, regions=4, attacks=0, expansions=0, investments=1, base_income=13, nominal_income=17, scale_penalty=3, effective_income=10, maintenance=11, net=-1, doctrine=Adaptive Riverland Plains, homeland=1, core=2, frontier=1
-  Veneunar Tribe: treasury=2, regions=4, attacks=0, expansions=0, investments=1, base_income=13, nominal_income=17, scale_penalty=3, effective_income=10, maintenance=9, net=1, doctrine=Adaptive Forest, homeland=1, core=2, frontier=1
+  Akhakiar Tribe: treasury=-2, regions=4, attacks=0, expansions=0, investments=1, base_income=12, nominal_income=17, scale_penalty=3, effective_income=9, maintenance=11, net=-2, doctrine=Adaptive Plains, homeland=1, core=1, frontier=2
+  Persermia Tribe: treasury=0, regions=4, attacks=0, expansions=0, investments=1, base_income=13, nominal_income=17, scale_penalty=3, effective_income=10, maintenance=10, net=0, doctrine=Adaptive Hill Forest, homeland=1, core=2, frontier=1
+  Noraraand Tribe: treasury=0, regions=4, attacks=0, expansions=0, investments=1, base_income=13, nominal_income=17, scale_penalty=3, effective_income=10, maintenance=10, net=0, doctrine=Adaptive Riverland Plains, homeland=1, core=2, frontier=1
+  Veneunar Tribe: treasury=3, regions=4, attacks=0, expansions=0, investments=1, base_income=14, nominal_income=17, scale_penalty=3, effective_income=11, maintenance=9, net=2, doctrine=Adaptive Forest, homeland=1, core=2, frontier=1
+
+Turn 7
+  Akhakiar Tribe: treasury=0, regions=4, attacks=0, expansions=0, investments=1, base_income=14, nominal_income=20, scale_penalty=3, effective_income=11, maintenance=11, net=0, doctrine=Adaptive Plains, homeland=1, core=2, frontier=1
+  Persermia Tribe: treasury=2, regions=4, attacks=0, expansions=0, investments=1, base_income=15, nominal_income=20, scale_penalty=3, effective_income=12, maintenance=10, net=2, doctrine=Adaptive Hill Forest, homeland=1, core=2, frontier=1
+  Noraraand Tribe: treasury=2, regions=4, attacks=0, expansions=0, investments=1, base_income=15, nominal_income=20, scale_penalty=3, effective_income=12, maintenance=10, net=2, doctrine=Adaptive Riverland Plains, homeland=1, core=2, frontier=1
+  Veneunar Tribe: treasury=-1, regions=5, attacks=0, expansions=1, investments=0, base_income=16, nominal_income=19, scale_penalty=6, effective_income=10, maintenance=11, net=-1, doctrine=Adaptive Forest, homeland=1, core=3, frontier=1
+
+Turn 8
+  Akhakiar Tribe: treasury=2, regions=3, attacks=0, expansions=0, investments=0, base_income=15, nominal_income=20, scale_penalty=3, effective_income=12, maintenance=10, net=2, doctrine=Adaptive Plains, homeland=1, core=2, frontier=0
+  Persermia Tribe: treasury=3, regions=4, attacks=1, expansions=0, investments=0, base_income=15, nominal_income=20, scale_penalty=3, effective_income=12, maintenance=9, net=3, doctrine=Adaptive Hill Forest, homeland=1, core=2, frontier=1
+  Noraraand Tribe: treasury=-1, regions=5, attacks=1, expansions=0, investments=0, base_income=17, nominal_income=25, scale_penalty=6, effective_income=11, maintenance=12, net=-1, doctrine=Adaptive Riverland Plains, homeland=1, core=2, frontier=2
+  Veneunar Tribe: treasury=3, regions=4, attacks=0, expansions=0, investments=1, base_income=15, nominal_income=17, scale_penalty=3, effective_income=12, maintenance=9, net=3, doctrine=Adaptive Forest, homeland=1, core=2, frontier=1
+  Akhakiar Edge Rebels: treasury=1, regions=1, attacks=0, expansions=0, investments=0, base_income=0, nominal_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Plains, homeland=0, core=1, frontier=0
+
+Turn 9
+  Akhakiar Tribe: treasury=8, regions=4, attacks=1, expansions=0, investments=0, base_income=17, nominal_income=20, scale_penalty=3, effective_income=14, maintenance=6, net=8, doctrine=Adaptive Plains, homeland=1, core=2, frontier=1
+  Persermia Tribe: treasury=0, regions=4, attacks=0, expansions=1, investments=0, base_income=17, nominal_income=22, scale_penalty=6, effective_income=11, maintenance=11, net=0, doctrine=Adaptive Hill Forest, homeland=1, core=2, frontier=1
+  Noraraand Tribe: treasury=1, regions=4, attacks=0, expansions=0, investments=0, base_income=18, nominal_income=25, scale_penalty=6, effective_income=12, maintenance=11, net=1, doctrine=Adaptive Riverland Plains, homeland=1, core=2, frontier=1
+  Veneunar Tribe: treasury=2, regions=5, attacks=0, expansions=1, investments=0, base_income=18, nominal_income=19, scale_penalty=6, effective_income=12, maintenance=10, net=2, doctrine=Adaptive Forest, homeland=1, core=2, frontier=2
+  Akhakiar Edge Rebels: treasury=1, regions=0, attacks=0, expansions=0, investments=1, base_income=0, nominal_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Plains, homeland=0, core=0, frontier=0
+  Persermia Vale Rebels: treasury=1, regions=1, attacks=0, expansions=0, investments=0, base_income=0, nominal_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Developmental Hills, homeland=0, core=1, frontier=0
+  Noraraand Plain Rebels: treasury=1, regions=1, attacks=0, expansions=0, investments=0, base_income=0, nominal_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Plains, homeland=0, core=1, frontier=0
+
+Turn 10
+  Akhakiar Tribe: treasury=8, regions=5, attacks=0, expansions=1, investments=0, base_income=19, nominal_income=22, scale_penalty=6, effective_income=13, maintenance=10, net=3, doctrine=Adaptive Plains, homeland=1, core=2, frontier=2
+  Persermia Tribe: treasury=8, regions=4, attacks=0, expansions=0, investments=1, base_income=18, nominal_income=20, scale_penalty=3, effective_income=15, maintenance=7, net=8, doctrine=Adaptive Hill Forest, homeland=1, core=2, frontier=1
+  Noraraand Tribe: treasury=10, regions=4, attacks=0, expansions=0, investments=0, base_income=18, nominal_income=20, scale_penalty=3, effective_income=15, maintenance=6, net=9, doctrine=Adaptive Riverland Plains, homeland=1, core=2, frontier=1
+  Veneunar Tribe: treasury=2, regions=5, attacks=0, expansions=0, investments=1, base_income=19, nominal_income=22, scale_penalty=6, effective_income=13, maintenance=12, net=1, doctrine=Adaptive Forest, homeland=1, core=2, frontier=2
+  Akhakiar Edge Rebels: treasury=1, regions=0, attacks=0, expansions=0, investments=0, base_income=0, nominal_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Plains, homeland=0, core=0, frontier=0
+  Persermia Vale Rebels: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, nominal_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Hills, homeland=0, core=1, frontier=0
+  Noraraand Plain Rebels: treasury=5, regions=1, attacks=0, expansions=0, investments=1, base_income=5, nominal_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Developmental Plains, homeland=0, core=1, frontier=0
+
+Turn 11
+  Akhakiar Tribe: treasury=6, regions=5, attacks=1, expansions=0, investments=0, base_income=19, nominal_income=22, scale_penalty=6, effective_income=13, maintenance=11, net=2, doctrine=Adaptive Plains, homeland=1, core=2, frontier=2
+  Persermia Tribe: treasury=8, regions=5, attacks=0, expansions=1, investments=0, base_income=19, nominal_income=22, scale_penalty=6, effective_income=13, maintenance=10, net=3, doctrine=Adaptive Hill Forest, homeland=1, core=2, frontier=2
+  Noraraand Tribe: treasury=11, regions=5, attacks=0, expansions=1, investments=0, base_income=19, nominal_income=22, scale_penalty=6, effective_income=13, maintenance=9, net=4, doctrine=Adaptive Riverland Plains, homeland=1, core=3, frontier=1
+  Veneunar Tribe: treasury=3, regions=5, attacks=0, expansions=0, investments=1, base_income=19, nominal_income=25, scale_penalty=6, effective_income=13, maintenance=12, net=1, doctrine=Adaptive Forest, homeland=1, core=2, frontier=2
+  Akhakiar Edge Rebels: treasury=1, regions=0, attacks=0, expansions=0, investments=0, base_income=0, nominal_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Plains, homeland=0, core=0, frontier=0
+  Persermia Vale Rebels: treasury=5, regions=1, attacks=1, expansions=0, investments=0, base_income=5, nominal_income=5, scale_penalty=0, effective_income=5, maintenance=1, net=4, doctrine=Adaptive Riverland Hill, homeland=0, core=1, frontier=0
+  Noraraand Plain Rebels: treasury=5, regions=2, attacks=0, expansions=1, investments=0, base_income=6, nominal_income=7, scale_penalty=0, effective_income=6, maintenance=3, net=3, doctrine=Adaptive Plains, homeland=0, core=1, frontier=1
+
+Turn 12
+  Akhakiar Tribe: treasury=1, regions=5, attacks=1, expansions=0, investments=0, base_income=18, nominal_income=22, scale_penalty=6, effective_income=12, maintenance=12, net=0, doctrine=Adaptive Plains, homeland=1, core=2, frontier=2
+  Persermia Tribe: treasury=-2, regions=5, attacks=0, expansions=1, investments=0, base_income=14, nominal_income=19, scale_penalty=6, effective_income=8, maintenance=14, net=-6, doctrine=Adaptive Hill Forest, homeland=1, core=1, frontier=3
+  Noraraand Tribe: treasury=15, regions=5, attacks=1, expansions=0, investments=0, base_income=21, nominal_income=22, scale_penalty=6, effective_income=15, maintenance=9, net=6, doctrine=Adaptive Riverland Plains, homeland=1, core=3, frontier=1
+  Veneunar Tribe: treasury=-6, regions=4, attacks=1, expansions=0, investments=0, base_income=15, nominal_income=25, scale_penalty=6, effective_income=9, maintenance=15, net=-6, doctrine=Adaptive Forest, homeland=1, core=1, frontier=2
+  Akhakiar Edge Rebels: treasury=1, regions=0, attacks=0, expansions=0, investments=0, base_income=0, nominal_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Plains, homeland=0, core=0, frontier=0
+  Persermia Vale Rebels: treasury=7, regions=2, attacks=1, expansions=0, investments=0, base_income=8, nominal_income=10, scale_penalty=0, effective_income=8, maintenance=4, net=4, doctrine=Adaptive Riverland Hill, homeland=0, core=1, frontier=1
+  Noraraand Plain Rebels: treasury=5, regions=3, attacks=0, expansions=1, investments=0, base_income=8, nominal_income=9, scale_penalty=0, effective_income=8, maintenance=5, net=3, doctrine=Adaptive Plains, homeland=0, core=1, frontier=2
+  Veneunar Field Rebels: treasury=1, regions=1, attacks=0, expansions=0, investments=0, base_income=0, nominal_income=0, scale_penalty=0, effective_income=0, maintenance=0, net=0, doctrine=Adaptive Forest Plains, homeland=0, core=1, frontier=0

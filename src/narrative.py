@@ -200,7 +200,11 @@ def analyze_phase(world, phase_name, start_turn, end_turn):
         start_ranks = get_rank_map(phase_snapshots[0])
         end_ranks = get_rank_map(end_snapshot)
         for faction_name in end_snapshot["factions"]:
-            rank_changes[faction_name] = start_ranks[faction_name] - end_ranks[faction_name]
+            start_rank = start_ranks.get(faction_name, len(start_ranks) + 1)
+            end_rank = end_ranks.get(faction_name, len(end_ranks) + 1)
+            rank_changes[faction_name] = start_rank - end_rank
+
+    faction_names = set(world.factions) | set(start_metrics) | set(end_metrics)
 
     biggest_rise = None
     if rank_changes:
@@ -209,12 +213,14 @@ def analyze_phase(world, phase_name, start_turn, end_turn):
             biggest_rise = None
 
     region_deltas = {
-        faction_name: end_metrics[faction_name]["regions"] - start_metrics[faction_name]["regions"]
-        for faction_name in world.factions
+        faction_name: end_metrics.get(faction_name, {}).get("regions", 0)
+        - start_metrics.get(faction_name, {}).get("regions", 0)
+        for faction_name in faction_names
     }
     treasury_deltas = {
-        faction_name: end_metrics[faction_name]["treasury"] - start_metrics[faction_name]["treasury"]
-        for faction_name in world.factions
+        faction_name: end_metrics.get(faction_name, {}).get("treasury", 0)
+        - start_metrics.get(faction_name, {}).get("treasury", 0)
+        for faction_name in faction_names
     }
     biggest_gain = max(region_deltas, key=lambda name: region_deltas[name])
     biggest_loss = min(region_deltas, key=lambda name: region_deltas[name])

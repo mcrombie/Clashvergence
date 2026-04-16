@@ -76,6 +76,9 @@ def _get_event_title(event, world):
     if event.type == "unrest_crisis":
         return f"Unrest crisis hit {region_reference} under {event.faction}"
     if event.type == "unrest_secession":
+        rebel_faction = event.get("rebel_faction")
+        if rebel_faction:
+            return f"{region_reference} broke away from {event.faction} as {rebel_faction}"
         return f"{region_reference} broke away from {event.faction}"
     return f"{event.faction} acted"
 
@@ -99,7 +102,7 @@ def _get_event_summary(event, world):
         return f"Resources increased to R{event.get('new_resources', 0)}.{terrain_text}"
     if event.type == "unrest_disturbance":
         return (
-            f"Moderate unrest stalled integration and forced a treasury hit of "
+            f"Moderate unrest disrupted local order and forced a treasury hit of "
             f"{abs(event.get('treasury_change', 0))}.{terrain_text}"
         )
     if event.type == "unrest_crisis":
@@ -108,9 +111,14 @@ def _get_event_summary(event, world):
             f"{abs(event.get('treasury_change', 0))}.{terrain_text}"
         )
     if event.type == "unrest_secession":
+        rebel_faction = event.get("rebel_faction")
         return (
-            f"Sustained crisis forced the region out of {event.faction}'s control."
-            f"{terrain_text}"
+            (
+                f"Sustained crisis raised {rebel_faction} out of {event.faction}'s collapsing rule."
+                if rebel_faction
+                else f"Sustained crisis forced the region out of {event.faction}'s control."
+            )
+            + terrain_text
         )
     return "No summary available."
 
@@ -353,6 +361,9 @@ def build_simulation_view_model(world):
             "terrain_identity": world.factions[faction_name].doctrine_profile.terrain_identity,
             "homeland_identity": world.factions[faction_name].doctrine_profile.homeland_identity,
             "climate_identity": world.factions[faction_name].doctrine_profile.climate_identity,
+            "is_rebel": world.factions[faction_name].is_rebel,
+            "origin_faction": world.factions[faction_name].origin_faction,
+            "proto_state": world.factions[faction_name].proto_state,
             "color": get_faction_color(
                 faction_name,
                 internal_id=world.factions[faction_name].internal_id,
@@ -2122,11 +2133,18 @@ def render_simulation_html(world):
         const doctrineShift = previous && previous.doctrine_label !== metrics.doctrine_label
           ? `<div class="event-meta">Shifted from ${{escapeHtml(previous.doctrine_label)}} on the previous turn.</div>`
           : "";
+        const polityStatus = faction.is_rebel
+          ? `${{faction.proto_state ? "Proto-state rebellion" : "Independent successor"}}${{faction.origin_faction ? ` from ${{escapeHtml(faction.origin_faction)}}` : ""}}`
+          : "Established faction";
 
         return `
           <article class="summary-card">
             <strong>${{escapeHtml(faction.name)}}</strong>
             <div class="detail-grid">
+              <div class="detail-row">
+                <div class="detail-label">Polity</div>
+                <div class="detail-value">${{polityStatus}}</div>
+              </div>
               <div class="detail-row">
                 <div class="detail-label">Doctrine</div>
                 <div class="detail-value">${{escapeHtml(metrics.doctrine_label)}}</div>

@@ -30,16 +30,20 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
 
     for faction_name, faction in world.factions.items():
         tradition_labels = ",".join(faction.identity.source_traditions) if faction.identity else ""
+        starting_treasury = starting_treasuries.get(faction_name, faction.starting_treasury)
         lines.append(
             f"  {faction_name}: doctrine={faction.doctrine_label}, "
             f"homeland={faction.doctrine_profile.homeland_identity}, "
             f"terrain_identity={faction.doctrine_profile.terrain_identity}, "
-            f"starting_treasury={starting_treasuries[faction_name]}, "
+            f"starting_treasury={starting_treasury}, "
             f"culture={faction.culture_name}, "
             f"government={faction.government_type}, "
             f"internal_id={faction.internal_id}, "
             f"traditions={tradition_labels}, "
-            f"ai_generated={faction.identity.ai_generated if faction.identity else False}"
+            f"ai_generated={faction.identity.ai_generated if faction.identity else False}, "
+            f"is_rebel={faction.is_rebel}, "
+            f"origin_faction={faction.origin_faction}, "
+            f"proto_state={faction.proto_state}"
         )
 
     return lines
@@ -109,6 +113,31 @@ def format_event(event, world):
             f"owned_regions={event.get('owned_regions', 0)}, "
             f"net_income={event.get('net_income', 0)}, "
             f"treasury_after={event.get('treasury_after', 0)})"
+        )
+
+    if event["type"] == "unrest_disturbance":
+        return (
+            f"Turn {event['turn'] + 1}: unrest disturbed {region_reference} under {event['faction']} "
+            f"(unrest={event.get('unrest', 0):.2f}, "
+            f"duration={event.get('duration', 0)}, "
+            f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
+        )
+
+    if event["type"] == "unrest_crisis":
+        return (
+            f"Turn {event['turn'] + 1}: crisis gripped {region_reference} under {event['faction']} "
+            f"(unrest={event.get('unrest', 0):.2f}, "
+            f"duration={event.get('duration', 0)}, "
+            f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
+        )
+
+    if event["type"] == "unrest_secession":
+        rebel_faction = event.get("rebel_faction", "rebels")
+        return (
+            f"Turn {event['turn'] + 1}: {region_reference} seceded from {event['faction']} "
+            f"as {rebel_faction} "
+            f"(unrest={event.get('unrest', 0):.2f}, "
+            f"new_resources={event.get('new_resources', 0)}{terrain_text})"
         )
 
     return f"Turn {event['turn'] + 1}: {event}"

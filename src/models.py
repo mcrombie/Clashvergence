@@ -60,6 +60,7 @@ class Region:
     unrest_event_level: str = "none"
     unrest_event_turns_remaining: int = 0
     unrest_crisis_streak: int = 0
+    secession_cooldown_turns: int = 0
     ownership_turns: int = 0
     conquest_count: int = 0
 
@@ -92,6 +93,11 @@ class Faction:
     starting_treasury: int = 0
     doctrine_state: FactionDoctrineState = field(default_factory=FactionDoctrineState)
     doctrine_profile: FactionDoctrineProfile = field(default_factory=FactionDoctrineProfile)
+    is_rebel: bool = False
+    origin_faction: str | None = None
+    rebel_age: int = 0
+    independence_score: float = 0.0
+    proto_state: bool = False
 
     def __post_init__(self):
         if self.starting_treasury == 0:

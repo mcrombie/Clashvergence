@@ -10,6 +10,7 @@ from src.config import (
     MAX_RESOURCES,
     INVEST_AMOUNT,
     MIN_TREASURY_CONCENTRATION,
+    REBEL_REABSORPTION_UNREST,
     TREASURY_CONCENTRATION_REGION_FACTOR,
 )
 from src.doctrine import get_faction_region_alignment
@@ -17,7 +18,9 @@ from src.heartland import (
     get_region_attack_projection_modifier,
     get_region_core_defense_bonus,
     get_region_core_status,
+    get_rebel_reclaim_bonus,
     handle_region_owner_change,
+    set_region_unrest,
 )
 from src.models import Event
 from src.region_naming import assign_region_founding_name, format_region_reference
@@ -124,6 +127,12 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + staging_projection
         + doctrine_alignment["combat_modifier"]
     )
+    rebel_reclaim_bonus = get_rebel_reclaim_bonus(
+        faction_name,
+        defender_name,
+        world,
+    )
+    attacker_strength += rebel_reclaim_bonus
     defender_strength = (
         defender_deployable_treasury
         + region.resources
@@ -160,6 +169,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "economic_modifier": terrain_profile["economic_modifier"],
         "doctrine_combat_modifier": doctrine_alignment["combat_modifier"],
         "doctrine_economic_modifier": doctrine_alignment["economic_modifier"],
+        "rebel_reclaim_bonus": rebel_reclaim_bonus,
         "terrain_affinity": doctrine_alignment["average_affinity"],
         "core_status": region_core_status,
         "core_defense_bonus": core_defense_bonus,
@@ -507,9 +517,20 @@ def attack(faction_name, target_region_name, world):
     succeeded = success_roll < score_components["success_chance"]
     treasury_change = -ATTACK_COST
     actual_failure_penalty = 0
+    defender_faction = world.factions.get(defender_name)
+    is_reintegration_attempt = (
+        defender_faction is not None
+        and defender_faction.is_rebel
+        and defender_faction.origin_faction == faction_name
+    )
 
     if succeeded:
         handle_region_owner_change(target_region, faction_name)
+        if is_reintegration_attempt:
+            set_region_unrest(
+                target_region,
+                min(target_region.unrest, REBEL_REABSORPTION_UNREST),
+            )
         if not target_region.founding_name:
             assign_region_founding_name(
                 world,
@@ -541,6 +562,7 @@ def attack(faction_name, target_region_name, world):
             "terrain_economic_modifier": score_components["economic_modifier"],
             "doctrine_combat_modifier": score_components["doctrine_combat_modifier"],
             "doctrine_economic_modifier": score_components["doctrine_economic_modifier"],
+            "rebel_reclaim_bonus": score_components["rebel_reclaim_bonus"],
             "terrain_affinity": score_components["terrain_affinity"],
             "core_status": score_components["core_status"],
             "core_defense_bonus": score_components["core_defense_bonus"],
@@ -556,8 +578,14 @@ def attack(faction_name, target_region_name, world):
             "treasury_after": attacker.treasury,
             "treasury_change": treasury_change,
             "success": succeeded,
+            "reintegrated_rebel": succeeded and is_reintegration_attempt,
         },
-        tags=["combat", "attack", "success" if succeeded else "failure"],
+        tags=[
+            "combat",
+            "attack",
+            "success" if succeeded else "failure",
+            *(["reintegration"] if is_reintegration_attempt else []),
+        ],
         significance=score_components["success_chance"],
     ))
 

@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from src.config import MIN_TREASURY_CONCENTRATION
+from src.config import MIN_TREASURY_CONCENTRATION, REBEL_FULL_INDEPENDENCE_THRESHOLD
 from src.actions import (
     attack,
     get_attack_target_score_components,
@@ -9,6 +9,7 @@ from src.actions import (
 )
 from src.heartland import (
     CORE_INTEGRATION_SCORE,
+    get_rebel_reclaim_bonus,
     get_region_attack_projection_modifier,
     get_region_core_status,
     get_region_effective_income,
@@ -293,12 +294,99 @@ class HeartlandSystemTests(unittest.TestCase):
         region.unrest = 9.5
         update_region_integration(world)
 
-        self.assertIsNone(region.owner)
-        self.assertEqual(region.integrated_owner, None)
-        self.assertEqual(region.core_status, "frontier")
+        self.assertIsNotNone(region.owner)
+        rebel_name = region.owner
+        self.assertIn(rebel_name, world.factions)
+        rebel_faction = world.factions[rebel_name]
+        self.assertTrue(rebel_faction.is_rebel)
+        self.assertEqual(rebel_faction.origin_faction, faction_name)
+        self.assertTrue(rebel_faction.proto_state)
+        self.assertEqual(region.integrated_owner, rebel_name)
+        self.assertEqual(region.core_status, "core")
         self.assertEqual(region.resources, 3)
         self.assertEqual(region.unrest_crisis_streak, 0)
         self.assertEqual(world.events[-1].type, "unrest_secession")
+        self.assertEqual(world.events[-1].details["rebel_faction"], rebel_name)
+        self.assertEqual(rebel_faction.doctrine_state.homeland_region, region.name)
+        self.assertEqual(
+            rebel_faction.doctrine_state.homeland_climate,
+            region.climate,
+        )
+
+    def test_origin_faction_gets_decay_reclaim_bonus_against_proto_rebels(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "frontier"
+        region.integration_score = 1.0
+        region.unrest = 9.5
+
+        resolve_unrest_events(world)
+        update_region_integration(world)
+        region.unrest = 9.5
+        update_region_integration(world)
+
+        rebel_name = region.owner
+        self.assertGreater(
+            get_rebel_reclaim_bonus(faction_name, rebel_name, world),
+            0,
+        )
+        score_components = get_attack_target_score_components(region.name, faction_name, world)
+        self.assertGreater(score_components["rebel_reclaim_bonus"], 0)
+
+        world.factions[rebel_name].independence_score = REBEL_FULL_INDEPENDENCE_THRESHOLD
+        world.factions[rebel_name].proto_state = False
+        self.assertEqual(
+            get_rebel_reclaim_bonus(faction_name, rebel_name, world),
+            0,
+        )
+
+    def test_secession_sets_cooldown_to_block_immediate_repeat(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "frontier"
+        region.integration_score = 1.0
+        region.unrest = 9.5
+
+        resolve_unrest_events(world)
+        update_region_integration(world)
+        region.unrest = 9.5
+        update_region_integration(world)
+
+        self.assertGreater(region.secession_cooldown_turns, 0)
+
+    def test_rebel_regions_do_not_spawn_recursive_rebel_factions(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "frontier"
+        region.integration_score = 1.0
+        region.unrest = 9.5
+
+        resolve_unrest_events(world)
+        update_region_integration(world)
+        region.unrest = 9.5
+        update_region_integration(world)
+
+        rebel_name = region.owner
+        faction_count_before = len(world.factions)
+        region.unrest_event_level = "crisis"
+        region.unrest_event_turns_remaining = 2
+        region.unrest_crisis_streak = 1
+        region.unrest = 9.5
+
+        update_region_integration(world)
+
+        self.assertEqual(region.owner, rebel_name)
+        self.assertEqual(len(world.factions), faction_count_before)
+        self.assertLess(region.unrest, 9.5)
 
     def test_treasury_concentration_declines_with_empire_size(self):
         self.assertEqual(get_treasury_concentration_multiplier(1), 1.0)

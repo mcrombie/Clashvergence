@@ -11,6 +11,7 @@ from src.heartland import (
     get_region_core_status,
     record_region_history,
     resolve_unrest_events,
+    update_rebel_faction_status,
     update_region_integration,
 )
 from src.metrics import record_turn_metrics
@@ -122,6 +123,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     resolve_unrest_events(world)
     economy_snapshot = apply_turn_economy(world)
     update_region_integration(world)
+    update_rebel_faction_status(world)
     update_faction_doctrines(world)
     if verbose:
         for faction_name in turn_order:
