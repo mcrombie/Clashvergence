@@ -135,10 +135,10 @@ class HeartlandSystemTests(unittest.TestCase):
         frontier_region.integration_score = 1.0
         frontier_region.resources = 5
 
-        self.assertEqual(get_region_effective_income(homeland_region), homeland_region.resources)
-        self.assertEqual(get_region_effective_income(frontier_region), 3)
-        self.assertEqual(get_region_maintenance_cost(homeland_region), 1)
-        self.assertEqual(get_region_maintenance_cost(frontier_region), 2)
+        self.assertEqual(get_region_effective_income(homeland_region, world), homeland_region.resources)
+        self.assertEqual(get_region_effective_income(frontier_region, world), 3)
+        self.assertEqual(get_region_maintenance_cost(homeland_region, world), 1)
+        self.assertEqual(get_region_maintenance_cost(frontier_region, world), 2)
         self.assertEqual(get_region_attack_projection_modifier(frontier_region), -1)
 
         economy = get_faction_economy_snapshot(world)[faction_name]

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from src.climate import format_climate_label, normalize_climate
 from src.heartland import get_region_core_status
 from src.models import Faction, FactionDoctrineProfile, WorldState
 from src.terrain import format_terrain_label, normalize_terrain_tags
@@ -8,6 +9,7 @@ from src.terrain import format_terrain_label, normalize_terrain_tags
 HOMELAND_IMPRINT_WEIGHT = 12.0
 CORE_REGION_EXPERIENCE = 0.8
 FRONTIER_REGION_EXPERIENCE = 0.35
+CLIMATE_EXPERIENCE_MULTIPLIER = 1.8
 
 OPEN_TERRAIN_TAGS = {"plains", "riverland", "steppe", "coast"}
 ROUGH_TERRAIN_TAGS = {"forest", "hills", "highland", "marsh"}
@@ -69,6 +71,16 @@ def _get_terrain_mix_scores(experience: dict[str, float]) -> tuple[float, float]
     return (open_score / total, rough_score / total)
 
 
+def _get_primary_climate_identity(experience: dict[str, float]) -> str:
+    if not experience:
+        return "Temperate"
+    ranked = sorted(
+        experience.items(),
+        key=lambda item: (-item[1], item[0]),
+    )
+    return format_climate_label(ranked[0][0])
+
+
 def _get_behavior_label(
     expansion_posture: float,
     war_posture: float,
@@ -94,6 +106,8 @@ def _build_doctrine_summary(
     faction: Faction,
     homeland_identity: str,
     terrain_identity: str,
+    homeland_climate: str,
+    climate_identity: str,
     expansion_posture: float,
     war_posture: float,
     development_posture: float,
@@ -105,13 +119,17 @@ def _build_doctrine_summary(
         development_posture,
         insularity,
     ).lower()
-    homeland_phrase = f"Homeland in {homeland_identity.lower()}"
+    homeland_phrase = f"Homeland in {homeland_identity.lower()} under a {homeland_climate.lower()} climate"
     if terrain_identity == homeland_identity:
         terrain_phrase = f"has kept it rooted in {terrain_identity.lower()} habits"
     else:
         terrain_phrase = (
             f"has broadened it into a {terrain_identity.lower()} doctrine"
         )
+    if climate_identity == homeland_climate:
+        climate_phrase = "while its climate instincts remain close to home"
+    else:
+        climate_phrase = f"while experience has pushed it toward a {climate_identity.lower()} climate outlook"
 
     if development_posture >= max(expansion_posture, war_posture) and insularity >= 0.58:
         posture_phrase = "that favors consolidation and patient development"
@@ -123,7 +141,7 @@ def _build_doctrine_summary(
         posture_phrase = "that adapts between growth and consolidation"
 
     return (
-        f"{homeland_phrase} {terrain_phrase}, producing a {behavior_label} polity {posture_phrase}."
+        f"{homeland_phrase} {terrain_phrase}, {climate_phrase}, producing a {behavior_label} polity {posture_phrase}."
     )
 
 
@@ -135,7 +153,9 @@ def compute_faction_doctrine_profile(
     state = faction.doctrine_state
     homeland_tags = normalize_terrain_tags(state.homeland_terrain_tags)
     homeland_identity = format_terrain_label(homeland_tags)
+    homeland_climate = format_climate_label(state.homeland_climate)
     terrain_identity, preferred_terrains = _get_primary_terrain_identity(state.terrain_experience)
+    climate_identity = _get_primary_climate_identity(state.climate_experience)
     open_ratio, rough_ratio = _get_terrain_mix_scores(state.terrain_experience)
 
     turns = max(1, state.turns_observed)
@@ -187,6 +207,8 @@ def compute_faction_doctrine_profile(
         faction,
         homeland_identity,
         terrain_identity,
+        homeland_climate,
+        climate_identity,
         expansion_posture,
         war_posture,
         development_posture,
@@ -196,6 +218,7 @@ def compute_faction_doctrine_profile(
     return FactionDoctrineProfile(
         homeland_identity=homeland_identity,
         terrain_identity=terrain_identity,
+        climate_identity=climate_identity,
         preferred_terrains=preferred_terrains,
         expansion_posture=expansion_posture,
         war_posture=war_posture,
@@ -221,11 +244,18 @@ def initialize_faction_doctrines(world: WorldState) -> None:
         homeland_tags = normalize_terrain_tags(
             world.regions[homeland_region].terrain_tags if homeland_region is not None else ["plains"]
         )
+        homeland_climate = normalize_climate(
+            world.regions[homeland_region].climate if homeland_region is not None else "temperate"
+        )
         faction.doctrine_state.homeland_region = homeland_region
         faction.doctrine_state.homeland_terrain_tags = homeland_tags
+        faction.doctrine_state.homeland_climate = homeland_climate
         faction.doctrine_state.terrain_experience = {
             tag: HOMELAND_IMPRINT_WEIGHT
             for tag in homeland_tags
+        }
+        faction.doctrine_state.climate_experience = {
+            homeland_climate: HOMELAND_IMPRINT_WEIGHT
         }
         faction.doctrine_state.starting_regions = owned_counts.get(faction_name, 0)
         faction.doctrine_state.last_region_count = owned_counts.get(faction_name, 0)
@@ -263,6 +293,11 @@ def update_faction_doctrines(world: WorldState) -> None:
                 experience_gain = FRONTIER_REGION_EXPERIENCE
             for tag in normalize_terrain_tags(region.terrain_tags):
                 state.terrain_experience[tag] = state.terrain_experience.get(tag, 0.0) + experience_gain
+            normalized_climate = normalize_climate(region.climate)
+            state.climate_experience[normalized_climate] = (
+                state.climate_experience.get(normalized_climate, 0.0)
+                + (experience_gain * CLIMATE_EXPERIENCE_MULTIPLIER)
+            )
 
         faction_events = events_by_faction[faction_name]
         if any(event.type in {"expand", "attack"} for event in faction_events):
@@ -304,27 +339,72 @@ def get_faction_terrain_affinity(faction: Faction, terrain_tag: str) -> float:
     return _clamp(base / (top_score + smoothing), 0.0, 1.0)
 
 
-def get_faction_region_alignment(faction: Faction, terrain_tags: list[str] | None) -> dict[str, float | list[str]]:
+def get_faction_climate_affinity(faction: Faction, climate: str | None) -> float:
+    normalized = normalize_climate(climate)
+    experience = faction.doctrine_state.climate_experience
+    if not experience:
+        return 0.0
+
+    top_score = max(experience.values())
+    smoothing = HOMELAND_IMPRINT_WEIGHT * 0.25
+    base = experience.get(normalized, 0.0)
+    if normalized == faction.doctrine_state.homeland_climate:
+        base += smoothing
+    return _clamp(base / (top_score + smoothing), 0.0, 1.0)
+
+
+def get_faction_region_alignment(
+    faction: Faction,
+    terrain_tags: list[str] | None,
+    climate: str | None = None,
+) -> dict[str, float | list[str] | str | bool]:
     normalized = normalize_terrain_tags(terrain_tags)
-    affinities = [
+    normalized_climate = normalize_climate(climate)
+    terrain_affinities = [
         get_faction_terrain_affinity(faction, tag)
         for tag in normalized
     ]
-    average_affinity = sum(affinities) / len(affinities) if affinities else 0.0
+    average_terrain_affinity = (
+        sum(terrain_affinities) / len(terrain_affinities) if terrain_affinities else 0.0
+    )
+    climate_affinity = get_faction_climate_affinity(faction, normalized_climate)
+    average_affinity = ((average_terrain_affinity * 0.7) + (climate_affinity * 0.3))
     homeland_matches = sum(
         1
         for tag in normalized
         if tag in faction.doctrine_state.homeland_terrain_tags
     )
+    climate_match = normalized_climate == faction.doctrine_state.homeland_climate
 
-    expansion_modifier = int(round((average_affinity - 0.35) * 4 + (homeland_matches * 0.5)))
-    combat_modifier = int(round((average_affinity * 2.0) + (homeland_matches * 0.6)))
-    economic_modifier = int(round((average_affinity - 0.4) * 2))
+    expansion_modifier = int(
+        round(
+            ((average_affinity - 0.35) * 4)
+            + (homeland_matches * 0.5)
+            + (0.6 if climate_match else 0.0)
+        )
+    )
+    combat_modifier = int(
+        round(
+            (average_affinity * 2.0)
+            + (homeland_matches * 0.6)
+            + (0.5 if climate_match else 0.0)
+        )
+    )
+    economic_modifier = int(
+        round(
+            ((average_affinity - 0.4) * 2)
+            + (0.35 if climate_match else 0.0)
+        )
+    )
 
     return {
         "terrain_tags": normalized,
+        "climate": normalized_climate,
+        "terrain_affinity": round(average_terrain_affinity, 3),
+        "climate_affinity": round(climate_affinity, 3),
         "average_affinity": round(average_affinity, 3),
         "homeland_matches": homeland_matches,
+        "climate_match": climate_match,
         "expansion_modifier": max(-1, min(3, expansion_modifier)),
         "combat_modifier": max(0, min(3, combat_modifier)),
         "economic_modifier": max(-1, min(2, economic_modifier)),

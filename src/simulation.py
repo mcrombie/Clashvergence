@@ -38,8 +38,8 @@ def get_faction_economy_snapshot(world):
         if region.owner is not None:
             snapshot[region.owner]["owned_regions"] += 1
             snapshot[region.owner]["nominal_income"] += region.resources
-            snapshot[region.owner]["base_income"] += get_region_effective_income(region)
-            snapshot[region.owner]["maintenance"] += get_region_maintenance_cost(region)
+            snapshot[region.owner]["base_income"] += get_region_effective_income(region, world)
+            snapshot[region.owner]["maintenance"] += get_region_maintenance_cost(region, world)
             core_status = get_region_core_status(region)
             if core_status == "homeland":
                 snapshot[region.owner]["homeland_regions"] += 1

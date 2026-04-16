@@ -3,6 +3,13 @@ from __future__ import annotations
 from copy import deepcopy
 
 from src.config import (
+    CLIMATE_ATTACK_PROJECTION_MAX_PENALTY,
+    CLIMATE_CORE_INTEGRATION_CLIMATE_FACTOR,
+    CLIMATE_FRONTIER_INTEGRATION_CLIMATE_FACTOR,
+    CLIMATE_INCOME_MAX_FACTOR,
+    CLIMATE_INCOME_MIN_FACTOR,
+    CLIMATE_MAINTENANCE_MAX_FACTOR,
+    CLIMATE_MAINTENANCE_MIN_FACTOR,
     CORE_INCOME_FACTOR,
     FRONTIER_ATTACK_PROJECTION_PENALTY,
     FRONTIER_INCOME_FACTOR,
@@ -39,6 +46,14 @@ def get_region_core_defense_bonus(region: Region) -> int:
     return 0
 
 
+def get_region_climate_affinity(region: Region, world: WorldState) -> float:
+    if region.owner is None or region.owner not in world.factions:
+        return 0.5
+    from src.doctrine import get_faction_climate_affinity
+
+    return get_faction_climate_affinity(world.factions[region.owner], region.climate)
+
+
 def get_region_income_factor(region: Region) -> float:
     status = get_region_core_status(region)
     if status == "homeland":
@@ -48,21 +63,72 @@ def get_region_income_factor(region: Region) -> float:
     return FRONTIER_INCOME_FACTOR
 
 
-def get_region_effective_income(region: Region) -> int:
-    return int(round(region.resources * get_region_income_factor(region)))
+def get_region_climate_income_factor(region: Region, world: WorldState) -> float:
+    affinity = get_region_climate_affinity(region, world)
+    return CLIMATE_INCOME_MIN_FACTOR + (
+        (CLIMATE_INCOME_MAX_FACTOR - CLIMATE_INCOME_MIN_FACTOR) * affinity
+    )
 
 
-def get_region_maintenance_cost(region: Region) -> int:
+def get_region_effective_income(region: Region, world: WorldState | None = None) -> int:
+    income_factor = get_region_income_factor(region)
+    if world is not None:
+        income_factor *= get_region_climate_income_factor(region, world)
+    return int(round(region.resources * income_factor))
+
+
+def get_region_climate_maintenance_factor(region: Region, world: WorldState) -> float:
+    affinity = get_region_climate_affinity(region, world)
+    return CLIMATE_MAINTENANCE_MAX_FACTOR - (
+        (CLIMATE_MAINTENANCE_MAX_FACTOR - CLIMATE_MAINTENANCE_MIN_FACTOR) * affinity
+    )
+
+
+def get_region_maintenance_cost(region: Region, world: WorldState | None = None) -> int:
     status = get_region_core_status(region)
     if status == "frontier":
-        return REGION_MAINTENANCE_COST + FRONTIER_MAINTENANCE_SURCHARGE
-    return REGION_MAINTENANCE_COST
+        base_cost = REGION_MAINTENANCE_COST + FRONTIER_MAINTENANCE_SURCHARGE
+    else:
+        base_cost = REGION_MAINTENANCE_COST
+    if world is None:
+        return base_cost
+    return int(round(base_cost * get_region_climate_maintenance_factor(region, world)))
 
 
-def get_region_attack_projection_modifier(region: Region) -> int:
+def get_region_climate_integration_modifier(region: Region, world: WorldState) -> float:
+    if region.owner is None or region.owner not in world.factions:
+        return 0.0
+    if region.homeland_faction_id == region.owner:
+        return 0.0
+
+    affinity = get_region_climate_affinity(region, world)
+    status = get_region_core_status(region)
+    centered_affinity = (affinity - 0.5) * 2
+
+    if status == "frontier":
+        return centered_affinity * CLIMATE_FRONTIER_INTEGRATION_CLIMATE_FACTOR
+
+    return centered_affinity * CLIMATE_CORE_INTEGRATION_CLIMATE_FACTOR
+
+
+def get_region_attack_projection_modifier(
+    region: Region,
+    *,
+    world: WorldState | None = None,
+    faction_name: str | None = None,
+) -> int:
+    modifier = 0
     if get_region_core_status(region) == "frontier":
-        return -FRONTIER_ATTACK_PROJECTION_PENALTY
-    return 0
+        modifier -= FRONTIER_ATTACK_PROJECTION_PENALTY
+
+    if world is not None and faction_name is not None and faction_name in world.factions:
+        from src.doctrine import get_faction_climate_affinity
+
+        climate_affinity = get_faction_climate_affinity(world.factions[faction_name], region.climate)
+        climate_penalty = int(round((1.0 - climate_affinity) * CLIMATE_ATTACK_PROJECTION_MAX_PENALTY))
+        modifier -= climate_penalty
+
+    return modifier
 
 
 def set_region_integration(
@@ -161,10 +227,11 @@ def update_region_integration(world: WorldState) -> None:
             continue
 
         region.ownership_turns += 1
+        climate_modifier = get_region_climate_integration_modifier(region, world)
         if region.integration_score < CORE_INTEGRATION_SCORE:
-            region.integration_score += PER_TURN_FRONTIER_GAIN
+            region.integration_score += PER_TURN_FRONTIER_GAIN + climate_modifier
         else:
-            region.integration_score += PER_TURN_CORE_GAIN
+            region.integration_score += PER_TURN_CORE_GAIN + climate_modifier
         region.core_status = get_region_core_status(region)
 
 
@@ -177,6 +244,7 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "founding_name": region.founding_name,
             "original_namer_faction_id": region.original_namer_faction_id,
             "terrain_tags": list(region.terrain_tags),
+            "climate": region.climate,
             "homeland_faction_id": region.homeland_faction_id,
             "integrated_owner": region.integrated_owner,
             "integration_score": round(region.integration_score, 2),

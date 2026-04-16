@@ -9,6 +9,7 @@ from src.event_analysis import (
     build_initial_opening_state,
     get_final_standings,
 )
+from src.climate import format_climate_label
 from src.map_visualization import (
     build_map_layout,
     build_multi_ring_coastline_polygon,
@@ -43,11 +44,15 @@ def _serialize_event(event, world):
         event_data["region_reference"] = format_region_reference(region, include_code=True)
         event_data["terrain_label"] = format_terrain_label(region.terrain_tags)
         event_data["terrain_tags"] = list(region.terrain_tags)
+        event_data["climate"] = region.climate
+        event_data["climate_label"] = format_climate_label(region.climate)
     else:
         event_data["region_display_name"] = event.region
         event_data["region_reference"] = event.region
         event_data["terrain_label"] = None
         event_data["terrain_tags"] = []
+        event_data["climate"] = None
+        event_data["climate_label"] = None
     event_data["title"] = _get_event_title(event, world)
     event_data["summary"] = _get_event_summary(event, world)
     return event_data
@@ -106,6 +111,8 @@ def build_simulation_snapshots(world):
             ),
             "terrain_tags": list(region.terrain_tags),
             "terrain_label": format_terrain_label(region.terrain_tags),
+            "climate": region.climate,
+            "climate_label": format_climate_label(region.climate),
             "homeland_faction_id": initial_region_history.get(region_name, {}).get("homeland_faction_id"),
             "integrated_owner": initial_region_history.get(region_name, {}).get("integrated_owner"),
             "integration_score": initial_region_history.get(region_name, {}).get("integration_score", 0.0),
@@ -127,6 +134,8 @@ def build_simulation_snapshots(world):
                 "original_namer_faction_id": region["original_namer_faction_id"],
                 "terrain_tags": region["terrain_tags"],
                 "terrain_label": region["terrain_label"],
+                "climate": region["climate"],
+                "climate_label": region["climate_label"],
                 "homeland_faction_id": region["homeland_faction_id"],
                 "integrated_owner": region["integrated_owner"],
                 "integration_score": region["integration_score"],
@@ -185,6 +194,8 @@ def build_simulation_snapshots(world):
             region_state[region_name]["integrated_owner"] = history_region["integrated_owner"]
             region_state[region_name]["integration_score"] = history_region["integration_score"]
             region_state[region_name]["core_status"] = history_region["core_status"]
+            region_state[region_name]["climate"] = history_region.get("climate", region_state[region_name]["climate"])
+            region_state[region_name]["climate_label"] = format_climate_label(region_state[region_name]["climate"])
 
         metrics = get_turn_metrics(world, turn_number)
         snapshots.append({
@@ -200,6 +211,8 @@ def build_simulation_snapshots(world):
                     "original_namer_faction_id": region["original_namer_faction_id"],
                     "terrain_tags": region["terrain_tags"],
                     "terrain_label": region["terrain_label"],
+                    "climate": region["climate"],
+                    "climate_label": region["climate_label"],
                     "homeland_faction_id": region["homeland_faction_id"],
                     "integrated_owner": region["integrated_owner"],
                     "integration_score": region["integration_score"],
@@ -306,6 +319,7 @@ def build_simulation_view_model(world):
             "doctrine_summary": world.factions[faction_name].doctrine_summary,
             "terrain_identity": world.factions[faction_name].doctrine_profile.terrain_identity,
             "homeland_identity": world.factions[faction_name].doctrine_profile.homeland_identity,
+            "climate_identity": world.factions[faction_name].doctrine_profile.climate_identity,
             "color": get_faction_color(
                 faction_name,
                 internal_id=world.factions[faction_name].internal_id,
@@ -330,6 +344,8 @@ def build_simulation_view_model(world):
                 "display_name": get_region_display_name(world.regions[region_name]),
                 "terrain_tags": list(world.regions[region_name].terrain_tags),
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
+                "climate": world.regions[region_name].climate,
+                "climate_label": format_climate_label(world.regions[region_name].climate),
                 "x": round(positions[region_name][0], 1),
                 "y": round(positions[region_name][1], 1),
                 "neighbors": sorted(region_data["neighbors"], key=natural_sort_key),
@@ -345,6 +361,8 @@ def build_simulation_view_model(world):
                 "display_name": get_region_display_name(world.regions[region_name]),
                 "terrain_tags": list(world.regions[region_name].terrain_tags),
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
+                "climate": world.regions[region_name].climate,
+                "climate_label": format_climate_label(world.regions[region_name].climate),
                 "polygon": [
                     [round(point[0], 1), round(point[1], 1)]
                     for point in atlas_geometry[region_name]["polygon"]
@@ -1119,6 +1137,14 @@ def render_simulation_html(world):
       steppe: "#d4bf63",
       plains: "#b8d879",
     }};
+    const climateColors = {{
+      temperate: "#8ebf78",
+      oceanic: "#5b90cc",
+      cold: "#9dc3d9",
+      arid: "#d8b46a",
+      steppe: "#c9c06f",
+      tropical: "#4ea56d",
+    }};
     const doctrineLineColors = {{
       expansion_posture: "#2d6a4f",
       war_posture: "#b24c37",
@@ -1135,6 +1161,10 @@ def render_simulation_html(world):
       return terrainBaseColors[primaryTag] || terrainBaseColors.plains;
     }}
 
+    function getClimateColor(climate) {{
+      return climateColors[climate || "temperate"] || climateColors.temperate;
+    }}
+
     function getTerrainAbbreviation(tags) {{
       const visibleTags = (tags || []).filter((tag) => tag !== "coast");
       return visibleTags.map((tag) => tag.slice(0, 2).toUpperCase()).join("/");
@@ -1144,7 +1174,30 @@ def render_simulation_html(world):
       if (state.colorMode === "terrain") {{
         return getTerrainColor(regionSnapshot.terrain_tags || staticRegion.terrain_tags);
       }}
+      if (state.colorMode === "climate") {{
+        return getClimateColor(regionSnapshot.climate || staticRegion.climate);
+      }}
       return colorByFaction[regionSnapshot.owner] || unclaimedColor;
+    }}
+
+    function getColorModeLabel() {{
+      if (state.colorMode === "terrain") {{
+        return "Terrain";
+      }}
+      if (state.colorMode === "climate") {{
+        return "Climate";
+      }}
+      return "Ownership";
+    }}
+
+    function cycleColorMode() {{
+      if (state.colorMode === "ownership") {{
+        state.colorMode = "terrain";
+      }} else if (state.colorMode === "terrain") {{
+        state.colorMode = "climate";
+      }} else {{
+        state.colorMode = "ownership";
+      }}
     }}
 
     function formatPosture(value) {{
@@ -1528,7 +1581,7 @@ def render_simulation_html(world):
     function renderViewToggle() {{
       terrainToggle.innerHTML = `
         <button type="button" class="secondary" data-terrain="overlay">Show Terrain</button>
-        <button type="button" class="secondary" data-terrain="mode">Terrain Mode</button>
+        <button type="button" class="secondary" data-terrain="mode">Cycle Map Colors</button>
       `;
 
       if (!data.atlas_regions.length) {{
@@ -1538,14 +1591,14 @@ def render_simulation_html(world):
         for (const button of terrainToggle.querySelectorAll("[data-terrain]")) {{
           const isActive = (
             (button.dataset.terrain === "overlay" && state.showTerrainOverlay)
-            || (button.dataset.terrain === "mode" && state.colorMode === "terrain")
+            || (button.dataset.terrain === "mode" && state.colorMode !== "ownership")
           );
           button.classList.toggle("active", isActive);
           button.addEventListener("click", () => {{
             if (button.dataset.terrain === "overlay") {{
               state.showTerrainOverlay = !state.showTerrainOverlay;
             }} else if (button.dataset.terrain === "mode") {{
-              state.colorMode = state.colorMode === "terrain" ? "ownership" : "terrain";
+              cycleColorMode();
             }}
             syncMapView();
             renderLegend();
@@ -1573,14 +1626,14 @@ def render_simulation_html(world):
       for (const button of terrainToggle.querySelectorAll("[data-terrain]")) {{
         const isActive = (
           (button.dataset.terrain === "overlay" && state.showTerrainOverlay)
-          || (button.dataset.terrain === "mode" && state.colorMode === "terrain")
+          || (button.dataset.terrain === "mode" && state.colorMode !== "ownership")
         );
         button.classList.toggle("active", isActive);
         button.addEventListener("click", () => {{
           if (button.dataset.terrain === "overlay") {{
             state.showTerrainOverlay = !state.showTerrainOverlay;
           }} else if (button.dataset.terrain === "mode") {{
-            state.colorMode = state.colorMode === "terrain" ? "ownership" : "terrain";
+            cycleColorMode();
           }}
           syncMapView();
           renderLegend();
@@ -1607,7 +1660,7 @@ def render_simulation_html(world):
       for (const button of terrainToggle.querySelectorAll("[data-terrain]")) {{
         const isActive = (
           (button.dataset.terrain === "overlay" && state.showTerrainOverlay)
-          || (button.dataset.terrain === "mode" && state.colorMode === "terrain")
+          || (button.dataset.terrain === "mode" && state.colorMode !== "ownership")
         );
         button.classList.toggle("active", isActive);
       }}
@@ -1627,6 +1680,19 @@ def render_simulation_html(world):
           <span class="legend-item">
             <span class="swatch" style="background:${{getTerrainColor(tags)}}"></span>
             Terrain: ${{escapeHtml(label)}}
+          </span>
+        `);
+      }} else if (state.colorMode === "climate") {{
+        const uniqueClimates = new Map();
+        for (const region of data.regions) {{
+          if (!uniqueClimates.has(region.climate)) {{
+            uniqueClimates.set(region.climate, region.climate_label);
+          }}
+        }}
+        items = [...uniqueClimates.entries()].map(([climate, label]) => `
+          <span class="legend-item">
+            <span class="swatch" style="background:${{getClimateColor(climate)}}"></span>
+            Climate: ${{escapeHtml(label)}}
           </span>
         `);
       }} else {{
@@ -1817,7 +1883,7 @@ def render_simulation_html(world):
           <span>${{eventCount}} event${{eventCount === 1 ? "" : "s"}} on this turn</span>
           <span>${{changedCount}} region${{changedCount === 1 ? "" : "s"}} changed</span>
           <span>${{contestedCount}} contested region${{contestedCount === 1 ? "" : "s"}}</span>
-          <span>Map mode: ${{state.colorMode === "terrain" ? "Terrain" : "Ownership"}}</span>
+          <span>Map mode: ${{getColorModeLabel()}}</span>
         </div>
       `;
     }}
@@ -1855,6 +1921,13 @@ def render_simulation_html(world):
             <div class="detail-value">
               <span class="terrain-chip" style="background:${{getTerrainColor(regionSnapshot.terrain_tags || staticRegion.terrain_tags)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
               ${{escapeHtml(regionSnapshot.terrain_label || staticRegion.terrain_label)}}
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Climate</div>
+            <div class="detail-value">
+              <span class="terrain-chip" style="background:${{getClimateColor(regionSnapshot.climate || staticRegion.climate)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
+              ${{escapeHtml(regionSnapshot.climate_label || staticRegion.climate_label || "Temperate")}}
             </div>
           </div>
           <div class="detail-row">
@@ -1925,6 +1998,10 @@ def render_simulation_html(world):
               <div class="detail-row">
                 <div class="detail-label">Current Terrain Identity</div>
                 <div class="detail-value">${{escapeHtml(metrics.terrain_identity)}}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Climate Identity</div>
+                <div class="detail-value">${{escapeHtml(metrics.climate_identity || faction.climate_identity || "Temperate")}}</div>
               </div>
               <div class="detail-row">
                 <div class="detail-label">Realm Structure</div>
@@ -2007,7 +2084,8 @@ def render_simulation_html(world):
         if (title) {{
           const ownerText = regionSnapshot.owner || "Unclaimed";
           const terrainText = regionSnapshot.terrain_label || region.terrain_label || "Plains";
-          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}}`;
+          const climateText = regionSnapshot.climate_label || region.climate_label || "Temperate";
+          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}} - ${{climateText}}`;
         }}
         if (terrainOverlay) {{
           terrainOverlay.textContent = getTerrainAbbreviation(regionSnapshot.terrain_tags || region.terrain_tags);
@@ -2036,7 +2114,8 @@ def render_simulation_html(world):
         if (title) {{
           const ownerText = regionSnapshot.owner || "Unclaimed";
           const terrainText = regionSnapshot.terrain_label || region.terrain_label || "Plains";
-          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}}`;
+          const climateText = regionSnapshot.climate_label || region.climate_label || "Temperate";
+          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}} - ${{climateText}}`;
         }}
         if (terrainOverlay) {{
           terrainOverlay.textContent = getTerrainAbbreviation(regionSnapshot.terrain_tags || region.terrain_tags);

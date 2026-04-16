@@ -74,6 +74,7 @@ def build_turn_metrics(world, economy_snapshot=None):
             "doctrine_label": faction.doctrine_label,
             "terrain_identity": faction.doctrine_profile.terrain_identity,
             "homeland_identity": faction.doctrine_profile.homeland_identity,
+            "climate_identity": faction.doctrine_profile.climate_identity,
             "expansion_posture": faction.doctrine_profile.expansion_posture,
             "war_posture": faction.doctrine_profile.war_posture,
             "development_posture": faction.doctrine_profile.development_posture,

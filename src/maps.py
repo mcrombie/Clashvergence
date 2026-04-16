@@ -1,7 +1,13 @@
 from src.map_builder import build_multi_ring_symmetry
 
 
-def _copy_regions_with_terrain(regions, terrain_lookup, default_tags=("plains",)):
+def _copy_regions_with_terrain(
+    regions,
+    terrain_lookup,
+    climate_lookup=None,
+    default_tags=("plains",),
+    default_climate="temperate",
+):
     copied = {}
     for region_name, region_data in regions.items():
         copied[region_name] = {
@@ -9,6 +15,7 @@ def _copy_regions_with_terrain(regions, terrain_lookup, default_tags=("plains",)
             "owner": region_data["owner"],
             "resources": region_data["resources"],
             "terrain_tags": list(terrain_lookup.get(region_name, default_tags)),
+            "climate": (climate_lookup or {}).get(region_name, default_climate),
         }
     return copied
 
@@ -59,6 +66,22 @@ def _build_three_ring_terrain(outer_names, middle_names, inner_names, center_nam
 
     terrain_lookup[center_name] = ["riverland", "plains"]
     return terrain_lookup
+
+
+def _build_three_ring_climate(outer_names, middle_names, inner_names, center_name):
+    climate_lookup = {}
+
+    for region_name in outer_names:
+        climate_lookup[region_name] = "oceanic"
+
+    for region_name in middle_names:
+        climate_lookup[region_name] = "temperate"
+
+    for region_name in inner_names:
+        climate_lookup[region_name] = "cold"
+
+    climate_lookup[center_name] = "temperate"
+    return climate_lookup
 
 
 def _build_asymmetric_frontier_terrain():
@@ -249,6 +272,12 @@ MAPS = {
                 [f"I{i}" for i in range(1, 9)],
                 "C",
             ),
+            _build_three_ring_climate(
+                [f"O{i}" for i in range(1, 17)],
+                [f"M{i}" for i in range(1, 13)],
+                [f"I{i}" for i in range(1, 9)],
+                "C",
+            ),
         ),
     },
 
@@ -268,6 +297,12 @@ MAPS = {
         "regions": _copy_regions_with_terrain(
             MULTI_RING_SYMMETRY_REGIONS,
             _build_three_ring_terrain(
+                [f"O{i}" for i in range(1, 17)],
+                [f"M{i}" for i in range(1, 13)],
+                [f"I{i}" for i in range(1, 9)],
+                "C",
+            ),
+            _build_three_ring_climate(
                 [f"O{i}" for i in range(1, 17)],
                 [f"M{i}" for i in range(1, 13)],
                 [f"I{i}" for i in range(1, 9)],

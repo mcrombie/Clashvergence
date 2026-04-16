@@ -86,6 +86,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
     doctrine_alignment = get_faction_region_alignment(
         world.factions[faction_name],
         region.terrain_tags,
+        region.climate,
     )
     region_core_status = get_region_core_status(region)
     core_defense_bonus = get_region_core_defense_bonus(region)
@@ -108,7 +109,12 @@ def get_attack_target_score_components(region_name, faction_name, world):
     staging_resources = max((staging_region.resources for staging_region in staging_regions), default=0)
     staging_projection = max(
         (
-            staging_region.resources + get_region_attack_projection_modifier(staging_region)
+            staging_region.resources
+            + get_region_attack_projection_modifier(
+                staging_region,
+                world=world,
+                faction_name=faction_name,
+            )
             for staging_region in staging_regions
         ),
         default=0,
@@ -172,6 +178,7 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         doctrine_alignment = get_faction_region_alignment(
             world.factions[faction_name],
             region.terrain_tags,
+            region.climate,
         )
     region_core_status = get_region_core_status(region)
     unclaimed_neighbors = 0

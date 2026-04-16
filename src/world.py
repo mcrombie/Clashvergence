@@ -29,6 +29,7 @@ def create_world(
             owner=owner_name_map.get(region_data["owner"], region_data["owner"]),
             resources=region_data["resources"],
             terrain_tags=region_data.get("terrain_tags", ["plains"]),
+            climate=region_data.get("climate", "temperate"),
         )
 
     world = WorldState(regions=regions, factions=factions, map_name=map_name)

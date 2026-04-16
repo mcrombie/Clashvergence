@@ -6,7 +6,9 @@ from typing import Any
 class FactionDoctrineState:
     homeland_region: str | None = None
     homeland_terrain_tags: list[str] = field(default_factory=list)
+    homeland_climate: str = "temperate"
     terrain_experience: dict[str, float] = field(default_factory=dict)
+    climate_experience: dict[str, float] = field(default_factory=dict)
     turns_observed: int = 0
     expansions: int = 0
     attacks: int = 0
@@ -27,6 +29,7 @@ class FactionDoctrineState:
 class FactionDoctrineProfile:
     homeland_identity: str = "Plains"
     terrain_identity: str = "Plains"
+    climate_identity: str = "Temperate"
     preferred_terrains: list[str] = field(default_factory=lambda: ["plains"])
     expansion_posture: float = 0.5
     war_posture: float = 0.5
@@ -47,6 +50,7 @@ class Region:
     founding_name: str = ""
     original_namer_faction_id: str | None = None
     terrain_tags: list[str] = field(default_factory=list)
+    climate: str = "temperate"
     name_metadata: dict[str, Any] = field(default_factory=dict)
     homeland_faction_id: str | None = None
     integrated_owner: str | None = None
