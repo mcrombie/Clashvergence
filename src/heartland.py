@@ -81,10 +81,123 @@ CORE_INTEGRATION_SCORE = 6.0
 CONQUEST_INTEGRATION_SCORE = 1.0
 PER_TURN_FRONTIER_GAIN = 1.0
 PER_TURN_CORE_GAIN = 0.35
+POLITY_TIER_MODIFIERS = {
+    "band": {
+        "income_factor": 0.75,
+        "maintenance_factor": 0.70,
+        "integration_factor": 0.65,
+        "attack_bias": -1,
+        "realm_size_unrest_factor": 1.40,
+    },
+    "tribe": {
+        "income_factor": 0.95,
+        "maintenance_factor": 0.90,
+        "integration_factor": 0.95,
+        "attack_bias": 0,
+        "realm_size_unrest_factor": 1.10,
+    },
+    "chiefdom": {
+        "income_factor": 1.05,
+        "maintenance_factor": 1.00,
+        "integration_factor": 1.05,
+        "attack_bias": 1,
+        "realm_size_unrest_factor": 0.95,
+    },
+    "state": {
+        "income_factor": 1.15,
+        "maintenance_factor": 1.10,
+        "integration_factor": 1.15,
+        "attack_bias": 1,
+        "realm_size_unrest_factor": 0.85,
+    },
+}
+GOVERNMENT_FORM_MODIFIERS = {
+    "leader": {
+        "income_factor": 0.95,
+        "stability_factor": 0.92,
+        "attack_bias": 1,
+        "integration_factor": 0.95,
+    },
+    "council": {
+        "income_factor": 1.00,
+        "stability_factor": 1.06,
+        "attack_bias": 0,
+        "integration_factor": 1.00,
+    },
+    "assembly": {
+        "income_factor": 0.98,
+        "stability_factor": 1.10,
+        "attack_bias": -1,
+        "integration_factor": 1.02,
+    },
+    "monarchy": {
+        "income_factor": 1.03,
+        "stability_factor": 0.98,
+        "attack_bias": 1,
+        "integration_factor": 1.05,
+    },
+    "republic": {
+        "income_factor": 1.08,
+        "stability_factor": 1.04,
+        "attack_bias": 0,
+        "integration_factor": 1.08,
+    },
+    "oligarchy": {
+        "income_factor": 1.10,
+        "stability_factor": 0.94,
+        "attack_bias": 0,
+        "integration_factor": 0.96,
+    },
+}
 
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
     return max(minimum, min(maximum, value))
+
+
+def get_faction_polity_modifiers(faction: Faction | None) -> dict[str, float]:
+    if faction is None:
+        return POLITY_TIER_MODIFIERS["tribe"]
+    return POLITY_TIER_MODIFIERS.get(
+        faction.polity_tier,
+        POLITY_TIER_MODIFIERS["tribe"],
+    )
+
+
+def get_faction_government_form_modifiers(faction: Faction | None) -> dict[str, float]:
+    if faction is None:
+        return GOVERNMENT_FORM_MODIFIERS["council"]
+    return GOVERNMENT_FORM_MODIFIERS.get(
+        faction.government_form,
+        GOVERNMENT_FORM_MODIFIERS["council"],
+    )
+
+
+def get_faction_income_modifier(faction: Faction | None) -> float:
+    polity = get_faction_polity_modifiers(faction)
+    form = get_faction_government_form_modifiers(faction)
+    return polity["income_factor"] * form["income_factor"]
+
+
+def get_faction_maintenance_modifier(faction: Faction | None) -> float:
+    polity = get_faction_polity_modifiers(faction)
+    return polity["maintenance_factor"]
+
+
+def get_faction_integration_modifier(faction: Faction | None) -> float:
+    polity = get_faction_polity_modifiers(faction)
+    form = get_faction_government_form_modifiers(faction)
+    return polity["integration_factor"] * form["integration_factor"]
+
+
+def get_faction_stability_modifier(faction: Faction | None) -> float:
+    form = get_faction_government_form_modifiers(faction)
+    return form["stability_factor"]
+
+
+def get_faction_realm_size_unrest_factor(faction: Faction | None) -> float:
+    polity = get_faction_polity_modifiers(faction)
+    return polity["realm_size_unrest_factor"]
 
 
 def _normalize_region_ethnic_composition(region: Region) -> None:
@@ -426,6 +539,8 @@ def get_region_effective_income(region: Region, world: WorldState | None = None)
     income_factor = get_region_income_factor(region)
     if world is not None:
         income_factor *= get_region_climate_income_factor(region, world)
+        if region.owner in world.factions:
+            income_factor *= get_faction_income_modifier(world.factions[region.owner])
     income_factor *= get_region_unrest_income_factor(region)
     return int(round(region.resources * income_factor))
 
@@ -447,6 +562,8 @@ def get_region_maintenance_cost(region: Region, world: WorldState | None = None)
         unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
         unrest_factor = 1.0 + ((UNREST_MAINTENANCE_MAX_FACTOR - 1.0) * unrest_ratio)
         return int(ceil(base_cost * unrest_factor))
+    if region.owner in world.factions:
+        base_cost *= get_faction_maintenance_modifier(world.factions[region.owner])
     climate_factor = get_region_climate_maintenance_factor(region, world)
     unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
     unrest_factor = 1.0 + ((UNREST_MAINTENANCE_MAX_FACTOR - 1.0) * unrest_ratio)
@@ -1120,6 +1237,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
     if region.homeland_faction_id == region.owner:
         return -UNREST_DECAY_PER_TURN
 
+    owner_faction = world.factions[region.owner]
     climate_affinity = get_region_climate_affinity(region, world)
     climate_pressure = (1.0 - climate_affinity) * UNREST_CLIMATE_PRESSURE_FACTOR
     integration_gap = max(0.0, CORE_INTEGRATION_SCORE - region.integration_score) / CORE_INTEGRATION_SCORE
@@ -1129,16 +1247,20 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         if get_region_core_status(region) == "frontier"
         else 0.0
     )
-    frontier_burden = get_faction_frontier_burden(world, region.owner) * UNREST_FRONTIER_BURDEN_FACTOR
+    frontier_burden = (
+        get_faction_frontier_burden(world, region.owner)
+        * UNREST_FRONTIER_BURDEN_FACTOR
+        * get_faction_realm_size_unrest_factor(owner_faction)
+    )
     ethnic_pressure = get_region_ethnic_unrest_modifier(region, world)
+    stability_divisor = max(0.5, get_faction_stability_modifier(owner_faction))
     return (
         climate_pressure
         + integration_pressure
         + frontier_pressure
         + frontier_burden
         + ethnic_pressure
-        - UNREST_DECAY_PER_TURN
-    )
+    ) / stability_divisor - UNREST_DECAY_PER_TURN
 
 
 def resolve_unrest_events(world: WorldState) -> None:
@@ -1322,11 +1444,17 @@ def update_region_integration(world: WorldState) -> None:
         if region.unrest_event_level != "crisis":
             climate_modifier = get_region_climate_integration_modifier(region, world)
             ethnic_multiplier = get_region_ethnic_integration_multiplier(region, world)
+            government_multiplier = get_faction_integration_modifier(
+                world.factions.get(region.owner),
+            )
             if region.integration_score < CORE_INTEGRATION_SCORE:
                 base_gain = PER_TURN_FRONTIER_GAIN
             else:
                 base_gain = PER_TURN_CORE_GAIN
-            region.integration_score += max(0.0, (base_gain * ethnic_multiplier) + climate_modifier)
+            region.integration_score += max(
+                0.0,
+                (base_gain * ethnic_multiplier * government_multiplier) + climate_modifier,
+            )
         region.core_status = get_region_core_status(region)
         set_region_unrest(region, region.unrest + get_region_unrest_pressure(region, world))
         owner_faction = world.factions.get(region.owner)
