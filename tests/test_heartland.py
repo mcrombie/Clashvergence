@@ -428,6 +428,8 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertFalse(rebel_faction.proto_state)
         self.assertEqual(rebel_faction.government_type, REBEL_MATURE_GOVERNMENT_TYPE)
         self.assertNotEqual(rebel_faction.primary_ethnicity, parent_ethnicity)
+        self.assertEqual(rebel_faction.display_name, rebel_faction.primary_ethnicity)
+        self.assertEqual(rebel_faction.culture_name, rebel_faction.primary_ethnicity)
         self.assertIn(rebel_faction.primary_ethnicity, world.ethnicities)
         self.assertEqual(world.ethnicities[rebel_faction.primary_ethnicity].parent_ethnicity, parent_ethnicity)
         self.assertEqual(get_region_dominant_ethnicity(region), rebel_faction.primary_ethnicity)

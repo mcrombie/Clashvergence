@@ -612,10 +612,10 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
     faction.proto_state = False
     faction.treasury += REBEL_INDEPENDENCE_TREASURY_BONUS
     if faction.identity is not None:
+        if successor_ethnicity is not None:
+            faction.identity.culture_name = successor_ethnicity
         faction.identity.government_type = REBEL_MATURE_GOVERNMENT_TYPE
-        faction.identity.display_name = (
-            f"{faction.identity.culture_name} {REBEL_MATURE_GOVERNMENT_TYPE}"
-        )
+        faction.identity.display_name = faction.identity.culture_name
 
     world.events.append(Event(
         turn=world.turn,

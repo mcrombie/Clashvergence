@@ -36,9 +36,31 @@ from src.terrain import format_terrain_label
 SIMULATION_VIEWER_OUTPUT = Path("reports/simulation_view.html")
 
 
+def _get_faction_display_name(world, faction_name: str | None) -> str:
+    if faction_name is None:
+        return "another faction"
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return faction_name
+    return faction.display_name
+
+
 def _serialize_event(event, world):
     event_data = event.to_dict()
     event_data["turn_display"] = event.turn + 1
+    event_data["faction_display_name"] = _get_faction_display_name(world, event.faction)
+    event_data["counterpart_display_name"] = _get_faction_display_name(
+        world,
+        event.get("counterpart"),
+    )
+    event_data["origin_faction_display_name"] = _get_faction_display_name(
+        world,
+        event.get("origin_faction"),
+    )
+    event_data["rebel_faction_display_name"] = _get_faction_display_name(
+        world,
+        event.get("rebel_faction"),
+    )
     if event.region is not None and event.region in world.regions:
         region = world.regions[event.region]
         event_data["region_display_name"] = get_region_display_name(region)
@@ -61,44 +83,46 @@ def _serialize_event(event, world):
 
 def _get_event_title(event, world):
     region_reference = event.region
+    faction_name = _get_faction_display_name(world, event.faction)
+    counterpart_name = _get_faction_display_name(world, event.get("counterpart"))
+    origin_name = _get_faction_display_name(world, event.get("origin_faction"))
+    rebel_name = _get_faction_display_name(world, event.get("rebel_faction"))
     if event.region is not None and event.region in world.regions:
         region_reference = format_region_reference(world.regions[event.region], include_code=True)
     if event.type == "expand":
-        return f"{event.faction} expanded into {region_reference}"
+        return f"{faction_name} expanded into {region_reference}"
     if event.type == "attack":
-        defender = event.get("defender", "Unknown")
+        defender = _get_faction_display_name(world, event.get("defender")) if event.get("defender") else "Unknown"
         if event.get("success", False):
-            return f"{event.faction} captured {region_reference} from {defender}"
-        return f"{event.faction} failed to take {region_reference} from {defender}"
+            return f"{faction_name} captured {region_reference} from {defender}"
+        return f"{faction_name} failed to take {region_reference} from {defender}"
     if event.type == "invest":
-        return f"{event.faction} invested in {region_reference}"
+        return f"{faction_name} invested in {region_reference}"
     if event.type == "unrest_disturbance":
-        return f"Unrest disturbed {region_reference} under {event.faction}"
+        return f"Unrest disturbed {region_reference} under {faction_name}"
     if event.type == "unrest_crisis":
-        return f"Unrest crisis hit {region_reference} under {event.faction}"
+        return f"Unrest crisis hit {region_reference} under {faction_name}"
     if event.type == "unrest_secession":
-        rebel_faction = event.get("rebel_faction")
-        if rebel_faction:
-            return f"{region_reference} broke away from {event.faction} as {rebel_faction}"
-        return f"{region_reference} broke away from {event.faction}"
+        if event.get("rebel_faction"):
+            return f"{region_reference} broke away from {faction_name} as {rebel_name}"
+        return f"{region_reference} broke away from {faction_name}"
     if event.type == "rebel_independence":
-        origin_faction = event.get("origin_faction")
-        if origin_faction:
-            return f"{event.faction} declared full independence from {origin_faction}"
-        return f"{event.faction} consolidated into an independent successor state"
+        if event.get("origin_faction"):
+            return f"{faction_name} declared full independence from {origin_name}"
+        return f"{faction_name} consolidated into an independent successor state"
     if event.type == "diplomacy_rivalry":
-        return f"{event.faction} and {event.get('counterpart', 'another faction')} became rivals"
+        return f"{faction_name} and {counterpart_name} became rivals"
     if event.type == "diplomacy_pact":
-        return f"{event.faction} and {event.get('counterpart', 'another faction')} signed a non-aggression pact"
+        return f"{faction_name} and {counterpart_name} signed a non-aggression pact"
     if event.type == "diplomacy_alliance":
-        return f"{event.faction} and {event.get('counterpart', 'another faction')} formed an alliance"
+        return f"{faction_name} and {counterpart_name} formed an alliance"
     if event.type == "diplomacy_truce":
-        return f"{event.faction} and {event.get('counterpart', 'another faction')} entered a truce"
+        return f"{faction_name} and {counterpart_name} entered a truce"
     if event.type == "diplomacy_truce_end":
-        return f"{event.faction} and {event.get('counterpart', 'another faction')} saw their truce expire"
+        return f"{faction_name} and {counterpart_name} saw their truce expire"
     if event.type == "diplomacy_break":
-        return f"{event.faction} and {event.get('counterpart', 'another faction')} broke their accord"
-    return f"{event.faction} acted"
+        return f"{faction_name} and {counterpart_name} broke their accord"
+    return f"{faction_name} acted"
 
 
 def _get_event_summary(event, world):
@@ -420,6 +444,7 @@ def build_simulation_view_model(world):
     factions = [
         {
             "name": faction_name,
+            "display_name": world.factions[faction_name].display_name,
             "internal_id": world.factions[faction_name].internal_id,
             "strategy": world.factions[faction_name].doctrine_label,
             "doctrine_label": world.factions[faction_name].doctrine_label,
@@ -1422,6 +1447,14 @@ def render_simulation_html(world):
       return data.factions.find((faction) => faction.name === factionName) || null;
     }}
 
+    function getFactionDisplayName(factionName) {{
+      if (!factionName) {{
+        return "Unclaimed";
+      }}
+      const faction = getFactionDataByName(factionName);
+      return faction ? (faction.display_name || faction.name) : factionName;
+    }}
+
     function svgElement(name, attrs) {{
       const element = document.createElementNS("http://www.w3.org/2000/svg", name);
       for (const [key, value] of Object.entries(attrs)) {{
@@ -1440,10 +1473,10 @@ def render_simulation_html(world):
     function colorizeFactionNames(text) {{
       let highlighted = escapeHtml(text ?? "");
       const factionsByLength = [...data.factions]
-        .sort((left, right) => right.name.length - left.name.length);
+        .sort((left, right) => (right.display_name || right.name).length - (left.display_name || left.name).length);
 
       for (const faction of factionsByLength) {{
-        const safeName = escapeHtml(faction.name);
+        const safeName = escapeHtml(faction.display_name || faction.name);
         highlighted = highlighted.split(safeName).join(
           `<span class="faction-inline" style="color:${{faction.color}};">${{safeName}}</span>`,
         );
@@ -1913,7 +1946,7 @@ def render_simulation_html(world):
         `);
       }} else {{
         items = [
-          ...data.factions.map((faction) => `<span class="legend-item"><span class="swatch" style="background:${{faction.color}}"></span>${{escapeHtml(faction.name)}} <span class="subtle">${{escapeHtml(faction.doctrine_label)}}</span></span>`),
+          ...data.factions.map((faction) => `<span class="legend-item"><span class="swatch" style="background:${{faction.color}}"></span>${{escapeHtml(faction.display_name || faction.name)}} <span class="subtle">${{escapeHtml(faction.doctrine_label)}}</span></span>`),
           `<span class="legend-item"><span class="swatch" style="background:${{unclaimedColor}}"></span>Unclaimed</span>`,
         ];
       }}
@@ -1969,7 +2002,7 @@ def render_simulation_html(world):
     function buildDoctrineTimelineControls() {{
       doctrineTimelineControls.innerHTML = data.factions.map((faction) => `
         <button type="button" class="secondary${{faction.name === state.focusFactionName ? " active" : ""}}" data-faction="${{escapeHtml(faction.name)}}">
-          ${{escapeHtml(faction.name)}}
+          ${{escapeHtml(faction.display_name || faction.name)}}
         </button>
       `).join("");
 
@@ -2089,7 +2122,7 @@ def render_simulation_html(world):
       ).length;
       const leader = snapshot.standings[0];
       const leaderText = leader
-        ? `${{leader.faction}} leads on $${{leader.treasury}} with ${{leader.owned_regions}} region${{leader.owned_regions === 1 ? "" : "s"}}.`
+        ? `${{getFactionDisplayName(leader.faction)}} leads on $${{leader.treasury}} with ${{leader.owned_regions}} region${{leader.owned_regions === 1 ? "" : "s"}}.`
         : "No leader yet.";
       const contextText = turn === 0
         ? "Initial setup before any faction has acted."
@@ -2122,7 +2155,7 @@ def render_simulation_html(world):
         return;
       }}
 
-      const ownerText = regionSnapshot.owner || "Unclaimed";
+      const ownerText = getFactionDisplayName(regionSnapshot.owner);
       const foundingText = regionSnapshot.founding_name
         ? `${{escapeHtml(regionSnapshot.founding_name)}}${{regionSnapshot.founding_name !== regionName ? ` <span class="subtle">(${{
           escapeHtml(regionName)
@@ -2214,7 +2247,7 @@ def render_simulation_html(world):
         if (!metrics) {{
           return `
             <article class="summary-card">
-              <strong>${{escapeHtml(faction.name)}}</strong>
+              <strong>${{escapeHtml(faction.display_name || faction.name)}}</strong>
               <div class="subtle">${{escapeHtml(faction.homeland_identity)}} homeland</div>
               <p class="summary-copy">Doctrine is still forming from the starting terrain before the first turn resolves.</p>
             </article>
@@ -2229,7 +2262,7 @@ def render_simulation_html(world):
               (faction.proto_state
                 ? "Proto-state rebellion"
                 : `${{escapeHtml(faction.government_type || "State")}} successor`)
-              + (faction.origin_faction ? ` from ${{escapeHtml(faction.origin_faction)}}` : "")
+              + (faction.origin_faction ? ` from ${{escapeHtml(getFactionDisplayName(faction.origin_faction))}}` : "")
             )
           : "Established faction";
         const rebelLifecycle = faction.is_rebel
@@ -2247,7 +2280,7 @@ def render_simulation_html(world):
 
         return `
           <article class="summary-card">
-            <strong>${{escapeHtml(faction.name)}}</strong>
+            <strong>${{escapeHtml(faction.display_name || faction.name)}}</strong>
             <div class="detail-grid">
               <div class="detail-row">
                 <div class="detail-label">Polity</div>
@@ -2321,7 +2354,7 @@ def render_simulation_html(world):
       standings.innerHTML = snapshot.standings.map((entry, index) => `
         <article class="standing-item bar">
           <div class="standing-row">
-            <strong>#${{index + 1}} ${{escapeHtml(entry.faction)}}</strong>
+            <strong>#${{index + 1}} ${{escapeHtml(getFactionDisplayName(entry.faction))}}</strong>
             <span class="pill" style="background:${{colorByFaction[entry.faction]}}22;">${{escapeHtml(data.factions.find((faction) => faction.name === entry.faction).doctrine_label)}}</span>
           </div>
           <div class="subtle">Treasury $${{entry.treasury}} - Regions ${{entry.owned_regions}} - Pop ${{Number((snapshot.metrics && snapshot.metrics.factions[entry.faction] && snapshot.metrics.factions[entry.faction].population) || 0).toLocaleString()}}</div>
@@ -2406,7 +2439,7 @@ def render_simulation_html(world):
         const title = document.getElementById(`region-title-${{region.name}}`);
         const terrainOverlay = document.getElementById(`region-terrain-${{region.name}}`);
         if (title) {{
-          const ownerText = regionSnapshot.owner || "Unclaimed";
+          const ownerText = getFactionDisplayName(regionSnapshot.owner);
           const terrainText = regionSnapshot.terrain_label || region.terrain_label || "Plains";
           const climateText = regionSnapshot.climate_label || region.climate_label || "Temperate";
           const unrestText = getUnrestLabel(regionSnapshot);
@@ -2439,7 +2472,7 @@ def render_simulation_html(world):
         const title = document.getElementById(`atlas-title-${{region.name}}`);
         const terrainOverlay = document.getElementById(`atlas-terrain-${{region.name}}`);
         if (title) {{
-          const ownerText = regionSnapshot.owner || "Unclaimed";
+          const ownerText = getFactionDisplayName(regionSnapshot.owner);
           const terrainText = regionSnapshot.terrain_label || region.terrain_label || "Plains";
           const climateText = regionSnapshot.climate_label || region.climate_label || "Temperate";
           const unrestText = getUnrestLabel(regionSnapshot);

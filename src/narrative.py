@@ -15,6 +15,15 @@ from src.event_analysis import (
 from src.metrics import get_faction_metrics_history
 
 
+def get_faction_display_name(world, faction_name):
+    if faction_name is None:
+        return "another faction"
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return faction_name
+    return faction.display_name
+
+
 def format_turn(turn):
     """Formats zero-based turn indices for user-facing output."""
     return turn + 1
@@ -575,7 +584,7 @@ def summarize_opening_phase(world):
     if highest_scoring_claim is not None:
         role_phrase = get_role_phrase(highest_scoring_claim)
         lines.append(
-            f"The strongest early land grab was {highest_scoring_claim['faction']}'s claim of "
+            f"The strongest early land grab was {get_faction_display_name(world, highest_scoring_claim['faction'])}'s claim of "
             f"{highest_scoring_claim['region']} on turn {format_turn(highest_scoring_claim['turn'])}, "
             f"{role_phrase} that stood out because {highest_scoring_claim['summary_reason']}."
         )
@@ -584,7 +593,7 @@ def summarize_opening_phase(world):
     if expansion_leaders["count"] > 0:
         lines.append(
             f"In the first {expansion_leaders['turns']} turns, "
-            f"{format_faction_list(expansion_leaders['leaders'])} led expansion with "
+            f"{format_faction_list([get_faction_display_name(world, name) for name in expansion_leaders['leaders']])} led expansion with "
             f"{expansion_leaders['count']} claim(s)."
         )
 
@@ -592,7 +601,7 @@ def summarize_opening_phase(world):
     if investment_leaders["count"] > 0:
         lines.append(
             f"Across the first {investment_leaders['turns']} turns, "
-            f"{format_faction_list(investment_leaders['leaders'])} invested most often with "
+            f"{format_faction_list([get_faction_display_name(world, name) for name in investment_leaders['leaders']])} invested most often with "
             f"{investment_leaders['count']} investment(s)."
         )
 
@@ -600,7 +609,7 @@ def summarize_opening_phase(world):
     if treasury_leaders["leaders"]:
         lines.append(
             f"By the end of turn {format_turn(treasury_leaders['turn'])}, "
-            f"{format_faction_list(treasury_leaders['leaders'])} held the opening treasury lead "
+            f"{format_faction_list([get_faction_display_name(world, name) for name in treasury_leaders['leaders']])} held the opening treasury lead "
             f"at {treasury_leaders['treasury']}."
         )
 
@@ -624,7 +633,7 @@ def summarize_faction_behavior(world):
             style = "balanced expansion and development evenly"
 
         lines.append(
-            f"{faction_name} expanded {expand_count} times and invested {invest_count} times, "
+            f"{get_faction_display_name(world, faction_name)} expanded {expand_count} times and invested {invest_count} times, "
             f"and generally {style}."
         )
 
@@ -635,9 +644,10 @@ def get_faction_trajectory_sentence(world, faction_name):
     """Returns one concise sentence describing a faction's arc."""
     history = get_faction_metrics_history(world, faction_name)
     standings = get_final_standings(world)
+    faction_display_name = get_faction_display_name(world, faction_name)
 
     if not history:
-        return f"{faction_name} had too little recorded activity to describe a clear trajectory."
+        return f"{faction_display_name} had too little recorded activity to describe a clear trajectory."
 
     phase_ranges = get_phase_ranges(len(history))
     early_start, early_end = phase_ranges[0][1], phase_ranges[0][2]
@@ -686,7 +696,7 @@ def get_faction_trajectory_sentence(world, faction_name):
         )
         if treasury_gain > 0:
             ending += f" after gaining {treasury_gain} treasury overall"
-    return f"{faction_name} {early_posture}, {midgame}, {ending}."
+    return f"{faction_display_name} {early_posture}, {midgame}, {ending}."
 
 
 def summarize_faction_trajectories(world):
@@ -705,13 +715,13 @@ def summarize_final_standings(world):
     if standings:
         winner = standings[0]
         lines.append(
-            f"{winner['faction']} finished first with a treasury of {winner['treasury']} "
+            f"{get_faction_display_name(world, winner['faction'])} finished first with a treasury of {winner['treasury']} "
             f"and control of {format_count_noun(winner['owned_regions'], 'region')}."
         )
 
     for standing in standings[1:]:
         lines.append(
-            f"{standing['faction']} ended with a treasury of {standing['treasury']} "
+            f"{get_faction_display_name(world, standing['faction'])} ended with a treasury of {standing['treasury']} "
             f"and {format_count_noun(standing['owned_regions'], 'region')}."
         )
 
@@ -1590,6 +1600,7 @@ def build_outcome_specific_driver_line(
     standings,
 ):
     """Builds an outcome-specific cause-and-effect explanation."""
+    winner_name = get_faction_display_name(world, winner)
     winner_events = [
         event for event in get_scored_major_events(world, minimum_score=0.0)
         if event["faction"] == winner
@@ -1604,7 +1615,7 @@ def build_outcome_specific_driver_line(
     runner_up = standings[1] if len(standings) > 1 else None
     max_regions = max(standing["owned_regions"] for standing in standings) if standings else 0
     larger_rivals = [
-        standing["faction"]
+        get_faction_display_name(world, standing["faction"])
         for standing in standings[1:]
         if standing["owned_regions"] > winner_regions
     ]
@@ -1615,108 +1626,110 @@ def build_outcome_specific_driver_line(
     if outcome_type == "full_domination":
         if collapse_events:
             rival = collapse_events[0].get("defender") or collapse_events[0].get("owner_before") or "a key rival"
+            rival = get_faction_display_name(world, rival)
             phase_name = collapse_events[0].get("phase_name", "mid")
             return (
-                f"{winner} eliminated {rival} in the {phase_name} phase, reduced the competitive field, "
+                f"{winner_name} eliminated {rival} in the {phase_name} phase, reduced the competitive field, "
                 f"converted that advantage into control of the board, and then consolidated into full domination."
             )
         if phase_breaks:
             phase_name = phase_breaks[0]["phase_name"].lower()
             return (
-                f"{winner} created the decisive break in the {phase_name} phase, turned that lead into control of the board, "
+                f"{winner_name} created the decisive break in the {phase_name} phase, turned that lead into control of the board, "
                 f"and then consolidated the map."
             )
         return (
-            f"{winner} took control of the board, removed the remaining rivals from contention, "
+            f"{winner_name} took control of the board, removed the remaining rivals from contention, "
             f"and finished on {format_count_noun(winner_regions, 'region')} with full domination."
         )
 
     if outcome_type == "midgame_break":
         if mid_analysis is not None:
             return (
-                f"{winner} turned the contested opening into a decisive middle-phase swing, built a durable territorial lead, "
+                f"{winner_name} turned the contested opening into a decisive middle-phase swing, built a durable territorial lead, "
                 f"and carried that edge to the finish."
             )
         if phase_breaks:
             return (
-                f"{winner} created the decisive break after an even opening, built a durable lead, "
+                f"{winner_name} created the decisive break after an even opening, built a durable lead, "
                 f"and never let the field close the gap."
             )
         return (
-            f"{winner} found the decisive break in the middle portion of the run and converted it into a stable winning position."
+            f"{winner_name} found the decisive break in the middle portion of the run and converted it into a stable winning position."
         )
 
     if outcome_type == "late_snowball":
         if late_analysis is not None:
             return (
-                f"The board stayed crowded into the late phase, but {winner} separated only at the end, "
+                f"The board stayed crowded into the late phase, but {winner_name} separated only at the end, "
                 f"opened a decisive lead, and closed out the run."
             )
         return (
-            f"No early leader held control for long; {winner} stayed within reach and separated only in the closing turns."
+            f"No early leader held control for long; {winner_name} stayed within reach and separated only in the closing turns."
         )
 
     if outcome_type == "economic_win":
         if larger_rivals:
             return (
-                f"{winner} did not win on map share. It finished first on treasury while "
+                f"{winner_name} did not win on map share. It finished first on treasury while "
                 f"{format_faction_list(larger_rivals)} held more territory but failed to turn that size into enough net income."
             )
         if runner_up is not None and runner_up["owned_regions"] >= winner_regions:
             return (
-                f"{winner} won on treasury rather than territory, edging out rivals that matched or exceeded its map share."
+                f"{winner_name} won on treasury rather than territory, edging out rivals that matched or exceeded its map share."
             )
         return (
-            f"{winner} kept the stronger treasury position, and the larger empires never converted their territory into a better economic finish."
+            f"{winner_name} kept the stronger treasury position, and the larger empires never converted their territory into a better economic finish."
         )
 
     if outcome_type == "balanced_contest":
         return (
-            f"No decisive collapse or phase break separated the field. {winner} edged ahead in a finish that remained close across "
+            f"No decisive collapse or phase break separated the field. {winner_name} edged ahead in a finish that remained close across "
             f"{format_count_noun(len(alive_end), 'surviving faction')}."
         )
 
     if outcome_type == "early_snowball":
         return (
-            f"{winner} established the early lead, denied the field a meaningful recovery window, and converted that start into a lasting win."
+            f"{winner_name} established the early lead, denied the field a meaningful recovery window, and converted that start into a lasting win."
         )
 
     if runner_up is not None:
         return (
-            f"{winner} finished ahead of {runner_up['faction']} by turning a narrow lead into the stronger final position on treasury and territory."
+            f"{winner_name} finished ahead of {get_faction_display_name(world, runner_up['faction'])} by turning a narrow lead into the stronger final position on treasury and territory."
         )
 
     return None
 
 
-def build_outcome_specific_result_line(outcome_type, standings):
+def build_outcome_specific_result_line(world, outcome_type, standings):
     """Returns a concise outcome-specific result line."""
     if not standings:
         return None
 
     winner = standings[0]["faction"]
+    winner_name = get_faction_display_name(world, winner)
     winner_regions = standings[0]["owned_regions"]
     winner_treasury = standings[0]["treasury"]
     runner_up = standings[1] if len(standings) > 1 else None
 
     if outcome_type == "full_domination":
         return (
-            f"By the finish, {winner} held {format_count_noun(winner_regions, 'region')} and {winner_treasury} treasury while every rival had been reduced to zero territory."
+            f"By the finish, {winner_name} held {format_count_noun(winner_regions, 'region')} and {winner_treasury} treasury while every rival had been reduced to zero territory."
         )
     if outcome_type == "economic_win":
         max_regions = max(standing["owned_regions"] for standing in standings)
         return (
-            f"{winner} finished first on {winner_treasury} treasury with {format_count_noun(winner_regions, 'region')}, "
+            f"{winner_name} finished first on {winner_treasury} treasury with {format_count_noun(winner_regions, 'region')}, "
             f"while the largest empire finished on {format_count_noun(max_regions, 'region')}."
         )
     if outcome_type == "balanced_contest" and runner_up is not None:
         treasury_margin = winner_treasury - runner_up["treasury"]
         return (
-            f"The final margin stayed narrow: {winner} beat {runner_up['faction']} by {treasury_margin} treasury."
+            f"The final margin stayed narrow: {winner_name} beat {get_faction_display_name(world, runner_up['faction'])} by {treasury_margin} treasury."
         )
     if outcome_type in {"midgame_break", "late_snowball", "early_snowball"} and runner_up is not None:
         return (
-            f"That break left {winner} ahead at the finish with {format_count_noun(winner_regions, 'region')} and {winner_treasury} treasury."
+            f"That break left {winner_name} ahead at the finish with {format_count_noun(winner_regions, 'region')} and {winner_treasury} treasury."
         )
     return None
 
@@ -1736,17 +1749,20 @@ def build_causal_chain(world, winner, outcome_type, phase_analyses):
     return sentence_case(line)
 
 
-def build_ai_phase_summary(analysis):
+def build_ai_phase_summary(world, analysis):
     """Returns one compact phase summary string for the AI payload."""
     if analysis is None:
         return None
 
     leader = analysis["rankings"][0][0]
+    leader_name = get_faction_display_name(world, leader)
     gain_name = analysis["biggest_gain"]
     gain_value = analysis["region_deltas"][gain_name]
+    gain_display = get_faction_display_name(world, gain_name)
     loss_name = analysis["biggest_loss"]
     loss_value = analysis["region_deltas"][loss_name]
-    parts = [f"{leader} strongest"]
+    loss_display = get_faction_display_name(world, loss_name)
+    parts = [f"{leader_name} strongest"]
 
     if analysis["stable_board"]:
         parts.append("territorial control stabilized")
@@ -1754,14 +1770,14 @@ def build_ai_phase_summary(analysis):
         parts.append("the board remained contested")
     elif analysis["lead_region_margin"] >= 3:
         parts.append(
-            f"{leader} finished {format_count_noun(analysis['lead_region_margin'], 'region')} clear"
+            f"{leader_name} finished {format_count_noun(analysis['lead_region_margin'], 'region')} clear"
         )
 
     if gain_value > 0:
-        shift_text = f"{gain_name} gained {format_count_noun(gain_value, 'region')}"
+        shift_text = f"{gain_display} gained {format_count_noun(gain_value, 'region')}"
         if loss_value < 0:
             shift_text += (
-                f" while {loss_name} lost {format_count_noun(abs(loss_value), 'region')}"
+                f" while {loss_display} lost {format_count_noun(abs(loss_value), 'region')}"
             )
         parts.append(shift_text)
 
@@ -1771,6 +1787,7 @@ def build_ai_phase_summary(analysis):
 def build_ai_interpretation_summary(world, phase_analyses, standings, outcome_type):
     """Builds the compact structured payload sent to the AI layer."""
     winner = standings[0]["faction"]
+    winner_name = get_faction_display_name(world, winner)
     runner_up = standings[1] if len(standings) > 1 else None
     turning_points = summarize_turning_points(world, phase_analyses)
 
@@ -1778,18 +1795,18 @@ def build_ai_interpretation_summary(world, phase_analyses, standings, outcome_ty
         "map": getattr(world, "map_name", "") or "unknown_map",
         "turns": len(world.metrics),
         "outcome_type": outcome_type,
-        "winner": winner,
+        "winner": winner_name,
         "winner_strategy": world.factions[winner].doctrine_label,
         "turning_points": turning_points[:2],
         "phase_summary": {
-            "early": build_ai_phase_summary(phase_analyses[0] if len(phase_analyses) > 0 else None),
-            "mid": build_ai_phase_summary(phase_analyses[1] if len(phase_analyses) > 1 else None),
-            "late": build_ai_phase_summary(phase_analyses[2] if len(phase_analyses) > 2 else None),
+            "early": build_ai_phase_summary(world, phase_analyses[0] if len(phase_analyses) > 0 else None),
+            "mid": build_ai_phase_summary(world, phase_analyses[1] if len(phase_analyses) > 1 else None),
+            "late": build_ai_phase_summary(world, phase_analyses[2] if len(phase_analyses) > 2 else None),
         },
         "final_margin": {
             "winner_treasury": standings[0]["treasury"],
             "winner_regions": standings[0]["owned_regions"],
-            "runner_up": runner_up["faction"] if runner_up is not None else None,
+            "runner_up": get_faction_display_name(world, runner_up["faction"]) if runner_up is not None else None,
             "runner_up_treasury": runner_up["treasury"] if runner_up is not None else None,
             "runner_up_regions": runner_up["owned_regions"] if runner_up is not None else None,
             "treasury_margin": (
@@ -1812,6 +1829,7 @@ def get_winner_doctrine_hint(strategy):
 
 def get_winner_path_to_victory(outcome_type, winner, winner_strategy, standings):
     """Returns a compact winner-path label for the victor-history payload."""
+    winner_name = winner
     runner_up = standings[1] if len(standings) > 1 else None
     if outcome_type == "full_domination":
         return f"{winner}'s {winner_strategy} approach reduced the field and ended in complete territorial control"
@@ -1831,6 +1849,7 @@ def get_winner_path_to_victory(outcome_type, winner, winner_strategy, standings)
 def build_victor_history_summary(world, phase_analyses, standings, outcome_type):
     """Builds the compact structured payload sent to the victor-history layer."""
     winner = standings[0]["faction"]
+    winner_name = get_faction_display_name(world, winner)
     winner_strategy = world.factions[winner].doctrine_label
     runner_up = standings[1] if len(standings) > 1 else None
     turning_points = summarize_turning_points(world, phase_analyses)
@@ -1839,25 +1858,26 @@ def build_victor_history_summary(world, phase_analyses, standings, outcome_type)
         "map": getattr(world, "map_name", "") or "unknown_map",
         "turns": len(world.metrics),
         "outcome_type": outcome_type,
-        "winner": winner,
+        "winner": winner_name,
         "winner_strategy": winner_strategy,
         "winner_doctrine": get_winner_doctrine_hint(winner_strategy),
         "winner_path_to_victory": get_winner_path_to_victory(
             outcome_type=outcome_type,
-            winner=winner,
+            winner=winner_name,
             winner_strategy=winner_strategy,
             standings=standings,
         ),
         "turning_points": turning_points[:2],
         "phase_summary": {
-            "early": build_ai_phase_summary(phase_analyses[0] if len(phase_analyses) > 0 else None),
-            "mid": build_ai_phase_summary(phase_analyses[1] if len(phase_analyses) > 1 else None),
-            "late": build_ai_phase_summary(phase_analyses[2] if len(phase_analyses) > 2 else None),
+            "early": build_ai_phase_summary(world, phase_analyses[0] if len(phase_analyses) > 0 else None),
+            "mid": build_ai_phase_summary(world, phase_analyses[1] if len(phase_analyses) > 1 else None),
+            "late": build_ai_phase_summary(world, phase_analyses[2] if len(phase_analyses) > 2 else None),
         },
         "winner_trajectory": get_faction_trajectory_sentence(world, winner),
         "runner_up_summary": (
             {
                 "faction": runner_up["faction"],
+                "faction_display": get_faction_display_name(world, runner_up["faction"]),
                 "strategy": world.factions[runner_up["faction"]].doctrine_label,
                 "treasury": runner_up["treasury"],
                 "regions": runner_up["owned_regions"],
@@ -1869,6 +1889,7 @@ def build_victor_history_summary(world, phase_analyses, standings, outcome_type)
             {
                 "rank": index + 1,
                 "faction": standing["faction"],
+                "faction_display": get_faction_display_name(world, standing["faction"]),
                 "strategy": world.factions[standing["faction"]].doctrine_label,
                 "treasury": standing["treasury"],
                 "regions": standing["owned_regions"],
@@ -1906,12 +1927,12 @@ def summarize_strategic_interpretation(world):
     if ai_paragraph is not None:
         lines = [ai_paragraph]
         standings_by_strategy = [
-            f"{standing['faction']} ({world.factions[standing['faction']].doctrine_label})"
+            f"{get_faction_display_name(world, standing['faction'])} ({world.factions[standing['faction']].doctrine_label})"
             for standing in standings[: min(2, len(standings))]
         ]
         if runner_up is not None:
             lines.append(
-                f"The closest challenger was {runner_up['faction']} ({world.factions[runner_up['faction']].doctrine_label}) at "
+                f"The closest challenger was {get_faction_display_name(world, runner_up['faction'])} ({world.factions[runner_up['faction']].doctrine_label}) at "
                 f"{runner_up['treasury']} treasury and {format_count_noun(runner_up['owned_regions'], 'region')}."
             )
         else:
@@ -1947,17 +1968,17 @@ def summarize_strategic_interpretation(world):
         )
     lines.append(driver_line)
 
-    result_line = build_outcome_specific_result_line(outcome_type, standings)
+    result_line = build_outcome_specific_result_line(world, outcome_type, standings)
     if result_line is not None:
         lines.append(result_line)
 
     standings_by_strategy = [
-        f"{standing['faction']} ({world.factions[standing['faction']].doctrine_label})"
+        f"{get_faction_display_name(world, standing['faction'])} ({world.factions[standing['faction']].doctrine_label})"
         for standing in standings[: min(2, len(standings))]
     ]
     if runner_up is not None:
         lines.append(
-            f"The closest challenger was {runner_up['faction']} ({world.factions[runner_up['faction']].doctrine_label}) at "
+            f"The closest challenger was {get_faction_display_name(world, runner_up['faction'])} ({world.factions[runner_up['faction']].doctrine_label}) at "
             f"{runner_up['treasury']} treasury and {format_count_noun(runner_up['owned_regions'], 'region')}."
         )
     else:
@@ -1971,6 +1992,7 @@ def summarize_strategic_interpretation(world):
 def build_victor_history_fallback(world, standings, outcome_type, phase_analyses):
     """Returns a short biased but fact-grounded victor-history paragraph."""
     winner = standings[0]["faction"]
+    winner_name = get_faction_display_name(world, winner)
     winner_strategy = world.factions[winner].doctrine_label
     runner_up = standings[1] if len(standings) > 1 else None
     doctrine_line = (
@@ -1978,10 +2000,10 @@ def build_victor_history_fallback(world, standings, outcome_type, phase_analyses
     )
     turning_points = summarize_turning_points(world, phase_analyses)
     turning_point_line = turning_points[0] if turning_points else None
-    result_line = build_outcome_specific_result_line(outcome_type, standings)
+    result_line = build_outcome_specific_result_line(world, outcome_type, standings)
 
     sentences = [
-        f"{winner}'s historians would treat this run as evidence that {doctrine_line}.",
+        f"{winner_name}'s historians would treat this run as evidence that {doctrine_line}.",
     ]
     if turning_point_line is not None:
         sentences.append(
@@ -1989,18 +2011,18 @@ def build_victor_history_fallback(world, standings, outcome_type, phase_analyses
         )
     if outcome_type == "economic_win" and runner_up is not None:
         sentences.append(
-            f"In their telling, rivals mistook sheer map share for strength, while {winner} finished ahead on treasury with {standings[0]['treasury']} against {runner_up['faction']}'s {runner_up['treasury']}."
+            f"In their telling, rivals mistook sheer map share for strength, while {winner_name} finished ahead on treasury with {standings[0]['treasury']} against {get_faction_display_name(world, runner_up['faction'])}'s {runner_up['treasury']}."
         )
     elif outcome_type == "full_domination":
         sentences.append(
-            f"Once the field narrowed, recovery paths disappeared, which left {winner} to finish with {format_count_noun(standings[0]['owned_regions'], 'region')} under its control."
+            f"Once the field narrowed, recovery paths disappeared, which left {winner_name} to finish with {format_count_noun(standings[0]['owned_regions'], 'region')} under its control."
         )
     elif result_line is not None:
         sentences.append(result_line)
 
     if runner_up is not None:
         sentences.append(
-            f"From that partisan view, {runner_up['faction']}'s resistance was real but never as durable as {winner}'s final position."
+            f"From that partisan view, {get_faction_display_name(world, runner_up['faction'])}'s resistance was real but never as durable as {winner_name}'s final position."
         )
 
     return " ".join(sentences[:4])

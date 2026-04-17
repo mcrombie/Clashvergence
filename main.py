@@ -16,6 +16,15 @@ RESULTS_OUTPUT = REPORTS_DIR / "results.txt"
 CHRONICLE_OUTPUT = REPORTS_DIR / "chronicle.txt"
 
 
+def _get_faction_display_name(world, faction_name):
+    if faction_name is None:
+        return "another faction"
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return faction_name
+    return faction.display_name
+
+
 def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
     """Builds the simulation setup section for the results report."""
     lines = []
@@ -33,7 +42,7 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
         tradition_labels = ",".join(faction.identity.source_traditions) if faction.identity else ""
         starting_treasury = starting_treasuries.get(faction_name, faction.starting_treasury)
         lines.append(
-            f"  {faction_name}: doctrine={faction.doctrine_label}, "
+            f"  {faction.display_name}: doctrine={faction.doctrine_label}, "
             f"homeland={faction.doctrine_profile.homeland_identity}, "
             f"terrain_identity={faction.doctrine_profile.terrain_identity}, "
             f"starting_treasury={starting_treasury}, "
@@ -54,6 +63,10 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
 def format_event(event, world):
     """Formats one simulation event for the results report."""
     region_reference = event.region
+    faction_name = _get_faction_display_name(world, event.faction)
+    counterpart_name = _get_faction_display_name(world, event.get("counterpart"))
+    origin_name = _get_faction_display_name(world, event.get("origin_faction"))
+    rebel_name = _get_faction_display_name(world, event.get("rebel_faction"))
     terrain_text = ""
     if event.region is not None and event.region in world.regions:
         region_reference = format_region_reference(world.regions[event.region], include_code=True)
@@ -61,7 +74,7 @@ def format_event(event, world):
 
     if event["type"] == "expand":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} expanded into {region_reference} "
+            f"Turn {event['turn'] + 1}: {faction_name} expanded into {region_reference} "
             f"(score={event.get('score', 0)}, resources={event.get('resources', 0)}, "
             f"neighbors={event.get('neighbors', 0)}, "
             f"unclaimed_neighbors={event.get('unclaimed_neighbors', 0)}, "
@@ -71,16 +84,16 @@ def format_event(event, world):
 
     if event["type"] == "invest":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} invested in {region_reference} "
+            f"Turn {event['turn'] + 1}: {faction_name} invested in {region_reference} "
             f"(invest_amount={event.get('invest_amount', 0)}, "
             f"new_resources={event.get('new_resources', 0)}{terrain_text})"
         )
 
     if event["type"] == "attack":
-        defender = event.get("defender", "Unknown")
+        defender = _get_faction_display_name(world, event.get("defender")) if event.get("defender") else "Unknown"
         outcome = "captured" if event.get("success", False) else "failed against"
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} attacked {defender} in {region_reference} "
+            f"Turn {event['turn'] + 1}: {faction_name} attacked {defender} in {region_reference} "
             f"and {outcome} the region "
             f"(success_chance={event.get('success_chance', 0):.3f}, "
             f"attack_strength={event.get('attack_strength', 0)}, "
@@ -91,7 +104,7 @@ def format_event(event, world):
 
     if event["type"] == "income":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} collected base income "
+            f"Turn {event['turn'] + 1}: {faction_name} collected base income "
             f"(base_income={event.get('base_income', event.get('income', 0))}, "
             f"owned_regions={event.get('owned_regions', 0)}, "
             f"treasury_after={event.get('treasury_after', 0)})"
@@ -99,7 +112,7 @@ def format_event(event, world):
 
     if event["type"] == "empire_scale":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} paid empire scale penalty "
+            f"Turn {event['turn'] + 1}: {faction_name} paid empire scale penalty "
             f"(owned_regions={event.get('owned_regions', 0)}, "
             f"free_regions={event.get('empire_free_regions', 0)}, "
             f"scale_cost={event.get('empire_scale_cost', 0)}, "
@@ -110,7 +123,7 @@ def format_event(event, world):
 
     if event["type"] == "maintenance":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} paid maintenance "
+            f"Turn {event['turn'] + 1}: {faction_name} paid maintenance "
             f"(maintenance={event.get('maintenance', 0)}, "
             f"owned_regions={event.get('owned_regions', 0)}, "
             f"net_income={event.get('net_income', 0)}, "
@@ -119,7 +132,7 @@ def format_event(event, world):
 
     if event["type"] == "unrest_disturbance":
         return (
-            f"Turn {event['turn'] + 1}: unrest disturbed {region_reference} under {event['faction']} "
+            f"Turn {event['turn'] + 1}: unrest disturbed {region_reference} under {faction_name} "
             f"(unrest={event.get('unrest', 0):.2f}, "
             f"duration={event.get('duration', 0)}, "
             f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
@@ -127,25 +140,24 @@ def format_event(event, world):
 
     if event["type"] == "unrest_crisis":
         return (
-            f"Turn {event['turn'] + 1}: crisis gripped {region_reference} under {event['faction']} "
+            f"Turn {event['turn'] + 1}: crisis gripped {region_reference} under {faction_name} "
             f"(unrest={event.get('unrest', 0):.2f}, "
             f"duration={event.get('duration', 0)}, "
             f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
         )
 
     if event["type"] == "unrest_secession":
-        rebel_faction = event.get("rebel_faction", "rebels")
         return (
-            f"Turn {event['turn'] + 1}: {region_reference} seceded from {event['faction']} "
-            f"as {rebel_faction} "
+            f"Turn {event['turn'] + 1}: {region_reference} seceded from {faction_name} "
+            f"as {rebel_name} "
             f"(unrest={event.get('unrest', 0):.2f}, "
             f"new_resources={event.get('new_resources', 0)}{terrain_text})"
         )
 
     if event["type"] == "rebel_independence":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} declared full independence "
-            f"from {event.get('origin_faction', 'its former ruler')} "
+            f"Turn {event['turn'] + 1}: {faction_name} declared full independence "
+            f"from {origin_name} "
             f"(rebel_age={event.get('rebel_age', 0)}, "
             f"independence_score={event.get('independence_score', 0):.2f}, "
             f"government={event.get('government_type', 'State')}, "
@@ -154,38 +166,38 @@ def format_event(event, world):
 
     if event["type"] == "diplomacy_rivalry":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} and {event.get('counterpart', 'another faction')} "
+            f"Turn {event['turn'] + 1}: {faction_name} and {counterpart_name} "
             f"became rivals (score={event.get('score', 0):.2f})"
         )
 
     if event["type"] == "diplomacy_pact":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} and {event.get('counterpart', 'another faction')} "
+            f"Turn {event['turn'] + 1}: {faction_name} and {counterpart_name} "
             f"entered a non-aggression pact (score={event.get('score', 0):.2f})"
         )
 
     if event["type"] == "diplomacy_alliance":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} and {event.get('counterpart', 'another faction')} "
+            f"Turn {event['turn'] + 1}: {faction_name} and {counterpart_name} "
             f"formed an alliance (score={event.get('score', 0):.2f})"
         )
 
     if event["type"] == "diplomacy_truce":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} and {event.get('counterpart', 'another faction')} "
+            f"Turn {event['turn'] + 1}: {faction_name} and {counterpart_name} "
             f"entered a truce for {event.get('duration', 0)} turn(s)"
         )
 
     if event["type"] == "diplomacy_truce_end":
         return (
-            f"Turn {event['turn'] + 1}: the truce between {event['faction']} and "
-            f"{event.get('counterpart', 'another faction')} expired "
+            f"Turn {event['turn'] + 1}: the truce between {faction_name} and "
+            f"{counterpart_name} expired "
             f"(new_status={event.get('new_status', 'neutral')}, score={event.get('score', 0):.2f})"
         )
 
     if event["type"] == "diplomacy_break":
         return (
-            f"Turn {event['turn'] + 1}: {event['faction']} and {event.get('counterpart', 'another faction')} "
+            f"Turn {event['turn'] + 1}: {faction_name} and {counterpart_name} "
             f"broke their {event.get('previous_status', 'diplomatic')} relationship "
             f"(score={event.get('score', 0):.2f})"
         )
