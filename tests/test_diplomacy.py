@@ -10,7 +10,7 @@ from src.diplomacy import (
     seed_rebel_origin_relationship,
     update_relationships,
 )
-from src.models import Event, Faction, Region, RelationshipState, WorldState
+from src.models import Event, Faction, FactionIdentity, Region, RelationshipState, WorldState
 from src.simulation_ui import _serialize_event
 
 
@@ -229,6 +229,269 @@ class DiplomacySystemTests(unittest.TestCase):
         self.assertEqual(summary["top_claim_dispute_regions"], 1)
         self.assertEqual(summary["claim_dispute_count"], 1)
 
+    def test_mature_civil_war_claimant_generates_regime_legitimacy_pressure(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="Parent",
+                    resources=4,
+                    population=100,
+                    ethnic_composition={"Valeri": 100},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="Claimant",
+                    resources=4,
+                    population=100,
+                    ethnic_composition={"Valeri": 100},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+            },
+            factions={
+                "Parent": Faction(
+                    name="Parent",
+                    treasury=8,
+                    primary_ethnicity="Valeri",
+                    identity=FactionIdentity(
+                        internal_id="Faction1",
+                        culture_name="Valeri",
+                        polity_tier="state",
+                        government_form="monarchy",
+                    ),
+                ),
+                "Claimant": Faction(
+                    name="Claimant",
+                    treasury=8,
+                    primary_ethnicity="Valeri",
+                    is_rebel=True,
+                    origin_faction="Parent",
+                    rebel_conflict_type="civil_war",
+                    proto_state=False,
+                    identity=FactionIdentity(
+                        internal_id="Faction2",
+                        culture_name="Valeri",
+                        polity_tier="state",
+                        government_form="republic",
+                    ),
+                ),
+            },
+        )
+        initialize_relationships(world)
+
+        update_relationships(world)
+        summary = get_faction_diplomacy_summary(world, "Parent")
+        state = get_relationship_state(world, "Parent", "Claimant")
+
+        self.assertLess(state.score, 0.0)
+        self.assertEqual(summary["top_regime_tension"], "Claimant")
+        self.assertEqual(summary["top_regime_tension_reason"], "civil_war_legitimacy")
+        self.assertEqual(summary["regime_tension_count"], 1)
+
+    def test_same_ethnicity_regime_difference_without_claimant_reports_regime_split(self):
+        world = WorldState(
+            regions={},
+            factions={
+                "Council": Faction(
+                    name="Council",
+                    primary_ethnicity="Valeri",
+                    identity=FactionIdentity(
+                        internal_id="Faction1",
+                        culture_name="Valeri",
+                        polity_tier="tribe",
+                        government_form="council",
+                    ),
+                ),
+                "Assembly": Faction(
+                    name="Assembly",
+                    primary_ethnicity="Valeri",
+                    identity=FactionIdentity(
+                        internal_id="Faction2",
+                        culture_name="Valeri",
+                        polity_tier="tribe",
+                        government_form="assembly",
+                    ),
+                ),
+            },
+        )
+        initialize_relationships(world)
+
+        summary = get_faction_diplomacy_summary(world, "Council")
+
+        self.assertEqual(summary["top_regime_tension"], "Assembly")
+        self.assertEqual(summary["top_regime_tension_reason"], "regime_difference")
+
+    def test_same_ethnicity_calm_regimes_gain_accommodation_bonus(self):
+        calm_world = WorldState(
+            regions={},
+            factions={
+                "Council": Faction(
+                    name="Council",
+                    primary_ethnicity="Valeri",
+                    identity=FactionIdentity(
+                        internal_id="Faction1",
+                        culture_name="Valeri",
+                        polity_tier="state",
+                        government_form="council",
+                    ),
+                ),
+                "Republic": Faction(
+                    name="Republic",
+                    primary_ethnicity="Valeri",
+                    identity=FactionIdentity(
+                        internal_id="Faction2",
+                        culture_name="Valeri",
+                        polity_tier="state",
+                        government_form="republic",
+                    ),
+                ),
+            },
+        )
+        initialize_relationships(calm_world)
+
+        harsh_world = WorldState(
+            regions={},
+            factions={
+                "Monarchy": Faction(
+                    name="Monarchy",
+                    primary_ethnicity="Valeri",
+                    identity=FactionIdentity(
+                        internal_id="Faction3",
+                        culture_name="Valeri",
+                        polity_tier="state",
+                        government_form="monarchy",
+                    ),
+                ),
+                "Oligarchy": Faction(
+                    name="Oligarchy",
+                    primary_ethnicity="Valeri",
+                    identity=FactionIdentity(
+                        internal_id="Faction4",
+                        culture_name="Valeri",
+                        polity_tier="state",
+                        government_form="oligarchy",
+                    ),
+                ),
+            },
+        )
+        initialize_relationships(harsh_world)
+
+        update_relationships(calm_world)
+        update_relationships(harsh_world)
+
+        calm_summary = get_faction_diplomacy_summary(calm_world, "Council")
+        calm_state = get_relationship_state(calm_world, "Council", "Republic")
+        harsh_state = get_relationship_state(harsh_world, "Monarchy", "Oligarchy")
+
+        self.assertEqual(calm_summary["top_regime_accommodation"], "Republic")
+        self.assertEqual(calm_summary["top_regime_accommodation_reason"], "diplomatic_restraint")
+        self.assertEqual(calm_summary["regime_accommodation_count"], 1)
+        self.assertGreater(calm_state.score, harsh_state.score)
+
+    def test_same_form_calm_regimes_report_same_people_accord(self):
+        world = WorldState(
+            regions={},
+            factions={
+                "CouncilA": Faction(
+                    name="CouncilA",
+                    primary_ethnicity="Valeri",
+                    identity=FactionIdentity(
+                        internal_id="Faction1",
+                        culture_name="Valeri",
+                        polity_tier="tribe",
+                        government_form="council",
+                    ),
+                ),
+                "CouncilB": Faction(
+                    name="CouncilB",
+                    primary_ethnicity="Valeri",
+                    identity=FactionIdentity(
+                        internal_id="Faction2",
+                        culture_name="Valeri",
+                        polity_tier="tribe",
+                        government_form="council",
+                    ),
+                ),
+            },
+        )
+        initialize_relationships(world)
+
+        update_relationships(world)
+        summary = get_faction_diplomacy_summary(world, "CouncilA")
+
+        self.assertEqual(summary["top_regime_accommodation"], "CouncilB")
+        self.assertEqual(summary["top_regime_accommodation_reason"], "same_people_accord")
+        self.assertEqual(summary["regime_accommodation_count"], 1)
+
+    def test_civil_war_claimant_gets_attack_priority_on_shared_core_region(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="Claimant",
+                    resources=4,
+                    population=100,
+                    ethnic_composition={"Valeri": 100},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    core_status="core",
+                    integration_score=6.5,
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="Parent",
+                    resources=4,
+                    population=100,
+                    ethnic_composition={"Valeri": 100},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    core_status="core",
+                    integration_score=6.5,
+                ),
+            },
+            factions={
+                "Parent": Faction(
+                    name="Parent",
+                    treasury=8,
+                    primary_ethnicity="Valeri",
+                    identity=FactionIdentity(
+                        internal_id="Faction1",
+                        culture_name="Valeri",
+                        polity_tier="state",
+                        government_form="monarchy",
+                    ),
+                ),
+                "Claimant": Faction(
+                    name="Claimant",
+                    treasury=8,
+                    primary_ethnicity="Valeri",
+                    is_rebel=True,
+                    origin_faction="Parent",
+                    rebel_conflict_type="civil_war",
+                    proto_state=False,
+                    identity=FactionIdentity(
+                        internal_id="Faction2",
+                        culture_name="Valeri",
+                        polity_tier="state",
+                        government_form="republic",
+                    ),
+                ),
+            },
+        )
+        initialize_relationships(world)
+
+        score = get_attack_target_score_components("B", "Claimant", world)
+
+        self.assertGreater(score["regime_target_bonus"], 0)
+        self.assertEqual(score["regime_target_reason"], "civil_war_claim")
+
     def test_serialized_attack_event_mentions_claim_offensive(self):
         world = self._make_two_faction_border_world()
         event = Event(
@@ -269,6 +532,63 @@ class DiplomacySystemTests(unittest.TestCase):
 
         self.assertIn("restored", serialized["title"].lower())
         self.assertIn("restoration revolt", serialized["summary"].lower())
+
+    def test_serialized_secession_event_mentions_civil_war(self):
+        world = self._make_two_faction_border_world()
+        event = Event(
+            turn=0,
+            type="unrest_secession",
+            faction="FactionB",
+            region="B",
+            details={
+                "rebel_faction": "FactionA",
+                "conflict_type": "civil_war",
+                "civil_war": True,
+            },
+        )
+
+        serialized = _serialize_event(event, world)
+
+        self.assertIn("civil war", serialized["title"].lower())
+        self.assertIn("civil war", serialized["summary"].lower())
+
+    def test_serialized_rebel_independence_event_mentions_rival_regime(self):
+        world = self._make_two_faction_border_world()
+        event = Event(
+            turn=0,
+            type="rebel_independence",
+            faction="FactionA",
+            details={
+                "origin_faction": "FactionB",
+                "conflict_type": "civil_war",
+                "government_type": "Republic",
+            },
+        )
+
+        serialized = _serialize_event(event, world)
+
+        self.assertIn("rival regime", serialized["title"].lower())
+        self.assertIn("rival republic", serialized["summary"].lower())
+
+    def test_serialized_regime_agitation_event_mentions_sponsor(self):
+        world = self._make_two_faction_border_world()
+        event = Event(
+            turn=0,
+            type="regime_agitation",
+            faction="FactionB",
+            region="B",
+            details={
+                "sponsors": ["FactionA"],
+                "lead_sponsor": "FactionA",
+                "claimant_sponsors": ["FactionA"],
+                "event_level": "crisis",
+            },
+        )
+
+        serialized = _serialize_event(event, world)
+
+        self.assertIn("stirred unrest", serialized["title"].lower())
+        self.assertIn("backing same-people unrest", serialized["summary"].lower())
 
 
 if __name__ == "__main__":

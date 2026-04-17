@@ -18,6 +18,11 @@ from src.config import (
     DIPLOMACY_EXISTING_ACCORD_PEACE_BONUS,
     DIPLOMACY_GRIEVANCE_DECAY,
     DIPLOMACY_GRIEVANCE_MAX,
+    DIPLOMACY_REGIME_ACCORD_CIVIL_WAR_MULTIPLIER,
+    DIPLOMACY_REGIME_ACCORD_PER_DIPLOMATIC_FORM,
+    DIPLOMACY_REGIME_ACCORD_SHARED_FORM_BONUS,
+    DIPLOMACY_REGIME_CIVIL_WAR_LEGITIMACY_TENSION,
+    DIPLOMACY_REGIME_DIFFERENCE_TENSION,
     DIPLOMACY_POLITY_TIER_DISTANCE_PENALTY,
     DIPLOMACY_MATURE_REBEL_LINEAGE_BONUS,
     DIPLOMACY_PACT_ATTACK_PENALTY,
@@ -44,6 +49,8 @@ from src.config import (
     DIPLOMACY_TRUST_MAX,
 )
 from src.models import Event, RelationshipState, WorldState
+
+REGIME_ACCORD_DIPLOMATIC_FORMS = {"council", "assembly", "republic"}
 
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
@@ -157,6 +164,8 @@ def _get_lineage_modifier(world: WorldState, faction_a: str, faction_b: str) -> 
     for rebel, other in ((faction_a_state, faction_b_state), (faction_b_state, faction_a_state)):
         if not rebel.is_rebel or rebel.origin_faction != other.name:
             continue
+        if rebel.rebel_conflict_type == "civil_war" and not rebel.proto_state:
+            return -DIPLOMACY_REGIME_CIVIL_WAR_LEGITIMACY_TENSION
         return (
             DIPLOMACY_PROTO_REBEL_LINEAGE_BONUS
             if rebel.proto_state
@@ -214,6 +223,78 @@ def _get_polity_tier_tension_reason(world: WorldState, faction_a: str, faction_b
     if tier_a != tier_b:
         return "status_gap"
     return None
+
+
+def _get_regime_tension(world: WorldState, faction_a: str, faction_b: str) -> tuple[float, str | None]:
+    faction_a_state = world.factions[faction_a]
+    faction_b_state = world.factions[faction_b]
+    if (
+        faction_a_state.primary_ethnicity is None
+        or faction_b_state.primary_ethnicity is None
+        or faction_a_state.primary_ethnicity != faction_b_state.primary_ethnicity
+    ):
+        return 0.0, None
+
+    pressure = 0.0
+    reason = None
+
+    if faction_a_state.government_form != faction_b_state.government_form:
+        pressure += DIPLOMACY_REGIME_DIFFERENCE_TENSION
+        reason = "regime_difference"
+
+    for claimant, other_name in ((faction_a_state, faction_b), (faction_b_state, faction_a)):
+        if (
+            claimant.rebel_conflict_type == "civil_war"
+            and not claimant.proto_state
+            and claimant.origin_faction == other_name
+        ):
+            pressure += DIPLOMACY_REGIME_CIVIL_WAR_LEGITIMACY_TENSION
+            reason = "civil_war_legitimacy"
+            break
+
+    return pressure, reason
+
+
+def _get_regime_accommodation(
+    world: WorldState,
+    faction_a: str,
+    faction_b: str,
+    state: RelationshipState | None = None,
+) -> tuple[float, str | None]:
+    faction_a_state = world.factions[faction_a]
+    faction_b_state = world.factions[faction_b]
+    if (
+        faction_a_state.primary_ethnicity is None
+        or faction_b_state.primary_ethnicity is None
+        or faction_a_state.primary_ethnicity != faction_b_state.primary_ethnicity
+    ):
+        return 0.0, None
+
+    if state is None:
+        state = get_relationship_state(world, faction_a, faction_b)
+    if state.status == "rival":
+        return 0.0, None
+
+    diplomatic_forms = sum(
+        1
+        for form in (faction_a_state.government_form, faction_b_state.government_form)
+        if form in REGIME_ACCORD_DIPLOMATIC_FORMS
+    )
+    if diplomatic_forms == 0:
+        return 0.0, None
+
+    accommodation = diplomatic_forms * DIPLOMACY_REGIME_ACCORD_PER_DIPLOMATIC_FORM
+    reason = "diplomatic_restraint"
+    if faction_a_state.government_form == faction_b_state.government_form:
+        accommodation += DIPLOMACY_REGIME_ACCORD_SHARED_FORM_BONUS
+        reason = "same_people_accord"
+
+    _regime_pressure, regime_reason = _get_regime_tension(world, faction_a, faction_b)
+    if regime_reason == "civil_war_legitimacy":
+        accommodation *= DIPLOMACY_REGIME_ACCORD_CIVIL_WAR_MULTIPLIER
+        reason = "legitimacy_accommodation"
+
+    return round(accommodation, 2), reason
 
 
 def _process_conflict_memory(world: WorldState) -> set[tuple[str, str]]:
@@ -409,6 +490,13 @@ def update_relationships(world: WorldState) -> None:
         lineage_modifier = _get_lineage_modifier(world, faction_a, faction_b)
         ethnic_claim_pressure = _get_ethnic_claim_pressure(world, faction_a, faction_b)
         polity_tier_pressure = _get_polity_tier_modifier(world, faction_a, faction_b)
+        regime_pressure, _regime_reason = _get_regime_tension(world, faction_a, faction_b)
+        regime_accommodation, _regime_accommodation_reason = _get_regime_accommodation(
+            world,
+            faction_a,
+            faction_b,
+            state,
+        )
         peace_modifier = min(
             DIPLOMACY_PEACE_SCORE_MAX,
             state.years_at_peace * DIPLOMACY_PEACE_SCORE_PER_TURN,
@@ -421,10 +509,12 @@ def update_relationships(world: WorldState) -> None:
                 + doctrine_affinity
                 + runaway_modifier
                 + lineage_modifier
+                + regime_accommodation
                 - state.grievance
                 - state.border_friction
                 - ethnic_claim_pressure
-                - polity_tier_pressure,
+                - polity_tier_pressure
+                - regime_pressure,
                 DIPLOMACY_SCORE_MIN,
                 DIPLOMACY_SCORE_MAX,
             ),
@@ -496,6 +586,8 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
     rival_count = 0
     claim_disputes: dict[str, int] = {}
     polity_tensions: list[tuple[str, float, str | None]] = []
+    regime_tensions: list[tuple[str, float, str | None]] = []
+    regime_accommodations: list[tuple[str, float, str | None]] = []
 
     for other_faction in world.factions:
         if other_faction == faction_name:
@@ -508,6 +600,21 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
                 other_faction,
                 polity_tension,
                 _get_polity_tier_tension_reason(world, faction_name, other_faction),
+            ))
+        regime_tension, regime_reason = _get_regime_tension(world, faction_name, other_faction)
+        if regime_tension > 0:
+            regime_tensions.append((other_faction, regime_tension, regime_reason))
+        regime_accommodation, regime_accommodation_reason = _get_regime_accommodation(
+            world,
+            faction_name,
+            other_faction,
+            state,
+        )
+        if regime_accommodation > 0:
+            regime_accommodations.append((
+                other_faction,
+                regime_accommodation,
+                regime_accommodation_reason,
             ))
         if state.status == "alliance":
             alliance_count += 1
@@ -553,6 +660,24 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
             key=lambda item: (item[1], item[0]),
         )
 
+    top_regime_tension = None
+    top_regime_tension_value = 0.0
+    top_regime_tension_reason = None
+    if regime_tensions:
+        top_regime_tension, top_regime_tension_value, top_regime_tension_reason = max(
+            regime_tensions,
+            key=lambda item: (item[1], item[0]),
+        )
+
+    top_regime_accommodation = None
+    top_regime_accommodation_value = 0.0
+    top_regime_accommodation_reason = None
+    if regime_accommodations:
+        top_regime_accommodation, top_regime_accommodation_value, top_regime_accommodation_reason = max(
+            regime_accommodations,
+            key=lambda item: (item[1], item[0]),
+        )
+
     return {
         "top_ally": top_ally,
         "top_rival": top_rival,
@@ -563,6 +688,14 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
         "top_polity_tension": top_polity_tension,
         "top_polity_tension_value": round(top_polity_tension_value, 2),
         "top_polity_tension_reason": top_polity_tension_reason,
+        "top_regime_tension": top_regime_tension,
+        "top_regime_tension_value": round(top_regime_tension_value, 2),
+        "top_regime_tension_reason": top_regime_tension_reason,
+        "regime_tension_count": len(regime_tensions),
+        "top_regime_accommodation": top_regime_accommodation,
+        "top_regime_accommodation_value": round(top_regime_accommodation_value, 2),
+        "top_regime_accommodation_reason": top_regime_accommodation_reason,
+        "regime_accommodation_count": len(regime_accommodations),
         "alliance_count": alliance_count,
         "truce_count": truce_count,
         "pact_count": pact_count,

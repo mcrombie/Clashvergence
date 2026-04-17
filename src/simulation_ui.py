@@ -23,6 +23,8 @@ from src.maps import MAPS
 from src.metrics import get_turn_metrics
 from src.heartland import (
     faction_has_ethnic_claim,
+    get_region_external_regime_agitation_modifier,
+    get_region_external_regime_agitators,
     get_faction_ethnic_claims,
     get_region_dominant_ethnicity,
     get_region_ethnic_claimants,
@@ -104,6 +106,10 @@ def _get_event_title(event, world):
         return f"{faction_name} expanded into {region_reference}"
     if event.type == "attack":
         defender = _get_faction_display_name(world, event.get("defender")) if event.get("defender") else "Unknown"
+        if event.get("regime_target_attack"):
+            if event.get("success", False):
+                return f"{faction_name} seized {region_reference} from {defender} in a regime claim offensive"
+            return f"{faction_name}'s regime claim offensive against {region_reference} failed"
         if event.get("ethnic_claim_attack"):
             claim_ethnicity = event.get("claim_ethnicity") or "local"
             if event.get("success", False):
@@ -118,12 +124,33 @@ def _get_event_title(event, world):
         return f"Unrest disturbed {region_reference} under {faction_name}"
     if event.type == "unrest_crisis":
         return f"Unrest crisis hit {region_reference} under {faction_name}"
+    if event.type == "regime_agitation":
+        sponsor_count = len(event.get("sponsors", []) or [])
+        mode = event.get("lead_sponsor_mode", "standard")
+        mode_prefix = {
+            "heavy": "Heavy-handed ",
+            "low": "Low-grade ",
+        }.get(mode, "")
+        if sponsor_count > 1:
+            return f"{mode_prefix}rival regimes stirred unrest in {region_reference} against {faction_name}"
+        lead_sponsor = _get_faction_display_name(world, event.get("lead_sponsor"))
+        return f"{mode_prefix}{lead_sponsor} stirred unrest in {region_reference} against {faction_name}"
     if event.type == "unrest_secession":
         joined_region_count = int(event.get("joined_region_count", 0) or 0)
         if event.get("restoration") and event.get("restored_faction"):
             if joined_region_count > 0:
                 return f"{region_reference} and {joined_region_count} neighboring region(s) rose against {faction_name} and restored {rebel_name}"
             return f"{region_reference} rose against {faction_name} and restored {rebel_name}"
+        if event.get("conflict_type") == "civil_war":
+            if event.get("joined_existing_rebellion") and event.get("rebel_faction"):
+                if joined_region_count > 0:
+                    return f"{region_reference} joined {rebel_name}'s civil war with {joined_region_count} neighboring region(s)"
+                return f"{region_reference} joined {rebel_name}'s civil-war uprising"
+            if event.get("rebel_faction"):
+                if joined_region_count > 0:
+                    return f"{region_reference} and {joined_region_count} neighboring region(s) rose against {faction_name} in civil war as {rebel_name}"
+                return f"{region_reference} rose against {faction_name} in civil war as {rebel_name}"
+            return f"{region_reference} rose against {faction_name} in civil war"
         if event.get("joined_existing_rebellion") and event.get("rebel_faction"):
             if joined_region_count > 0:
                 return f"{region_reference} joined {rebel_name}'s regional uprising with {joined_region_count} neighboring region(s)"
@@ -134,6 +161,10 @@ def _get_event_title(event, world):
             return f"{region_reference} broke away from {faction_name} as {rebel_name}"
         return f"{region_reference} broke away from {faction_name}"
     if event.type == "rebel_independence":
+        if event.get("conflict_type") == "civil_war":
+            if event.get("origin_faction"):
+                return f"{faction_name} consolidated as a rival regime against {origin_name}"
+            return f"{faction_name} consolidated as a rival regime"
         if event.get("origin_faction"):
             return f"{faction_name} declared full independence from {origin_name}"
         return f"{faction_name} consolidated into an independent successor state"
@@ -169,6 +200,18 @@ def _get_event_summary(event, world):
         )
     if event.type == "attack":
         chance = event.get("success_chance", 0)
+        if event.get("regime_target_attack"):
+            reason = event.get("regime_target_reason")
+            motive = "civil-war legitimacy" if reason == "civil_war_claim" else "same-people regime rivalry"
+            if event.get("success", False):
+                return (
+                    f"A {motive} attack succeeded at {chance:.0%} displayed odds."
+                    f"{terrain_text}"
+                )
+            return (
+                f"A {motive} attack failed at {chance:.0%} displayed odds."
+                f"{terrain_text}"
+            )
         if event.get("ethnic_claim_attack"):
             claim_ethnicity = event.get("claim_ethnicity") or "local"
             if event.get("success", False):
@@ -195,8 +238,35 @@ def _get_event_summary(event, world):
             f"Critical unrest triggered a deeper disruption and treasury hit of "
             f"{abs(event.get('treasury_change', 0))}.{terrain_text}"
         )
+    if event.type == "regime_agitation":
+        sponsors = [
+            _get_faction_display_name(world, sponsor)
+            for sponsor in (event.get("sponsors", []) or [])
+        ]
+        sponsor_text = ", ".join(sponsors) if sponsors else "a rival regime"
+        total_treasury_cost = sum(
+            int((event.get("sponsor_costs", {}) or {}).get(sponsor, {}).get("treasury_cost", 0))
+            for sponsor in (event.get("sponsors", []) or [])
+        )
+        mode = event.get("lead_sponsor_mode", "standard")
+        mode_text = {
+            "heavy": "through a heavy-handed campaign",
+            "low": "through low-grade meddling",
+        }.get(mode, "through sustained meddling")
+        if event.get("claimant_sponsors"):
+            return (
+                f"{sponsor_text} helped push the region toward {event.get('event_level', 'disturbance')} {mode_text} by backing same-people unrest across the border"
+                f"{f', paying {total_treasury_cost} treasury in the process' if total_treasury_cost > 0 else ''}."
+                f"{terrain_text}"
+            )
+        return (
+            f"{sponsor_text} aggravated same-people political tension across the border {mode_text}, helping local unrest rise"
+            f"{f' while spending {total_treasury_cost} treasury to sustain the pressure' if total_treasury_cost > 0 else ''}."
+            f"{terrain_text}"
+        )
     if event.type == "unrest_secession":
-        rebel_faction = event.get("rebel_faction")
+        rebel_faction = _get_faction_display_name(world, event.get("rebel_faction"))
+        ruler_faction = _get_faction_display_name(world, event.faction)
         joined_region_count = int(event.get("joined_region_count", 0) or 0)
         if event.get("restoration") and rebel_faction:
             joined_clause = (
@@ -206,6 +276,27 @@ def _get_event_summary(event, world):
             )
             return (
                 f"Surviving {event.get('revived_ethnicity') or 'local'} communities turned sustained crisis into a restoration revolt for {rebel_faction}."
+                + joined_clause
+                + terrain_text
+            )
+        if event.get("conflict_type") == "civil_war":
+            joined_clause = (
+                f" The fighting also pulled in {joined_region_count} neighboring region(s)."
+                if joined_region_count > 0
+                else ""
+            )
+            if event.get("joined_existing_rebellion") and rebel_faction:
+                return (
+                    f"Sustained crisis pushed the region into {rebel_faction}'s existing civil-war movement instead of a separate breakaway."
+                    + joined_clause
+                    + terrain_text
+                )
+            return (
+                (
+                    f"Sustained crisis escalated into a same-people civil war against {ruler_faction}, rallying behind {rebel_faction}."
+                    if rebel_faction
+                    else f"Sustained crisis escalated into civil war against {ruler_faction}."
+                )
                 + joined_clause
                 + terrain_text
             )
@@ -222,9 +313,9 @@ def _get_event_summary(event, world):
             )
         return (
             (
-                f"Sustained crisis raised {rebel_faction} out of {event.faction}'s collapsing rule."
+                f"Sustained crisis raised {rebel_faction} out of {ruler_faction}'s collapsing rule."
                 if rebel_faction
-                else f"Sustained crisis forced the region out of {event.faction}'s control."
+                else f"Sustained crisis forced the region out of {ruler_faction}'s control."
             )
             + (
                 f" The uprising also spread into {joined_region_count} neighboring region(s)."
@@ -235,6 +326,11 @@ def _get_event_summary(event, world):
         )
     if event.type == "rebel_independence":
         government_type = event.get("government_type", "State")
+        if event.get("conflict_type") == "civil_war":
+            return (
+                f"After surviving its fragile uprising, the claimant hardened into a rival {government_type.lower()} backed by the same broader people."
+                + terrain_text
+            )
         return (
             f"After surviving its fragile rebellion, the polity hardened into a full {government_type.lower()}."
             + terrain_text
@@ -295,6 +391,8 @@ def build_simulation_snapshots(world):
             "owner_primary_ethnicity": initial_region_history.get(region_name, {}).get("owner_primary_ethnicity", get_region_owner_primary_ethnicity(region, world)),
             "owner_has_ethnic_claim": initial_region_history.get(region_name, {}).get("owner_has_ethnic_claim", faction_has_ethnic_claim(world, region, region.owner)),
             "ruling_ethnic_affinity": initial_region_history.get(region_name, {}).get("ruling_ethnic_affinity", round(get_region_ruling_ethnic_affinity(region, world), 2)),
+            "external_regime_agitators": list(initial_region_history.get(region_name, {}).get("external_regime_agitators", get_region_external_regime_agitators(region, world))),
+            "external_regime_agitation": initial_region_history.get(region_name, {}).get("external_regime_agitation", round(get_region_external_regime_agitation_modifier(region, world), 3)),
             "neighbors": list(region.neighbors),
             "display_name": region.display_name if initial_state[region_name]["owner"] is not None else region.name,
             "founding_name": region.founding_name if initial_state[region_name]["owner"] is not None else "",
@@ -338,6 +436,8 @@ def build_simulation_snapshots(world):
                 "owner_primary_ethnicity": region["owner_primary_ethnicity"],
                 "owner_has_ethnic_claim": region["owner_has_ethnic_claim"],
                 "ruling_ethnic_affinity": region["ruling_ethnic_affinity"],
+                "external_regime_agitators": list(region["external_regime_agitators"]),
+                "external_regime_agitation": region["external_regime_agitation"],
                 "display_name": region["display_name"],
                 "founding_name": region["founding_name"],
                 "original_namer_faction_id": region["original_namer_faction_id"],
@@ -411,6 +511,8 @@ def build_simulation_snapshots(world):
             region_state[region_name]["owner_primary_ethnicity"] = history_region.get("owner_primary_ethnicity")
             region_state[region_name]["owner_has_ethnic_claim"] = history_region.get("owner_has_ethnic_claim", False)
             region_state[region_name]["ruling_ethnic_affinity"] = history_region.get("ruling_ethnic_affinity", 0.0)
+            region_state[region_name]["external_regime_agitators"] = list(history_region.get("external_regime_agitators", []))
+            region_state[region_name]["external_regime_agitation"] = history_region.get("external_regime_agitation", 0.0)
             region_state[region_name]["display_name"] = history_region["display_name"] or region_state[region_name]["display_name"]
             region_state[region_name]["founding_name"] = history_region["founding_name"]
             region_state[region_name]["original_namer_faction_id"] = history_region["original_namer_faction_id"]
@@ -445,6 +547,8 @@ def build_simulation_snapshots(world):
                     "owner_primary_ethnicity": region["owner_primary_ethnicity"],
                     "owner_has_ethnic_claim": region["owner_has_ethnic_claim"],
                     "ruling_ethnic_affinity": region["ruling_ethnic_affinity"],
+                    "external_regime_agitators": list(region["external_regime_agitators"]),
+                    "external_regime_agitation": region["external_regime_agitation"],
                     "display_name": region["display_name"],
                     "founding_name": region["founding_name"],
                     "original_namer_faction_id": region["original_namer_faction_id"],
@@ -566,6 +670,7 @@ def build_simulation_view_model(world):
             "climate_identity": world.factions[faction_name].doctrine_profile.climate_identity,
             "is_rebel": world.factions[faction_name].is_rebel,
             "origin_faction": world.factions[faction_name].origin_faction,
+            "rebel_conflict_type": world.factions[faction_name].rebel_conflict_type,
             "proto_state": world.factions[faction_name].proto_state,
             "government_type": world.factions[faction_name].government_type,
             "polity_tier": world.factions[faction_name].polity_tier,
@@ -606,6 +711,8 @@ def build_simulation_view_model(world):
                 "owner_primary_ethnicity": get_region_owner_primary_ethnicity(world.regions[region_name], world),
                 "owner_has_ethnic_claim": faction_has_ethnic_claim(world, world.regions[region_name], world.regions[region_name].owner),
                 "ruling_ethnic_affinity": round(get_region_ruling_ethnic_affinity(world.regions[region_name], world), 2),
+                "external_regime_agitators": get_region_external_regime_agitators(world.regions[region_name], world),
+                "external_regime_agitation": round(get_region_external_regime_agitation_modifier(world.regions[region_name], world), 3),
                 "terrain_tags": list(world.regions[region_name].terrain_tags),
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
                 "climate": world.regions[region_name].climate,
@@ -634,6 +741,8 @@ def build_simulation_view_model(world):
                 "owner_primary_ethnicity": get_region_owner_primary_ethnicity(world.regions[region_name], world),
                 "owner_has_ethnic_claim": faction_has_ethnic_claim(world, world.regions[region_name], world.regions[region_name].owner),
                 "ruling_ethnic_affinity": round(get_region_ruling_ethnic_affinity(world.regions[region_name], world), 2),
+                "external_regime_agitators": get_region_external_regime_agitators(world.regions[region_name], world),
+                "external_regime_agitation": round(get_region_external_regime_agitation_modifier(world.regions[region_name], world), 3),
                 "terrain_tags": list(world.regions[region_name].terrain_tags),
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
                 "climate": world.regions[region_name].climate,
@@ -2348,6 +2457,23 @@ def render_simulation_html(world):
             </div>
           </div>
           <div class="detail-row">
+            <div class="detail-label">Regime Agitation</div>
+            <div class="detail-value">
+              ${{
+                (() => {{
+                  const agitators = regionSnapshot.external_regime_agitators || staticRegion.external_regime_agitators || [];
+                  const pressure = Number(regionSnapshot.external_regime_agitation ?? staticRegion.external_regime_agitation ?? 0);
+                  if (!agitators.length || pressure <= 0) {{
+                    return "None";
+                  }}
+                  return `${{agitators.map((factionName) => escapeHtml(getFactionDisplayName(factionName))).join(", ")}} (${{
+                    pressure.toFixed(3)
+                  }})`;
+                }})()
+              }}
+            </div>
+          </div>
+          <div class="detail-row">
             <div class="detail-label">Integration</div>
             <div class="detail-value">${{escapeHtml(regionSnapshot.core_status || "frontier")}} (${{Number(regionSnapshot.integration_score || 0).toFixed(1)}})</div>
           </div>
@@ -2434,8 +2560,12 @@ def render_simulation_html(world):
         const polityStatus = faction.is_rebel
           ? (
               (faction.proto_state
-                ? "Proto-state rebellion"
-                : `${{escapeHtml(faction.government_type || "State")}} successor`)
+                ? (faction.rebel_conflict_type === "civil_war"
+                    ? "Proto-state civil-war claimant"
+                    : "Proto-state rebellion")
+                : (faction.rebel_conflict_type === "civil_war"
+                    ? `${{escapeHtml(faction.government_type || "State")}} claimant`
+                    : `${{escapeHtml(faction.government_type || "State")}} successor`))
               + (faction.origin_faction ? ` from ${{escapeHtml(getFactionDisplayName(faction.origin_faction))}}` : "")
             )
           : "Established faction";
@@ -2514,8 +2644,28 @@ def render_simulation_html(world):
                   </div>
                 </div>
                 <div class="detail-row">
+                  <div class="detail-label">Regime Tension</div>
+                  <div class="detail-value">
+                    ${{
+                      metrics.top_regime_tension
+                        ? `${{escapeHtml(getFactionDisplayName(metrics.top_regime_tension))}} (${{metrics.top_regime_tension_reason === "civil_war_legitimacy" ? "legitimacy struggle" : "regime split"}})`
+                        : "None"
+                    }}
+                  </div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Regime Accord</div>
+                  <div class="detail-value">
+                    ${{
+                      metrics.top_regime_accommodation
+                        ? `${{escapeHtml(getFactionDisplayName(metrics.top_regime_accommodation))}} (${{metrics.top_regime_accommodation_reason === "same_people_accord" ? "same-people accord" : (metrics.top_regime_accommodation_reason === "legitimacy_accommodation" ? "negotiated channel" : "diplomatic restraint")}})`
+                        : "None"
+                    }}
+                  </div>
+                </div>
+                <div class="detail-row">
                   <div class="detail-label">Diplomacy</div>
-                  <div class="detail-value">A${{metrics.alliance_count || 0}} / T${{metrics.truce_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}} / C${{metrics.claim_dispute_count || 0}}</div>
+                  <div class="detail-value">A${{metrics.alliance_count || 0}} / T${{metrics.truce_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}} / C${{metrics.claim_dispute_count || 0}} / G${{metrics.regime_tension_count || 0}} / O${{metrics.regime_accommodation_count || 0}}</div>
                 </div>
               <div class="detail-row">
                 <div class="detail-label">Realm Structure</div>

@@ -14,6 +14,7 @@ from src.config import (
     CLIMATE_MAINTENANCE_MAX_FACTOR,
     CLIMATE_MAINTENANCE_MIN_FACTOR,
     CORE_INCOME_FACTOR,
+    DIPLOMACY_RIVAL_THRESHOLD,
     ETHNIC_CLAIM_INTEGRATION_BONUS,
     ETHNIC_CLAIM_UNREST_REDUCTION,
     ETHNIC_INTEGRATION_MIN_MULTIPLIER,
@@ -23,6 +24,28 @@ from src.config import (
     ETHNIC_UNREST_NEUTRAL_THRESHOLD,
     ETHNIC_UNREST_SEVERE_AFFINITY_PRESSURE,
     ETHNIC_UNREST_SEVERE_THRESHOLD,
+    REGIME_CONTESTATION_CORE_UNREST_BONUS,
+    REGIME_CONTESTATION_HOMELAND_UNREST_BONUS,
+    REGIME_CONTESTATION_UNREST_BASE,
+    REGIME_AGITATION_CLAIMANT_BONUS,
+    REGIME_AGITATION_HEAVY_BACKLASH_MULTIPLIER,
+    REGIME_AGITATION_HEAVY_COST_MULTIPLIER,
+    REGIME_AGITATION_HEAVY_MODE_THRESHOLD,
+    REGIME_AGITATION_HEAVY_PRESSURE_MULTIPLIER,
+    REGIME_AGITATION_INSULARITY_FACTOR,
+    REGIME_AGITATION_LOW_BACKLASH_MULTIPLIER,
+    REGIME_AGITATION_LOW_COST_MULTIPLIER,
+    REGIME_AGITATION_LOW_MODE_THRESHOLD,
+    REGIME_AGITATION_LOW_PRESSURE_MULTIPLIER,
+    REGIME_AGITATION_MAX,
+    REGIME_AGITATION_MAX_SPONSOR_FACTOR,
+    REGIME_AGITATION_MIN_SPONSOR_FACTOR,
+    REGIME_AGITATION_HOMEFRONT_UNREST_FACTOR,
+    REGIME_AGITATION_TREASURY_COST_FACTOR,
+    REGIME_AGITATION_TREASURY_FACTOR,
+    REGIME_AGITATION_TREASURY_MAX_BONUS,
+    REGIME_AGITATION_UNREST_PER_SPONSOR,
+    REGIME_AGITATION_WAR_POSTURE_FACTOR,
     FRONTIER_ATTACK_PROJECTION_PENALTY,
     FRONTIER_INCOME_FACTOR,
     FRONTIER_MAINTENANCE_SURCHARGE,
@@ -123,7 +146,7 @@ POLITY_TIER_MODIFIERS = {
     "tribe": {
         "income_factor": 0.95,
         "maintenance_factor": 0.90,
-        "integration_factor": 0.95,
+        "integration_factor": 1.00,
         "stability_factor": 1.00,
         "attack_bias": 0,
         "realm_size_unrest_factor": 1.10,
@@ -182,6 +205,48 @@ GOVERNMENT_FORM_MODIFIERS = {
         "attack_bias": 0,
         "integration_factor": 0.96,
     },
+}
+REGIME_AGITATION_GOVERNMENT_FORM_BIAS = {
+    "leader": 0.14,
+    "council": -0.08,
+    "assembly": -0.16,
+    "monarchy": 0.16,
+    "republic": -0.10,
+    "oligarchy": 0.12,
+}
+REGIME_AGITATION_DIPLOMATIC_FORMS = {"council", "assembly", "republic"}
+REBEL_CONFLICT_SECESSION = "secession"
+REBEL_CONFLICT_CIVIL_WAR = "civil_war"
+CIVIL_WAR_AFFINITY_THRESHOLD = 0.65
+CIVIL_WAR_SUCCESSOR_FORMS = {
+    ("band", "leader"): "council",
+    ("band", "council"): "leader",
+    ("tribe", "leader"): "council",
+    ("tribe", "council"): "assembly",
+    ("tribe", "assembly"): "leader",
+    ("chiefdom", "leader"): "council",
+    ("chiefdom", "council"): "monarchy",
+    ("chiefdom", "monarchy"): "council",
+    ("state", "council"): "monarchy",
+    ("state", "assembly"): "monarchy",
+    ("state", "monarchy"): "republic",
+    ("state", "republic"): "monarchy",
+    ("state", "oligarchy"): "republic",
+}
+CIVIL_WAR_REGIME_LABELS = {
+    ("band", "leader"): "Warband",
+    ("band", "council"): "Council",
+    ("tribe", "leader"): "Chieftaincy",
+    ("tribe", "council"): "Council",
+    ("tribe", "assembly"): "Assembly",
+    ("chiefdom", "leader"): "Chieftaincy",
+    ("chiefdom", "council"): "Council",
+    ("chiefdom", "monarchy"): "Monarchy",
+    ("state", "council"): "Council State",
+    ("state", "assembly"): "Assembly State",
+    ("state", "monarchy"): "Kingdom",
+    ("state", "republic"): "Republic",
+    ("state", "oligarchy"): "Oligarchy",
 }
 
 
@@ -368,6 +433,376 @@ def get_faction_ethnic_claims(world: WorldState, faction_name: str) -> list[str]
             if faction_has_ethnic_claim(world, region, faction_name)
         ],
     )
+
+
+def factions_have_same_ethnicity_regime_tension(
+    world: WorldState,
+    faction_a_name: str | None,
+    faction_b_name: str | None,
+) -> bool:
+    if (
+        faction_a_name is None
+        or faction_b_name is None
+        or faction_a_name == faction_b_name
+        or faction_a_name not in world.factions
+        or faction_b_name not in world.factions
+    ):
+        return False
+
+    faction_a = world.factions[faction_a_name]
+    faction_b = world.factions[faction_b_name]
+    if (
+        faction_a.primary_ethnicity is None
+        or faction_b.primary_ethnicity is None
+        or faction_a.primary_ethnicity != faction_b.primary_ethnicity
+    ):
+        return False
+
+    return (
+        faction_a.government_form != faction_b.government_form
+        or (faction_a.rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR and faction_a.origin_faction == faction_b_name)
+        or (faction_b.rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR and faction_b.origin_faction == faction_a_name)
+    )
+
+
+def get_same_ethnicity_regime_rivals(world: WorldState, faction_name: str | None) -> list[str]:
+    if faction_name is None or faction_name not in world.factions:
+        return []
+
+    owned_region_counts = get_owned_region_counts(world)
+    return sorted(
+        [
+            other_name
+            for other_name in world.factions
+            if other_name != faction_name
+            and owned_region_counts.get(other_name, 0) > 0
+            and factions_have_same_ethnicity_regime_tension(world, faction_name, other_name)
+        ]
+    )
+
+
+def get_region_regime_contestation_unrest_modifier(region: Region, world: WorldState) -> float:
+    if region.owner is None or region.owner not in world.factions or region.population <= 0:
+        return 0.0
+
+    owner = world.factions[region.owner]
+    if owner.primary_ethnicity is None:
+        return 0.0
+    if get_region_dominant_ethnicity(region) != owner.primary_ethnicity:
+        return 0.0
+    if get_region_ruling_ethnic_affinity(region, world) < 0.6:
+        return 0.0
+
+    rivals = get_same_ethnicity_regime_rivals(world, region.owner)
+    if not rivals:
+        return 0.0
+
+    modifier = REGIME_CONTESTATION_UNREST_BASE
+    status = get_region_core_status(region)
+    if status == "homeland":
+        modifier += REGIME_CONTESTATION_HOMELAND_UNREST_BONUS
+    elif status == "core":
+        modifier += REGIME_CONTESTATION_CORE_UNREST_BONUS
+    return modifier
+
+
+def get_region_external_regime_agitators(region: Region, world: WorldState) -> list[str]:
+    if region.owner is None or region.owner not in world.factions or region.population <= 0:
+        return []
+
+    owner = world.factions[region.owner]
+    if owner.primary_ethnicity is None:
+        return []
+    if get_region_dominant_ethnicity(region) != owner.primary_ethnicity:
+        return []
+    if get_region_ruling_ethnic_affinity(region, world) < 0.5:
+        return []
+
+    agitators: set[str] = set()
+    for neighbor_name in region.neighbors:
+        neighbor_owner = world.regions[neighbor_name].owner
+        if neighbor_owner is None or neighbor_owner == region.owner:
+            continue
+        if factions_have_same_ethnicity_regime_tension(world, region.owner, neighbor_owner):
+            agitators.add(neighbor_owner)
+    return sorted(agitators)
+
+
+def get_regime_agitation_sponsor_factor(
+    world: WorldState,
+    sponsor_name: str,
+) -> float:
+    sponsor = world.factions.get(sponsor_name)
+    if sponsor is None:
+        return 1.0
+
+    treasury_bonus = min(
+        REGIME_AGITATION_TREASURY_MAX_BONUS,
+        sponsor.treasury * REGIME_AGITATION_TREASURY_FACTOR,
+    )
+    war_bias = (sponsor.doctrine_profile.war_posture - 0.5) * REGIME_AGITATION_WAR_POSTURE_FACTOR
+    insularity_bias = (0.5 - sponsor.doctrine_profile.insularity) * REGIME_AGITATION_INSULARITY_FACTOR
+    return _clamp(
+        1.0 + treasury_bonus + war_bias + insularity_bias,
+        REGIME_AGITATION_MIN_SPONSOR_FACTOR,
+        REGIME_AGITATION_MAX_SPONSOR_FACTOR,
+    )
+
+
+def get_regime_agitation_government_bias(
+    world: WorldState,
+    sponsor_name: str,
+) -> float:
+    sponsor = world.factions.get(sponsor_name)
+    if sponsor is None:
+        return 0.0
+    return REGIME_AGITATION_GOVERNMENT_FORM_BIAS.get(sponsor.government_form, 0.0)
+
+
+def get_regime_agitation_sponsor_mode(
+    world: WorldState,
+    sponsor_name: str,
+    *,
+    owner_name: str | None = None,
+) -> str:
+    from src.diplomacy import get_relationship_state
+
+    sponsor_factor = get_regime_agitation_sponsor_factor(world, sponsor_name)
+    sponsor = world.factions.get(sponsor_name)
+    effective_factor = sponsor_factor + get_regime_agitation_government_bias(
+        world,
+        sponsor_name,
+    )
+    is_claimant = (
+        sponsor is not None
+        and owner_name is not None
+        and sponsor.rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR
+        and not sponsor.proto_state
+        and sponsor.origin_faction == owner_name
+    )
+    if sponsor is not None and owner_name is not None:
+        relationship = get_relationship_state(world, sponsor_name, owner_name)
+        if (
+            sponsor.government_form in REGIME_AGITATION_DIPLOMATIC_FORMS
+            and relationship.status != "rival"
+            and relationship.score > DIPLOMACY_RIVAL_THRESHOLD
+        ):
+            return "none"
+    if (
+        is_claimant
+        and effective_factor >= 1.05
+    ):
+        return "heavy"
+    if effective_factor >= REGIME_AGITATION_HEAVY_MODE_THRESHOLD:
+        return "heavy"
+    if is_claimant and effective_factor >= REGIME_AGITATION_LOW_MODE_THRESHOLD:
+        return "standard"
+    if effective_factor <= REGIME_AGITATION_LOW_MODE_THRESHOLD:
+        return "low"
+    return "standard"
+
+
+def get_regime_agitation_mode_multipliers(mode: str) -> dict[str, float]:
+    if mode == "none":
+        return {
+            "pressure": 0.0,
+            "cost": 0.0,
+            "backlash": 0.0,
+        }
+    if mode == "heavy":
+        return {
+            "pressure": REGIME_AGITATION_HEAVY_PRESSURE_MULTIPLIER,
+            "cost": REGIME_AGITATION_HEAVY_COST_MULTIPLIER,
+            "backlash": REGIME_AGITATION_HEAVY_BACKLASH_MULTIPLIER,
+        }
+    if mode == "low":
+        return {
+            "pressure": REGIME_AGITATION_LOW_PRESSURE_MULTIPLIER,
+            "cost": REGIME_AGITATION_LOW_COST_MULTIPLIER,
+            "backlash": REGIME_AGITATION_LOW_BACKLASH_MULTIPLIER,
+        }
+    return {
+        "pressure": 1.0,
+        "cost": 1.0,
+        "backlash": 1.0,
+    }
+
+
+def get_region_external_regime_agitation_breakdown(
+    region: Region,
+    world: WorldState,
+) -> dict[str, dict[str, float | str]]:
+    agitators = get_region_external_regime_agitators(region, world)
+    if not agitators:
+        return {}
+
+    owner_name = region.owner
+    contributions: dict[str, dict[str, float | str]] = {}
+    for agitator_name in agitators:
+        mode = get_regime_agitation_sponsor_mode(
+            world,
+            agitator_name,
+            owner_name=owner_name,
+        )
+        if mode == "none":
+            continue
+        mode_multipliers = get_regime_agitation_mode_multipliers(mode)
+        sponsor_factor = get_regime_agitation_sponsor_factor(world, agitator_name)
+        base_contribution = REGIME_AGITATION_UNREST_PER_SPONSOR * sponsor_factor
+        agitator = world.factions.get(agitator_name)
+        claimant_bonus = 0.0
+        if (
+            agitator is not None
+            and agitator.rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR
+            and not agitator.proto_state
+            and agitator.origin_faction == owner_name
+        ):
+            claimant_bonus = REGIME_AGITATION_CLAIMANT_BONUS
+        contribution = (base_contribution + claimant_bonus) * mode_multipliers["pressure"]
+        contributions[agitator_name] = {
+            "pressure": round(contribution, 4),
+            "mode": mode,
+            "sponsor_factor": round(sponsor_factor, 3),
+            "cost_multiplier": mode_multipliers["cost"],
+            "backlash_multiplier": mode_multipliers["backlash"],
+        }
+    return contributions
+
+
+def get_region_external_regime_agitation_modifier(region: Region, world: WorldState) -> float:
+    contributions = get_region_external_regime_agitation_breakdown(region, world)
+    if not contributions:
+        return 0.0
+    return min(
+        REGIME_AGITATION_MAX,
+        sum(float(details["pressure"]) for details in contributions.values()),
+    )
+
+
+def _choose_regime_agitation_backlash_region(
+    world: WorldState,
+    sponsor_name: str,
+) -> Region | None:
+    owned_regions = [
+        region
+        for region in world.regions.values()
+        if region.owner == sponsor_name
+    ]
+    if not owned_regions:
+        return None
+
+    homeland_regions = [
+        region
+        for region in owned_regions
+        if get_region_core_status(region) == "homeland"
+    ]
+    if homeland_regions:
+        return max(
+            homeland_regions,
+            key=lambda region: (region.integration_score, region.resources, region.name),
+        )
+
+    core_regions = [
+        region
+        for region in owned_regions
+        if get_region_core_status(region) == "core"
+    ]
+    if core_regions:
+        return max(
+            core_regions,
+            key=lambda region: (region.integration_score, region.resources, region.name),
+        )
+
+    return max(
+        owned_regions,
+        key=lambda region: (region.integration_score, region.resources, region.name),
+    )
+
+
+def _apply_regime_agitation_sponsor_costs(
+    world: WorldState,
+    sponsor_pressures: dict[str, dict[str, float | str]],
+) -> dict[str, dict[str, float | int | str | None]]:
+    sponsor_costs: dict[str, dict[str, float | int | str | None]] = {}
+    for sponsor_name, details in sponsor_pressures.items():
+        sponsor = world.factions.get(sponsor_name)
+        if sponsor is None:
+            continue
+        pressure = float(details.get("pressure", 0.0))
+        mode = str(details.get("mode", "standard"))
+        cost_multiplier = float(details.get("cost_multiplier", 1.0))
+        backlash_multiplier = float(details.get("backlash_multiplier", 1.0))
+
+        treasury_cost = min(
+            sponsor.treasury,
+            max(1, int(round(pressure * REGIME_AGITATION_TREASURY_COST_FACTOR * cost_multiplier))),
+        ) if pressure > 0 else 0
+        sponsor.treasury -= treasury_cost
+
+        backlash_region = _choose_regime_agitation_backlash_region(world, sponsor_name)
+        backlash_unrest = round(
+            pressure * REGIME_AGITATION_HOMEFRONT_UNREST_FACTOR * backlash_multiplier,
+            2,
+        )
+        if backlash_region is not None and backlash_unrest > 0:
+            set_region_unrest(backlash_region, backlash_region.unrest + backlash_unrest)
+
+        sponsor_costs[sponsor_name] = {
+            "mode": mode,
+            "treasury_cost": treasury_cost,
+            "treasury_after": sponsor.treasury,
+            "backlash_region": backlash_region.name if backlash_region is not None else None,
+            "backlash_unrest": backlash_unrest if backlash_region is not None else 0.0,
+        }
+    return sponsor_costs
+
+
+def _emit_regime_agitation_event(world: WorldState, region: Region) -> None:
+    sponsor_pressures = get_region_external_regime_agitation_breakdown(region, world)
+    agitators = sorted(sponsor_pressures)
+    agitation = get_region_external_regime_agitation_modifier(region, world)
+    if not agitators or agitation <= 0:
+        return
+
+    sponsor_costs = _apply_regime_agitation_sponsor_costs(world, sponsor_pressures)
+    claimant_sponsors = [
+        faction_name
+        for faction_name in agitators
+        if (
+            faction_name in world.factions
+            and world.factions[faction_name].rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR
+            and not world.factions[faction_name].proto_state
+            and world.factions[faction_name].origin_faction == region.owner
+        )
+    ]
+    lead_sponsor = max(
+        sponsor_pressures.items(),
+        key=lambda item: (float(item[1]["pressure"]), item[0]),
+    )[0]
+    world.events.append(Event(
+        turn=world.turn,
+        type="regime_agitation",
+        faction=region.owner,
+        region=region.name,
+        details={
+            "sponsors": agitators,
+            "lead_sponsor": lead_sponsor,
+            "sponsor_pressures": sponsor_pressures,
+            "lead_sponsor_mode": sponsor_pressures[lead_sponsor]["mode"],
+            "sponsor_costs": sponsor_costs,
+            "claimant_sponsors": claimant_sponsors,
+            "agitation_pressure": round(agitation, 3),
+            "event_level": region.unrest_event_level,
+            "unrest": round(region.unrest, 2),
+        },
+        tags=[
+            "unrest",
+            "agitation",
+            "regime",
+            *(["civil_war"] if claimant_sponsors else []),
+        ],
+        significance=agitation,
+    ))
 
 
 def get_region_ethnic_integration_multiplier(region: Region, world: WorldState) -> float:
@@ -695,6 +1130,8 @@ def update_region_populations(world: WorldState) -> None:
             SURPLUS_MIN_GROWTH_PENALTY,
             SURPLUS_MAX_GROWTH_BONUS,
         )
+        if surplus_growth_modifier > 0:
+            surplus_growth_modifier *= (1.0 - unrest_ratio)
         growth_factor += surplus_growth_modifier
 
         change = int(round(region.population * growth_factor))
@@ -1104,6 +1541,7 @@ def _find_adjacent_rebel_destination(
     world: WorldState,
     region: Region,
     former_owner: str,
+    conflict_type: str,
 ) -> str | None:
     for neighbor_name in region.neighbors:
         neighbor_owner = world.regions[neighbor_name].owner
@@ -1112,9 +1550,70 @@ def _find_adjacent_rebel_destination(
         if neighbor_owner not in world.factions:
             continue
         neighbor_faction = world.factions[neighbor_owner]
-        if neighbor_faction.is_rebel and neighbor_faction.origin_faction == former_owner:
+        if (
+            neighbor_faction.is_rebel
+            and neighbor_faction.origin_faction == former_owner
+            and neighbor_faction.rebel_conflict_type == conflict_type
+        ):
             return neighbor_owner
     return None
+
+
+def _determine_rebel_conflict_type(
+    world: WorldState,
+    region: Region,
+    former_owner: str,
+) -> str:
+    former_faction = world.factions.get(former_owner)
+    if former_faction is None or former_faction.primary_ethnicity is None:
+        return REBEL_CONFLICT_SECESSION
+
+    if get_region_dominant_ethnicity(region) != former_faction.primary_ethnicity:
+        return REBEL_CONFLICT_SECESSION
+
+    if region.homeland_faction_id == former_owner:
+        return REBEL_CONFLICT_CIVIL_WAR
+
+    if (
+        region.core_status in {"core", "homeland"}
+        and get_region_ruling_ethnic_affinity(region, world) >= CIVIL_WAR_AFFINITY_THRESHOLD
+    ):
+        return REBEL_CONFLICT_CIVIL_WAR
+
+    return REBEL_CONFLICT_SECESSION
+
+
+def _choose_civil_war_successor_structure(
+    world: WorldState,
+    former_owner: str,
+) -> tuple[str, str]:
+    former_faction = world.factions.get(former_owner)
+    if former_faction is None:
+        return "tribe", get_default_government_form("tribe")
+
+    polity_tier = former_faction.polity_tier
+    government_form = former_faction.government_form
+    successor_form = CIVIL_WAR_SUCCESSOR_FORMS.get((polity_tier, government_form))
+    if successor_form in GOVERNMENT_FORMS_BY_TIER.get(polity_tier, ()):
+        return polity_tier, successor_form
+
+    for candidate in GOVERNMENT_FORMS_BY_TIER.get(polity_tier, ()):
+        if candidate != government_form:
+            return polity_tier, candidate
+    return polity_tier, get_default_government_form(polity_tier)
+
+
+def _get_civil_war_display_name(
+    culture_name: str,
+    polity_tier: str,
+    government_form: str,
+    fallback_government_type: str,
+) -> str:
+    regime_label = CIVIL_WAR_REGIME_LABELS.get(
+        (polity_tier, government_form),
+        fallback_government_type,
+    )
+    return f"{culture_name} {regime_label}".strip()
 
 
 def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -> tuple[str, bool]:
@@ -1135,21 +1634,34 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         return restored_faction_name, True
 
     rebel_name = _build_rebel_faction_name(world, region)
-    inherited_ethnicity = world.factions[former_owner].primary_ethnicity
+    former_faction = world.factions[former_owner]
+    conflict_type = _determine_rebel_conflict_type(world, region, former_owner)
+    inherited_ethnicity = former_faction.primary_ethnicity
     parent_language_profile = (
-        deepcopy(world.factions[former_owner].identity.language_profile)
-        if world.factions[former_owner].identity is not None
+        deepcopy(former_faction.identity.language_profile)
+        if former_faction.identity is not None
         else LanguageProfile(family_name=inherited_ethnicity or former_owner)
     )
+    if conflict_type == REBEL_CONFLICT_CIVIL_WAR:
+        polity_tier, government_form = _choose_civil_war_successor_structure(
+            world,
+            former_owner,
+        )
+        culture_name = former_faction.culture_name
+        generation_method = "civil_war_claimant"
+    else:
+        polity_tier, government_form = "state", "council"
+        culture_name = _normalize_rebel_name_seed(region.ui_name)
+        generation_method = "rebel_secession"
     rebel_identity = FactionIdentity(
         internal_id=_next_dynamic_internal_id(world),
-        culture_name=_normalize_rebel_name_seed(region.ui_name),
-        polity_tier="state",
-        government_form="council",
+        culture_name=culture_name,
+        polity_tier=polity_tier,
+        government_form=government_form,
         government_type="Rebels",
         display_name=rebel_name,
         language_profile=parent_language_profile,
-        generation_method="rebel_secession",
+        generation_method=generation_method,
         inspirations=[former_owner],
     )
     world.factions[rebel_name] = Faction(
@@ -1160,6 +1672,7 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         primary_ethnicity=inherited_ethnicity,
         is_rebel=True,
         origin_faction=former_owner,
+        rebel_conflict_type=conflict_type,
         rebel_age=0,
         independence_score=0.0,
         proto_state=True,
@@ -1175,8 +1688,10 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
 
 
 def _is_multi_region_rebellion_candidate(
+    world: WorldState,
     region: Region,
     former_owner: str,
+    conflict_type: str,
 ) -> bool:
     if region.owner != former_owner:
         return False
@@ -1185,6 +1700,8 @@ def _is_multi_region_rebellion_candidate(
     if region.homeland_faction_id == former_owner:
         return False
     if region.secession_cooldown_turns > 0:
+        return False
+    if _determine_rebel_conflict_type(world, region, former_owner) != conflict_type:
         return False
     return (
         region.unrest_event_level in {"disturbance", "crisis"}
@@ -1227,6 +1744,7 @@ def _collect_multi_region_rebellion_joiners(
     world: WorldState,
     seed_region_name: str,
     former_owner: str,
+    conflict_type: str,
 ) -> list[str]:
     queue = [seed_region_name]
     seen = {seed_region_name}
@@ -1240,7 +1758,12 @@ def _collect_multi_region_rebellion_joiners(
                 continue
             seen.add(neighbor_name)
             neighbor = world.regions[neighbor_name]
-            if not _is_multi_region_rebellion_candidate(neighbor, former_owner):
+            if not _is_multi_region_rebellion_candidate(
+                world,
+                neighbor,
+                former_owner,
+                conflict_type,
+            ):
                 continue
             joined_regions.append(neighbor_name)
             queue.append(neighbor_name)
@@ -1254,6 +1777,7 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
         return
 
     origin_faction = faction.origin_faction
+    conflict_type = faction.rebel_conflict_type or REBEL_CONFLICT_SECESSION
     parent_ethnicity = (
         world.factions[origin_faction].primary_ethnicity
         if origin_faction in world.factions
@@ -1263,7 +1787,10 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
     successor_language_profile = None
     successor_population = 0
     parent_population = 0
-    if parent_ethnicity is not None:
+    if (
+        conflict_type == REBEL_CONFLICT_SECESSION
+        and parent_ethnicity is not None
+    ):
         parent_language_profile = (
             deepcopy(world.ethnicities[parent_ethnicity].language_profile)
             if parent_ethnicity in world.ethnicities
@@ -1297,15 +1824,33 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
     faction.proto_state = False
     faction.treasury += REBEL_INDEPENDENCE_TREASURY_BONUS
     if faction.identity is not None:
-        if successor_ethnicity is not None:
-            faction.identity.culture_name = successor_ethnicity
-            faction.identity.language_profile = deepcopy(successor_language_profile)
-        faction.identity.set_government_structure(
-            "state",
-            "council",
-            government_type=REBEL_MATURE_GOVERNMENT_TYPE,
-        )
-        faction.identity.display_name = faction.identity.culture_name
+        if conflict_type == REBEL_CONFLICT_CIVIL_WAR:
+            if origin_faction in world.factions:
+                faction.identity.culture_name = world.factions[origin_faction].culture_name
+                if world.factions[origin_faction].identity is not None:
+                    faction.identity.language_profile = deepcopy(
+                        world.factions[origin_faction].identity.language_profile
+                    )
+            faction.identity.set_government_structure(
+                faction.identity.polity_tier,
+                faction.identity.government_form,
+            )
+            faction.identity.display_name = _get_civil_war_display_name(
+                faction.identity.culture_name,
+                faction.identity.polity_tier,
+                faction.identity.government_form,
+                faction.identity.government_type,
+            )
+        else:
+            if successor_ethnicity is not None:
+                faction.identity.culture_name = successor_ethnicity
+                faction.identity.language_profile = deepcopy(successor_language_profile)
+            faction.identity.set_government_structure(
+                "state",
+                "council",
+                government_type=REBEL_MATURE_GOVERNMENT_TYPE,
+            )
+            faction.identity.display_name = faction.identity.culture_name
 
     world.events.append(Event(
         turn=world.turn,
@@ -1313,6 +1858,8 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
         faction=faction_name,
         details={
             "origin_faction": faction.origin_faction,
+            "conflict_type": conflict_type,
+            "civil_war": conflict_type == REBEL_CONFLICT_CIVIL_WAR,
             "rebel_age": faction.rebel_age,
             "independence_score": round(faction.independence_score, 2),
             "government_type": faction.government_type,
@@ -1327,7 +1874,7 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
             "proto_state": False,
             "primary_ethnicity": faction.primary_ethnicity,
         },
-        tags=["rebel", "independence", "statehood"],
+        tags=["rebel", "independence", "statehood", conflict_type],
         significance=faction.independence_score,
     ))
 
@@ -1492,6 +2039,8 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         * get_faction_realm_size_unrest_factor(owner_faction)
     )
     ethnic_pressure = get_region_ethnic_unrest_modifier(region, world)
+    regime_pressure = get_region_regime_contestation_unrest_modifier(region, world)
+    external_regime_pressure = get_region_external_regime_agitation_modifier(region, world)
     stability_divisor = max(0.5, get_faction_stability_modifier(owner_faction))
     return (
         climate_pressure
@@ -1499,6 +2048,8 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         + frontier_pressure
         + frontier_burden
         + ethnic_pressure
+        + regime_pressure
+        + external_regime_pressure
     ) / stability_divisor - UNREST_DECAY_PER_TURN
 
 
@@ -1517,6 +2068,7 @@ def resolve_unrest_events(world: WorldState) -> None:
         else:
             continue
 
+        _emit_regime_agitation_event(world, region)
         faction = world.factions[region.owner]
         treasury_hit = min(get_region_unrest_event_cost(region), faction.treasury)
         faction.treasury -= treasury_hit
@@ -1545,19 +2097,30 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
         return
 
     former_owner = region.owner
-    adjacent_rebel = _find_adjacent_rebel_destination(world, region, former_owner)
+    conflict_type = _determine_rebel_conflict_type(world, region, former_owner)
+    adjacent_rebel = _find_adjacent_rebel_destination(
+        world,
+        region,
+        former_owner,
+        conflict_type,
+    )
     restored_faction = False
     joined_existing_rebellion = adjacent_rebel is not None
     if adjacent_rebel is not None:
         rebel_faction_name = adjacent_rebel
     else:
         rebel_faction_name, restored_faction = create_rebel_faction(world, region, former_owner)
+        if restored_faction:
+            conflict_type = "restoration"
+        else:
+            conflict_type = world.factions[rebel_faction_name].rebel_conflict_type or conflict_type
 
     seed_transfer = _transfer_region_to_rebellion(region, rebel_faction_name)
     joined_region_names = _collect_multi_region_rebellion_joiners(
         world,
         region.name,
         former_owner,
+        conflict_type if conflict_type != "restoration" else REBEL_CONFLICT_SECESSION,
     )
     joined_region_transfers = [
         _transfer_region_to_rebellion(world.regions[joined_region_name], rebel_faction_name)
@@ -1584,6 +2147,8 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
         details={
             "former_owner": former_owner,
             "rebel_faction": rebel_faction_name,
+            "conflict_type": conflict_type,
+            "civil_war": conflict_type == REBEL_CONFLICT_CIVIL_WAR,
             "restored_faction": rebel_faction_name if restored_faction else None,
             "restoration": restored_faction,
             "joined_existing_rebellion": joined_existing_rebellion,
@@ -1628,7 +2193,7 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
         },
         tags=[
             "unrest",
-            "secession",
+            "secession" if conflict_type != REBEL_CONFLICT_CIVIL_WAR else "civil_war",
             "collapse",
             *(["regional_uprising"] if joined_region_names else []),
             *(["restoration", "revival"] if restored_faction else []),
@@ -1747,6 +2312,8 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "owner_primary_ethnicity": get_region_owner_primary_ethnicity(region, world),
             "owner_has_ethnic_claim": faction_has_ethnic_claim(world, region, region.owner),
             "ruling_ethnic_affinity": round(get_region_ruling_ethnic_affinity(region, world), 2),
+            "external_regime_agitators": get_region_external_regime_agitators(region, world),
+            "external_regime_agitation": round(get_region_external_regime_agitation_modifier(region, world), 3),
             "display_name": region.display_name,
             "founding_name": region.founding_name,
             "original_namer_faction_id": region.original_namer_faction_id,

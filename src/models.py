@@ -241,6 +241,7 @@ class Faction:
     primary_ethnicity: str | None = None
     is_rebel: bool = False
     origin_faction: str | None = None
+    rebel_conflict_type: str = ""
     rebel_age: int = 0
     independence_score: float = 0.0
     proto_state: bool = False

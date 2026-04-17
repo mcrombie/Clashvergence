@@ -16,6 +16,10 @@ from src.config import (
     POPULATION_ATTACK_SUCCESS_LOSS,
     POPULATION_EXPANSION_TRANSFER_MIN,
     POPULATION_EXPANSION_TRANSFER_RATIO,
+    REGIME_CLAIMANT_ATTACK_SCORE_BONUS,
+    REGIME_CLAIMANT_ATTACK_STRENGTH_BONUS,
+    REGIME_SPLIT_ATTACK_SCORE_BONUS,
+    REGIME_SPLIT_ATTACK_STRENGTH_BONUS,
     REBEL_PROTO_TREASURY_CONCENTRATION_FACTOR,
     REBEL_REABSORPTION_UNREST,
     TREASURY_CONCENTRATION_REGION_FACTOR,
@@ -23,6 +27,7 @@ from src.config import (
 from src.doctrine import get_faction_region_alignment
 from src.heartland import (
     apply_region_population_loss,
+    factions_have_same_ethnicity_regime_tension,
     faction_has_ethnic_claim,
     get_region_dominant_ethnicity,
     get_region_attack_projection_modifier,
@@ -164,6 +169,32 @@ def get_attack_target_score_components(region_name, faction_name, world):
             ethnic_claim_bonus = DIPLOMACY_ETHNIC_CLAIM_ATTACK_BONUS
             claim_ethnicity = attacker_primary_ethnicity
     attacker_strength += ethnic_claim_bonus
+    regime_target_bonus = 0
+    regime_target_score_bonus = 0
+    regime_target_reason = None
+    target_dominant_ethnicity = get_region_dominant_ethnicity(region)
+    if (
+        target_dominant_ethnicity is not None
+        and target_dominant_ethnicity == attacker_faction.primary_ethnicity
+        and factions_have_same_ethnicity_regime_tension(world, faction_name, defender_name)
+    ):
+        if (
+            (attacker_faction.rebel_conflict_type == "civil_war" and attacker_faction.origin_faction == defender_name and not attacker_faction.proto_state)
+            or (defender_faction_state.rebel_conflict_type == "civil_war" and defender_faction_state.origin_faction == faction_name and not defender_faction_state.proto_state)
+        ):
+            regime_target_bonus = REGIME_CLAIMANT_ATTACK_STRENGTH_BONUS
+            regime_target_score_bonus = REGIME_CLAIMANT_ATTACK_SCORE_BONUS
+            regime_target_reason = "civil_war_claim"
+        elif attacker_faction.government_form != defender_faction_state.government_form:
+            regime_target_bonus = REGIME_SPLIT_ATTACK_STRENGTH_BONUS
+            regime_target_score_bonus = REGIME_SPLIT_ATTACK_SCORE_BONUS
+            regime_target_reason = "regime_split"
+        if region_core_status == "homeland":
+            regime_target_bonus += 1
+            regime_target_score_bonus += 3
+        elif region_core_status == "core":
+            regime_target_score_bonus += 2
+    attacker_strength += regime_target_bonus
     diplomacy_attack_modifier, diplomacy_status = get_attack_diplomacy_modifier(
         world,
         faction_name,
@@ -185,6 +216,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + terrain_profile["economic_modifier"]
         + doctrine_alignment["economic_modifier"]
         + diplomacy_attack_modifier
+        + regime_target_score_bonus
     )
 
     return {
@@ -209,6 +241,9 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "rebel_reclaim_bonus": rebel_reclaim_bonus,
         "ethnic_claim_bonus": ethnic_claim_bonus,
         "claim_ethnicity": claim_ethnicity,
+        "regime_target_bonus": regime_target_bonus,
+        "regime_target_score_bonus": regime_target_score_bonus,
+        "regime_target_reason": regime_target_reason,
         "diplomacy_status": diplomacy_status,
         "diplomacy_attack_modifier": diplomacy_attack_modifier,
         "terrain_affinity": doctrine_alignment["average_affinity"],
@@ -668,6 +703,8 @@ def attack(faction_name, target_region_name, world):
             "core_defense_bonus": score_components["core_defense_bonus"],
             "ethnic_claim_attack": score_components["ethnic_claim_bonus"] > 0,
             "claim_ethnicity": score_components.get("claim_ethnicity"),
+            "regime_target_attack": score_components["regime_target_bonus"] > 0,
+            "regime_target_reason": score_components.get("regime_target_reason"),
             "region_display_name": target_region.display_name,
             "region_reference": format_region_reference(target_region, include_code=True),
             "population_before": population_before,

@@ -1,3 +1,4 @@
+from copy import deepcopy
 import unittest
 from unittest.mock import patch
 
@@ -16,9 +17,15 @@ from src.actions import (
 )
 from src.heartland import (
     CORE_INTEGRATION_SCORE,
+    REBEL_CONFLICT_CIVIL_WAR,
+    REBEL_CONFLICT_SECESSION,
     apply_unrest_secession,
     estimate_region_population,
     faction_has_ethnic_claim,
+    get_regime_agitation_sponsor_factor,
+    get_regime_agitation_sponsor_mode,
+    get_region_external_regime_agitation_modifier,
+    get_region_external_regime_agitators,
     get_faction_ethnic_claims,
     get_region_dominant_ethnicity,
     get_region_ethnic_claimants,
@@ -68,6 +75,30 @@ class HeartlandSystemTests(unittest.TestCase):
             if crisis_turn < UNREST_SECESSION_CRISIS_TURNS - 1:
                 region.unrest = 9.5
 
+        return region.owner, region
+
+    def _spawn_civil_war_from_region(self, world, faction_name, region_name="M"):
+        region = world.regions[region_name]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "core"
+        region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+        region.homeland_faction_id = None
+        if region.population <= 0:
+            region.population = estimate_region_population(
+                region.resources,
+                len(region.neighbors),
+                owner=faction_name,
+            )
+        seed_region_ethnicity(
+            region,
+            world.factions[faction_name].primary_ethnicity,
+        )
+        region.unrest = 9.5
+        region.unrest_event_level = "crisis"
+        region.secession_cooldown_turns = 0
+
+        apply_unrest_secession(world, region)
         return region.owner, region
 
     def test_world_initializes_homeland_and_core_regions(self):
@@ -306,6 +337,320 @@ class HeartlandSystemTests(unittest.TestCase):
             get_region_unrest_pressure(no_claim_region, no_claim_world),
         )
 
+    def test_same_ethnicity_regime_rivalry_adds_unrest_to_shared_core_region(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        owner = world.factions[faction_name]
+        claimant_name = f"{faction_name} Claimant"
+        world.factions[claimant_name] = type(owner)(
+            name=claimant_name,
+            treasury=1,
+            identity=owner.identity.__class__(
+                internal_id="Faction99",
+                culture_name=owner.culture_name,
+                polity_tier=owner.polity_tier,
+                government_form="assembly" if owner.government_form != "assembly" else "council",
+            ),
+            primary_ethnicity=owner.primary_ethnicity,
+            is_rebel=True,
+            origin_faction=faction_name,
+            rebel_conflict_type="civil_war",
+            proto_state=False,
+        )
+
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "core"
+        region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+        region.population = 100
+        region.ethnic_composition = {owner.primary_ethnicity: 100}
+        region.climate = owner.doctrine_state.homeland_climate
+        rival_region = world.regions["B"]
+        rival_region.owner = claimant_name
+        rival_region.integrated_owner = claimant_name
+        rival_region.core_status = "core"
+        rival_region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+        rival_region.population = 100
+        rival_region.ethnic_composition = {owner.primary_ethnicity: 100}
+
+        baseline_world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        baseline_faction = next(iter(baseline_world.factions))
+        baseline_region = baseline_world.regions["M"]
+        baseline_owner = baseline_world.factions[baseline_faction]
+        baseline_region.owner = baseline_faction
+        baseline_region.integrated_owner = baseline_faction
+        baseline_region.core_status = "core"
+        baseline_region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+        baseline_region.population = 100
+        baseline_region.ethnic_composition = {baseline_owner.primary_ethnicity: 100}
+        baseline_region.climate = baseline_owner.doctrine_state.homeland_climate
+
+        self.assertGreater(
+            get_region_unrest_pressure(region, world),
+            get_region_unrest_pressure(baseline_region, baseline_world),
+        )
+
+    def test_adjacent_rival_regime_can_agitate_same_people_border_region(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        owner = world.factions[faction_name]
+        claimant_name = f"{faction_name} Claimant"
+        world.factions[claimant_name] = type(owner)(
+            name=claimant_name,
+            treasury=1,
+            identity=owner.identity.__class__(
+                internal_id="Faction98",
+                culture_name=owner.culture_name,
+                polity_tier=owner.polity_tier,
+                government_form="assembly" if owner.government_form != "assembly" else "council",
+            ),
+            primary_ethnicity=owner.primary_ethnicity,
+            is_rebel=True,
+            origin_faction=faction_name,
+            rebel_conflict_type="civil_war",
+            proto_state=False,
+        )
+
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "core"
+        region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+        region.population = 100
+        region.ethnic_composition = {owner.primary_ethnicity: 100}
+        region.climate = owner.doctrine_state.homeland_climate
+
+        neighbor_name = region.neighbors[0]
+        neighbor_region = world.regions[neighbor_name]
+        neighbor_region.owner = claimant_name
+        neighbor_region.integrated_owner = claimant_name
+        neighbor_region.core_status = "core"
+        neighbor_region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+        neighbor_region.population = 100
+        neighbor_region.ethnic_composition = {owner.primary_ethnicity: 100}
+
+        self.assertIn(claimant_name, get_region_external_regime_agitators(region, world))
+        self.assertGreater(get_region_external_regime_agitation_modifier(region, world), 0.0)
+
+    def test_stronger_warlike_sponsor_agitates_more_than_weak_insular_one(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        owner = world.factions[faction_name]
+        strong_name = f"{faction_name} Strong Claimant"
+        weak_name = f"{faction_name} Weak Split"
+
+        strong_faction = type(owner)(
+            name=strong_name,
+            treasury=8,
+            identity=owner.identity.__class__(
+                internal_id="Faction96",
+                culture_name=owner.culture_name,
+                polity_tier="state",
+                government_form="monarchy",
+            ),
+            primary_ethnicity=owner.primary_ethnicity,
+            is_rebel=True,
+            origin_faction=faction_name,
+            rebel_conflict_type="civil_war",
+            proto_state=False,
+            doctrine_profile=deepcopy(owner.doctrine_profile),
+        )
+        strong_faction.doctrine_profile.war_posture = 0.9
+        strong_faction.doctrine_profile.insularity = 0.1
+
+        weak_faction = type(owner)(
+            name=weak_name,
+            treasury=0,
+            identity=owner.identity.__class__(
+                internal_id="Faction95",
+                culture_name=owner.culture_name,
+                polity_tier="state",
+                government_form="republic",
+            ),
+            primary_ethnicity=owner.primary_ethnicity,
+            doctrine_profile=deepcopy(owner.doctrine_profile),
+        )
+        weak_faction.doctrine_profile.war_posture = 0.2
+        weak_faction.doctrine_profile.insularity = 0.9
+
+        world.factions[strong_name] = strong_faction
+        world.factions[weak_name] = weak_faction
+
+        self.assertGreater(
+            get_regime_agitation_sponsor_factor(world, strong_name),
+            get_regime_agitation_sponsor_factor(world, weak_name),
+        )
+        self.assertEqual(
+            get_regime_agitation_sponsor_mode(world, strong_name, owner_name=faction_name),
+            "heavy",
+        )
+        self.assertEqual(
+            get_regime_agitation_sponsor_mode(world, weak_name, owner_name=faction_name),
+            "none",
+        )
+
+    def test_monarchy_escalates_agitation_more_readily_than_assembly(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        owner = world.factions[faction_name]
+        monarchy_name = f"{faction_name} Monarchy Claimant"
+        assembly_name = f"{faction_name} Assembly Claimant"
+
+        monarchy_faction = type(owner)(
+            name=monarchy_name,
+            treasury=1,
+            identity=owner.identity.__class__(
+                internal_id="Faction93",
+                culture_name=owner.culture_name,
+                polity_tier="state",
+                government_form="monarchy",
+            ),
+            primary_ethnicity=owner.primary_ethnicity,
+            is_rebel=True,
+            origin_faction=faction_name,
+            rebel_conflict_type="civil_war",
+            proto_state=False,
+            doctrine_profile=deepcopy(owner.doctrine_profile),
+        )
+        monarchy_faction.doctrine_profile.war_posture = 0.6
+        monarchy_faction.doctrine_profile.insularity = 0.5
+
+        assembly_faction = type(owner)(
+            name=assembly_name,
+            treasury=1,
+            identity=owner.identity.__class__(
+                internal_id="Faction92",
+                culture_name=owner.culture_name,
+                polity_tier="state",
+                government_form="assembly",
+            ),
+            primary_ethnicity=owner.primary_ethnicity,
+            is_rebel=True,
+            origin_faction=faction_name,
+            rebel_conflict_type="civil_war",
+            proto_state=False,
+            doctrine_profile=deepcopy(owner.doctrine_profile),
+        )
+        assembly_faction.doctrine_profile.war_posture = 0.6
+        assembly_faction.doctrine_profile.insularity = 0.5
+
+        world.factions[monarchy_name] = monarchy_faction
+        world.factions[assembly_name] = assembly_faction
+
+        self.assertEqual(
+            get_regime_agitation_sponsor_mode(world, monarchy_name, owner_name=faction_name),
+            "heavy",
+        )
+        self.assertEqual(
+            get_regime_agitation_sponsor_mode(world, assembly_name, owner_name=faction_name),
+            "none",
+        )
+
+    def test_regime_agitation_emits_event_when_unrest_breaks_out(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        owner = world.factions[faction_name]
+        claimant_name = f"{faction_name} Claimant"
+        world.factions[claimant_name] = type(owner)(
+            name=claimant_name,
+            treasury=1,
+            identity=owner.identity.__class__(
+                internal_id="Faction97",
+                culture_name=owner.culture_name,
+                polity_tier="state",
+                government_form="monarchy",
+            ),
+            primary_ethnicity=owner.primary_ethnicity,
+            is_rebel=True,
+            origin_faction=faction_name,
+            rebel_conflict_type="civil_war",
+            proto_state=False,
+        )
+
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "core"
+        region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+        region.population = 100
+        region.ethnic_composition = {owner.primary_ethnicity: 100}
+        region.unrest = 8.5
+
+        neighbor_region = world.regions[region.neighbors[0]]
+        neighbor_region.owner = claimant_name
+        neighbor_region.integrated_owner = claimant_name
+        neighbor_region.core_status = "core"
+        neighbor_region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+        neighbor_region.population = 100
+        neighbor_region.ethnic_composition = {owner.primary_ethnicity: 100}
+
+        resolve_unrest_events(world)
+
+        agitation_events = [event for event in world.events if event.type == "regime_agitation"]
+        self.assertTrue(agitation_events)
+        self.assertIn(claimant_name, agitation_events[-1].details["sponsors"])
+        self.assertIn(claimant_name, agitation_events[-1].details["claimant_sponsors"])
+        self.assertEqual(agitation_events[-1].details["lead_sponsor_mode"], "heavy")
+
+    def test_regime_agitation_costs_sponsor_treasury_and_homefront_stability(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        owner = world.factions[faction_name]
+        claimant_name = f"{faction_name} Claimant"
+        world.factions[claimant_name] = type(owner)(
+            name=claimant_name,
+            treasury=4,
+            identity=owner.identity.__class__(
+                internal_id="Faction94",
+                culture_name=owner.culture_name,
+                polity_tier="state",
+                government_form="monarchy",
+            ),
+            primary_ethnicity=owner.primary_ethnicity,
+            is_rebel=True,
+            origin_faction=faction_name,
+            rebel_conflict_type="civil_war",
+            proto_state=False,
+            doctrine_profile=deepcopy(owner.doctrine_profile),
+        )
+        world.factions[claimant_name].doctrine_profile.war_posture = 0.9
+        world.factions[claimant_name].doctrine_profile.insularity = 0.1
+
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "core"
+        region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+        region.population = 100
+        region.ethnic_composition = {owner.primary_ethnicity: 100}
+        region.unrest = 8.5
+
+        neighbor_region = world.regions[region.neighbors[0]]
+        neighbor_region.owner = claimant_name
+        neighbor_region.integrated_owner = claimant_name
+        neighbor_region.core_status = "core"
+        neighbor_region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+        neighbor_region.population = 100
+        neighbor_region.ethnic_composition = {owner.primary_ethnicity: 100}
+        home_region = next(
+            owned_region
+            for owned_region in world.regions.values()
+            if owned_region.owner == claimant_name
+        )
+        home_unrest_before = home_region.unrest
+        treasury_before = world.factions[claimant_name].treasury
+
+        resolve_unrest_events(world)
+
+        agitation_event = next(event for event in world.events if event.type == "regime_agitation")
+        sponsor_cost = agitation_event.details["sponsor_costs"][claimant_name]
+        self.assertLess(world.factions[claimant_name].treasury, treasury_before)
+        self.assertGreater(sponsor_cost["treasury_cost"], 0)
+        self.assertIsNotNone(sponsor_cost["backlash_region"])
+        self.assertGreater(sponsor_cost["backlash_unrest"], 0.0)
+        self.assertGreater(world.regions[sponsor_cost["backlash_region"]].unrest, home_unrest_before)
+
     def test_expansion_transfers_population_from_adjacent_owned_region(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
@@ -508,11 +853,29 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertEqual(region.unrest_crisis_streak, 0)
         self.assertEqual(world.events[-1].type, "unrest_secession")
         self.assertEqual(world.events[-1].details["rebel_faction"], rebel_name)
+        self.assertEqual(world.factions[rebel_name].rebel_conflict_type, REBEL_CONFLICT_SECESSION)
+        self.assertEqual(world.events[-1].details["conflict_type"], REBEL_CONFLICT_SECESSION)
         self.assertEqual(rebel_faction.doctrine_state.homeland_region, region.name)
         self.assertEqual(
             rebel_faction.doctrine_state.homeland_climate,
             region.climate,
         )
+
+    def test_core_same_ethnicity_revolt_becomes_civil_war_claimant(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        parent_faction = world.factions[faction_name]
+
+        rebel_name, region = self._spawn_civil_war_from_region(world, faction_name)
+
+        self.assertNotEqual(rebel_name, faction_name)
+        self.assertEqual(region.owner, rebel_name)
+        self.assertEqual(world.factions[rebel_name].rebel_conflict_type, REBEL_CONFLICT_CIVIL_WAR)
+        self.assertEqual(world.factions[rebel_name].primary_ethnicity, parent_faction.primary_ethnicity)
+        self.assertEqual(world.factions[rebel_name].culture_name, parent_faction.culture_name)
+        self.assertTrue(world.events[-1].details["civil_war"])
+        self.assertEqual(world.events[-1].details["conflict_type"], REBEL_CONFLICT_CIVIL_WAR)
+        self.assertIn("civil_war", world.events[-1].tags)
 
     def test_extinct_ethnicity_can_restore_original_faction_via_rebellion(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
@@ -624,6 +987,48 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertTrue(world.events[-1].details["joined_existing_rebellion"])
         self.assertEqual(world.events[-1].details["rebel_faction"], rebel_name)
 
+    def test_adjacent_civil_war_regions_join_same_claimant(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        seed_region = world.regions["M"]
+        join_region = world.regions[seed_region.neighbors[0]]
+
+        for region in (seed_region, join_region):
+            region.owner = faction_name
+            region.integrated_owner = faction_name
+            region.core_status = "core"
+            region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+            region.homeland_faction_id = None
+            region.population = estimate_region_population(
+                region.resources,
+                len(region.neighbors),
+                owner=faction_name,
+            )
+            seed_region_ethnicity(region, world.factions[faction_name].primary_ethnicity)
+            region.secession_cooldown_turns = 0
+
+        seed_region.unrest = 9.5
+        seed_region.unrest_event_level = "crisis"
+        join_region.unrest = 1.0
+        join_region.unrest_event_level = "none"
+
+        faction_count_after_first = len(world.factions) + 1
+        apply_unrest_secession(world, seed_region)
+        rebel_name = seed_region.owner
+        self.assertEqual(world.factions[rebel_name].rebel_conflict_type, REBEL_CONFLICT_CIVIL_WAR)
+
+        join_region.unrest = 9.5
+        join_region.unrest_event_level = "crisis"
+        join_region.secession_cooldown_turns = 0
+
+        apply_unrest_secession(world, join_region)
+
+        self.assertEqual(join_region.owner, rebel_name)
+        self.assertEqual(len(world.factions), faction_count_after_first)
+        self.assertTrue(world.events[-1].details["joined_existing_rebellion"])
+        self.assertEqual(world.events[-1].details["rebel_faction"], rebel_name)
+        self.assertEqual(world.events[-1].details["conflict_type"], REBEL_CONFLICT_CIVIL_WAR)
+
     def test_origin_faction_gets_decay_reclaim_bonus_against_proto_rebels(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
@@ -654,6 +1059,7 @@ class HeartlandSystemTests(unittest.TestCase):
         update_rebel_faction_status(world)
         self.assertEqual(world.events[-1].type, "rebel_independence")
         self.assertEqual(world.events[-1].faction, rebel_name)
+        self.assertEqual(world.events[-1].details["conflict_type"], REBEL_CONFLICT_SECESSION)
         self.assertFalse(rebel_faction.proto_state)
         self.assertEqual(rebel_faction.polity_tier, "state")
         self.assertEqual(rebel_faction.government_form, "council")
@@ -676,6 +1082,29 @@ class HeartlandSystemTests(unittest.TestCase):
             rebel_faction.treasury,
             treasury_before + REBEL_INDEPENDENCE_TREASURY_BONUS,
         )
+
+    def test_proto_civil_war_matures_into_rival_regime_without_new_ethnicity(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        parent_faction = world.factions[faction_name]
+        rebel_name, _region = self._spawn_civil_war_from_region(world, faction_name)
+        rebel_faction = world.factions[rebel_name]
+        ethnicity_count_before = len(world.ethnicities)
+
+        rebel_faction.independence_score = REBEL_FULL_INDEPENDENCE_THRESHOLD - 0.2
+
+        update_rebel_faction_status(world)
+
+        self.assertEqual(world.events[-1].type, "rebel_independence")
+        self.assertEqual(world.events[-1].details["conflict_type"], REBEL_CONFLICT_CIVIL_WAR)
+        self.assertTrue(world.events[-1].details["civil_war"])
+        self.assertFalse(rebel_faction.proto_state)
+        self.assertEqual(rebel_faction.primary_ethnicity, parent_faction.primary_ethnicity)
+        self.assertEqual(len(world.ethnicities), ethnicity_count_before)
+        self.assertIsNone(world.events[-1].details["successor_ethnicity"])
+        self.assertEqual(rebel_faction.culture_name, parent_faction.culture_name)
+        self.assertNotEqual(rebel_faction.display_name, parent_faction.display_name)
+        self.assertIn(parent_faction.culture_name, rebel_faction.display_name)
 
     def test_proto_rebel_uses_less_concentrated_treasury_than_mature_successor(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
@@ -802,11 +1231,14 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertIn("owner_primary_ethnicity", snapshots[0]["regions"]["A"])
         self.assertIn("ethnic_claimants", snapshots[0]["regions"]["A"])
         self.assertIn("owner_has_ethnic_claim", snapshots[0]["regions"]["A"])
+        self.assertIn("external_regime_agitators", snapshots[0]["regions"]["A"])
+        self.assertIn("external_regime_agitation", snapshots[0]["regions"]["A"])
 
         view_model = build_simulation_view_model(world)
         self.assertIn("population", view_model["regions"][0])
         self.assertIn("ruling_ethnic_affinity", view_model["regions"][0])
         self.assertIn("ethnic_claimants", view_model["regions"][0])
+        self.assertIn("external_regime_agitators", view_model["regions"][0])
         self.assertIn("ethnic_claims", view_model["factions"][0])
 
 

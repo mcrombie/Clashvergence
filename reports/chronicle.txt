@@ -1,81 +1,93 @@
 Simulation Chronicle
 
-On turn 2, Saklian Tribe made its first expansion into I2.
 On turn 2, Aruangos Tribe made its first expansion into M3.
-On turn 2, Rnutuan Tribe made its first expansion into M6.
 On turn 2, Yunavaun Tribe made its first expansion into M9.
-On turn 7, Aruangos Tribe seized O6, a frontier foothold that mattered because it opened new directions for future expansion.
-On turn 10, Saklian Tribe seized I8, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes.
-On turn 13, Aruangos Tribe seized O4, a frontier foothold that mattered because it opened new directions for future expansion.
-On turn 15, Saklian Reach Rebels made its first expansion into I1.
-On turn 21, Yunavaun Cape Rebels made its first expansion into O13.
-On turn 21, Rnutuan Tribe seized O5, a consolidating gain that mattered because it secured nearby territory and tightened the faction's position.
+On turn 2, Saklian Tribe made its first expansion into M12.
+On turn 2, Rnutuan Tribe made its first expansion into M6.
+On turn 7, Aruangos Tribe seized C, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into O4.
+On turn 7, Yunavaun Tribe seized O12, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into I8.
+On turn 17, Saklian Field Rebels made its first expansion into O3.
+On turn 17, Aruangos Wash Rebels made its first expansion into I5.
+On turn 17, Yunavaun Tribe seized O11, a consolidating gain that mattered because it secured nearby territory and tightened the faction's position.
 
 Opening Phase
 
 The strongest early land grab was Rnutuan Chiefdom's claim of M5 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Saklian Chiefdom, Aruangos Chiefdom, Rnutuan Chiefdom, and Yunavaun Chiefdom led expansion with 2 claim(s).
-Across the first 5 turns, Saklian Chiefdom, Aruangos Chiefdom, Rnutuan Chiefdom, and Yunavaun Chiefdom invested most often with 2 investment(s).
-By the end of turn 5, Saklian Chiefdom and Yunavaun Chiefdom held the opening treasury lead at 4.
+In the first 3 turns, Saklian State, Aruangos Chiefdom, Rnutuan Chiefdom, and Yunavaun Chiefdom led expansion with 2 claim(s).
+Across the first 5 turns, Saklian State, Aruangos Chiefdom, Rnutuan Chiefdom, and Yunavaun Chiefdom invested most often with 2 investment(s).
+By the end of turn 5, Saklian State and Rnutuan Chiefdom held the opening treasury lead at 1.
 
 Phase Summaries
 
-Early phase: Yunavaun Cape Rebels was strongest by the end of turns 1-33, with Yunavaun Cape Rebels on 44 treasury and 9 regions. 55 successful attacks shifted control of 23 regions. 33 expansions added 33 new regions. 50 investments improved existing holdings. Yunavaun Cape Rebels gained 9 regions.
-Mid phase: Yunavaun Cape Rebels was strongest by the end of turns 34-66, with Yunavaun Cape Rebels on 222 treasury and 11 regions. 136 successful attacks shifted control of 28 regions. 7 investments improved existing holdings. Rnutuanian March Rebels gained 7 regions while Rnutuan Tribe lost 7 regions. Yunavaun Tribe improved its standing most during the phase.
-Late phase: Rnutuanian March Rebels was strongest by the end of turns 67-100, with Rnutuanian March Rebels on 200 treasury and 9 regions. 45 successful attacks shifted control of 25 regions. 7 investments improved existing holdings. Yunavaun Cape Rebels gained 16 regions while Rnutuan Hollow Rebels 2 lost 7 regions. Rnutuan Crown Rebels improved its standing most during the phase.
+Early phase: Yunavaun Names Rebels was strongest by the end of turns 1-33, with Yunavaun Names Rebels on 32 treasury and 3 regions. 76 successful attacks shifted control of 24 regions. 33 expansions added 33 new regions. 49 investments improved existing holdings. Saklian Tribe gained 8 regions. Yunavaun Names Rebels improved its standing most during the phase.
+Mid phase: Saklian Tribe was strongest by the end of turns 34-66, with Saklian Tribe on 155 treasury and 18 regions. 117 successful attacks shifted control of 30 regions. 11 investments improved existing holdings. Saklian Tribe gained 9 regions while Aruangos Wash Rebels lost 6 regions.
+Late phase: Saklian Tribe was strongest by the end of turns 67-100, with Saklian Tribe on 381 treasury and 17 regions. 66 successful attacks shifted control of 22 regions. 22 investments improved existing holdings. Veneplain Rebels gained 8 regions while Rnutuan Gate Rebels lost 4 regions.
 
 Turning Points
 
-Mid economic shift: Rnutuanian March Rebels created a treasury edge that became central to the finish.
-Late economic shift: Rnutuanian March Rebels created a treasury edge that became central to the finish.
+Mid phase break: Saklian Tribe gained 9 regions while Aruangos Wash Rebels lost 6 regions.
+Early collapse: Saklian Tribe's capture of I2 eliminated Saklian Field Rebels's last territorial hold.
 
 Outcome Type
 
-Outcome type: economic_win.
+Outcome type: midgame_break.
 
 Faction Trajectories
 
-Saklian Chiefdom opened with 18 attack attempts and contested neighboring borders immediately, peaked at 7 regions on turn 68 before slipping to 0 regions, and closed on 37 treasury without territory after 70 attacks.
-Aruangos Chiefdom opened with 12 attack attempts and contested neighboring borders immediately, peaked at 6 regions on turn 10 before slipping to 0 regions, and closed on -8 treasury without territory after 12 attacks.
-Rnutuan Chiefdom opened with 7 claims and grew to 7 regions by the end of the opening phase, peaked at 8 regions on turn 34 before slipping to 0 regions, and closed on 0 treasury without territory after 28 attacks.
-Yunavaun Chiefdom opened with 8 claims and grew to 6 regions by the end of the opening phase, peaked at 11 regions on turn 18 before slipping to 0 regions, and closed on 52 treasury without territory after 53 attacks.
-Hakiaiad opened with 3 claims and grew to 3 regions by the end of the opening phase, peaked at 6 regions on turn 21 before slipping to 0 regions, and closed on 1 treasury without territory after 38 attacks.
-Rnutuan Hollow Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Aruangos Wash Rebels struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Liniunarri opened with 2 claims and grew to 8 regions by the end of the opening phase, built steadily past the opening, reaching 27 regions by turn 100, and finished rank 3 on 43 treasury with 27 regions after gaining 42 treasury overall.
-Ardaeequvar opened with 7 attack attempts and contested neighboring borders immediately, peaked at 4 regions on turn 24 before slipping to 0 regions, and closed on 5 treasury without territory after 9 attacks.
-Durevaraclen opened with 1 claim and grew to 4 regions by the end of the opening phase, peaked at 6 regions on turn 37 before slipping to 0 regions, and closed on 3 treasury without territory after 16 attacks.
-Haneerian opened with 19 attack attempts and contested neighboring borders immediately, peaked at 9 regions on turn 67 before slipping to 1 region, and finished rank 14 on -6 treasury with 1 region.
+Saklian State opened with 8 claims and grew to 9 regions by the end of the opening phase, peaked at 20 regions on turn 74 before slipping to 17 regions, and finished first with 17 regions, 381 treasury, and 73 total attacks.
+Aruangos Chiefdom opened with 7 claims and grew to 3 regions by the end of the opening phase, peaked at 8 regions on turn 14 before slipping to 2 regions, and finished rank 2 on 13 treasury with 2 regions after gaining 8 treasury overall.
+Rnutuan Chiefdom opened with 8 claims and grew to 5 regions by the end of the opening phase, peaked at 8 regions on turn 14 before slipping to 0 regions, and closed on -1 treasury without territory after 34 attacks.
+Yunavaun Chiefdom opened with 8 claims and grew to 5 regions by the end of the opening phase, peaked at 8 regions on turn 14 before slipping to 0 regions, and closed on -8 treasury without territory after 48 attacks.
+Saklian Monarchy opened with 5 attack attempts and contested neighboring borders immediately, peaked at 7 regions on turn 23 before slipping to 0 regions, and closed on 1 treasury without territory after 5 attacks.
+Rnutuan Monarchy opened with 25 attack attempts and contested neighboring borders immediately, peaked at 13 regions on turn 81 before slipping to 5 regions, and finished rank 3 on 9 treasury with 5 regions after gaining 8 treasury overall.
+Aruangos Monarchy opened with 1 claim and grew to 3 regions by the end of the opening phase, peaked at 6 regions on turn 39 before slipping to 0 regions, and closed on -1 treasury without territory after 44 attacks.
+Yunavaun Monarchy opened with 25 attack attempts and contested neighboring borders immediately, lost ground mid-game, falling from 5 regions to 3 regions, and finished rank 6 on 4 treasury with 5 regions after gaining 3 treasury overall.
+Yunavaun Monarchy opened with 22 attack attempts and contested neighboring borders immediately, peaked at 6 regions on turn 26 before slipping to 0 regions, and closed on 1 treasury without territory after 29 attacks.
 Aruangos Crown Rebels struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Careharaclen opened with 18 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 9 regions by turn 100, and finished first with 9 regions, 200 treasury, and 54 total attacks.
-Rmiaaxent opened with 20 attack attempts and contested neighboring borders immediately, peaked at 4 regions on turn 47 before slipping to 0 regions, and closed on 7 treasury without territory after 22 attacks.
-Veneplain Rebels spent the opening consolidating its start with 1 investment, peaked at 2 regions on turn 69 before slipping to 0 regions, and closed on 1 treasury without territory after 0 attacks.
+Rnutuan Crown Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 3 treasury without territory after 1 attacks.
+Aruangosian Hollow Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
+Arsaev opened with 14 attack attempts and contested neighboring borders immediately, peaked at 5 regions on turn 40 before slipping to 0 regions, and closed on 6 treasury without territory after 14 attacks.
+Yunavaun Ford Rebels opened with 3 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and closed on 4 treasury without territory after 3 attacks.
+Rnutuan Crown Rebels 2 struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
+Akhaxash opened with 5 attack attempts and contested neighboring borders immediately, peaked at 3 regions on turn 58 before slipping to 0 regions, and closed on -4 treasury without territory after 5 attacks.
+Rnutuan Ford Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 9 treasury without territory after 1 attacks.
+Yunavaun Names Rebels 2 struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
+Chkhtan opened with 3 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 8 regions by turn 100, and finished rank 10 on 3 treasury with 8 regions after gaining 2 treasury overall.
+Aruangos Ford Rebels 2 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 4 treasury without territory after 0 attacks.
+Saklian Hollow Rebels 2 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 0 treasury without territory after 1 attacks.
 
 Strategic Interpretation
 
-Careharaclen’s adaptive forest plains approach won because the result was decided by treasury rather than territory, and the 148-resource margin outweighed the fact that the board was still highly contested. Midgame and late economic shifts created the decisive resource edge, which meant larger regional swings by Liniunarri and others did not convert into a winning finish because they could not match the income gap. Liniunarri’s expansionist push mattered early and late because it produced region leads, but those gains were not enough to overcome the treasury separation that ultimately settled the map.
-The closest challenger was Yunavaun Chiefdom (Adaptive Forest) at 52 treasury and 0 regions.
-Yunavaun Chiefdom remained locked in a claim dispute with Liniunarri over 2 regions dominated by Yunavaun communities.
-Careharaclen treated Liniunarri as a peer-state rival, with both polities reading each other as serious strategic threats.
+Saklian State’s adaptive coastal forest approach mattered because the map was still contested early, but the midgame break created separation that the others could not reverse. Its 9-region surge while Aruangos lost 6 regions, plus the elimination of Saklian Field Rebels’ last hold, removed nearby resistance and let Saklian convert momentum into a 15-region lead. Yunavaun’s early strength and later gains by Chkhtan did not matter because they never matched the scale or timing of Saklian’s mid-phase swing, so the board shifted from parity to a sustained advantage.
+The closest challenger was Aruangos Chiefdom (Adaptive Forest) at 13 treasury and 2 regions.
+Saklian State remained locked in a claim dispute with Yunavaun Monarchy over 1 region dominated by Saklian communities.
+Saklian State treated Yunavaun Names Rebels 2 as a peer-state rival, with both polities reading each other as serious strategic threats.
+Saklian State remained locked in a legitimacy struggle with Saklian Monarchy, with both regimes claiming to speak for the same people.
 
 Final Standings
 
-Careharaclen finished first with a treasury of 200 and control of 9 regions.
-Yunavaun Chiefdom ended with a treasury of 52 and 0 regions.
-Liniunarri ended with a treasury of 43 and 27 regions.
-Saklian Chiefdom ended with a treasury of 37 and 0 regions.
-Rmiaaxent ended with a treasury of 7 and 0 regions.
-Ardaeequvar ended with a treasury of 5 and 0 regions.
-Durevaraclen ended with a treasury of 3 and 0 regions.
-Hakiaiad ended with a treasury of 1 and 0 regions.
-Rnutuan Hollow Rebels ended with a treasury of 1 and 0 regions.
-Aruangos Wash Rebels ended with a treasury of 1 and 0 regions.
+Saklian State finished first with a treasury of 381 and control of 17 regions.
+Aruangos Chiefdom ended with a treasury of 13 and 2 regions.
+Rnutuan Monarchy ended with a treasury of 9 and 5 regions.
+Rnutuan Ford Rebels ended with a treasury of 9 and 0 regions.
+Arsaev ended with a treasury of 6 and 0 regions.
+Yunavaun Monarchy ended with a treasury of 4 and 5 regions.
+Yunavaun Ford Rebels ended with a treasury of 4 and 0 regions.
+Aruangos Ford Rebels 2 ended with a treasury of 4 and 0 regions.
+Rnutuan Crown Rebels ended with a treasury of 3 and 0 regions.
+Chkhtan ended with a treasury of 3 and 8 regions.
+Saklian Monarchy ended with a treasury of 1 and 0 regions.
+Yunavaun Monarchy ended with a treasury of 1 and 0 regions.
 Aruangos Crown Rebels ended with a treasury of 1 and 0 regions.
-Veneplain Rebels ended with a treasury of 1 and 0 regions.
-Rnutuan Chiefdom ended with a treasury of 0 and 0 regions.
-Haneerian ended with a treasury of -6 and 1 region.
-Aruangos Chiefdom ended with a treasury of -8 and 0 regions.
+Aruangosian Hollow Rebels ended with a treasury of 1 and 0 regions.
+Rnutuan Crown Rebels 2 ended with a treasury of 1 and 0 regions.
+Yunavaun Names Rebels 2 ended with a treasury of 1 and 0 regions.
+Saklian Hollow Rebels 2 ended with a treasury of 0 and 0 regions.
+Rnutuan Chiefdom ended with a treasury of -1 and 0 regions.
+Aruangos Monarchy ended with a treasury of -1 and 0 regions.
+Akhaxash ended with a treasury of -4 and 0 regions.
+Yunavaun Chiefdom ended with a treasury of -8 and 0 regions.
 
 Victor's History
 
-Careharaclen’s victory was not a matter of spectacle but of conversion: its Adaptive Forest Plains approach turned steady pressure and superior economic use into the decisive margin. It opened with 18 attack attempts, contested neighboring borders immediately, and then built with enough discipline to finish the contest first on 9 regions and 200 treasury. Others rose and fell in bursts—Liniunarri strongest in the early and mid phases, then Careharaclen strongest late—but the final balance favored the faction that kept its effort coherent across the full 100 turns. The runner-up’s 53 attacks ended with no territory, while Careharaclen’s steadier course proved the more durable form of strength.
+The Saklian State’s victory was not accidental but the result of a coherent Adaptive Coastal Forest approach that produced the decisive middle-phase break. It opened with 8 claims, expanded to 9 regions by the end of the opening phase, and then added 9 more regions in the mid phase while Aruangos Monarchy lost 6, establishing the separation that the rest of the contest never closed. Even after peaking at 20 regions on turn 74 and settling at 17, Saklian still finished first with 381 treasury and 73 total attacks, a record of sustained pressure and disciplined follow-through. By contrast, the runner-up Aruangos Chiefdom briefly rose to 8 regions before slipping back to 2, a trajectory that shows how much more durable Saklian’s judgment proved to be.

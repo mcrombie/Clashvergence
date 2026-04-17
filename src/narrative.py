@@ -1885,6 +1885,53 @@ def get_polity_tension_sentence(world, faction_name: str) -> str | None:
     return None
 
 
+def get_regime_tension_sentence(world, faction_name: str) -> str | None:
+    summary = get_faction_diplomacy_summary(world, faction_name)
+    counterpart = summary.get("top_regime_tension")
+    if counterpart is None:
+        return None
+
+    reason = summary.get("top_regime_tension_reason")
+    faction_display = get_faction_display_name(world, faction_name)
+    counterpart_display = get_faction_display_name(world, counterpart)
+    if reason == "civil_war_legitimacy":
+        return (
+            f"{faction_display} remained locked in a legitimacy struggle with {counterpart_display}, "
+            f"with both regimes claiming to speak for the same people."
+        )
+    if reason == "regime_difference":
+        return (
+            f"{faction_display} and {counterpart_display} drew extra tension from rival forms of rule inside the same broader ethnicity."
+        )
+    return None
+
+
+def get_regime_accommodation_sentence(world, faction_name: str) -> str | None:
+    summary = get_faction_diplomacy_summary(world, faction_name)
+    counterpart = summary.get("top_regime_accommodation")
+    if counterpart is None:
+        return None
+
+    reason = summary.get("top_regime_accommodation_reason")
+    faction_display = get_faction_display_name(world, faction_name)
+    counterpart_display = get_faction_display_name(world, counterpart)
+    if reason == "same_people_accord":
+        return (
+            f"{faction_display} and {counterpart_display} kept a same-people accord alive, "
+            f"using calmer shared institutions to stop rivalry from hardening too quickly."
+        )
+    if reason == "legitimacy_accommodation":
+        return (
+            f"Even amid a legitimacy struggle, {faction_display} and {counterpart_display} still left some room for negotiation through calmer political channels."
+        )
+    if reason == "diplomatic_restraint":
+        return (
+            f"{faction_display} relied on diplomatic restraint in dealing with {counterpart_display}, "
+            f"keeping a same-people rivalry inside political bounds longer than harsher regimes would."
+        )
+    return None
+
+
 def build_victor_history_summary(world, phase_analyses, standings, outcome_type):
     """Builds the compact structured payload sent to the victor-history layer."""
     winner = standings[0]["faction"]
@@ -1998,6 +2045,26 @@ def summarize_strategic_interpretation(world):
         )
         if polity_tension_line is not None:
             lines.append(polity_tension_line)
+        regime_tension_line = (
+            get_regime_tension_sentence(world, winner)
+            or (
+                get_regime_tension_sentence(world, runner_up["faction"])
+                if runner_up is not None
+                else None
+            )
+        )
+        if regime_tension_line is not None:
+            lines.append(regime_tension_line)
+        regime_accommodation_line = (
+            get_regime_accommodation_sentence(world, winner)
+            or (
+                get_regime_accommodation_sentence(world, runner_up["faction"])
+                if runner_up is not None
+                else None
+            )
+        )
+        if regime_accommodation_line is not None:
+            lines.append(regime_accommodation_line)
         return lines
 
     lines = []
@@ -2066,6 +2133,28 @@ def summarize_strategic_interpretation(world):
     )
     if polity_tension_line is not None:
         lines.append(polity_tension_line)
+
+    regime_tension_line = (
+        get_regime_tension_sentence(world, winner)
+        or (
+            get_regime_tension_sentence(world, runner_up["faction"])
+            if runner_up is not None
+            else None
+        )
+    )
+    if regime_tension_line is not None:
+        lines.append(regime_tension_line)
+
+    regime_accommodation_line = (
+        get_regime_accommodation_sentence(world, winner)
+        or (
+            get_regime_accommodation_sentence(world, runner_up["faction"])
+            if runner_up is not None
+            else None
+        )
+    )
+    if regime_accommodation_line is not None:
+        lines.append(regime_accommodation_line)
 
     return lines
 
