@@ -14,6 +14,13 @@ from src.config import (
     CLIMATE_MAINTENANCE_MAX_FACTOR,
     CLIMATE_MAINTENANCE_MIN_FACTOR,
     CORE_INCOME_FACTOR,
+    ETHNIC_INTEGRATION_MIN_MULTIPLIER,
+    ETHNIC_UNREST_CALMING_EFFECT,
+    ETHNIC_UNREST_CALMING_THRESHOLD,
+    ETHNIC_UNREST_LOW_AFFINITY_PRESSURE,
+    ETHNIC_UNREST_NEUTRAL_THRESHOLD,
+    ETHNIC_UNREST_SEVERE_AFFINITY_PRESSURE,
+    ETHNIC_UNREST_SEVERE_THRESHOLD,
     FRONTIER_ATTACK_PROJECTION_PENALTY,
     FRONTIER_INCOME_FACTOR,
     FRONTIER_MAINTENANCE_SURCHARGE,
@@ -144,6 +151,59 @@ def get_region_dominant_ethnicity(region: Region) -> str | None:
         region.ethnic_composition.items(),
         key=lambda item: (item[1], item[0]),
     )[0]
+
+
+def get_region_owner_primary_ethnicity(region: Region, world: WorldState) -> str | None:
+    if region.owner is None or region.owner not in world.factions:
+        return None
+    return world.factions[region.owner].primary_ethnicity
+
+
+def get_region_ruling_ethnic_affinity(
+    region: Region,
+    world: WorldState,
+    faction_name: str | None = None,
+) -> float:
+    if region.population <= 0:
+        return 0.0
+
+    faction_name = faction_name or region.owner
+    if faction_name is None or faction_name not in world.factions:
+        return 0.0
+
+    primary_ethnicity = world.factions[faction_name].primary_ethnicity
+    if not primary_ethnicity:
+        return 0.0
+
+    return _clamp(
+        region.ethnic_composition.get(primary_ethnicity, 0) / max(1, region.population),
+        0.0,
+        1.0,
+    )
+
+
+def get_region_ethnic_integration_multiplier(region: Region, world: WorldState) -> float:
+    if region.owner is None or region.owner not in world.factions:
+        return 1.0
+    if region.homeland_faction_id == region.owner:
+        return 1.0
+    return ETHNIC_INTEGRATION_MIN_MULTIPLIER + get_region_ruling_ethnic_affinity(region, world)
+
+
+def get_region_ethnic_unrest_modifier(region: Region, world: WorldState) -> float:
+    if region.owner is None or region.owner not in world.factions:
+        return 0.0
+    if region.homeland_faction_id == region.owner:
+        return 0.0
+
+    affinity = get_region_ruling_ethnic_affinity(region, world)
+    if affinity >= ETHNIC_UNREST_CALMING_THRESHOLD:
+        return ETHNIC_UNREST_CALMING_EFFECT
+    if affinity >= ETHNIC_UNREST_NEUTRAL_THRESHOLD:
+        return 0.0
+    if affinity >= ETHNIC_UNREST_SEVERE_THRESHOLD:
+        return ETHNIC_UNREST_LOW_AFFINITY_PRESSURE
+    return ETHNIC_UNREST_SEVERE_AFFINITY_PRESSURE
 
 
 def change_region_population(region: Region, amount: int) -> int:
@@ -855,7 +915,15 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         else 0.0
     )
     frontier_burden = get_faction_frontier_burden(world, region.owner) * UNREST_FRONTIER_BURDEN_FACTOR
-    return climate_pressure + integration_pressure + frontier_pressure + frontier_burden - UNREST_DECAY_PER_TURN
+    ethnic_pressure = get_region_ethnic_unrest_modifier(region, world)
+    return (
+        climate_pressure
+        + integration_pressure
+        + frontier_pressure
+        + frontier_burden
+        + ethnic_pressure
+        - UNREST_DECAY_PER_TURN
+    )
 
 
 def resolve_unrest_events(world: WorldState) -> None:
@@ -990,10 +1058,12 @@ def update_region_integration(world: WorldState) -> None:
 
         if region.unrest_event_level != "crisis":
             climate_modifier = get_region_climate_integration_modifier(region, world)
+            ethnic_multiplier = get_region_ethnic_integration_multiplier(region, world)
             if region.integration_score < CORE_INTEGRATION_SCORE:
-                region.integration_score += PER_TURN_FRONTIER_GAIN + climate_modifier
+                base_gain = PER_TURN_FRONTIER_GAIN
             else:
-                region.integration_score += PER_TURN_CORE_GAIN + climate_modifier
+                base_gain = PER_TURN_CORE_GAIN
+            region.integration_score += max(0.0, (base_gain * ethnic_multiplier) + climate_modifier)
         region.core_status = get_region_core_status(region)
         set_region_unrest(region, region.unrest + get_region_unrest_pressure(region, world))
         owner_faction = world.factions.get(region.owner)
@@ -1039,6 +1109,8 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "population": region.population,
             "ethnic_composition": dict(region.ethnic_composition),
             "dominant_ethnicity": get_region_dominant_ethnicity(region),
+            "owner_primary_ethnicity": get_region_owner_primary_ethnicity(region, world),
+            "ruling_ethnic_affinity": round(get_region_ruling_ethnic_affinity(region, world), 2),
             "display_name": region.display_name,
             "founding_name": region.founding_name,
             "original_namer_faction_id": region.original_namer_faction_id,

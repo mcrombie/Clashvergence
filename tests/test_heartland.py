@@ -18,11 +18,14 @@ from src.heartland import (
     CORE_INTEGRATION_SCORE,
     estimate_region_population,
     get_region_dominant_ethnicity,
+    get_region_ethnic_integration_multiplier,
     get_rebel_reclaim_bonus,
     get_region_attack_projection_modifier,
     get_region_core_status,
     get_region_effective_income,
     get_region_maintenance_cost,
+    get_region_ruling_ethnic_affinity,
+    get_region_unrest_pressure,
     resolve_unrest_events,
     seed_region_ethnicity,
     update_region_populations,
@@ -199,6 +202,60 @@ class HeartlandSystemTests(unittest.TestCase):
 
         self.assertGreater(calm_region.population, calm_before)
         self.assertLess(crisis_region.population, crisis_before)
+
+    def test_ruling_ethnic_affinity_tracks_owner_population_share(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.population = 100
+        region.ethnic_composition = {
+            world.factions[faction_name].primary_ethnicity: 70,
+            "Neighborfolk": 30,
+        }
+
+        self.assertAlmostEqual(get_region_ruling_ethnic_affinity(region, world), 0.7)
+
+    def test_ethnic_affinity_reduces_unrest_and_speeds_integration(self):
+        aligned_world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        mismatched_world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(aligned_world.factions))
+
+        aligned_region = aligned_world.regions["M"]
+        aligned_region.owner = faction_name
+        aligned_region.integrated_owner = faction_name
+        aligned_region.core_status = "frontier"
+        aligned_region.integration_score = 1.0
+        aligned_region.population = 100
+        aligned_region.climate = aligned_world.factions[faction_name].doctrine_state.homeland_climate
+        aligned_region.ethnic_composition = {
+            aligned_world.factions[faction_name].primary_ethnicity: 100,
+        }
+
+        mismatched_region = mismatched_world.regions["M"]
+        mismatched_region.owner = faction_name
+        mismatched_region.integrated_owner = faction_name
+        mismatched_region.core_status = "frontier"
+        mismatched_region.integration_score = 1.0
+        mismatched_region.population = 100
+        mismatched_region.climate = mismatched_world.factions[faction_name].doctrine_state.homeland_climate
+        mismatched_region.ethnic_composition = {"Neighborfolk": 100}
+
+        self.assertGreater(
+            get_region_ethnic_integration_multiplier(aligned_region, aligned_world),
+            get_region_ethnic_integration_multiplier(mismatched_region, mismatched_world),
+        )
+        self.assertLess(
+            get_region_unrest_pressure(aligned_region, aligned_world),
+            get_region_unrest_pressure(mismatched_region, mismatched_world),
+        )
+
+        update_region_integration(aligned_world)
+        update_region_integration(mismatched_world)
+
+        self.assertGreater(aligned_region.integration_score, mismatched_region.integration_score)
+        self.assertLess(aligned_region.unrest, mismatched_region.unrest)
 
     def test_expansion_transfers_population_from_adjacent_owned_region(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
@@ -555,9 +612,12 @@ class HeartlandSystemTests(unittest.TestCase):
 
         snapshots = build_simulation_snapshots(world)
         self.assertIn("population", snapshots[0]["regions"]["A"])
+        self.assertIn("ruling_ethnic_affinity", snapshots[0]["regions"]["A"])
+        self.assertIn("owner_primary_ethnicity", snapshots[0]["regions"]["A"])
 
         view_model = build_simulation_view_model(world)
         self.assertIn("population", view_model["regions"][0])
+        self.assertIn("ruling_ethnic_affinity", view_model["regions"][0])
 
 
 if __name__ == "__main__":

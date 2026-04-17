@@ -21,7 +21,11 @@ from src.map_visualization import (
 )
 from src.maps import MAPS
 from src.metrics import get_turn_metrics
-from src.heartland import get_region_dominant_ethnicity
+from src.heartland import (
+    get_region_dominant_ethnicity,
+    get_region_owner_primary_ethnicity,
+    get_region_ruling_ethnic_affinity,
+)
 from src.narrative import (
     get_phase_ranges,
     summarize_final_standings,
@@ -211,6 +215,8 @@ def build_simulation_snapshots(world):
             "population": initial_region_history.get(region_name, {}).get("population", region.population),
             "ethnic_composition": dict(initial_region_history.get(region_name, {}).get("ethnic_composition", region.ethnic_composition)),
             "dominant_ethnicity": initial_region_history.get(region_name, {}).get("dominant_ethnicity"),
+            "owner_primary_ethnicity": initial_region_history.get(region_name, {}).get("owner_primary_ethnicity", get_region_owner_primary_ethnicity(region, world)),
+            "ruling_ethnic_affinity": initial_region_history.get(region_name, {}).get("ruling_ethnic_affinity", round(get_region_ruling_ethnic_affinity(region, world), 2)),
             "neighbors": list(region.neighbors),
             "display_name": region.display_name if initial_state[region_name]["owner"] is not None else region.name,
             "founding_name": region.founding_name if initial_state[region_name]["owner"] is not None else "",
@@ -245,6 +251,8 @@ def build_simulation_snapshots(world):
                 "population": region["population"],
                 "ethnic_composition": dict(region["ethnic_composition"]),
                 "dominant_ethnicity": region["dominant_ethnicity"],
+                "owner_primary_ethnicity": region["owner_primary_ethnicity"],
+                "ruling_ethnic_affinity": region["ruling_ethnic_affinity"],
                 "display_name": region["display_name"],
                 "founding_name": region["founding_name"],
                 "original_namer_faction_id": region["original_namer_faction_id"],
@@ -309,6 +317,8 @@ def build_simulation_snapshots(world):
             region_state[region_name]["population"] = history_region.get("population", region_state[region_name]["population"])
             region_state[region_name]["ethnic_composition"] = dict(history_region.get("ethnic_composition", region_state[region_name]["ethnic_composition"]))
             region_state[region_name]["dominant_ethnicity"] = history_region.get("dominant_ethnicity")
+            region_state[region_name]["owner_primary_ethnicity"] = history_region.get("owner_primary_ethnicity")
+            region_state[region_name]["ruling_ethnic_affinity"] = history_region.get("ruling_ethnic_affinity", 0.0)
             region_state[region_name]["display_name"] = history_region["display_name"] or region_state[region_name]["display_name"]
             region_state[region_name]["founding_name"] = history_region["founding_name"]
             region_state[region_name]["original_namer_faction_id"] = history_region["original_namer_faction_id"]
@@ -334,6 +344,8 @@ def build_simulation_snapshots(world):
                     "population": region["population"],
                     "ethnic_composition": dict(region["ethnic_composition"]),
                     "dominant_ethnicity": region["dominant_ethnicity"],
+                    "owner_primary_ethnicity": region["owner_primary_ethnicity"],
+                    "ruling_ethnic_affinity": region["ruling_ethnic_affinity"],
                     "display_name": region["display_name"],
                     "founding_name": region["founding_name"],
                     "original_namer_faction_id": region["original_namer_faction_id"],
@@ -483,6 +495,8 @@ def build_simulation_view_model(world):
                 "display_name": get_region_display_name(world.regions[region_name]),
                 "population": world.regions[region_name].population,
                 "dominant_ethnicity": get_region_dominant_ethnicity(world.regions[region_name]),
+                "owner_primary_ethnicity": get_region_owner_primary_ethnicity(world.regions[region_name], world),
+                "ruling_ethnic_affinity": round(get_region_ruling_ethnic_affinity(world.regions[region_name], world), 2),
                 "terrain_tags": list(world.regions[region_name].terrain_tags),
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
                 "climate": world.regions[region_name].climate,
@@ -502,6 +516,8 @@ def build_simulation_view_model(world):
                 "display_name": get_region_display_name(world.regions[region_name]),
                 "population": world.regions[region_name].population,
                 "dominant_ethnicity": get_region_dominant_ethnicity(world.regions[region_name]),
+                "owner_primary_ethnicity": get_region_owner_primary_ethnicity(world.regions[region_name], world),
+                "ruling_ethnic_affinity": round(get_region_ruling_ethnic_affinity(world.regions[region_name], world), 2),
                 "terrain_tags": list(world.regions[region_name].terrain_tags),
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
                 "climate": world.regions[region_name].climate,
@@ -2190,6 +2206,15 @@ def render_simulation_html(world):
           <div class="detail-row">
             <div class="detail-label">Dominant Ethnicity</div>
             <div class="detail-value">${{escapeHtml(regionSnapshot.dominant_ethnicity || staticRegion.dominant_ethnicity || "None")}}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Ruling Affinity</div>
+            <div class="detail-value">
+              ${{Number((regionSnapshot.ruling_ethnic_affinity ?? staticRegion.ruling_ethnic_affinity ?? 0) * 100).toFixed(0)}}%
+              ${{(regionSnapshot.owner_primary_ethnicity || staticRegion.owner_primary_ethnicity) ? ` (${{
+                escapeHtml(regionSnapshot.owner_primary_ethnicity || staticRegion.owner_primary_ethnicity)
+              }})` : ""}}
+            </div>
           </div>
           <div class="detail-row">
             <div class="detail-label">Integration</div>
