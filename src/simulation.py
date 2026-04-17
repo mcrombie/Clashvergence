@@ -7,11 +7,14 @@ from src.config import (
 from src.diplomacy import update_relationships
 from src.doctrine import update_faction_doctrines
 from src.heartland import (
+    get_region_surplus,
     get_region_effective_income,
     get_region_maintenance_cost,
     get_region_core_status,
     record_region_history,
     resolve_unrest_events,
+    update_faction_polity_tiers,
+    update_region_settlement_levels,
     update_region_populations,
     update_rebel_faction_status,
     update_region_integration,
@@ -26,6 +29,7 @@ def get_faction_economy_snapshot(world):
         faction_name: {
             "owned_regions": 0,
             "population": 0,
+            "total_surplus": 0.0,
             "base_income": 0,
             "nominal_income": 0,
             "empire_penalty": 0,
@@ -43,6 +47,7 @@ def get_faction_economy_snapshot(world):
         if region.owner is not None:
             snapshot[region.owner]["owned_regions"] += 1
             snapshot[region.owner]["population"] += region.population
+            snapshot[region.owner]["total_surplus"] += get_region_surplus(region, world)
             snapshot[region.owner]["nominal_income"] += region.resources
             snapshot[region.owner]["base_income"] += get_region_effective_income(region, world)
             snapshot[region.owner]["maintenance"] += get_region_maintenance_cost(region, world)
@@ -55,6 +60,7 @@ def get_faction_economy_snapshot(world):
                 snapshot[region.owner]["frontier_regions"] += 1
 
     for faction_name, data in snapshot.items():
+        data["total_surplus"] = round(data["total_surplus"], 2)
         data["empire_penalty"] = max(
             0,
             data["owned_regions"] - EMPIRE_FREE_REGIONS,
@@ -128,7 +134,9 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     economy_snapshot = apply_turn_economy(world)
     update_region_integration(world)
     update_region_populations(world)
+    update_region_settlement_levels(world)
     update_rebel_faction_status(world)
+    update_faction_polity_tiers(world)
     update_relationships(world)
     update_faction_doctrines(world)
     if verbose:

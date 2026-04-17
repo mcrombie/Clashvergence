@@ -151,6 +151,7 @@ class Region:
     integrated_owner: str | None = None
     integration_score: float = 0.0
     core_status: str = "frontier"
+    settlement_level: str = "wild"
     unrest: float = 0.0
     unrest_event_level: str = "none"
     unrest_event_turns_remaining: int = 0

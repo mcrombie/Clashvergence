@@ -73,7 +73,18 @@ from src.config import (
     UNREST_SECESSION_THRESHOLD,
 )
 from src.diplomacy import seed_rebel_origin_relationship
-from src.models import Ethnicity, Event, Faction, FactionIdentity, LanguageProfile, Region, WorldState
+from src.models import (
+    Ethnicity,
+    Event,
+    Faction,
+    FactionIdentity,
+    GOVERNMENT_FORMS_BY_TIER,
+    LanguageProfile,
+    Region,
+    WorldState,
+    get_default_government_form,
+)
+from src.terrain import get_terrain_profile
 
 
 HOMELAND_INTEGRATION_SCORE = 10.0
@@ -81,6 +92,24 @@ CORE_INTEGRATION_SCORE = 6.0
 CONQUEST_INTEGRATION_SCORE = 1.0
 PER_TURN_FRONTIER_GAIN = 1.0
 PER_TURN_CORE_GAIN = 0.35
+SURPLUS_RESOURCE_YIELD = 2.5
+SURPLUS_CONNECTION_YIELD = 0.15
+SURPLUS_POPULATION_PRESSURE = 90.0
+SURPLUS_GROWTH_FACTOR = 0.003
+SURPLUS_MAX_GROWTH_BONUS = 0.018
+SURPLUS_MIN_GROWTH_PENALTY = -0.012
+SETTLEMENT_LEVELS = ("wild", "rural", "town", "city")
+POLITY_TIER_ORDER = ("band", "tribe", "chiefdom", "state")
+SURPLUS_TERRAIN_PRODUCTIVITY = {
+    "plains": 1.6,
+    "riverland": 1.8,
+    "coast": 0.8,
+    "forest": 0.4,
+    "hills": 0.2,
+    "highland": -0.6,
+    "marsh": -0.8,
+    "steppe": 1.0,
+}
 POLITY_TIER_MODIFIERS = {
     "band": {
         "income_factor": 0.75,
@@ -448,6 +477,197 @@ def estimate_region_population(
     return max(POPULATION_MINIMUM, estimate)
 
 
+def get_region_productive_capacity(region: Region, world: WorldState | None = None) -> float:
+    terrain_profile = get_terrain_profile(region)
+    terrain_productivity = sum(
+        SURPLUS_TERRAIN_PRODUCTIVITY.get(tag, 0.0)
+        for tag in terrain_profile["terrain_tags"]
+    )
+    productive_capacity = (
+        (region.resources * SURPLUS_RESOURCE_YIELD)
+        + min(2.0, len(region.neighbors) * SURPLUS_CONNECTION_YIELD)
+        + terrain_productivity
+    )
+    productive_capacity = max(0.0, productive_capacity)
+    productive_capacity *= get_region_unrest_income_factor(region)
+    if world is not None and region.owner in world.factions:
+        productive_capacity *= get_region_climate_income_factor(region, world)
+    return round(productive_capacity, 2)
+
+
+def get_region_population_pressure(region: Region) -> float:
+    if region.population <= 0:
+        return 0.0
+    return round(region.population / SURPLUS_POPULATION_PRESSURE, 2)
+
+
+def get_region_surplus(region: Region, world: WorldState | None = None) -> float:
+    surplus = get_region_productive_capacity(region, world) - get_region_population_pressure(region)
+    return round(surplus, 2)
+
+
+def get_region_surplus_label(region: Region, world: WorldState | None = None) -> str:
+    surplus = get_region_surplus(region, world)
+    if surplus >= 4.0:
+        return "abundant"
+    if surplus >= 1.0:
+        return "stable"
+    if surplus > -1.0:
+        return "strained"
+    return "deficit"
+
+
+def get_region_settlement_level(region: Region, world: WorldState | None = None) -> str:
+    if region.owner is None or region.population <= 0:
+        return "wild"
+
+    surplus = get_region_surplus(region, world)
+    core_status = get_region_core_status(region)
+    unrest = region.unrest
+    ownership_turns = region.ownership_turns
+
+    if (
+        region.population >= 320
+        and surplus >= 2.5
+        and unrest < 3.5
+        and core_status in {"homeland", "core"}
+        and (core_status == "homeland" or ownership_turns >= 6)
+    ):
+        return "city"
+
+    if (
+        region.population >= 160
+        and surplus >= 1.5
+        and unrest < 5.0
+        and (core_status in {"homeland", "core"} or ownership_turns >= 3)
+    ):
+        return "town"
+
+    if region.population >= 35 and surplus >= -0.5 and unrest < 8.0:
+        return "rural"
+
+    return "wild"
+
+
+def update_region_settlement_levels(world: WorldState) -> None:
+    for region in world.regions.values():
+        region.settlement_level = get_region_settlement_level(region, world)
+
+
+def get_faction_settlement_profile(world: WorldState, faction_name: str) -> dict[str, float | int]:
+    profile = {
+        "owned_regions": 0,
+        "population": 0,
+        "total_surplus": 0.0,
+        "wild_regions": 0,
+        "rural_regions": 0,
+        "town_regions": 0,
+        "city_regions": 0,
+    }
+
+    for region in world.regions.values():
+        if region.owner != faction_name:
+            continue
+        profile["owned_regions"] += 1
+        profile["population"] += region.population
+        profile["total_surplus"] += get_region_surplus(region, world)
+        settlement_level = region.settlement_level
+        if settlement_level == "city":
+            profile["city_regions"] += 1
+        elif settlement_level == "town":
+            profile["town_regions"] += 1
+        elif settlement_level == "rural":
+            profile["rural_regions"] += 1
+        else:
+            profile["wild_regions"] += 1
+
+    profile["total_surplus"] = round(profile["total_surplus"], 2)
+    return profile
+
+
+def _qualifies_for_tribe(profile: dict[str, float | int]) -> bool:
+    return profile["owned_regions"] >= 1 and (
+        profile["rural_regions"] >= 1
+        or profile["town_regions"] >= 1
+        or profile["city_regions"] >= 1
+    )
+
+
+def _qualifies_for_chiefdom(profile: dict[str, float | int]) -> bool:
+    return (
+        profile["owned_regions"] >= 2
+        and profile["population"] >= 250
+        and profile["total_surplus"] >= 2.5
+        and (profile["town_regions"] + profile["city_regions"]) >= 1
+    )
+
+
+def _qualifies_for_state(profile: dict[str, float | int]) -> bool:
+    return (
+        profile["owned_regions"] >= 3
+        and profile["population"] >= 500
+        and profile["total_surplus"] >= 6.0
+        and profile["city_regions"] >= 1
+        and (profile["town_regions"] + profile["city_regions"]) >= 2
+    )
+
+
+def get_next_polity_tier(
+    current_tier: str,
+    profile: dict[str, float | int],
+) -> str:
+    if current_tier == "band" and _qualifies_for_tribe(profile):
+        return "tribe"
+    if current_tier == "tribe" and _qualifies_for_chiefdom(profile):
+        return "chiefdom"
+    if current_tier == "chiefdom" and _qualifies_for_state(profile):
+        return "state"
+    return current_tier
+
+
+def update_faction_polity_tiers(world: WorldState) -> None:
+    for faction_name, faction in world.factions.items():
+        if faction.identity is None:
+            continue
+
+        current_tier = faction.polity_tier
+        profile = get_faction_settlement_profile(world, faction_name)
+        next_tier = get_next_polity_tier(current_tier, profile)
+        if next_tier == current_tier:
+            continue
+
+        current_form = faction.government_form
+        if current_form not in GOVERNMENT_FORMS_BY_TIER[next_tier]:
+            current_form = get_default_government_form(next_tier)
+
+        prior_display_name = faction.identity.display_name
+        refresh_display_name = prior_display_name == faction.identity.default_display_name()
+        old_government_type = faction.government_type
+        faction.identity.set_government_structure(
+            next_tier,
+            current_form,
+            update_display_name=refresh_display_name,
+        )
+
+        world.events.append(Event(
+            turn=world.turn,
+            type="polity_advance",
+            faction=faction_name,
+            details={
+                "old_polity_tier": current_tier,
+                "new_polity_tier": next_tier,
+                "old_government_type": old_government_type,
+                "new_government_type": faction.government_type,
+                "town_regions": profile["town_regions"],
+                "city_regions": profile["city_regions"],
+                "population": profile["population"],
+                "total_surplus": profile["total_surplus"],
+            },
+            tags=["government", "polity", "advancement"],
+            significance=float(POLITY_TIER_ORDER.index(next_tier)),
+        ))
+
+
 def update_region_populations(world: WorldState) -> None:
     for region in world.regions.values():
         if region.population <= 0:
@@ -457,6 +677,12 @@ def update_region_populations(world: WorldState) -> None:
             growth_factor *= POPULATION_UNOWNED_GROWTH_FACTOR
         unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
         growth_factor -= unrest_ratio * POPULATION_UNREST_GROWTH_PENALTY * POPULATION_GROWTH_PER_TURN
+        surplus_growth_modifier = _clamp(
+            get_region_surplus(region, world) * SURPLUS_GROWTH_FACTOR,
+            SURPLUS_MIN_GROWTH_PENALTY,
+            SURPLUS_MAX_GROWTH_BONUS,
+        )
+        growth_factor += surplus_growth_modifier
 
         change = int(round(region.population * growth_factor))
         if change == 0 and growth_factor > 0:
@@ -1498,6 +1724,10 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "owner": region.owner,
             "resources": region.resources,
             "population": region.population,
+            "productive_capacity": get_region_productive_capacity(region, world),
+            "population_pressure": get_region_population_pressure(region),
+            "surplus": get_region_surplus(region, world),
+            "surplus_label": get_region_surplus_label(region, world),
             "ethnic_composition": dict(region.ethnic_composition),
             "dominant_ethnicity": get_region_dominant_ethnicity(region),
             "ethnic_claimants": get_region_ethnic_claimants(region, world),
@@ -1513,6 +1743,7 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "integrated_owner": region.integrated_owner,
             "integration_score": round(region.integration_score, 2),
             "core_status": region.core_status,
+            "settlement_level": region.settlement_level,
             "unrest": round(region.unrest, 2),
             "unrest_event_level": region.unrest_event_level,
             "unrest_event_turns_remaining": region.unrest_event_turns_remaining,

@@ -31,6 +31,9 @@ def build_turn_metrics(world, economy_snapshot=None):
         homeland_regions = 0
         core_regions = 0
         frontier_regions = 0
+        rural_regions = 0
+        town_regions = 0
+        city_regions = 0
         economy_data = (economy_snapshot or {}).get(faction_name, {})
         income = economy_data.get("base_income", 0)
         nominal_income = economy_data.get("nominal_income", income)
@@ -38,6 +41,7 @@ def build_turn_metrics(world, economy_snapshot=None):
         effective_income = economy_data.get("effective_income", 0)
         maintenance = economy_data.get("maintenance", 0)
         total_population = economy_data.get("population")
+        total_surplus = economy_data.get("total_surplus", 0.0)
 
         for event in turn_events:
             if event.faction != faction_name:
@@ -60,6 +64,13 @@ def build_turn_metrics(world, economy_snapshot=None):
                 core_regions += 1
             else:
                 frontier_regions += 1
+            settlement_level = region.settlement_level
+            if settlement_level == "city":
+                city_regions += 1
+            elif settlement_level == "town":
+                town_regions += 1
+            elif settlement_level == "rural":
+                rural_regions += 1
             if total_population is None:
                 total_population = 0
             if "population" not in economy_data:
@@ -69,6 +80,7 @@ def build_turn_metrics(world, economy_snapshot=None):
             "treasury": faction.treasury,
             "regions": owned_region_counts[faction_name],
             "population": total_population or 0,
+            "total_surplus": round(total_surplus, 2),
             "attacks": attacks,
             "expansions": expansions,
             "investments": investments,
@@ -89,6 +101,11 @@ def build_turn_metrics(world, economy_snapshot=None):
             "homeland_regions": homeland_regions,
             "core_regions": core_regions,
             "frontier_regions": frontier_regions,
+            "rural_regions": rural_regions,
+            "town_regions": town_regions,
+            "city_regions": city_regions,
+            "polity_tier": faction.polity_tier,
+            "government_form": faction.government_form,
             **get_faction_diplomacy_summary(world, faction_name),
         }
 

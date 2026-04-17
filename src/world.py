@@ -7,6 +7,7 @@ from src.heartland import (
     initialize_region_history,
     register_ethnicity,
     seed_region_ethnicity,
+    update_region_settlement_levels,
 )
 from src.models import Region, WorldState
 from src.maps import MAPS
@@ -76,6 +77,7 @@ def create_world(
 
     initialize_faction_doctrines(world)
     initialize_relationships(world)
+    update_region_settlement_levels(world)
     initialize_region_history(world)
 
     return world

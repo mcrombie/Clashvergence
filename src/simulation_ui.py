@@ -28,6 +28,10 @@ from src.heartland import (
     get_region_ethnic_claimants,
     get_region_owner_primary_ethnicity,
     get_region_ruling_ethnic_affinity,
+    get_region_population_pressure,
+    get_region_productive_capacity,
+    get_region_surplus,
+    get_region_surplus_label,
 )
 from src.narrative import (
     get_phase_ranges,
@@ -133,6 +137,11 @@ def _get_event_title(event, world):
         if event.get("origin_faction"):
             return f"{faction_name} declared full independence from {origin_name}"
         return f"{faction_name} consolidated into an independent successor state"
+    if event.type == "polity_advance":
+        return (
+            f"{faction_name} advanced from {event.get('old_government_type', event.get('old_polity_tier', 'tribe'))} "
+            f"to {event.get('new_government_type', event.get('new_polity_tier', 'chiefdom'))}"
+        )
     if event.type == "diplomacy_rivalry":
         return f"{faction_name} and {counterpart_name} became rivals"
     if event.type == "diplomacy_pact":
@@ -230,6 +239,11 @@ def _get_event_summary(event, world):
             f"After surviving its fragile rebellion, the polity hardened into a full {government_type.lower()}."
             + terrain_text
         )
+    if event.type == "polity_advance":
+        return (
+            f"Settlement growth and accumulated surplus pushed the realm into a more sophisticated political tier."
+            + terrain_text
+        )
     if event.type == "diplomacy_rivalry":
         return (
             f"Border friction, grievances, or strategic distrust pushed these factions into open rivalry."
@@ -271,6 +285,10 @@ def build_simulation_snapshots(world):
             "owner": initial_state[region_name]["owner"],
             "resources": initial_state[region_name]["resources"],
             "population": initial_region_history.get(region_name, {}).get("population", region.population),
+            "productive_capacity": initial_region_history.get(region_name, {}).get("productive_capacity", get_region_productive_capacity(region, world)),
+            "population_pressure": initial_region_history.get(region_name, {}).get("population_pressure", get_region_population_pressure(region)),
+            "surplus": initial_region_history.get(region_name, {}).get("surplus", get_region_surplus(region, world)),
+            "surplus_label": initial_region_history.get(region_name, {}).get("surplus_label", get_region_surplus_label(region, world)),
             "ethnic_composition": dict(initial_region_history.get(region_name, {}).get("ethnic_composition", region.ethnic_composition)),
             "dominant_ethnicity": initial_region_history.get(region_name, {}).get("dominant_ethnicity"),
             "ethnic_claimants": list(initial_region_history.get(region_name, {}).get("ethnic_claimants", get_region_ethnic_claimants(region, world))),
@@ -293,6 +311,7 @@ def build_simulation_snapshots(world):
             "integrated_owner": initial_region_history.get(region_name, {}).get("integrated_owner"),
             "integration_score": initial_region_history.get(region_name, {}).get("integration_score", 0.0),
             "core_status": initial_region_history.get(region_name, {}).get("core_status", "frontier"),
+            "settlement_level": initial_region_history.get(region_name, {}).get("settlement_level", region.settlement_level),
             "unrest": initial_region_history.get(region_name, {}).get("unrest", 0.0),
             "unrest_event_level": initial_region_history.get(region_name, {}).get("unrest_event_level", "none"),
             "unrest_event_turns_remaining": initial_region_history.get(region_name, {}).get("unrest_event_turns_remaining", 0),
@@ -309,6 +328,10 @@ def build_simulation_snapshots(world):
                 "owner": region["owner"],
                 "resources": region["resources"],
                 "population": region["population"],
+                "productive_capacity": region["productive_capacity"],
+                "population_pressure": region["population_pressure"],
+                "surplus": region["surplus"],
+                "surplus_label": region["surplus_label"],
                 "ethnic_composition": dict(region["ethnic_composition"]),
                 "dominant_ethnicity": region["dominant_ethnicity"],
                 "ethnic_claimants": list(region["ethnic_claimants"]),
@@ -326,6 +349,7 @@ def build_simulation_snapshots(world):
                 "integrated_owner": region["integrated_owner"],
                 "integration_score": region["integration_score"],
                 "core_status": region["core_status"],
+                "settlement_level": region["settlement_level"],
                 "unrest": region["unrest"],
                 "unrest_event_level": region["unrest_event_level"],
                 "unrest_event_turns_remaining": region["unrest_event_turns_remaining"],
@@ -377,6 +401,10 @@ def build_simulation_snapshots(world):
             region_state[region_name]["owner"] = history_region["owner"]
             region_state[region_name]["resources"] = history_region["resources"]
             region_state[region_name]["population"] = history_region.get("population", region_state[region_name]["population"])
+            region_state[region_name]["productive_capacity"] = history_region.get("productive_capacity", region_state[region_name]["productive_capacity"])
+            region_state[region_name]["population_pressure"] = history_region.get("population_pressure", region_state[region_name]["population_pressure"])
+            region_state[region_name]["surplus"] = history_region.get("surplus", region_state[region_name]["surplus"])
+            region_state[region_name]["surplus_label"] = history_region.get("surplus_label", region_state[region_name]["surplus_label"])
             region_state[region_name]["ethnic_composition"] = dict(history_region.get("ethnic_composition", region_state[region_name]["ethnic_composition"]))
             region_state[region_name]["dominant_ethnicity"] = history_region.get("dominant_ethnicity")
             region_state[region_name]["ethnic_claimants"] = list(history_region.get("ethnic_claimants", region_state[region_name]["ethnic_claimants"]))
@@ -390,6 +418,7 @@ def build_simulation_snapshots(world):
             region_state[region_name]["integrated_owner"] = history_region["integrated_owner"]
             region_state[region_name]["integration_score"] = history_region["integration_score"]
             region_state[region_name]["core_status"] = history_region["core_status"]
+            region_state[region_name]["settlement_level"] = history_region.get("settlement_level", region_state[region_name]["settlement_level"])
             region_state[region_name]["unrest"] = history_region.get("unrest", 0.0)
             region_state[region_name]["unrest_event_level"] = history_region.get("unrest_event_level", "none")
             region_state[region_name]["unrest_event_turns_remaining"] = history_region.get("unrest_event_turns_remaining", 0)
@@ -406,6 +435,10 @@ def build_simulation_snapshots(world):
                     "owner": region["owner"],
                     "resources": region["resources"],
                     "population": region["population"],
+                    "productive_capacity": region["productive_capacity"],
+                    "population_pressure": region["population_pressure"],
+                    "surplus": region["surplus"],
+                    "surplus_label": region["surplus_label"],
                     "ethnic_composition": dict(region["ethnic_composition"]),
                     "dominant_ethnicity": region["dominant_ethnicity"],
                     "ethnic_claimants": list(region["ethnic_claimants"]),
@@ -423,6 +456,7 @@ def build_simulation_snapshots(world):
                     "integrated_owner": region["integrated_owner"],
                     "integration_score": region["integration_score"],
                     "core_status": region["core_status"],
+                    "settlement_level": region["settlement_level"],
                     "unrest": region["unrest"],
                     "unrest_event_level": region["unrest_event_level"],
                     "unrest_event_turns_remaining": region["unrest_event_turns_remaining"],
@@ -563,6 +597,10 @@ def build_simulation_view_model(world):
                 "name": region_name,
                 "display_name": get_region_display_name(world.regions[region_name]),
                 "population": world.regions[region_name].population,
+                "productive_capacity": get_region_productive_capacity(world.regions[region_name], world),
+                "population_pressure": get_region_population_pressure(world.regions[region_name]),
+                "surplus": get_region_surplus(world.regions[region_name], world),
+                "surplus_label": get_region_surplus_label(world.regions[region_name], world),
                 "dominant_ethnicity": get_region_dominant_ethnicity(world.regions[region_name]),
                 "ethnic_claimants": get_region_ethnic_claimants(world.regions[region_name], world),
                 "owner_primary_ethnicity": get_region_owner_primary_ethnicity(world.regions[region_name], world),
@@ -572,6 +610,7 @@ def build_simulation_view_model(world):
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
                 "climate": world.regions[region_name].climate,
                 "climate_label": format_climate_label(world.regions[region_name].climate),
+                "settlement_level": world.regions[region_name].settlement_level,
                 "x": round(positions[region_name][0], 1),
                 "y": round(positions[region_name][1], 1),
                 "neighbors": sorted(region_data["neighbors"], key=natural_sort_key),
@@ -586,6 +625,10 @@ def build_simulation_view_model(world):
                 "name": region_name,
                 "display_name": get_region_display_name(world.regions[region_name]),
                 "population": world.regions[region_name].population,
+                "productive_capacity": get_region_productive_capacity(world.regions[region_name], world),
+                "population_pressure": get_region_population_pressure(world.regions[region_name]),
+                "surplus": get_region_surplus(world.regions[region_name], world),
+                "surplus_label": get_region_surplus_label(world.regions[region_name], world),
                 "dominant_ethnicity": get_region_dominant_ethnicity(world.regions[region_name]),
                 "ethnic_claimants": get_region_ethnic_claimants(world.regions[region_name], world),
                 "owner_primary_ethnicity": get_region_owner_primary_ethnicity(world.regions[region_name], world),
@@ -595,6 +638,7 @@ def build_simulation_view_model(world):
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
                 "climate": world.regions[region_name].climate,
                 "climate_label": format_climate_label(world.regions[region_name].climate),
+                "settlement_level": world.regions[region_name].settlement_level,
                 "polygon": [
                     [round(point[0], 1), round(point[1], 1)]
                     for point in atlas_geometry[region_name]["polygon"]
@@ -2308,6 +2352,10 @@ def render_simulation_html(world):
             <div class="detail-value">${{escapeHtml(regionSnapshot.core_status || "frontier")}} (${{Number(regionSnapshot.integration_score || 0).toFixed(1)}})</div>
           </div>
           <div class="detail-row">
+            <div class="detail-label">Settlement</div>
+            <div class="detail-value">${{escapeHtml(regionSnapshot.settlement_level || staticRegion.settlement_level || "wild")}}</div>
+          </div>
+          <div class="detail-row">
             <div class="detail-label">Unrest</div>
             <div class="detail-value">
               <span class="terrain-chip" style="background:${{getUnrestColor(regionSnapshot)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
@@ -2332,6 +2380,20 @@ def render_simulation_html(world):
           <div class="detail-row">
             <div class="detail-label">Population</div>
             <div class="detail-value">${{Number(regionSnapshot.population || staticRegion.population || 0).toLocaleString()}}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Surplus</div>
+            <div class="detail-value">
+              ${{Number(regionSnapshot.surplus ?? staticRegion.surplus ?? 0).toFixed(2)}}
+              (${{escapeHtml(regionSnapshot.surplus_label || staticRegion.surplus_label || "stable")}})
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Capacity / Pressure</div>
+            <div class="detail-value">
+              ${{Number(regionSnapshot.productive_capacity ?? staticRegion.productive_capacity ?? 0).toFixed(2)}}
+              / ${{Number(regionSnapshot.population_pressure ?? staticRegion.population_pressure ?? 0).toFixed(2)}}
+            </div>
           </div>
           <div class="detail-row">
             <div class="detail-label">Founding Name</div>
@@ -2452,6 +2514,10 @@ def render_simulation_html(world):
               <div class="detail-row">
                 <div class="detail-label">Population</div>
                 <div class="detail-value">${{Number(metrics.population || 0).toLocaleString()}}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Total Surplus</div>
+                <div class="detail-value">${{Number(metrics.total_surplus || 0).toFixed(2)}}</div>
               </div>
               <div class="detail-row">
                 <div class="detail-label">Expansion</div>
