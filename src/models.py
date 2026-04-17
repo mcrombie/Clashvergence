@@ -41,11 +41,22 @@ class FactionDoctrineProfile:
 
 
 @dataclass
+class LanguageProfile:
+    family_name: str = ""
+    onsets: list[str] = field(default_factory=list)
+    middles: list[str] = field(default_factory=list)
+    suffixes: list[str] = field(default_factory=list)
+    seed_fragments: list[str] = field(default_factory=list)
+    style_notes: list[str] = field(default_factory=list)
+
+
+@dataclass
 class Ethnicity:
     name: str
     language_family: str = ""
     parent_ethnicity: str | None = None
     origin_faction: str | None = None
+    language_profile: LanguageProfile = field(default_factory=LanguageProfile)
 
 
 @dataclass
@@ -84,6 +95,7 @@ class FactionIdentity:
     culture_name: str
     government_type: str = "Tribe"
     display_name: str = ""
+    language_profile: LanguageProfile = field(default_factory=LanguageProfile)
     source_traditions: list[str] = field(default_factory=list)
     generation_method: str = "curated_source_fusion"
     ai_generated: bool = False

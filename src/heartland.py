@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from math import ceil
+import random
 import re
 
 from src.config import (
@@ -63,7 +64,7 @@ from src.config import (
     UNREST_SECESSION_THRESHOLD,
 )
 from src.diplomacy import seed_rebel_origin_relationship
-from src.models import Ethnicity, Event, Faction, FactionIdentity, Region, WorldState
+from src.models import Ethnicity, Event, Faction, FactionIdentity, LanguageProfile, Region, WorldState
 
 
 HOMELAND_INTEGRATION_SCORE = 10.0
@@ -115,6 +116,7 @@ def register_ethnicity(
     language_family: str = "",
     parent_ethnicity: str | None = None,
     origin_faction: str | None = None,
+    language_profile: LanguageProfile | None = None,
 ) -> None:
     world.ethnicities.setdefault(
         ethnicity_name,
@@ -123,6 +125,7 @@ def register_ethnicity(
             language_family=language_family or ethnicity_name,
             parent_ethnicity=parent_ethnicity,
             origin_faction=origin_faction,
+            language_profile=deepcopy(language_profile) if language_profile is not None else LanguageProfile(family_name=language_family or ethnicity_name),
         ),
     )
 
@@ -438,6 +441,24 @@ def _letters_only(value: str) -> str:
     return "".join(character for character in (value or "") if character.isalpha())
 
 
+def _extract_name_fragments(value: str) -> list[str]:
+    normalized = _letters_only(value).lower()
+    if len(normalized) < 4:
+        return [normalized] if normalized else []
+    fragments = [
+        normalized[:3],
+        normalized[:4],
+        normalized[-3:],
+        normalized[-4:],
+        normalized[1:4],
+    ]
+    unique_fragments: list[str] = []
+    for fragment in fragments:
+        if len(fragment) >= 2 and fragment not in unique_fragments:
+            unique_fragments.append(fragment)
+    return unique_fragments
+
+
 def _to_title_case_root(value: str) -> str:
     if not value:
         return value
@@ -449,33 +470,47 @@ def _generate_successor_ethnicity_name(
     parent_ethnicity: str,
     faction_name: str,
 ) -> str:
-    base = _letters_only(parent_ethnicity).lower() or "novan"
-    consonants = "bdghklmnprstvz"
-    vowels = "aeiou"
-    seed = sum(ord(character) for character in f"{parent_ethnicity}:{faction_name}:{world.turn}")
+    parent_profile = world.ethnicities.get(parent_ethnicity).language_profile if parent_ethnicity in world.ethnicities else LanguageProfile()
+    rng = random.Random(f"{parent_ethnicity}:{faction_name}:{world.turn}")
 
-    first_letter = base[0]
-    if first_letter in consonants:
-        first_letter = consonants[(consonants.index(first_letter) + 3 + (seed % 5)) % len(consonants)]
-    else:
-        first_letter = consonants[seed % len(consonants)]
+    onsets = parent_profile.onsets or ["ka", "sa", "va", "ta", "no"]
+    middles = parent_profile.middles or ["a", "e", "i", "o", "u", "ae", "ia"]
+    suffixes = parent_profile.suffixes or ["ar", "an", "en", "or", "ri", "var"]
+    fragments = parent_profile.seed_fragments or [_letters_only(parent_ethnicity).lower() or "novan"]
 
-    first_vowel = next((character for character in base if character in vowels), "a")
-    first_vowel = vowels[(vowels.index(first_vowel) + 1 + (seed % 3)) % len(vowels)]
-
-    remainder_letters = [character for character in base[1:] if character in consonants]
-    middle_consonant = remainder_letters[(seed // 3) % len(remainder_letters)] if remainder_letters else "r"
-
-    last_vowel = next((character for character in reversed(base) if character in vowels), "i")
-    last_vowel = vowels[(vowels.index(last_vowel) + 2 + (seed % 2)) % len(vowels)]
-
+    fragment = rng.choice(fragments)
+    onset = rng.choice(onsets)
+    middle = rng.choice(middles)
+    suffix = rng.choice(suffixes)
     endings = ["ri", "vi", "ra", "ta", "ni", "len", "var", "sar"]
-    ending = endings[seed % len(endings)]
 
-    candidate = _to_title_case_root(f"{first_letter}{first_vowel}{middle_consonant}{last_vowel}{ending}")
+    pattern = rng.choice(("profile_blend", "fragment_soften", "compound"))
+    if pattern == "profile_blend":
+        candidate = f"{onset[: max(1, min(3, len(onset)))]}{middle}{fragment[-max(2, min(4, len(fragment))):]}{rng.choice(endings)}"
+    elif pattern == "fragment_soften":
+        candidate = f"{fragment[: max(2, min(4, len(fragment)))]}{middle}{suffix}"
+    else:
+        candidate = f"{onset[:2]}{fragment[max(1, len(fragment) // 3): max(3, len(fragment) // 3 + 3)]}{suffix}"
+
+    candidate = _to_title_case_root(re.sub(r"[^A-Za-z]", "", candidate))
     while candidate in world.ethnicities:
         candidate = f"{candidate}n"
     return candidate
+
+
+def _build_successor_language_profile(
+    parent_profile: LanguageProfile,
+    successor_ethnicity: str,
+) -> LanguageProfile:
+    successor_fragments = _extract_name_fragments(successor_ethnicity)
+    return LanguageProfile(
+        family_name=parent_profile.family_name or successor_ethnicity,
+        onsets=(parent_profile.onsets + successor_fragments[:3])[:12],
+        middles=parent_profile.middles[:12],
+        suffixes=(parent_profile.suffixes + [fragment[-3:] for fragment in successor_fragments if len(fragment) >= 3])[:12],
+        seed_fragments=(parent_profile.seed_fragments + successor_fragments)[:16],
+        style_notes=parent_profile.style_notes[:4],
+    )
 
 
 def _split_successor_ethnicity_in_regions(
@@ -544,11 +579,17 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
 
     rebel_name = _build_rebel_faction_name(world, region)
     inherited_ethnicity = world.factions[former_owner].primary_ethnicity
+    parent_language_profile = (
+        deepcopy(world.factions[former_owner].identity.language_profile)
+        if world.factions[former_owner].identity is not None
+        else LanguageProfile(family_name=inherited_ethnicity or former_owner)
+    )
     rebel_identity = FactionIdentity(
         internal_id=_next_dynamic_internal_id(world),
         culture_name=_normalize_rebel_name_seed(region.ui_name),
         government_type="Rebels",
         display_name=rebel_name,
+        language_profile=parent_language_profile,
         generation_method="rebel_secession",
         inspirations=[former_owner],
     )
@@ -586,13 +627,23 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
         else faction.primary_ethnicity
     )
     successor_ethnicity = None
+    successor_language_profile = None
     successor_population = 0
     parent_population = 0
     if parent_ethnicity is not None:
+        parent_language_profile = (
+            deepcopy(world.ethnicities[parent_ethnicity].language_profile)
+            if parent_ethnicity in world.ethnicities
+            else LanguageProfile(family_name=parent_ethnicity)
+        )
         successor_ethnicity = _generate_successor_ethnicity_name(
             world,
             parent_ethnicity,
             faction_name,
+        )
+        successor_language_profile = _build_successor_language_profile(
+            parent_language_profile,
+            successor_ethnicity,
         )
         register_ethnicity(
             world,
@@ -600,6 +651,7 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
             language_family=parent_ethnicity,
             parent_ethnicity=parent_ethnicity,
             origin_faction=faction_name,
+            language_profile=successor_language_profile,
         )
         successor_population, parent_population = _split_successor_ethnicity_in_regions(
             world,
@@ -614,6 +666,7 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
     if faction.identity is not None:
         if successor_ethnicity is not None:
             faction.identity.culture_name = successor_ethnicity
+            faction.identity.language_profile = deepcopy(successor_language_profile)
         faction.identity.government_type = REBEL_MATURE_GOVERNMENT_TYPE
         faction.identity.display_name = faction.identity.culture_name
 

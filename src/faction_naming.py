@@ -9,7 +9,7 @@ from dataclasses import asdict
 from difflib import SequenceMatcher
 
 from src.ai_interpretation import _extract_response_text, load_local_env_file
-from src.models import FactionIdentity
+from src.models import FactionIdentity, LanguageProfile
 
 
 load_local_env_file()
@@ -174,6 +174,17 @@ def _extract_seed_fragments(seed_name: str) -> list[str]:
     return unique_fragments
 
 
+def _dedupe_preserving_order(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for value in values:
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        ordered.append(value)
+    return ordered
+
+
 def _collapse_repeated_letters(value: str) -> str:
     return re.sub(r"(.)\1{2,}", r"\1\1", value)
 
@@ -263,6 +274,43 @@ def _generate_source_fused_candidate(index: int, naming_seed: str, attempt: int 
         candidate += rng.choice(["a", "e", "i", "o", "u", "an", "en", "ar"])
 
     return _tidy_candidate(candidate), [first_key, second_key], [seed_a, seed_b]
+
+
+def _build_language_profile(
+    culture_name: str,
+    traditions: list[str],
+    inspirations: list[str],
+    candidate_pool: list[str],
+) -> LanguageProfile:
+    onsets: list[str] = []
+    middles: list[str] = []
+    suffixes: list[str] = []
+    seed_fragments: list[str] = []
+    style_notes: list[str] = []
+
+    for tradition_key in traditions:
+        tradition = SOURCE_TRADITIONS[tradition_key]
+        onsets.extend(tradition["onsets"][:8])
+        middles.extend(tradition["middles"][:8])
+        suffixes.extend(tradition["suffixes"][:8])
+        style_notes.append(tradition["label"])
+
+    for seed_name in inspirations + candidate_pool[:4] + [culture_name]:
+        seed_fragments.extend(_extract_seed_fragments(seed_name))
+
+    normalized_culture = _normalize_name(culture_name)
+    if len(normalized_culture) >= 3:
+        onsets.append(normalized_culture[:3])
+        suffixes.append(normalized_culture[-3:])
+
+    return LanguageProfile(
+        family_name=culture_name,
+        onsets=_dedupe_preserving_order(onsets)[:12],
+        middles=_dedupe_preserving_order(middles)[:12],
+        suffixes=_dedupe_preserving_order(suffixes)[:12],
+        seed_fragments=_dedupe_preserving_order(seed_fragments)[:16],
+        style_notes=style_notes[:4],
+    )
 
 
 def _count_vowels(value: str) -> int:
@@ -444,10 +492,17 @@ def generate_faction_identity(index: int, naming_seed: str = "default", existing
         fallback_candidate=culture_name,
     )
     final_culture_name = ai_candidate or culture_name
+    language_profile = _build_language_profile(
+        final_culture_name,
+        traditions,
+        inspirations,
+        candidate_pool,
+    )
     return FactionIdentity(
         internal_id=get_faction_internal_id(index),
         culture_name=final_culture_name,
         government_type=DEFAULT_GOVERNMENT_TYPE,
+        language_profile=language_profile,
         source_traditions=traditions,
         generation_method="ai_fused_sources" if ai_candidate else "curated_source_fusion",
         ai_generated=bool(ai_candidate),

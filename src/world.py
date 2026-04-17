@@ -53,6 +53,7 @@ def create_world(
             faction.primary_ethnicity or faction.culture_name,
             language_family=faction.culture_name,
             origin_faction=faction_name,
+            language_profile=faction.identity.language_profile if faction.identity is not None else None,
         )
     initialize_heartlands(world)
 

@@ -432,6 +432,8 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertEqual(rebel_faction.culture_name, rebel_faction.primary_ethnicity)
         self.assertIn(rebel_faction.primary_ethnicity, world.ethnicities)
         self.assertEqual(world.ethnicities[rebel_faction.primary_ethnicity].parent_ethnicity, parent_ethnicity)
+        self.assertTrue(world.ethnicities[rebel_faction.primary_ethnicity].language_profile.onsets)
+        self.assertTrue(rebel_faction.identity.language_profile.seed_fragments)
         self.assertEqual(get_region_dominant_ethnicity(region), rebel_faction.primary_ethnicity)
         self.assertGreater(region.ethnic_composition.get(rebel_faction.primary_ethnicity, 0), 0)
         self.assertGreater(region.ethnic_composition.get(parent_ethnicity, 0), 0)
