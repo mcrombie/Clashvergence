@@ -63,7 +63,7 @@ from src.config import (
     UNREST_SECESSION_THRESHOLD,
 )
 from src.diplomacy import seed_rebel_origin_relationship
-from src.models import Event, Faction, FactionIdentity, Region, WorldState
+from src.models import Ethnicity, Event, Faction, FactionIdentity, Region, WorldState
 
 
 HOMELAND_INTEGRATION_SCORE = 10.0
@@ -77,11 +77,78 @@ def _clamp(value: float, minimum: float, maximum: float) -> float:
     return max(minimum, min(maximum, value))
 
 
+def _normalize_region_ethnic_composition(region: Region) -> None:
+    if region.population <= 0:
+        region.ethnic_composition = {}
+        return
+    composition = {
+        ethnicity: count
+        for ethnicity, count in region.ethnic_composition.items()
+        if count > 0
+    }
+    if not composition:
+        region.ethnic_composition = {}
+        return
+    total = sum(composition.values())
+    scaled: dict[str, int] = {}
+    remainders: list[tuple[float, str]] = []
+    assigned = 0
+    for ethnicity, count in composition.items():
+        scaled_value = (count / total) * region.population
+        whole = int(scaled_value)
+        scaled[ethnicity] = whole
+        assigned += whole
+        remainders.append((scaled_value - whole, ethnicity))
+    for _fraction, ethnicity in sorted(remainders, reverse=True)[: max(0, region.population - assigned)]:
+        scaled[ethnicity] += 1
+    region.ethnic_composition = {
+        ethnicity: count
+        for ethnicity, count in scaled.items()
+        if count > 0
+    }
+
+
+def register_ethnicity(
+    world: WorldState,
+    ethnicity_name: str,
+    *,
+    language_family: str = "",
+    parent_ethnicity: str | None = None,
+    origin_faction: str | None = None,
+) -> None:
+    world.ethnicities.setdefault(
+        ethnicity_name,
+        Ethnicity(
+            name=ethnicity_name,
+            language_family=language_family or ethnicity_name,
+            parent_ethnicity=parent_ethnicity,
+            origin_faction=origin_faction,
+        ),
+    )
+
+
+def seed_region_ethnicity(region: Region, ethnicity_name: str) -> None:
+    if region.population <= 0:
+        region.ethnic_composition = {}
+        return
+    region.ethnic_composition = {ethnicity_name: region.population}
+
+
+def get_region_dominant_ethnicity(region: Region) -> str | None:
+    if not region.ethnic_composition:
+        return None
+    return max(
+        region.ethnic_composition.items(),
+        key=lambda item: (item[1], item[0]),
+    )[0]
+
+
 def change_region_population(region: Region, amount: int) -> int:
     previous_population = region.population
     if previous_population <= 0 and amount <= 0:
         return 0
     region.population = max(0, region.population + amount)
+    _normalize_region_ethnic_composition(region)
     return region.population - previous_population
 
 
@@ -90,6 +157,56 @@ def apply_region_population_loss(region: Region, ratio: float, *, minimum_loss: 
         return 0
     loss = max(minimum_loss, int(round(region.population * max(0.0, ratio))))
     return -change_region_population(region, -loss)
+
+
+def transfer_region_population(source: Region, target: Region, amount: int) -> int:
+    if amount <= 0 or source.population <= 0:
+        return 0
+    amount = min(amount, source.population)
+    source_total = source.population
+    source_composition = {
+        ethnicity: count
+        for ethnicity, count in source.ethnic_composition.items()
+        if count > 0
+    }
+    if not source_composition:
+        return 0
+
+    moved_counts: dict[str, int] = {}
+    assigned = 0
+    remainders: list[tuple[float, str]] = []
+    for ethnicity, count in source_composition.items():
+        moved_value = (count / source_total) * amount
+        whole = min(count, int(moved_value))
+        moved_counts[ethnicity] = whole
+        assigned += whole
+        remainders.append((moved_value - whole, ethnicity))
+    for _fraction, ethnicity in sorted(remainders, reverse=True):
+        if assigned >= amount:
+            break
+        available = source_composition[ethnicity] - moved_counts[ethnicity]
+        if available <= 0:
+            continue
+        moved_counts[ethnicity] += 1
+        assigned += 1
+
+    moved_total = sum(moved_counts.values())
+    if moved_total <= 0:
+        return 0
+
+    source.population -= moved_total
+    target.population += moved_total
+    for ethnicity, count in moved_counts.items():
+        remaining = source.ethnic_composition.get(ethnicity, 0) - count
+        if remaining > 0:
+            source.ethnic_composition[ethnicity] = remaining
+        elif ethnicity in source.ethnic_composition:
+            del source.ethnic_composition[ethnicity]
+        target.ethnic_composition[ethnicity] = target.ethnic_composition.get(ethnicity, 0) + count
+
+    _normalize_region_ethnic_composition(source)
+    _normalize_region_ethnic_composition(target)
+    return moved_total
 
 
 def estimate_region_population(
@@ -342,6 +459,7 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
     from src.doctrine import initialize_rebel_faction_doctrine
 
     rebel_name = _build_rebel_faction_name(world, region)
+    inherited_ethnicity = world.factions[former_owner].primary_ethnicity
     rebel_identity = FactionIdentity(
         internal_id=_next_dynamic_internal_id(world),
         culture_name=_normalize_rebel_name_seed(region.ui_name),
@@ -355,6 +473,7 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         treasury=REBEL_STARTING_TREASURY,
         identity=rebel_identity,
         starting_treasury=REBEL_STARTING_TREASURY,
+        primary_ethnicity=inherited_ethnicity,
         is_rebel=True,
         origin_faction=former_owner,
         rebel_age=0,
@@ -746,6 +865,8 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "owner": region.owner,
             "resources": region.resources,
             "population": region.population,
+            "ethnic_composition": dict(region.ethnic_composition),
+            "dominant_ethnicity": get_region_dominant_ethnicity(region),
             "display_name": region.display_name,
             "founding_name": region.founding_name,
             "original_namer_faction_id": region.original_namer_faction_id,

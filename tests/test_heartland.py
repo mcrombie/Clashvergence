@@ -17,6 +17,7 @@ from src.actions import (
 from src.heartland import (
     CORE_INTEGRATION_SCORE,
     estimate_region_population,
+    get_region_dominant_ethnicity,
     get_rebel_reclaim_bonus,
     get_region_attack_projection_modifier,
     get_region_core_status,
@@ -154,6 +155,7 @@ class HeartlandSystemTests(unittest.TestCase):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         owned_region = world.regions["A"]
         unowned_region = world.regions["C"]
+        faction_name = owned_region.owner
 
         self.assertEqual(
             owned_region.population,
@@ -163,7 +165,12 @@ class HeartlandSystemTests(unittest.TestCase):
                 owner=owned_region.owner,
             ),
         )
+        self.assertEqual(
+            get_region_dominant_ethnicity(owned_region),
+            world.factions[faction_name].primary_ethnicity,
+        )
         self.assertEqual(unowned_region.population, 0)
+        self.assertEqual(unowned_region.ethnic_composition, {})
 
     def test_population_growth_responds_to_unrest(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
@@ -188,6 +195,7 @@ class HeartlandSystemTests(unittest.TestCase):
         target_region = world.regions["B"]
         world.factions[faction_name].treasury = 10
         source_before = source_region.population
+        source_ethnicity = world.factions[faction_name].primary_ethnicity
 
         succeeded = expand(faction_name, "B", world)
 
@@ -196,6 +204,7 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertGreater(target_region.population, 0)
         self.assertLess(source_region.population, source_before)
         self.assertGreater(world.events[-1].details["population_transfer"], 0)
+        self.assertEqual(get_region_dominant_ethnicity(target_region), source_ethnicity)
 
     def test_frontier_friction_reduces_income_and_attack_projection(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)

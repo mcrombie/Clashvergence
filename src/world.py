@@ -5,6 +5,8 @@ from src.heartland import (
     estimate_region_population,
     initialize_heartlands,
     initialize_region_history,
+    register_ethnicity,
+    seed_region_ethnicity,
 )
 from src.models import Region, WorldState
 from src.maps import MAPS
@@ -25,6 +27,8 @@ def create_world(
         faction.internal_id: faction_name
         for faction_name, faction in factions.items()
     }
+    for faction_name, faction in factions.items():
+        faction.primary_ethnicity = faction.culture_name
 
     regions = {}
     for region_name, region_data in map_definition["regions"].items():
@@ -43,6 +47,13 @@ def create_world(
         )
 
     world = WorldState(regions=regions, factions=factions, map_name=map_name)
+    for faction_name, faction in factions.items():
+        register_ethnicity(
+            world,
+            faction.primary_ethnicity or faction.culture_name,
+            language_family=faction.culture_name,
+            origin_faction=faction_name,
+        )
     initialize_heartlands(world)
 
     homeland_assigned: dict[str, int] = {}
@@ -57,6 +68,9 @@ def create_world(
             region.owner,
             is_homeland=(owned_count == 0),
         )
+        primary_ethnicity = world.factions[region.owner].primary_ethnicity
+        if primary_ethnicity is not None:
+            seed_region_ethnicity(region, primary_ethnicity)
         homeland_assigned[region.owner] = owned_count + 1
 
     initialize_faction_doctrines(world)

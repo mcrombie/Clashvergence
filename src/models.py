@@ -41,12 +41,21 @@ class FactionDoctrineProfile:
 
 
 @dataclass
+class Ethnicity:
+    name: str
+    language_family: str = ""
+    parent_ethnicity: str | None = None
+    origin_faction: str | None = None
+
+
+@dataclass
 class Region:
     name: str
     neighbors: list[str]
     owner: str | None
     resources: int
     population: int = 0
+    ethnic_composition: dict[str, int] = field(default_factory=dict)
     display_name: str = ""
     founding_name: str = ""
     original_namer_faction_id: str | None = None
@@ -94,6 +103,7 @@ class Faction:
     starting_treasury: int = 0
     doctrine_state: FactionDoctrineState = field(default_factory=FactionDoctrineState)
     doctrine_profile: FactionDoctrineProfile = field(default_factory=FactionDoctrineProfile)
+    primary_ethnicity: str | None = None
     is_rebel: bool = False
     origin_faction: str | None = None
     rebel_age: int = 0
@@ -212,6 +222,7 @@ class RelationshipState:
 class WorldState:
     regions: dict[str, Region]
     factions: dict[str, Faction]
+    ethnicities: dict[str, Ethnicity] = field(default_factory=dict)
     map_name: str = ""
     turn: int = 0
     events: list[Event] = field(default_factory=list)

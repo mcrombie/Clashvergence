@@ -22,13 +22,14 @@ from src.config import (
 from src.doctrine import get_faction_region_alignment
 from src.heartland import (
     apply_region_population_loss,
-    change_region_population,
+    get_region_dominant_ethnicity,
     get_region_attack_projection_modifier,
     get_region_core_defense_bonus,
     get_region_core_status,
     get_rebel_reclaim_bonus,
     handle_region_owner_change,
     set_region_unrest,
+    transfer_region_population,
 )
 from src.models import Event
 from src.region_naming import assign_region_founding_name, format_region_reference
@@ -449,6 +450,11 @@ def expand(faction_name, target_region_name, world):
     population_source = _choose_expansion_population_source(faction_name, target_region_name, world)
     source_region_name = population_source.name if population_source is not None else None
     source_population_before = population_source.population if population_source is not None else 0
+    source_ethnicity_before = (
+        get_region_dominant_ethnicity(population_source)
+        if population_source is not None
+        else None
+    )
     target_population_before = world.regions[target_region_name].population
     faction.treasury -= EXPANSION_COST
     handle_region_owner_change(world.regions[target_region_name], faction_name)
@@ -459,8 +465,11 @@ def expand(faction_name, target_region_name, world):
             int(round(population_source.population * POPULATION_EXPANSION_TRANSFER_RATIO)),
         )
         transferred_population = min(transferred_population, population_source.population)
-        change_region_population(population_source, -transferred_population)
-        change_region_population(world.regions[target_region_name], transferred_population)
+        transferred_population = transfer_region_population(
+            population_source,
+            world.regions[target_region_name],
+            transferred_population,
+        )
     region_display_name = assign_region_founding_name(
         world,
         target_region_name,
@@ -515,9 +524,11 @@ def expand(faction_name, target_region_name, world):
             "population_source_region": source_region_name,
             "population_source_before": source_population_before,
             "population_source_after": population_source.population if population_source is not None else 0,
+            "population_source_ethnicity": source_ethnicity_before,
             "population_before": target_population_before,
             "population_after": world.regions[target_region_name].population,
             "population_transfer": transferred_population,
+            "dominant_ethnicity_after": get_region_dominant_ethnicity(world.regions[target_region_name]),
             "region_reference": format_region_reference(
                 world.regions[target_region_name],
                 include_code=True,

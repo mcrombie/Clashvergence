@@ -21,6 +21,7 @@ from src.map_visualization import (
 )
 from src.maps import MAPS
 from src.metrics import get_turn_metrics
+from src.heartland import get_region_dominant_ethnicity
 from src.narrative import (
     get_phase_ranges,
     summarize_final_standings,
@@ -184,6 +185,8 @@ def build_simulation_snapshots(world):
             "owner": initial_state[region_name]["owner"],
             "resources": initial_state[region_name]["resources"],
             "population": initial_region_history.get(region_name, {}).get("population", region.population),
+            "ethnic_composition": dict(initial_region_history.get(region_name, {}).get("ethnic_composition", region.ethnic_composition)),
+            "dominant_ethnicity": initial_region_history.get(region_name, {}).get("dominant_ethnicity"),
             "neighbors": list(region.neighbors),
             "display_name": region.display_name if initial_state[region_name]["owner"] is not None else region.name,
             "founding_name": region.founding_name if initial_state[region_name]["owner"] is not None else "",
@@ -216,6 +219,8 @@ def build_simulation_snapshots(world):
                 "owner": region["owner"],
                 "resources": region["resources"],
                 "population": region["population"],
+                "ethnic_composition": dict(region["ethnic_composition"]),
+                "dominant_ethnicity": region["dominant_ethnicity"],
                 "display_name": region["display_name"],
                 "founding_name": region["founding_name"],
                 "original_namer_faction_id": region["original_namer_faction_id"],
@@ -278,6 +283,8 @@ def build_simulation_snapshots(world):
             region_state[region_name]["owner"] = history_region["owner"]
             region_state[region_name]["resources"] = history_region["resources"]
             region_state[region_name]["population"] = history_region.get("population", region_state[region_name]["population"])
+            region_state[region_name]["ethnic_composition"] = dict(history_region.get("ethnic_composition", region_state[region_name]["ethnic_composition"]))
+            region_state[region_name]["dominant_ethnicity"] = history_region.get("dominant_ethnicity")
             region_state[region_name]["display_name"] = history_region["display_name"] or region_state[region_name]["display_name"]
             region_state[region_name]["founding_name"] = history_region["founding_name"]
             region_state[region_name]["original_namer_faction_id"] = history_region["original_namer_faction_id"]
@@ -301,6 +308,8 @@ def build_simulation_snapshots(world):
                     "owner": region["owner"],
                     "resources": region["resources"],
                     "population": region["population"],
+                    "ethnic_composition": dict(region["ethnic_composition"]),
+                    "dominant_ethnicity": region["dominant_ethnicity"],
                     "display_name": region["display_name"],
                     "founding_name": region["founding_name"],
                     "original_namer_faction_id": region["original_namer_faction_id"],
@@ -422,6 +431,7 @@ def build_simulation_view_model(world):
             "origin_faction": world.factions[faction_name].origin_faction,
             "proto_state": world.factions[faction_name].proto_state,
             "government_type": world.factions[faction_name].government_type,
+            "primary_ethnicity": world.factions[faction_name].primary_ethnicity,
             "rebel_age": world.factions[faction_name].rebel_age,
             "independence_score": world.factions[faction_name].independence_score,
             "color": get_faction_color(
@@ -447,6 +457,7 @@ def build_simulation_view_model(world):
                 "name": region_name,
                 "display_name": get_region_display_name(world.regions[region_name]),
                 "population": world.regions[region_name].population,
+                "dominant_ethnicity": get_region_dominant_ethnicity(world.regions[region_name]),
                 "terrain_tags": list(world.regions[region_name].terrain_tags),
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
                 "climate": world.regions[region_name].climate,
@@ -465,6 +476,7 @@ def build_simulation_view_model(world):
                 "name": region_name,
                 "display_name": get_region_display_name(world.regions[region_name]),
                 "population": world.regions[region_name].population,
+                "dominant_ethnicity": get_region_dominant_ethnicity(world.regions[region_name]),
                 "terrain_tags": list(world.regions[region_name].terrain_tags),
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
                 "climate": world.regions[region_name].climate,
@@ -481,6 +493,15 @@ def build_simulation_view_model(world):
         "atlas_coastline": atlas_coastline,
         "edges": edges,
         "factions": factions,
+        "ethnicities": [
+            {
+                "name": ethnicity.name,
+                "language_family": ethnicity.language_family,
+                "parent_ethnicity": ethnicity.parent_ethnicity,
+                "origin_faction": ethnicity.origin_faction,
+            }
+            for ethnicity in sorted(world.ethnicities.values(), key=lambda item: natural_sort_key(item.name))
+        ],
         "snapshots": snapshots,
         "phase_summaries": phase_summaries,
         "narrative_summary": {
@@ -2134,6 +2155,10 @@ def render_simulation_html(world):
             <div class="detail-value">${{escapeHtml(ownerText)}}</div>
           </div>
           <div class="detail-row">
+            <div class="detail-label">Dominant Ethnicity</div>
+            <div class="detail-value">${{escapeHtml(regionSnapshot.dominant_ethnicity || staticRegion.dominant_ethnicity || "None")}}</div>
+          </div>
+          <div class="detail-row">
             <div class="detail-label">Integration</div>
             <div class="detail-value">${{escapeHtml(regionSnapshot.core_status || "frontier")}} (${{Number(regionSnapshot.integration_score || 0).toFixed(1)}})</div>
           </div>
@@ -2227,6 +2252,10 @@ def render_simulation_html(world):
               <div class="detail-row">
                 <div class="detail-label">Polity</div>
                 <div class="detail-value">${{polityStatus}}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Primary Ethnicity</div>
+                <div class="detail-value">${{escapeHtml(faction.primary_ethnicity || "Unknown")}}</div>
               </div>
               ${{rebelLifecycle}}
               <div class="detail-row">

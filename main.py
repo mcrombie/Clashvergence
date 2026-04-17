@@ -38,6 +38,7 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
             f"terrain_identity={faction.doctrine_profile.terrain_identity}, "
             f"starting_treasury={starting_treasury}, "
             f"culture={faction.culture_name}, "
+            f"ethnicity={faction.primary_ethnicity}, "
             f"government={faction.government_type}, "
             f"internal_id={faction.internal_id}, "
             f"traditions={tradition_labels}, "
