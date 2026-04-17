@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import patch
 
+from src.heartland import register_ethnicity
+from src.models import LanguageProfile
 from src.actions import attack, expand
 from src.simulation_ui import build_simulation_snapshots
 from src.world import create_world
@@ -93,6 +95,45 @@ class RegionNamingTests(unittest.TestCase):
             msg=f"Expected a terrain-aware name, got {assigned_name}",
         )
         self.assertEqual(region.name_metadata["terrain_label"], "Riverland Forest")
+
+    def test_region_naming_prefers_primary_ethnicity_language_profile(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        faction = world.factions[faction_name]
+
+        faction.primary_ethnicity = "Sarvi"
+        register_ethnicity(
+            world,
+            "Sarvi",
+            language_family="Valeri",
+            language_profile=LanguageProfile(
+                family_name="Sarvi",
+                onsets=["sar"],
+                middles=["a"],
+                suffixes=["vek"],
+                seed_fragments=["sarv"],
+            ),
+        )
+
+        region = world.regions["M"]
+        region.display_name = ""
+        region.founding_name = ""
+        region.original_namer_faction_id = None
+        region.name_metadata = {}
+        region.terrain_tags = []
+
+        with patch("src.region_naming._stable_random") as stable_random:
+            class FixedRandom:
+                def choice(self, values):
+                    return values[0]
+
+            stable_random.return_value = FixedRandom()
+            assigned_name = assign_region_founding_name(world, "M", faction_name, is_homeland=False)
+
+        self.assertEqual(assigned_name, "Sarvford")
+        self.assertEqual(region.name_metadata["pattern"], "ethnicity_fragment_settlement")
+        self.assertEqual(region.name_metadata["named_from"], "Sarvi")
+        self.assertEqual(region.name_metadata["named_from_ethnicity"], "Sarvi")
 
 
 if __name__ == "__main__":
