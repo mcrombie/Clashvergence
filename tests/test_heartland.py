@@ -24,6 +24,7 @@ from src.heartland import (
     get_region_effective_income,
     get_region_maintenance_cost,
     resolve_unrest_events,
+    seed_region_ethnicity,
     update_region_populations,
     update_rebel_faction_status,
     update_region_integration,
@@ -41,6 +42,17 @@ class HeartlandSystemTests(unittest.TestCase):
         region.integrated_owner = faction_name
         region.core_status = "frontier"
         region.integration_score = 1.0
+        if region.population <= 0:
+            region.population = estimate_region_population(
+                region.resources,
+                len(region.neighbors),
+                owner=faction_name,
+            )
+        if not region.ethnic_composition:
+            seed_region_ethnicity(
+                region,
+                world.factions[faction_name].primary_ethnicity,
+            )
         region.unrest = 9.5
 
         for crisis_turn in range(UNREST_SECESSION_CRISIS_TURNS):
@@ -404,9 +416,10 @@ class HeartlandSystemTests(unittest.TestCase):
     def test_proto_rebel_matures_into_successor_state_and_emits_event(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
-        rebel_name, _region = self._spawn_rebel_from_region(world, faction_name)
+        rebel_name, region = self._spawn_rebel_from_region(world, faction_name)
         rebel_faction = world.factions[rebel_name]
         treasury_before = rebel_faction.treasury
+        parent_ethnicity = world.factions[faction_name].primary_ethnicity
         rebel_faction.independence_score = REBEL_FULL_INDEPENDENCE_THRESHOLD - 0.2
 
         update_rebel_faction_status(world)
@@ -414,6 +427,16 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertEqual(world.events[-1].faction, rebel_name)
         self.assertFalse(rebel_faction.proto_state)
         self.assertEqual(rebel_faction.government_type, REBEL_MATURE_GOVERNMENT_TYPE)
+        self.assertNotEqual(rebel_faction.primary_ethnicity, parent_ethnicity)
+        self.assertIn(rebel_faction.primary_ethnicity, world.ethnicities)
+        self.assertEqual(world.ethnicities[rebel_faction.primary_ethnicity].parent_ethnicity, parent_ethnicity)
+        self.assertEqual(get_region_dominant_ethnicity(region), rebel_faction.primary_ethnicity)
+        self.assertGreater(region.ethnic_composition.get(rebel_faction.primary_ethnicity, 0), 0)
+        self.assertGreater(region.ethnic_composition.get(parent_ethnicity, 0), 0)
+        self.assertGreater(
+            region.ethnic_composition.get(rebel_faction.primary_ethnicity, 0),
+            region.ethnic_composition.get(parent_ethnicity, 0),
+        )
         self.assertEqual(
             rebel_faction.treasury,
             treasury_before + REBEL_INDEPENDENCE_TREASURY_BONUS,

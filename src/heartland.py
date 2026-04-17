@@ -434,6 +434,90 @@ def _normalize_rebel_name_seed(value: str) -> str:
     return re.sub(r"\s+", " ", value or "").strip()
 
 
+def _letters_only(value: str) -> str:
+    return "".join(character for character in (value or "") if character.isalpha())
+
+
+def _to_title_case_root(value: str) -> str:
+    if not value:
+        return value
+    return value[0].upper() + value[1:].lower()
+
+
+def _generate_successor_ethnicity_name(
+    world: WorldState,
+    parent_ethnicity: str,
+    faction_name: str,
+) -> str:
+    base = _letters_only(parent_ethnicity).lower() or "novan"
+    consonants = "bdghklmnprstvz"
+    vowels = "aeiou"
+    seed = sum(ord(character) for character in f"{parent_ethnicity}:{faction_name}:{world.turn}")
+
+    first_letter = base[0]
+    if first_letter in consonants:
+        first_letter = consonants[(consonants.index(first_letter) + 3 + (seed % 5)) % len(consonants)]
+    else:
+        first_letter = consonants[seed % len(consonants)]
+
+    first_vowel = next((character for character in base if character in vowels), "a")
+    first_vowel = vowels[(vowels.index(first_vowel) + 1 + (seed % 3)) % len(vowels)]
+
+    remainder_letters = [character for character in base[1:] if character in consonants]
+    middle_consonant = remainder_letters[(seed // 3) % len(remainder_letters)] if remainder_letters else "r"
+
+    last_vowel = next((character for character in reversed(base) if character in vowels), "i")
+    last_vowel = vowels[(vowels.index(last_vowel) + 2 + (seed % 2)) % len(vowels)]
+
+    endings = ["ri", "vi", "ra", "ta", "ni", "len", "var", "sar"]
+    ending = endings[seed % len(endings)]
+
+    candidate = _to_title_case_root(f"{first_letter}{first_vowel}{middle_consonant}{last_vowel}{ending}")
+    while candidate in world.ethnicities:
+        candidate = f"{candidate}n"
+    return candidate
+
+
+def _split_successor_ethnicity_in_regions(
+    world: WorldState,
+    faction_name: str,
+    parent_ethnicity: str,
+    successor_ethnicity: str,
+) -> tuple[int, int]:
+    successor_total = 0
+    parent_total = 0
+
+    for region in world.regions.values():
+        if region.owner != faction_name or region.population <= 0:
+            continue
+
+        parent_count = region.ethnic_composition.get(parent_ethnicity, 0)
+        if parent_count <= 0:
+            parent_count = region.population
+            region.ethnic_composition[parent_ethnicity] = parent_count
+
+        successor_count = max(
+            region.population // 2,
+            int(round(region.population * 0.6)),
+        )
+        successor_count = min(successor_count, max(1, parent_count - 1) if parent_count > 1 else parent_count)
+        if successor_count <= 0:
+            continue
+
+        region.ethnic_composition[parent_ethnicity] = max(
+            0,
+            region.ethnic_composition.get(parent_ethnicity, 0) - successor_count,
+        )
+        region.ethnic_composition[successor_ethnicity] = (
+            region.ethnic_composition.get(successor_ethnicity, 0) + successor_count
+        )
+        _normalize_region_ethnic_composition(region)
+        successor_total += region.ethnic_composition.get(successor_ethnicity, 0)
+        parent_total += region.ethnic_composition.get(parent_ethnicity, 0)
+
+    return successor_total, parent_total
+
+
 def _build_rebel_faction_name(world: WorldState, region: Region) -> str:
     base_name = _normalize_rebel_name_seed(f"{region.ui_name} Rebels")
     candidate = base_name
@@ -495,6 +579,36 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
     if not faction.is_rebel or not faction.proto_state:
         return
 
+    origin_faction = faction.origin_faction
+    parent_ethnicity = (
+        world.factions[origin_faction].primary_ethnicity
+        if origin_faction in world.factions
+        else faction.primary_ethnicity
+    )
+    successor_ethnicity = None
+    successor_population = 0
+    parent_population = 0
+    if parent_ethnicity is not None:
+        successor_ethnicity = _generate_successor_ethnicity_name(
+            world,
+            parent_ethnicity,
+            faction_name,
+        )
+        register_ethnicity(
+            world,
+            successor_ethnicity,
+            language_family=parent_ethnicity,
+            parent_ethnicity=parent_ethnicity,
+            origin_faction=faction_name,
+        )
+        successor_population, parent_population = _split_successor_ethnicity_in_regions(
+            world,
+            faction_name,
+            parent_ethnicity,
+            successor_ethnicity,
+        )
+        faction.primary_ethnicity = successor_ethnicity
+
     faction.proto_state = False
     faction.treasury += REBEL_INDEPENDENCE_TREASURY_BONUS
     if faction.identity is not None:
@@ -512,11 +626,16 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
             "rebel_age": faction.rebel_age,
             "independence_score": round(faction.independence_score, 2),
             "government_type": faction.government_type,
+            "parent_ethnicity": parent_ethnicity,
+            "successor_ethnicity": successor_ethnicity,
+            "successor_population": successor_population,
+            "parent_population": parent_population,
         },
         impact={
             "treasury_after": faction.treasury,
             "treasury_change": REBEL_INDEPENDENCE_TREASURY_BONUS,
             "proto_state": False,
+            "primary_ethnicity": faction.primary_ethnicity,
         },
         tags=["rebel", "independence", "statehood"],
         significance=faction.independence_score,
