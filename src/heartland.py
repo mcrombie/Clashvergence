@@ -744,6 +744,23 @@ def _restore_extinct_faction(
         faction.origin_faction = former_owner
 
 
+def _find_adjacent_rebel_destination(
+    world: WorldState,
+    region: Region,
+    former_owner: str,
+) -> str | None:
+    for neighbor_name in region.neighbors:
+        neighbor_owner = world.regions[neighbor_name].owner
+        if neighbor_owner is None or neighbor_owner == former_owner:
+            continue
+        if neighbor_owner not in world.factions:
+            continue
+        neighbor_faction = world.factions[neighbor_owner]
+        if neighbor_faction.is_rebel and neighbor_faction.origin_faction == former_owner:
+            return neighbor_owner
+    return None
+
+
 def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -> tuple[str, bool]:
     from src.doctrine import initialize_rebel_faction_doctrine
 
@@ -797,6 +814,80 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
     )
     seed_rebel_origin_relationship(world, rebel_name, former_owner)
     return rebel_name, False
+
+
+def _is_multi_region_rebellion_candidate(
+    region: Region,
+    former_owner: str,
+) -> bool:
+    if region.owner != former_owner:
+        return False
+    if region.population <= 0:
+        return False
+    if region.homeland_faction_id == former_owner:
+        return False
+    if region.secession_cooldown_turns > 0:
+        return False
+    return (
+        region.unrest_event_level in {"disturbance", "crisis"}
+        or region.unrest >= UNREST_MODERATE_THRESHOLD
+    )
+
+
+def _transfer_region_to_rebellion(
+    region: Region,
+    rebel_faction_name: str,
+) -> dict[str, int | str]:
+    resources_before = region.resources
+    population_before = region.population
+    unrest_before = round(region.unrest, 2)
+    region.resources = max(1, region.resources - UNREST_SECESSION_RESOURCE_LOSS)
+    population_loss = apply_region_population_loss(region, POPULATION_SECESSION_LOSS)
+    region.owner = rebel_faction_name
+    set_region_integration(
+        region,
+        owner=rebel_faction_name,
+        score=CORE_INTEGRATION_SCORE,
+        ownership_turns=1,
+        core_status="core",
+    )
+    set_region_unrest(region, REBEL_STARTING_UNREST)
+    clear_region_unrest_event(region)
+    reset_region_crisis_streak(region)
+    set_region_secession_cooldown(region, REBEL_SECESSION_COOLDOWN_TURNS)
+    return {
+        "region": region.name,
+        "resource_change": region.resources - resources_before,
+        "population_before": population_before,
+        "population_after": region.population,
+        "population_loss": population_loss,
+        "unrest_before": unrest_before,
+    }
+
+
+def _collect_multi_region_rebellion_joiners(
+    world: WorldState,
+    seed_region_name: str,
+    former_owner: str,
+) -> list[str]:
+    queue = [seed_region_name]
+    seen = {seed_region_name}
+    joined_regions: list[str] = []
+
+    while queue:
+        region_name = queue.pop(0)
+        region = world.regions[region_name]
+        for neighbor_name in region.neighbors:
+            if neighbor_name in seen:
+                continue
+            seen.add(neighbor_name)
+            neighbor = world.regions[neighbor_name]
+            if not _is_multi_region_rebellion_candidate(neighbor, former_owner):
+                continue
+            joined_regions.append(neighbor_name)
+            queue.append(neighbor_name)
+
+    return joined_regions
 
 
 def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
@@ -1087,24 +1178,36 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
         return
 
     former_owner = region.owner
-    resources_before = region.resources
-    population_before = region.population
-    unrest_before = region.unrest
-    region.resources = max(1, region.resources - UNREST_SECESSION_RESOURCE_LOSS)
-    population_loss = apply_region_population_loss(region, POPULATION_SECESSION_LOSS)
-    rebel_faction_name, restored_faction = create_rebel_faction(world, region, former_owner)
-    region.owner = rebel_faction_name
-    set_region_integration(
-        region,
-        owner=rebel_faction_name,
-        score=CORE_INTEGRATION_SCORE,
-        ownership_turns=1,
-        core_status="core",
+    adjacent_rebel = _find_adjacent_rebel_destination(world, region, former_owner)
+    restored_faction = False
+    joined_existing_rebellion = adjacent_rebel is not None
+    if adjacent_rebel is not None:
+        rebel_faction_name = adjacent_rebel
+    else:
+        rebel_faction_name, restored_faction = create_rebel_faction(world, region, former_owner)
+
+    seed_transfer = _transfer_region_to_rebellion(region, rebel_faction_name)
+    joined_region_names = _collect_multi_region_rebellion_joiners(
+        world,
+        region.name,
+        former_owner,
     )
-    set_region_unrest(region, REBEL_STARTING_UNREST)
-    clear_region_unrest_event(region)
-    reset_region_crisis_streak(region)
-    set_region_secession_cooldown(region, REBEL_SECESSION_COOLDOWN_TURNS)
+    joined_region_transfers = [
+        _transfer_region_to_rebellion(world.regions[joined_region_name], rebel_faction_name)
+        for joined_region_name in joined_region_names
+    ]
+    total_resource_change = seed_transfer["resource_change"] + sum(
+        transfer["resource_change"]
+        for transfer in joined_region_transfers
+    )
+    total_population_before = seed_transfer["population_before"] + sum(
+        transfer["population_before"]
+        for transfer in joined_region_transfers
+    )
+    total_population_after = seed_transfer["population_after"] + sum(
+        transfer["population_after"]
+        for transfer in joined_region_transfers
+    )
 
     world.events.append(Event(
         turn=world.turn,
@@ -1116,6 +1219,7 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
             "rebel_faction": rebel_faction_name,
             "restored_faction": rebel_faction_name if restored_faction else None,
             "restoration": restored_faction,
+            "joined_existing_rebellion": joined_existing_rebellion,
             "revived_ethnicity": (
                 world.factions[rebel_faction_name].primary_ethnicity
                 if restored_faction
@@ -1136,22 +1240,30 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
                 if restored_faction
                 else 0
             ),
-            "unrest": round(unrest_before, 2),
-            "population_before": population_before,
+            "unrest": seed_transfer["unrest_before"],
+            "population_before": seed_transfer["population_before"],
             "population_after": region.population,
-            "population_loss": population_loss,
+            "population_loss": seed_transfer["population_loss"],
+            "joined_regions": joined_region_names,
+            "joined_region_count": len(joined_region_names),
+            "joined_region_population_loss": sum(
+                transfer["population_loss"]
+                for transfer in joined_region_transfers
+            ),
         },
         impact={
             "owner_after": rebel_faction_name,
-            "resource_change": region.resources - resources_before,
+            "resource_change": total_resource_change,
             "new_resources": region.resources,
-            "population_change": region.population - population_before,
-            "population_after": region.population,
+            "population_change": total_population_after - total_population_before,
+            "population_after": total_population_after,
+            "joined_region_count": len(joined_region_names),
         },
         tags=[
             "unrest",
             "secession",
             "collapse",
+            *(["regional_uprising"] if joined_region_names else []),
             *(["restoration", "revival"] if restored_faction else []),
         ],
         significance=UNREST_SECESSION_THRESHOLD,

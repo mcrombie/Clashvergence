@@ -115,9 +115,18 @@ def _get_event_title(event, world):
     if event.type == "unrest_crisis":
         return f"Unrest crisis hit {region_reference} under {faction_name}"
     if event.type == "unrest_secession":
+        joined_region_count = int(event.get("joined_region_count", 0) or 0)
         if event.get("restoration") and event.get("restored_faction"):
+            if joined_region_count > 0:
+                return f"{region_reference} and {joined_region_count} neighboring region(s) rose against {faction_name} and restored {rebel_name}"
             return f"{region_reference} rose against {faction_name} and restored {rebel_name}"
+        if event.get("joined_existing_rebellion") and event.get("rebel_faction"):
+            if joined_region_count > 0:
+                return f"{region_reference} joined {rebel_name}'s regional uprising with {joined_region_count} neighboring region(s)"
+            return f"{region_reference} joined {rebel_name}'s uprising"
         if event.get("rebel_faction"):
+            if joined_region_count > 0:
+                return f"{region_reference} and {joined_region_count} neighboring region(s) broke away from {faction_name} as {rebel_name}"
             return f"{region_reference} broke away from {faction_name} as {rebel_name}"
         return f"{region_reference} broke away from {faction_name}"
     if event.type == "rebel_independence":
@@ -179,9 +188,27 @@ def _get_event_summary(event, world):
         )
     if event.type == "unrest_secession":
         rebel_faction = event.get("rebel_faction")
+        joined_region_count = int(event.get("joined_region_count", 0) or 0)
         if event.get("restoration") and rebel_faction:
+            joined_clause = (
+                f" The revolt also pulled in {joined_region_count} neighboring region(s)."
+                if joined_region_count > 0
+                else ""
+            )
             return (
                 f"Surviving {event.get('revived_ethnicity') or 'local'} communities turned sustained crisis into a restoration revolt for {rebel_faction}."
+                + joined_clause
+                + terrain_text
+            )
+        if event.get("joined_existing_rebellion") and rebel_faction:
+            joined_clause = (
+                f" Nearby unrest drew in {joined_region_count} neighboring region(s) as part of the same movement."
+                if joined_region_count > 0
+                else ""
+            )
+            return (
+                f"Sustained crisis fed directly into {rebel_faction}'s existing rebellion instead of creating a separate breakaway."
+                + joined_clause
                 + terrain_text
             )
         return (
@@ -189,6 +216,11 @@ def _get_event_summary(event, world):
                 f"Sustained crisis raised {rebel_faction} out of {event.faction}'s collapsing rule."
                 if rebel_faction
                 else f"Sustained crisis forced the region out of {event.faction}'s control."
+            )
+            + (
+                f" The uprising also spread into {joined_region_count} neighboring region(s)."
+                if joined_region_count > 0
+                else ""
             )
             + terrain_text
         )

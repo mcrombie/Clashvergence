@@ -536,6 +536,81 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertFalse(world.factions[restored_name].proto_state)
         self.assertEqual(world.factions[restored_name].primary_ethnicity, restored_ethnicity)
 
+    def test_unrest_secession_can_pull_in_adjacent_unrestful_regions(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        faction_count_before = len(world.factions)
+        seed_region = world.regions["M"]
+        join_region = world.regions[seed_region.neighbors[0]]
+
+        for region, unrest in ((seed_region, 9.5), (join_region, 5.0)):
+            region.owner = faction_name
+            region.integrated_owner = faction_name
+            region.core_status = "frontier"
+            region.integration_score = 1.0
+            region.homeland_faction_id = None
+            region.population = estimate_region_population(
+                region.resources,
+                len(region.neighbors),
+                owner=faction_name,
+            )
+            seed_region_ethnicity(region, world.factions[faction_name].primary_ethnicity)
+            region.unrest = unrest
+            region.unrest_event_level = "disturbance" if unrest >= 4.0 else "none"
+            region.secession_cooldown_turns = 0
+
+        apply_unrest_secession(world, seed_region)
+
+        rebel_name = seed_region.owner
+        self.assertEqual(len(world.factions), faction_count_before + 1)
+        self.assertEqual(join_region.owner, rebel_name)
+        self.assertEqual(join_region.integrated_owner, rebel_name)
+        self.assertEqual(join_region.core_status, "core")
+        self.assertEqual(world.events[-1].details["joined_region_count"], 1)
+        self.assertIn(join_region.name, world.events[-1].details["joined_regions"])
+        self.assertIn("regional_uprising", world.events[-1].tags)
+
+    def test_adjacent_secession_joins_existing_rebel_movement(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        seed_region = world.regions["M"]
+        join_region = world.regions[seed_region.neighbors[0]]
+
+        for region in (seed_region, join_region):
+            region.owner = faction_name
+            region.integrated_owner = faction_name
+            region.core_status = "frontier"
+            region.integration_score = 1.0
+            region.homeland_faction_id = None
+            region.population = estimate_region_population(
+                region.resources,
+                len(region.neighbors),
+                owner=faction_name,
+            )
+            seed_region_ethnicity(region, world.factions[faction_name].primary_ethnicity)
+            region.secession_cooldown_turns = 0
+
+        seed_region.unrest = 9.5
+        seed_region.unrest_event_level = "crisis"
+        join_region.unrest = 1.0
+        join_region.unrest_event_level = "none"
+
+        faction_count_after_first = len(world.factions) + 1
+        apply_unrest_secession(world, seed_region)
+        rebel_name = seed_region.owner
+        self.assertEqual(len(world.factions), faction_count_after_first)
+
+        join_region.unrest = 9.5
+        join_region.unrest_event_level = "crisis"
+        join_region.secession_cooldown_turns = 0
+
+        apply_unrest_secession(world, join_region)
+
+        self.assertEqual(join_region.owner, rebel_name)
+        self.assertEqual(len(world.factions), faction_count_after_first)
+        self.assertTrue(world.events[-1].details["joined_existing_rebellion"])
+        self.assertEqual(world.events[-1].details["rebel_faction"], rebel_name)
+
     def test_origin_faction_gets_decay_reclaim_bonus_against_proto_rebels(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
