@@ -1,0 +1,64 @@
+Balance Dashboard Report
+
+Seed: 20260416
+Legacy strategy bias: removed
+
+Map: thirty_seven_region_ring
+Turns: 20
+Simulations: 10
+Decision Model: doctrine only
+
+Outcome Balance
+  Win-rate spread: 20.00% | Win-rate stddev: 0.083
+  Non-starting outright wins: 40.00% | Non-starting shared firsts: 20.00%
+Faction            Doctrine                      Win   Shared   Treasury  Regions     Elim   ElimTurn
+-------------------------------------------------------------------------------------------------------
+Akhakiar Tribe     Adaptive Plains            0.00%   0.00%       2.60     3.40   0.00%        n/a
+Persermia Tribe    Adaptive Hill Forest      10.00%   0.00%       6.80     2.20  30.00%      19.33
+Noraraand Tribe    Adaptive Riverland Plains  20.00%   0.00%      11.30     4.70   0.00%        n/a
+Veneunar Tribe     Adaptive Forest           20.00%   0.00%      16.70     3.90   0.00%        n/a
+
+Game Health
+  Avg lead changes: 3.40 | Runaway rate: 90.00% | Avg runaway turn: 17.00
+  Comeback rate: 70.00% | Avg comeback deficit overcome: 16.00
+  Avg eliminated factions: 2.20 | Avg largest treasury lead: 12.90 | Avg largest region lead: 2.20 | Avg final factions: 13.80
+
+Pacing
+  Early: attacks=0.00, attack_success=0.00%, expansions=12.00, investments=12.00
+  Mid: attacks=5.00, attack_success=56.00%, expansions=10.20, investments=13.90
+  Late: attacks=27.20, attack_success=59.19%, expansions=9.10, investments=17.20
+
+Political Dynamics
+  Truces=38.20 | Truce endings=25.70 | Pacts=55.70 | Alliances=2.30 | Rivalries=10.30 | Breaks=0.10
+  Secessions=9.80 | Rebel independence=1.70
+
+============================================================================================
+
+Map: thirty_seven_region_ring
+Turns: 40
+Simulations: 10
+Decision Model: doctrine only
+
+Outcome Balance
+  Win-rate spread: 20.00% | Win-rate stddev: 0.083
+  Non-starting outright wins: 60.00% | Non-starting shared firsts: 0.00%
+Faction            Doctrine                      Win   Shared   Treasury  Regions     Elim   ElimTurn
+-------------------------------------------------------------------------------------------------------
+Akhakiar Tribe     Adaptive Plains            0.00%  10.00%       2.00     0.80  80.00%      27.12
+Persermia Tribe    Adaptive Hill Forest       0.00%   0.00%       4.30     2.50  60.00%      24.67
+Noraraand Tribe    Adaptive Riverland Plains  10.00%  10.00%      12.30     3.20  30.00%      29.67
+Veneunar Tribe     Adaptive Forest           20.00%   0.00%      19.60     5.00  20.00%      30.00
+
+Game Health
+  Avg lead changes: 8.30 | Runaway rate: 90.00% | Avg runaway turn: 37.44
+  Comeback rate: 80.00% | Avg comeback deficit overcome: 37.25
+  Avg eliminated factions: 12.80 | Avg largest treasury lead: 30.10 | Avg largest region lead: 4.70 | Avg final factions: 21.20
+
+Pacing
+  Early: attacks=5.10, attack_success=64.71%, expansions=22.10, investments=25.10
+  Mid: attacks=60.60, attack_success=61.55%, expansions=10.80, investments=23.90
+  Late: attacks=76.90, attack_success=56.44%, expansions=0.10, investments=5.00
+
+Political Dynamics
+  Truces=140.30 | Truce endings=131.40 | Pacts=202.70 | Alliances=8.90 | Rivalries=75.00 | Breaks=0.00
+  Secessions=17.20 | Rebel independence=5.80

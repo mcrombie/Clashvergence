@@ -198,6 +198,7 @@ class Event:
 class RelationshipState:
     score: float = 0.0
     status: str = "neutral"
+    truce_turns_remaining: int = 0
     years_at_peace: int = 0
     wars_fought: int = 0
     last_conflict_turn: int | None = None

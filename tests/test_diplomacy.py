@@ -7,6 +7,7 @@ from src.diplomacy import (
     get_relationship_state,
     get_relationship_status,
     initialize_relationships,
+    seed_rebel_origin_relationship,
     update_relationships,
 )
 from src.models import Event, Faction, Region, RelationshipState, WorldState
@@ -96,6 +97,26 @@ class DiplomacySystemTests(unittest.TestCase):
         self.assertEqual(status, "alliance")
         self.assertLess(modifier, -100)
 
+    def test_truce_blocks_attackable_regions_and_then_expires(self):
+        world = self._make_two_faction_border_world()
+        world.relationships[("FactionA", "FactionB")] = RelationshipState(
+            score=-6.0,
+            status="truce",
+            truce_turns_remaining=1,
+            grievance=18.0,
+            trust=4.0,
+        )
+
+        self.assertEqual(get_attackable_regions("FactionA", world), [])
+        modifier, status = get_attack_diplomacy_modifier(world, "FactionA", "FactionB")
+        self.assertEqual(status, "truce")
+        self.assertLess(modifier, -100)
+
+        world.turn = 1
+        update_relationships(world)
+
+        self.assertEqual(get_relationship_status(world, "FactionA", "FactionB"), "neutral")
+
     def test_non_aggression_pact_reduces_attack_score_vs_neutral(self):
         neutral_world = self._make_two_faction_border_world()
         neutral_score = get_attack_target_score_components("B", "FactionA", neutral_world)
@@ -110,8 +131,26 @@ class DiplomacySystemTests(unittest.TestCase):
         pact_score = get_attack_target_score_components("B", "FactionA", pact_world)
 
         self.assertEqual(pact_score["diplomacy_status"], "non_aggression_pact")
-        self.assertEqual(pact_score["diplomacy_attack_modifier"], -60)
+        self.assertEqual(pact_score["diplomacy_attack_modifier"], -45)
         self.assertLess(pact_score["score"], neutral_score["score"])
+
+    def test_rebel_origin_relationship_starts_with_secession_truce(self):
+        world = WorldState(
+            regions={},
+            factions={
+                "Parent": Faction(name="Parent"),
+                "Rebels": Faction(name="Rebels", is_rebel=True, origin_faction="Parent", proto_state=True),
+            },
+        )
+        initialize_relationships(world)
+
+        seed_rebel_origin_relationship(world, "Rebels", "Parent")
+        state = get_relationship_state(world, "Rebels", "Parent")
+
+        self.assertEqual(state.status, "truce")
+        self.assertGreater(state.truce_turns_remaining, 0)
+        self.assertGreater(state.trust, 0.0)
+        self.assertGreater(state.grievance, 0.0)
 
     def test_diplomacy_summary_picks_top_ally_and_rival(self):
         world = WorldState(
@@ -147,6 +186,7 @@ class DiplomacySystemTests(unittest.TestCase):
         self.assertEqual(summary["top_ally"], "FactionB")
         self.assertEqual(summary["top_rival"], "FactionD")
         self.assertEqual(summary["alliance_count"], 1)
+        self.assertEqual(summary["truce_count"], 0)
         self.assertEqual(summary["pact_count"], 1)
         self.assertEqual(summary["rival_count"], 1)
 

@@ -58,7 +58,8 @@ def get_attackable_regions(faction_name, world):
             if (
                 neighbor.owner is not None
                 and neighbor.owner != faction_name
-                and get_relationship_status(world, faction_name, neighbor.owner) != "alliance"
+                and get_relationship_status(world, faction_name, neighbor.owner)
+                not in {"alliance", "truce"}
             ):
                 attackable_regions.add(neighbor_name)
 

@@ -52,6 +52,7 @@ from src.config import (
     UNREST_SECESSION_RESOURCE_LOSS,
     UNREST_SECESSION_THRESHOLD,
 )
+from src.diplomacy import seed_rebel_origin_relationship
 from src.models import Event, Faction, FactionIdentity, Region, WorldState
 
 
@@ -308,6 +309,7 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         former_owner,
         region.name,
     )
+    seed_rebel_origin_relationship(world, rebel_name, former_owner)
     return rebel_name
 
 

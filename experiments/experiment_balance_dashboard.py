@@ -130,6 +130,8 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
 
     outright_wins = {faction_name: 0 for faction_name in faction_names}
     shared_firsts = {faction_name: 0 for faction_name in faction_names}
+    non_starting_outright_wins = 0
+    non_starting_shared_firsts = 0
     average_treasury = {faction_name: [] for faction_name in faction_names}
     average_regions = {faction_name: [] for faction_name in faction_names}
     elimination_rate = {faction_name: 0 for faction_name in faction_names}
@@ -151,6 +153,17 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
     eliminated_faction_counts = []
     largest_treasury_leads = []
     largest_region_leads = []
+    final_faction_counts = []
+    diplomacy_event_counts = {
+        "truces": [],
+        "truce_ends": [],
+        "pacts": [],
+        "alliances": [],
+        "rivalries": [],
+        "breaks": [],
+        "secessions": [],
+        "independence": [],
+    }
 
     for _ in range(runs):
         world = create_world(
@@ -174,10 +187,16 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
         ]
 
         if len(leaders) == 1:
-            outright_wins[leaders[0]] += 1
+            if leaders[0] in outright_wins:
+                outright_wins[leaders[0]] += 1
+            else:
+                non_starting_outright_wins += 1
         else:
             for faction_name in leaders:
-                shared_firsts[faction_name] += 1
+                if faction_name in shared_firsts:
+                    shared_firsts[faction_name] += 1
+                else:
+                    non_starting_shared_firsts += 1
 
         for faction_name in faction_names:
             average_treasury[faction_name].append(final_treasuries[faction_name])
@@ -202,6 +221,29 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
         eliminated_faction_counts.append(competition["eliminated_factions"])
         largest_treasury_leads.append(competition["largest_treasury_lead"]["margin"])
         largest_region_leads.append(competition["largest_region_lead"]["margin"])
+        final_faction_counts.append(len(world.factions))
+
+        event_type_counts = {
+            "diplomacy_truce": 0,
+            "diplomacy_truce_end": 0,
+            "diplomacy_pact": 0,
+            "diplomacy_alliance": 0,
+            "diplomacy_rivalry": 0,
+            "diplomacy_break": 0,
+            "unrest_secession": 0,
+            "rebel_independence": 0,
+        }
+        for event in world.events:
+            if event.type in event_type_counts:
+                event_type_counts[event.type] += 1
+        diplomacy_event_counts["truces"].append(event_type_counts["diplomacy_truce"])
+        diplomacy_event_counts["truce_ends"].append(event_type_counts["diplomacy_truce_end"])
+        diplomacy_event_counts["pacts"].append(event_type_counts["diplomacy_pact"])
+        diplomacy_event_counts["alliances"].append(event_type_counts["diplomacy_alliance"])
+        diplomacy_event_counts["rivalries"].append(event_type_counts["diplomacy_rivalry"])
+        diplomacy_event_counts["breaks"].append(event_type_counts["diplomacy_break"])
+        diplomacy_event_counts["secessions"].append(event_type_counts["unrest_secession"])
+        diplomacy_event_counts["independence"].append(event_type_counts["rebel_independence"])
 
     outright_win_rates = {
         faction_name: outright_wins[faction_name] / runs
@@ -221,6 +263,8 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
         "outcome_balance": {
             "outright_win_rate": outright_win_rates,
             "shared_first_rate": shared_first_rates,
+            "non_starting_outright_win_rate": non_starting_outright_wins / runs,
+            "non_starting_shared_first_rate": non_starting_shared_firsts / runs,
             "average_treasury": {
                 faction_name: mean(average_treasury[faction_name])
                 for faction_name in faction_names
@@ -241,6 +285,7 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
             "average_eliminated_factions": mean(eliminated_faction_counts) if eliminated_faction_counts else 0.0,
             "average_largest_treasury_lead": mean(largest_treasury_leads) if largest_treasury_leads else 0.0,
             "average_largest_region_lead": mean(largest_region_leads) if largest_region_leads else 0.0,
+            "average_final_factions": mean(final_faction_counts) if final_faction_counts else 0.0,
         },
         "survival": {
             "elimination_rate": {
@@ -263,6 +308,10 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
             }
             for phase_name, actions in phase_actions.items()
         },
+        "diplomacy": {
+            metric_name: mean(values) if values else 0.0
+            for metric_name, values in diplomacy_event_counts.items()
+        },
     }
 
 
@@ -272,6 +321,7 @@ def format_setting_report(result):
     health = result["game_health"]
     survival = result["survival"]
     pacing = result["pacing"]
+    diplomacy = result["diplomacy"]
 
     lines.append(f"Map: {result['map_name']}")
     lines.append(f"Turns: {result['num_turns']}")
@@ -282,6 +332,10 @@ def format_setting_report(result):
     lines.append(
         f"  Win-rate spread: {outcome['win_rate_spread']:.2%} | "
         f"Win-rate stddev: {outcome['win_rate_stddev']:.3f}"
+    )
+    lines.append(
+        f"  Non-starting outright wins: {outcome['non_starting_outright_win_rate']:.2%} | "
+        f"Non-starting shared firsts: {outcome['non_starting_shared_first_rate']:.2%}"
     )
     lines.append(
         f"{'Faction':<18} {'Doctrine':<24} {'Win':>8} {'Shared':>8} {'Treasury':>10} {'Regions':>8} {'Elim':>8} {'ElimTurn':>10}"
@@ -321,7 +375,8 @@ def format_setting_report(result):
     lines.append(
         f"  Avg eliminated factions: {health['average_eliminated_factions']:.2f} | "
         f"Avg largest treasury lead: {health['average_largest_treasury_lead']:.2f} | "
-        f"Avg largest region lead: {health['average_largest_region_lead']:.2f}"
+        f"Avg largest region lead: {health['average_largest_region_lead']:.2f} | "
+        f"Avg final factions: {health['average_final_factions']:.2f}"
     )
 
     lines.append("")
@@ -340,6 +395,21 @@ def format_setting_report(result):
             f"expansions={actions['expansions']:.2f}, "
             f"investments={actions['investments']:.2f}"
         )
+
+    lines.append("")
+    lines.append("Political Dynamics")
+    lines.append(
+        f"  Truces={diplomacy['truces']:.2f} | "
+        f"Truce endings={diplomacy['truce_ends']:.2f} | "
+        f"Pacts={diplomacy['pacts']:.2f} | "
+        f"Alliances={diplomacy['alliances']:.2f} | "
+        f"Rivalries={diplomacy['rivalries']:.2f} | "
+        f"Breaks={diplomacy['breaks']:.2f}"
+    )
+    lines.append(
+        f"  Secessions={diplomacy['secessions']:.2f} | "
+        f"Rebel independence={diplomacy['independence']:.2f}"
+    )
 
     return "\n".join(lines)
 

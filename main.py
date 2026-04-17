@@ -168,6 +168,19 @@ def format_event(event, world):
             f"formed an alliance (score={event.get('score', 0):.2f})"
         )
 
+    if event["type"] == "diplomacy_truce":
+        return (
+            f"Turn {event['turn'] + 1}: {event['faction']} and {event.get('counterpart', 'another faction')} "
+            f"entered a truce for {event.get('duration', 0)} turn(s)"
+        )
+
+    if event["type"] == "diplomacy_truce_end":
+        return (
+            f"Turn {event['turn'] + 1}: the truce between {event['faction']} and "
+            f"{event.get('counterpart', 'another faction')} expired "
+            f"(new_status={event.get('new_status', 'neutral')}, score={event.get('score', 0):.2f})"
+        )
+
     if event["type"] == "diplomacy_break":
         return (
             f"Turn {event['turn'] + 1}: {event['faction']} and {event.get('counterpart', 'another faction')} "

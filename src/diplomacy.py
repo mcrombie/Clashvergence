@@ -2,18 +2,44 @@ from __future__ import annotations
 
 from itertools import combinations
 
+from src.config import (
+    DIPLOMACY_ALLIANCE_ATTACK_PENALTY,
+    DIPLOMACY_ALLIANCE_BREAK_THRESHOLD,
+    DIPLOMACY_ALLIANCE_THRESHOLD,
+    DIPLOMACY_ATTACK_GRIEVANCE_FAILURE,
+    DIPLOMACY_ATTACK_GRIEVANCE_SUCCESS,
+    DIPLOMACY_ATTACK_TRUST_HIT_FAILURE,
+    DIPLOMACY_ATTACK_TRUST_HIT_SUCCESS,
+    DIPLOMACY_BORDER_FRICTION_MAX,
+    DIPLOMACY_BORDER_FRICTION_PER_EDGE,
+    DIPLOMACY_DISTANT_PEACE_GAIN,
+    DIPLOMACY_EXISTING_ACCORD_PEACE_BONUS,
+    DIPLOMACY_GRIEVANCE_DECAY,
+    DIPLOMACY_GRIEVANCE_MAX,
+    DIPLOMACY_MATURE_REBEL_LINEAGE_BONUS,
+    DIPLOMACY_PACT_ATTACK_PENALTY,
+    DIPLOMACY_PACT_BREAK_THRESHOLD,
+    DIPLOMACY_PACT_THRESHOLD,
+    DIPLOMACY_PEACE_SCORE_MAX,
+    DIPLOMACY_PEACE_SCORE_PER_TURN,
+    DIPLOMACY_PROTO_REBEL_LINEAGE_BONUS,
+    DIPLOMACY_REBEL_HOSTILITY_ON_ATTACK,
+    DIPLOMACY_REBEL_SECESSION_INITIAL_GRIEVANCE,
+    DIPLOMACY_REBEL_SECESSION_INITIAL_TRUST,
+    DIPLOMACY_REBEL_SECESSION_TRUCE_DURATION,
+    DIPLOMACY_RIVAL_ATTACK_BONUS,
+    DIPLOMACY_RIVAL_BREAK_THRESHOLD,
+    DIPLOMACY_RIVAL_THRESHOLD,
+    DIPLOMACY_RUNAWAY_COALITION_BONUS,
+    DIPLOMACY_RUNAWAY_TARGET_PENALTY,
+    DIPLOMACY_SCORE_MAX,
+    DIPLOMACY_SCORE_MIN,
+    DIPLOMACY_SHARED_BORDER_PEACE_GAIN,
+    DIPLOMACY_TRUCE_ATTACK_PENALTY,
+    DIPLOMACY_TRUCE_DURATION,
+    DIPLOMACY_TRUST_MAX,
+)
 from src.models import Event, RelationshipState, WorldState
-
-
-DIPLOMACY_SCORE_MIN = -100.0
-DIPLOMACY_SCORE_MAX = 100.0
-
-RIVAL_THRESHOLD = -40.0
-RIVAL_BREAK_THRESHOLD = -20.0
-PACT_THRESHOLD = 40.0
-PACT_BREAK_THRESHOLD = 25.0
-ALLIANCE_THRESHOLD = 70.0
-ALLIANCE_BREAK_THRESHOLD = 55.0
 
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
@@ -116,8 +142,8 @@ def _get_runaway_modifier(world: WorldState, faction_a: str, faction_b: str) -> 
     if leader is None:
         return 0.0
     if leader in {faction_a, faction_b}:
-        return -6.0
-    return 2.0
+        return DIPLOMACY_RUNAWAY_TARGET_PENALTY
+    return DIPLOMACY_RUNAWAY_COALITION_BONUS
 
 
 def _get_lineage_modifier(world: WorldState, faction_a: str, faction_b: str) -> float:
@@ -127,7 +153,11 @@ def _get_lineage_modifier(world: WorldState, faction_a: str, faction_b: str) -> 
     for rebel, other in ((faction_a_state, faction_b_state), (faction_b_state, faction_a_state)):
         if not rebel.is_rebel or rebel.origin_faction != other.name:
             continue
-        return -25.0 if rebel.proto_state else -12.0
+        return (
+            DIPLOMACY_PROTO_REBEL_LINEAGE_BONUS
+            if rebel.proto_state
+            else DIPLOMACY_MATURE_REBEL_LINEAGE_BONUS
+        )
     return 0.0
 
 
@@ -142,42 +172,79 @@ def _process_conflict_memory(world: WorldState) -> set[tuple[str, str]]:
         key = canonical_relationship_pair(event.faction, defender)
         conflict_pairs.add(key)
         relationship = get_relationship_state(world, event.faction, defender)
-        grievance_gain = 18.0 + (10.0 if event.get("success", False) else 4.0)
+        grievance_gain = (
+            DIPLOMACY_ATTACK_GRIEVANCE_SUCCESS
+            if event.get("success", False)
+            else DIPLOMACY_ATTACK_GRIEVANCE_FAILURE
+        )
+        attacker_faction = world.factions[event.faction]
+        defender_faction = world.factions[defender]
+        if (
+            attacker_faction.origin_faction == defender
+            or defender_faction.origin_faction == event.faction
+        ):
+            grievance_gain += DIPLOMACY_REBEL_HOSTILITY_ON_ATTACK
         relationship.grievance = _clamp(
             relationship.grievance + grievance_gain,
             0.0,
-            80.0,
+            DIPLOMACY_GRIEVANCE_MAX,
         )
         relationship.trust = _clamp(
-            relationship.trust - (12.0 if event.get("success", False) else 8.0),
+            relationship.trust - (
+                DIPLOMACY_ATTACK_TRUST_HIT_SUCCESS
+                if event.get("success", False)
+                else DIPLOMACY_ATTACK_TRUST_HIT_FAILURE
+            ),
             0.0,
-            60.0,
+            DIPLOMACY_TRUST_MAX,
+        )
+        relationship.truce_turns_remaining = max(
+            relationship.truce_turns_remaining,
+            DIPLOMACY_TRUCE_DURATION,
         )
         relationship.years_at_peace = 0
         relationship.wars_fought += 1
         relationship.last_conflict_turn = world.turn
+        previous_status = relationship.status
+        relationship.status = "truce"
+        if previous_status != "truce":
+            world.events.append(Event(
+                turn=world.turn,
+                type="diplomacy_truce",
+                faction=event.faction,
+                details={
+                    "counterpart": defender,
+                    "duration": relationship.truce_turns_remaining,
+                    "reason": "war_exhaustion",
+                },
+                tags=["diplomacy", "truce", "war"],
+                significance=relationship.grievance,
+            ))
     return conflict_pairs
 
 
 def _derive_status(state: RelationshipState) -> str:
+    if state.truce_turns_remaining > 0:
+        return "truce"
+
     score = state.score
     current = state.status
 
     if current == "alliance":
-        if score >= ALLIANCE_BREAK_THRESHOLD:
+        if score >= DIPLOMACY_ALLIANCE_BREAK_THRESHOLD:
             return "alliance"
     if current == "non_aggression_pact":
-        if score >= PACT_BREAK_THRESHOLD:
+        if score >= DIPLOMACY_PACT_BREAK_THRESHOLD:
             return "non_aggression_pact"
     if current == "rival":
-        if score <= RIVAL_BREAK_THRESHOLD:
+        if score <= DIPLOMACY_RIVAL_BREAK_THRESHOLD:
             return "rival"
 
-    if score >= ALLIANCE_THRESHOLD and state.years_at_peace >= 3:
+    if score >= DIPLOMACY_ALLIANCE_THRESHOLD and state.years_at_peace >= 2:
         return "alliance"
-    if score >= PACT_THRESHOLD and state.years_at_peace >= 2:
+    if score >= DIPLOMACY_PACT_THRESHOLD and state.years_at_peace >= 1:
         return "non_aggression_pact"
-    if score <= RIVAL_THRESHOLD:
+    if score <= DIPLOMACY_RIVAL_THRESHOLD:
         return "rival"
     return "neutral"
 
@@ -192,6 +259,22 @@ def _emit_status_change_event(
 ) -> None:
     if previous_status == new_status:
         return
+
+    if previous_status == "truce" and new_status != "truce":
+        world.events.append(Event(
+            turn=world.turn,
+            type="diplomacy_truce_end",
+            faction=faction_a,
+            details={
+                "counterpart": faction_b,
+                "new_status": new_status,
+                "score": round(score, 2),
+            },
+            tags=["diplomacy", "truce_end"],
+            significance=abs(score),
+        ))
+        if new_status == "neutral":
+            return
 
     if previous_status in {"alliance", "non_aggression_pact"} and new_status not in {
         "alliance",
@@ -242,21 +325,37 @@ def update_relationships(world: WorldState) -> None:
     for faction_a, faction_b in combinations(sorted(world.factions), 2):
         state = get_relationship_state(world, faction_a, faction_b)
         shared_borders = _count_shared_borders(world, faction_a, faction_b)
-        state.border_friction = min(18.0, shared_borders * 4.0)
+        state.border_friction = min(
+            DIPLOMACY_BORDER_FRICTION_MAX,
+            shared_borders * DIPLOMACY_BORDER_FRICTION_PER_EDGE,
+        )
         key = canonical_relationship_pair(faction_a, faction_b)
 
         if key not in conflict_pairs:
+            if state.truce_turns_remaining > 0:
+                state.truce_turns_remaining -= 1
             state.years_at_peace += 1
-            peace_gain = 0.75 if shared_borders == 0 else 0.25
+            peace_gain = (
+                DIPLOMACY_DISTANT_PEACE_GAIN
+                if shared_borders == 0
+                else DIPLOMACY_SHARED_BORDER_PEACE_GAIN
+            )
             if state.status in {"non_aggression_pact", "alliance"}:
-                peace_gain += 0.5
-            state.trust = _clamp(state.trust + peace_gain, 0.0, 60.0)
-            state.grievance = _clamp(state.grievance - 2.0, 0.0, 80.0)
+                peace_gain += DIPLOMACY_EXISTING_ACCORD_PEACE_BONUS
+            state.trust = _clamp(state.trust + peace_gain, 0.0, DIPLOMACY_TRUST_MAX)
+            state.grievance = _clamp(
+                state.grievance - DIPLOMACY_GRIEVANCE_DECAY,
+                0.0,
+                DIPLOMACY_GRIEVANCE_MAX,
+            )
 
         doctrine_affinity = _get_doctrine_affinity(world, faction_a, faction_b)
         runaway_modifier = _get_runaway_modifier(world, faction_a, faction_b)
         lineage_modifier = _get_lineage_modifier(world, faction_a, faction_b)
-        peace_modifier = min(6.0, state.years_at_peace * 0.5)
+        peace_modifier = min(
+            DIPLOMACY_PEACE_SCORE_MAX,
+            state.years_at_peace * DIPLOMACY_PEACE_SCORE_PER_TURN,
+        )
 
         state.score = round(
             _clamp(
@@ -285,18 +384,54 @@ def get_attack_diplomacy_modifier(
 ) -> tuple[int, str]:
     status = get_relationship_status(world, attacker_name, defender_name)
     if status == "alliance":
-        return (-999, status)
+        return (DIPLOMACY_ALLIANCE_ATTACK_PENALTY, status)
+    if status == "truce":
+        return (DIPLOMACY_TRUCE_ATTACK_PENALTY, status)
     if status == "non_aggression_pact":
-        return (-60, status)
+        return (DIPLOMACY_PACT_ATTACK_PENALTY, status)
     if status == "rival":
-        return (12, status)
+        return (DIPLOMACY_RIVAL_ATTACK_BONUS, status)
     return (0, status)
+
+
+def seed_rebel_origin_relationship(
+    world: WorldState,
+    rebel_faction: str,
+    origin_faction: str,
+) -> None:
+    state = get_relationship_state(world, rebel_faction, origin_faction)
+    state.status = "truce"
+    state.truce_turns_remaining = DIPLOMACY_REBEL_SECESSION_TRUCE_DURATION
+    state.years_at_peace = 0
+    state.trust = max(state.trust, DIPLOMACY_REBEL_SECESSION_INITIAL_TRUST)
+    state.grievance = max(state.grievance, DIPLOMACY_REBEL_SECESSION_INITIAL_GRIEVANCE)
+    state.score = round(
+        _clamp(
+            state.trust - state.grievance + DIPLOMACY_PROTO_REBEL_LINEAGE_BONUS,
+            DIPLOMACY_SCORE_MIN,
+            DIPLOMACY_SCORE_MAX,
+        ),
+        2,
+    )
+    world.events.append(Event(
+        turn=world.turn,
+        type="diplomacy_truce",
+        faction=origin_faction,
+        details={
+            "counterpart": rebel_faction,
+            "duration": state.truce_turns_remaining,
+            "reason": "secession_settlement",
+        },
+        tags=["diplomacy", "truce", "secession"],
+        significance=abs(state.score),
+    ))
 
 
 def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[str, object]:
     counterpart_scores = []
     alliance_count = 0
     pact_count = 0
+    truce_count = 0
     rival_count = 0
 
     for other_faction in world.factions:
@@ -306,6 +441,8 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
         counterpart_scores.append((other_faction, state.score, state.status))
         if state.status == "alliance":
             alliance_count += 1
+        elif state.status == "truce":
+            truce_count += 1
         elif state.status == "non_aggression_pact":
             pact_count += 1
         elif state.status == "rival":
@@ -327,6 +464,7 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
         "top_ally": top_ally,
         "top_rival": top_rival,
         "alliance_count": alliance_count,
+        "truce_count": truce_count,
         "pact_count": pact_count,
         "rival_count": rival_count,
     }

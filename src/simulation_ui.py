@@ -91,6 +91,10 @@ def _get_event_title(event, world):
         return f"{event.faction} and {event.get('counterpart', 'another faction')} signed a non-aggression pact"
     if event.type == "diplomacy_alliance":
         return f"{event.faction} and {event.get('counterpart', 'another faction')} formed an alliance"
+    if event.type == "diplomacy_truce":
+        return f"{event.faction} and {event.get('counterpart', 'another faction')} entered a truce"
+    if event.type == "diplomacy_truce_end":
+        return f"{event.faction} and {event.get('counterpart', 'another faction')} saw their truce expire"
     if event.type == "diplomacy_break":
         return f"{event.faction} and {event.get('counterpart', 'another faction')} broke their accord"
     return f"{event.faction} acted"
@@ -152,6 +156,16 @@ def _get_event_summary(event, world):
     if event.type == "diplomacy_alliance":
         return (
             f"Shared interests hardened into a formal alignment that blocks direct conflict."
+            + terrain_text
+        )
+    if event.type == "diplomacy_truce":
+        return (
+            f"Recent violence or a secession settlement forced a temporary pause in fighting."
+            + terrain_text
+        )
+    if event.type == "diplomacy_truce_end":
+        return (
+            f"The cooling-off period ended, leaving the relationship to settle into peace, rivalry, or renewed conflict."
             + terrain_text
         )
     if event.type == "diplomacy_break":
@@ -2225,14 +2239,14 @@ def render_simulation_html(world):
                 <div class="detail-label">Top Ally</div>
                 <div class="detail-value">${{escapeHtml(metrics.top_ally || "None")}}</div>
               </div>
-              <div class="detail-row">
-                <div class="detail-label">Top Rival</div>
-                <div class="detail-value">${{escapeHtml(metrics.top_rival || "None")}}</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">Diplomacy</div>
-                <div class="detail-value">A${{metrics.alliance_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}}</div>
-              </div>
+                <div class="detail-row">
+                  <div class="detail-label">Top Rival</div>
+                  <div class="detail-value">${{escapeHtml(metrics.top_rival || "None")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Diplomacy</div>
+                  <div class="detail-value">A${{metrics.alliance_count || 0}} / T${{metrics.truce_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}}</div>
+                </div>
               <div class="detail-row">
                 <div class="detail-label">Realm Structure</div>
                 <div class="detail-value">H${{metrics.homeland_regions}} / C${{metrics.core_regions}} / F${{metrics.frontier_regions}}</div>
@@ -2292,13 +2306,15 @@ def render_simulation_html(world):
           icon.symbol = "*";
           icon.className = "event-icon-success";
           icon.label = "Independence";
-        }} else if (
-          event.type === "diplomacy_rivalry"
-          || event.type === "diplomacy_pact"
-          || event.type === "diplomacy_alliance"
-          || event.type === "diplomacy_break"
-        ) {{
-          icon.symbol = "=";
+          }} else if (
+            event.type === "diplomacy_rivalry"
+            || event.type === "diplomacy_pact"
+            || event.type === "diplomacy_alliance"
+            || event.type === "diplomacy_truce"
+            || event.type === "diplomacy_truce_end"
+            || event.type === "diplomacy_break"
+          ) {{
+            icon.symbol = "=";
           icon.className = "event-icon-invest";
           icon.label = "Diplomacy";
         }}
