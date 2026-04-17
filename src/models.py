@@ -2,6 +2,80 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 
+POLITY_TIERS = ("band", "tribe", "chiefdom", "state")
+GOVERNMENT_FORMS_BY_TIER = {
+    "band": ("leader", "council"),
+    "tribe": ("leader", "council", "assembly"),
+    "chiefdom": ("leader", "council", "monarchy"),
+    "state": ("council", "assembly", "monarchy", "republic", "oligarchy"),
+}
+DEFAULT_GOVERNMENT_FORM_BY_TIER = {
+    "band": "leader",
+    "tribe": "council",
+    "chiefdom": "leader",
+    "state": "council",
+}
+GOVERNMENT_TYPE_LABELS = {
+    ("band", "leader"): "Band",
+    ("band", "council"): "Band",
+    ("tribe", "leader"): "Tribe",
+    ("tribe", "council"): "Tribe",
+    ("tribe", "assembly"): "Tribe",
+    ("chiefdom", "leader"): "Chiefdom",
+    ("chiefdom", "council"): "Chiefdom",
+    ("chiefdom", "monarchy"): "Chiefdom",
+    ("state", "council"): "State",
+    ("state", "assembly"): "State",
+    ("state", "monarchy"): "Kingdom",
+    ("state", "republic"): "Republic",
+    ("state", "oligarchy"): "Oligarchy",
+}
+LEGACY_GOVERNMENT_TYPE_TO_STRUCTURE = {
+    "Band": ("band", "leader"),
+    "Tribe": ("tribe", "council"),
+    "Chiefdom": ("chiefdom", "leader"),
+    "State": ("state", "council"),
+    "Kingdom": ("state", "monarchy"),
+    "Republic": ("state", "republic"),
+    "Oligarchy": ("state", "oligarchy"),
+    "Rebels": ("state", "council"),
+}
+
+
+def normalize_polity_tier(polity_tier: str) -> str:
+    normalized = (polity_tier or "tribe").strip().lower()
+    if normalized not in POLITY_TIERS:
+        raise ValueError(f"Unsupported polity tier: {polity_tier}")
+    return normalized
+
+
+def get_default_government_form(polity_tier: str) -> str:
+    normalized_tier = normalize_polity_tier(polity_tier)
+    return DEFAULT_GOVERNMENT_FORM_BY_TIER[normalized_tier]
+
+
+def normalize_government_form(polity_tier: str, government_form: str | None) -> str:
+    normalized_tier = normalize_polity_tier(polity_tier)
+    normalized_form = (government_form or get_default_government_form(normalized_tier)).strip().lower()
+    if normalized_form not in GOVERNMENT_FORMS_BY_TIER[normalized_tier]:
+        raise ValueError(
+            f"Unsupported government form '{government_form}' for polity tier '{normalized_tier}'."
+        )
+    return normalized_form
+
+
+def resolve_government_type(polity_tier: str, government_form: str) -> str:
+    normalized_tier = normalize_polity_tier(polity_tier)
+    normalized_form = normalize_government_form(normalized_tier, government_form)
+    return GOVERNMENT_TYPE_LABELS[(normalized_tier, normalized_form)]
+
+
+def infer_government_structure(government_type: str | None) -> tuple[str, str] | None:
+    if not government_type:
+        return None
+    return LEGACY_GOVERNMENT_TYPE_TO_STRUCTURE.get(government_type.strip())
+
+
 @dataclass
 class FactionDoctrineState:
     homeland_region: str | None = None
@@ -93,7 +167,9 @@ class Region:
 class FactionIdentity:
     internal_id: str
     culture_name: str
-    government_type: str = "Tribe"
+    government_type: str = ""
+    polity_tier: str = "tribe"
+    government_form: str = "council"
     display_name: str = ""
     language_profile: LanguageProfile = field(default_factory=LanguageProfile)
     source_traditions: list[str] = field(default_factory=list)
@@ -103,8 +179,54 @@ class FactionIdentity:
     candidate_pool: list[str] = field(default_factory=list)
 
     def __post_init__(self):
+        inferred_structure = infer_government_structure(self.government_type)
+        if inferred_structure is not None and (
+            self.polity_tier == "tribe"
+            and self.government_form == "council"
+        ):
+            self.polity_tier, self.government_form = inferred_structure
+
+        self.polity_tier = normalize_polity_tier(self.polity_tier)
+        self.government_form = normalize_government_form(
+            self.polity_tier,
+            self.government_form,
+        )
+        if not self.government_type:
+            self.government_type = resolve_government_type(
+                self.polity_tier,
+                self.government_form,
+            )
         if not self.display_name:
-            self.display_name = f"{self.culture_name} {self.government_type}"
+            self.display_name = self.default_display_name()
+
+    def default_display_name(self) -> str:
+        return f"{self.culture_name} {self.get_resolved_government_type()}"
+
+    def get_resolved_government_type(self) -> str:
+        return self.government_type or resolve_government_type(
+            self.polity_tier,
+            self.government_form,
+        )
+
+    def set_government_structure(
+        self,
+        polity_tier: str,
+        government_form: str | None = None,
+        *,
+        government_type: str | None = None,
+        update_display_name: bool = False,
+    ) -> None:
+        self.polity_tier = normalize_polity_tier(polity_tier)
+        self.government_form = normalize_government_form(
+            self.polity_tier,
+            government_form,
+        )
+        self.government_type = government_type or resolve_government_type(
+            self.polity_tier,
+            self.government_form,
+        )
+        if update_display_name:
+            self.display_name = self.default_display_name()
 
 
 @dataclass
@@ -136,7 +258,19 @@ class Faction:
 
     @property
     def government_type(self):
-        return self.identity.government_type if self.identity is not None else "Tribe"
+        return (
+            self.identity.get_resolved_government_type()
+            if self.identity is not None
+            else "Tribe"
+        )
+
+    @property
+    def polity_tier(self):
+        return self.identity.polity_tier if self.identity is not None else "tribe"
+
+    @property
+    def government_form(self):
+        return self.identity.government_form if self.identity is not None else "council"
 
     @property
     def internal_id(self):

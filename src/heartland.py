@@ -788,6 +788,8 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
     rebel_identity = FactionIdentity(
         internal_id=_next_dynamic_internal_id(world),
         culture_name=_normalize_rebel_name_seed(region.ui_name),
+        polity_tier="state",
+        government_form="council",
         government_type="Rebels",
         display_name=rebel_name,
         language_profile=parent_language_profile,
@@ -942,7 +944,11 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
         if successor_ethnicity is not None:
             faction.identity.culture_name = successor_ethnicity
             faction.identity.language_profile = deepcopy(successor_language_profile)
-        faction.identity.government_type = REBEL_MATURE_GOVERNMENT_TYPE
+        faction.identity.set_government_structure(
+            "state",
+            "council",
+            government_type=REBEL_MATURE_GOVERNMENT_TYPE,
+        )
         faction.identity.display_name = faction.identity.culture_name
 
     world.events.append(Event(

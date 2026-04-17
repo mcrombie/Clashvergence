@@ -186,6 +186,7 @@ def _build_terrain_naming_profile(region: Region) -> dict[str, list[str] | str]:
             settlement_suffixes.append(suffix_overrides[cue])
 
     return {
+        "terrain_tags": list(terrain_profile["terrain_tags"]),
         "terrain_label": terrain_label,
         "terrain_cues": terrain_cues,
         "place_nouns": place_nouns,
@@ -228,17 +229,11 @@ def _candidate_names(
     candidates: list[tuple[str, str]] = []
     if is_homeland:
         candidates.append((variants["root"], "homeland_root"))
-    if language_fragment:
-        fragment = _letters_only(language_fragment).capitalize()
-        if fragment:
-            candidates.extend([
-                (f"{fragment}{settlement_suffix}", "ethnicity_fragment_settlement"),
-                (f"{fragment} {place_noun}", "ethnicity_fragment_place"),
-            ])
 
     terrain_label = terrain_profile["terrain_label"]
     terrain_cues = terrain_profile["terrain_cues"]
-    if terrain_label and not is_homeland:
+    has_distinct_terrain_identity = terrain_profile["terrain_tags"] != ["plains"]
+    if terrain_label and has_distinct_terrain_identity and not is_homeland:
         candidates.extend([
             (f"{variants['root']} {place_noun}", "terrain_root_place"),
             (f"{variants['adjectival']} {alt_place_noun}", "terrain_adjectival_place"),
@@ -246,6 +241,13 @@ def _candidate_names(
         if terrain_cues:
             cue = rng.choice(terrain_cues)
             candidates.append((f"{variants['root']} {cue}", "terrain_cue_place"))
+    if language_fragment:
+        fragment = _letters_only(language_fragment).capitalize()
+        if fragment:
+            candidates.extend([
+                (f"{fragment}{settlement_suffix}", "ethnicity_fragment_settlement"),
+                (f"{fragment} {place_noun}", "ethnicity_fragment_place"),
+            ])
 
     candidates.extend([
         (f"New {variants['root']}", "new_root"),

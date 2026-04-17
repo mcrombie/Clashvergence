@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import patch
 
 from src.faction_naming import REAL_NAME_BLOCKLIST, generate_faction_identities
+from src.models import FactionIdentity
 from src.simulation import run_simulation
 from src.world import create_world
 
@@ -55,11 +56,24 @@ class FactionNamingTests(unittest.TestCase):
         for index, identity in enumerate(identities, start=1):
             self.assertEqual(identity.internal_id, f"Faction{index}")
             self.assertTrue(identity.culture_name)
+            self.assertEqual(identity.polity_tier, "tribe")
+            self.assertEqual(identity.government_form, "council")
             self.assertEqual(identity.government_type, "Tribe")
             self.assertEqual(identity.display_name, f"{identity.culture_name} Tribe")
             self.assertTrue(identity.source_traditions)
             self.assertIn(identity.generation_method, {"curated_source_fusion", "ai_fused_sources"})
             self.assertTrue(identity.candidate_pool)
+
+    def test_legacy_government_labels_infer_structure(self):
+        identity = FactionIdentity(
+            internal_id="FactionX",
+            culture_name="Valeri",
+            government_type="Kingdom",
+        )
+
+        self.assertEqual(identity.polity_tier, "state")
+        self.assertEqual(identity.government_form, "monarchy")
+        self.assertEqual(identity.display_name, "Valeri Kingdom")
 
     def test_generated_culture_names_do_not_copy_blocked_historical_names(self):
         identities = generate_faction_identities(12, naming_seed="historical_guardrails")

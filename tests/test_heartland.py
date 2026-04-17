@@ -479,6 +479,19 @@ class HeartlandSystemTests(unittest.TestCase):
         faction_name = next(iter(world.factions))
         region = world.regions["M"]
         region.resources = 4
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        if region.population <= 0:
+            region.population = estimate_region_population(
+                region.resources,
+                len(region.neighbors),
+                owner=faction_name,
+            )
+        if not region.ethnic_composition:
+            seed_region_ethnicity(
+                region,
+                world.factions[faction_name].primary_ethnicity,
+            )
         population_before = region.population
 
         rebel_name, region = self._spawn_rebel_from_region(world, faction_name)
@@ -642,6 +655,8 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertEqual(world.events[-1].type, "rebel_independence")
         self.assertEqual(world.events[-1].faction, rebel_name)
         self.assertFalse(rebel_faction.proto_state)
+        self.assertEqual(rebel_faction.polity_tier, "state")
+        self.assertEqual(rebel_faction.government_form, "council")
         self.assertEqual(rebel_faction.government_type, REBEL_MATURE_GOVERNMENT_TYPE)
         self.assertNotEqual(rebel_faction.primary_ethnicity, parent_ethnicity)
         self.assertEqual(rebel_faction.display_name, rebel_faction.primary_ethnicity)
@@ -753,6 +768,18 @@ class HeartlandSystemTests(unittest.TestCase):
         defender_name = faction_names[1]
         target_region = world.regions["B"]
         target_region.owner = defender_name
+        target_region.integrated_owner = defender_name
+        if target_region.population <= 0:
+            target_region.population = estimate_region_population(
+                target_region.resources,
+                len(target_region.neighbors),
+                owner=defender_name,
+            )
+        if not target_region.ethnic_composition:
+            seed_region_ethnicity(
+                target_region,
+                world.factions[defender_name].primary_ethnicity,
+            )
         before = target_region.population
         world.factions[attacker_name].treasury = 10
 

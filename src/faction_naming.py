@@ -28,7 +28,8 @@ AI_FACTION_NAMING_ENABLED = os.getenv(
     "0",
 ).lower() in {"1", "true", "yes", "on"}
 
-DEFAULT_GOVERNMENT_TYPE = "Tribe"
+DEFAULT_POLITY_TIER = "tribe"
+DEFAULT_GOVERNMENT_FORM = "council"
 
 SOURCE_TRADITIONS = {
     "roman": {
@@ -501,7 +502,8 @@ def generate_faction_identity(index: int, naming_seed: str = "default", existing
     return FactionIdentity(
         internal_id=get_faction_internal_id(index),
         culture_name=final_culture_name,
-        government_type=DEFAULT_GOVERNMENT_TYPE,
+        polity_tier=DEFAULT_POLITY_TIER,
+        government_form=DEFAULT_GOVERNMENT_FORM,
         language_profile=language_profile,
         source_traditions=traditions,
         generation_method="ai_fused_sources" if ai_candidate else "curated_source_fusion",

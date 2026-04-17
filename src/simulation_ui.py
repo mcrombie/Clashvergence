@@ -534,6 +534,8 @@ def build_simulation_view_model(world):
             "origin_faction": world.factions[faction_name].origin_faction,
             "proto_state": world.factions[faction_name].proto_state,
             "government_type": world.factions[faction_name].government_type,
+            "polity_tier": world.factions[faction_name].polity_tier,
+            "government_form": world.factions[faction_name].government_form,
             "primary_ethnicity": world.factions[faction_name].primary_ethnicity,
             "ethnic_claims": get_faction_ethnic_claims(world, faction_name),
             "rebel_age": world.factions[faction_name].rebel_age,
@@ -2395,6 +2397,10 @@ def render_simulation_html(world):
               <div class="detail-row">
                 <div class="detail-label">Polity</div>
                 <div class="detail-value">${{polityStatus}}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Tier / Government</div>
+                <div class="detail-value">${{escapeHtml(faction.polity_tier || "tribe")}} / ${{escapeHtml(faction.government_form || "council")}}</div>
               </div>
               <div class="detail-row">
                 <div class="detail-label">Primary Ethnicity</div>

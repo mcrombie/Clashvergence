@@ -1,33 +1,33 @@
 Simulation Chronicle
 
+On turn 2, Saklian Tribe made its first expansion into I2.
+On turn 2, Arangoun Tribe made its first expansion into M6.
+On turn 2, Hanendua Tribe made its first expansion into M9.
 On turn 2, Aruangos Tribe made its first expansion into M3.
-On turn 2, Veneunar Tribe made its first expansion into M9.
-On turn 2, Rnutuan Tribe made its first expansion into M6.
-On turn 2, Saklian Tribe made its first expansion into M12.
-On turn 13, Remidar Rebels made its first expansion into I4.
-On turn 13, Racequ Rebels made its first expansion into I7.
-On turn 13, Saklian Tribe seized O2, a frontier foothold that mattered because it opened new directions for future expansion.
-On turn 13, Rnutuan Tribe seized O10, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into O8.
-On turn 14, Unarven Rebels made its first expansion into I1.
-On turn 15, Uvnemi Rebels made its first expansion into O4.
+On turn 8, Hanendua Tribe seized O12, a frontier foothold that mattered because it opened new directions for future expansion.
+On turn 8, Saklian Tribe seized O2, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into I6.
+On turn 9, Arangoun Tribe seized O8, a frontier foothold that mattered because it opened new directions for future expansion.
+On turn 11, Saklian Reach Rebels made its first expansion into I1.
+On turn 13, Arangoun Bay Rebels made its first expansion into O9.
+On turn 15, Hanendua Ford Rebels made its first expansion into O13.
 
 Opening Phase
 
-The strongest early land grab was Aruangos Tribe's claim of M3 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe led expansion with 2 claim(s).
-Across the first 5 turns, Saklian Tribe, Aruangos Tribe, Rnutuan Tribe, and Veneunar Tribe invested most often with 1 investment(s).
-By the end of turn 5, Aruangos Tribe held the opening treasury lead at 3.
+The strongest early land grab was Arangoun Tribe's claim of M5 on turn 3, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Saklian Tribe, Aruangos Tribe, Arangoun Tribe, and Hanendua Tribe led expansion with 2 claim(s).
+Across the first 5 turns, Saklian Tribe invested most often with 2 investment(s).
+By the end of turn 5, Aruangos Tribe held the opening treasury lead at -1.
 
 Phase Summaries
 
-Early phase: Yuvrem Rebels was strongest by the end of turns 1-33, with Yuvrem Rebels on 32 treasury and 6 regions. 68 successful attacks shifted control of 24 regions. 33 expansions added 33 new regions. 50 investments improved existing holdings. Remidar Rebels gained 9 regions while Aruangos Tribe lost 1 region. Yuvrem Rebels improved its standing most during the phase.
-Mid phase: Remidar Rebels was strongest by the end of turns 34-66, with Remidar Rebels on 9 treasury and 5 regions. 63 successful attacks shifted control of 25 regions. 4 investments improved existing holdings. Saklian Tribe gained 3 regions while Racequ Rebels lost 4 regions. Remidar Rebels improved its standing most during the phase.
-Late phase: Lianlin Rebels was strongest by the end of turns 67-100, with Lianlin Rebels on 47 treasury and 12 regions. 70 successful attacks shifted control of 19 regions. 7 investments improved existing holdings. Lianlin Rebels gained 5 regions while Saklian Tribe lost 3 regions. Yuvrem Rebels improved its standing most during the phase.
+Early phase: Saklian Reach Rebels was strongest by the end of turns 1-33, with Saklian Reach Rebels on 26 treasury and 9 regions. 60 successful attacks shifted control of 25 regions. 33 expansions added 33 new regions. 54 investments improved existing holdings. Saklian Reach Rebels gained 9 regions while Arangoun Tribe lost 1 region.
+Mid phase: Saklian Tribe was strongest by the end of turns 34-66, with Saklian Tribe on 33 treasury and 3 regions. 81 successful attacks shifted control of 23 regions. 3 investments improved existing holdings. Aruangos Wash Rebels gained 2 regions while Hanendua Ford Rebels lost 4 regions. Saklian Vale Rebels improved its standing most during the phase.
+Late phase: Saklian Vale Rebels was strongest by the end of turns 67-100, with Saklian Vale Rebels on 55 treasury and 10 regions. 75 successful attacks shifted control of 21 regions. 7 investments improved existing holdings. Arangoun Bay Rebels gained 3 regions while Hanendua Ford Rebels lost 5 regions. Saklian Reach Rebels improved its standing most during the phase.
 
 Turning Points
 
-Late phase break: Lianlin Rebels gained 5 regions while Saklian Tribe lost 3 regions.
-Late collapse: Lianlin Rebels's capture of M4 eliminated Unarven Rebels's last territorial hold.
+Late leader change: Saklian Vale Rebels took the territorial lead.
+Late leader change: Saklian Vale Rebels took the territorial lead.
 
 Outcome Type
 
@@ -35,71 +35,43 @@ Outcome type: late_snowball.
 
 Faction Trajectories
 
-Saklian Tribe opened with 5 claims and grew to 3 regions by the end of the opening phase, peaked at 7 regions on turn 63 before slipping to 3 regions, and finished rank 18 on 0 treasury with 3 regions.
-Aruangos Tribe spent the opening consolidating its start with 6 investments, peaked at 4 regions on turn 4 before slipping to 0 regions, and closed on -4 treasury without territory after 6 attacks.
-Rnutuan Tribe spent the opening consolidating its start with 6 investments, peaked at 5 regions on turn 14 before slipping to 0 regions, and closed on 0 treasury without territory after 4 attacks.
-Veneunar Tribe spent the opening consolidating its start with 7 investments, peaked at 6 regions on turn 10 before slipping to 0 regions, and closed on 6 treasury without territory after 6 attacks.
-Daanin opened with 13 attack attempts and contested neighboring borders immediately, peaked at 5 regions on turn 23 before slipping to 0 regions, and closed on -2 treasury without territory after 13 attacks.
-Akhanyuvnlen opened with 2 claims and grew to 7 regions by the end of the opening phase, peaked at 10 regions on turn 31 before slipping to 5 regions, and finished rank 2 on 21 treasury with 5 regions after gaining 20 treasury overall.
-Helaxseqlen opened with 2 claims and grew to 3 regions by the end of the opening phase, peaked at 6 regions on turn 22 before slipping to 0 regions, and closed on -2 treasury without territory after 26 attacks.
-Bakaisakra spent the opening consolidating its start with 3 investments, peaked at 4 regions on turn 17 before slipping to 0 regions, and closed on -4 treasury without territory after 3 attacks.
-Haneutern opened with 1 claim and grew to 4 regions by the end of the opening phase, peaked at 5 regions on turn 75 before slipping to 0 regions, and closed on -6 treasury without territory after 56 attacks.
-Saklford Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Durahanri opened with 2 claims and grew to 5 regions by the end of the opening phase, peaked at 8 regions on turn 49 before slipping to 6 regions, and finished rank 28 on -6 treasury with 6 regions.
-Araehperri opened with 1 claim and grew to 6 regions by the end of the opening phase, peaked at 8 regions on turn 36 before slipping to 4 regions, and finished rank 3 on 10 treasury with 4 regions after gaining 9 treasury overall.
-Jiakhash opened with 1 claim and grew to 7 regions by the end of the opening phase, built steadily past the opening, reaching 12 regions by turn 100, and finished first with 12 regions, 47 treasury, and 38 total attacks.
-Arehnoravi opened with 6 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 4 regions by turn 100, and finished rank 22 on -2 treasury with 4 regions.
-Unarcape Rebels struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Nduashan Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 3 treasury without territory after 1 attacks.
-Hakivar Rebels opened with 9 attack attempts and contested neighboring borders immediately, peaked at 2 regions on turn 37 before slipping to 0 regions, and closed on 1 treasury without territory after 9 attacks.
-Uvnemi Rebels 2 opened with 5 attack attempts and contested neighboring borders immediately, peaked at 2 regions on turn 36 before slipping to 0 regions, and closed on 4 treasury without territory after 5 attacks.
-Veneunar Rebels struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Siawash Rebels struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Unarven Rebels 2 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 3 treasury without territory after 0 attacks.
-Neunmark Rebels 2 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Iarava Rebels 2 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Veneunar Rebels 2 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 1 attacks.
-Venplain Rebels struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Veneunar Rebels 3 struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Neunmark Rebels 3 opened quietly and held at 2 regions through the first phase, held steady at 2 regions through the middle turns, and finished rank 23 on -2 treasury with 1 region.
-Iarava Rebels 3 struggled to add territory in the opening turns, built steadily past the opening, reaching 2 regions by turn 100, and finished rank 26 on -4 treasury with 2 regions.
+Saklian Tribe opened with 11 attack attempts and contested neighboring borders immediately, peaked at 7 regions on turn 57 before slipping to 4 regions, and finished rank 3 on 36 treasury with 4 regions after gaining 30 treasury overall.
+Aruangos Tribe opened with 8 attack attempts and contested neighboring borders immediately, peaked at 6 regions on turn 10 before slipping to 0 regions, and closed on 6 treasury without territory after 8 attacks.
+Arangoun Tribe spent the opening consolidating its start with 7 investments, peaked at 6 regions on turn 16 before slipping to 0 regions, and closed on -8 treasury without territory after 3 attacks.
+Hanendua Tribe opened with 10 attack attempts and contested neighboring borders immediately, peaked at 7 regions on turn 15 before slipping to 0 regions, and closed on -5 treasury without territory after 10 attacks.
+Fatriar opened with 2 claims and grew to 9 regions by the end of the opening phase, peaked at 10 regions on turn 37 before slipping to 7 regions, and finished rank 2 on 37 treasury with 7 regions after gaining 36 treasury overall.
+Liquern opened with 3 claims and grew to 6 regions by the end of the opening phase, built steadily past the opening, reaching 9 regions by turn 100, and finished rank 11 on -1 treasury with 9 regions.
+Senaeev opened with 11 attack attempts and contested neighboring borders immediately, peaked at 6 regions on turn 70 before slipping to 3 regions, and finished rank 6 on 5 treasury with 3 regions after gaining 4 treasury overall.
+Maraienetvi opened with 1 claim and grew to 7 regions by the end of the opening phase, peaked at 10 regions on turn 35 before slipping to 0 regions, and closed on -1 treasury without territory after 27 attacks.
+Saklian Field Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 4 treasury without territory after 0 attacks.
+Aruangos Reach Rebels spent the opening consolidating its start with 2 investments, peaked at 2 regions on turn 19 before slipping to 0 regions, and closed on 2 treasury without territory after 1 attacks.
+Jikhar opened with 21 attack attempts and contested neighboring borders immediately, built steadily past the opening, reaching 10 regions by turn 100, and finished first with 10 regions, 55 treasury, and 56 total attacks.
+Hanendua Gate Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 0 treasury without territory after 1 attacks.
+Araxarara opened with 14 attack attempts and contested neighboring borders immediately, peaked at 6 regions on turn 93 before slipping to 4 regions, and finished rank 4 on 18 treasury with 4 regions after gaining 17 treasury overall.
+Arangoun March Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
 
 Strategic Interpretation
 
-Jiakhash’s adaptive coast approach mattered because the map stayed fragmented long enough for late gains to compound into a 7-region and 26-treasury lead, so territory and income separated only after the midgame. Although Akhanyuvnlen was strongest in the middle and finished with 5 regions, that balanced push did not convert into a lasting board advantage because the late phase shifted decisively toward Jiakhash. The late break and collapse of rival territorial holds mattered because they removed recovery paths, which allowed Jiakhash to finish with the largest region count and the strongest treasury.
-The closest challenger was Akhanyuvnlen (Adaptive Highland Forest) at 21 treasury and 5 regions.
+After a contested opening and midgame, Jikhar’s adaptive coastal forest approach mattered because the lead only shifted late, so the final 3-region and 18-treasury margin came from a delayed but decisive separation rather than early dominance. Fatriar’s expansionist start and Saklian Tribe’s midgame strength both failed to convert because the board kept changing hands, which prevented any one faction from locking in control before Jikhar pulled ahead. The late leader change was decisive because it created a compounding advantage on a 37-region ring, so that Jikhar finished with 10 regions and the strongest treasury while the runner-up remained below both thresholds.
+The closest challenger was Fatriar (Adaptive Highland Plains) at 37 treasury and 7 regions.
 
 Final Standings
 
-Jiakhash finished first with a treasury of 47 and control of 12 regions.
-Akhanyuvnlen ended with a treasury of 21 and 5 regions.
-Araehperri ended with a treasury of 10 and 4 regions.
-Veneunar Tribe ended with a treasury of 6 and 0 regions.
-Uvnemi Rebels 2 ended with a treasury of 4 and 0 regions.
-Nduashan Rebels ended with a treasury of 3 and 0 regions.
-Unarven Rebels 2 ended with a treasury of 3 and 0 regions.
-Saklford Rebels ended with a treasury of 1 and 0 regions.
-Unarcape Rebels ended with a treasury of 1 and 0 regions.
-Hakivar Rebels ended with a treasury of 1 and 0 regions.
-Veneunar Rebels ended with a treasury of 1 and 0 regions.
-Siawash Rebels ended with a treasury of 1 and 0 regions.
-Neunmark Rebels 2 ended with a treasury of 1 and 0 regions.
-Iarava Rebels 2 ended with a treasury of 1 and 0 regions.
-Veneunar Rebels 2 ended with a treasury of 1 and 0 regions.
-Venplain Rebels ended with a treasury of 1 and 0 regions.
-Veneunar Rebels 3 ended with a treasury of 1 and 0 regions.
-Saklian Tribe ended with a treasury of 0 and 3 regions.
-Rnutuan Tribe ended with a treasury of 0 and 0 regions.
-Daanin ended with a treasury of -2 and 0 regions.
-Helaxseqlen ended with a treasury of -2 and 0 regions.
-Arehnoravi ended with a treasury of -2 and 4 regions.
-Neunmark Rebels 3 ended with a treasury of -2 and 1 region.
-Aruangos Tribe ended with a treasury of -4 and 0 regions.
-Bakaisakra ended with a treasury of -4 and 0 regions.
-Iarava Rebels 3 ended with a treasury of -4 and 2 regions.
-Haneutern ended with a treasury of -6 and 0 regions.
-Durahanri ended with a treasury of -6 and 6 regions.
+Jikhar finished first with a treasury of 55 and control of 10 regions.
+Fatriar ended with a treasury of 37 and 7 regions.
+Saklian Tribe ended with a treasury of 36 and 4 regions.
+Araxarara ended with a treasury of 18 and 4 regions.
+Aruangos Tribe ended with a treasury of 6 and 0 regions.
+Senaeev ended with a treasury of 5 and 3 regions.
+Saklian Field Rebels ended with a treasury of 4 and 0 regions.
+Aruangos Reach Rebels ended with a treasury of 2 and 0 regions.
+Arangoun March Rebels ended with a treasury of 1 and 0 regions.
+Hanendua Gate Rebels ended with a treasury of 0 and 0 regions.
+Liquern ended with a treasury of -1 and 9 regions.
+Maraienetvi ended with a treasury of -1 and 0 regions.
+Hanendua Tribe ended with a treasury of -5 and 0 regions.
+Arangoun Tribe ended with a treasury of -8 and 0 regions.
 
 Victor's History
 
-In the end, Jiakhash prevailed because its Adaptive Coast approach remained close to the ground and separated only when the moment was ripe, a steadiness that carried it from a single opening claim to 12 regions and 47 treasury by turn 100. The late phase made the judgment plain: Jiakhash gained 5 regions while Saklian Tribe lost 3, and that break secured the decisive margin. Akhanyuvnlen and Araehperri both showed real strength at different points, but neither sustained it through the full arc of the contest. On a thirty-seven-region ring, the winner’s discipline and timing proved more durable than the surges of its rivals.
+The record of this contest is plain: Jikhar prevailed by staying close to the geography and separating only when the moment was ripe. While Fatriar opened strongly and even led the field for much of the early running, its advantage proved temporary, and the late leader change confirmed that early breadth was not the same as lasting command. Jikhar’s immediate pressure, steady accumulation, and final count of 10 regions and 55 treasury show a faction that understood both timing and endurance. In the end, the stronger judgment was not the first to surge, but the one that remained coherent until the map yielded.
