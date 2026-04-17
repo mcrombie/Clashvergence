@@ -7,6 +7,7 @@ from src.config import (
     ATTACK_SUCCESS_MAX,
     ATTACK_SUCCESS_MIN,
     ATTACK_SUCCESS_STRENGTH_FACTOR,
+    DIPLOMACY_ETHNIC_CLAIM_ATTACK_BONUS,
     EXPANSION_COST,
     MAX_RESOURCES,
     INVEST_AMOUNT,
@@ -22,6 +23,7 @@ from src.config import (
 from src.doctrine import get_faction_region_alignment
 from src.heartland import (
     apply_region_population_loss,
+    faction_has_ethnic_claim,
     get_region_dominant_ethnicity,
     get_region_attack_projection_modifier,
     get_region_core_defense_bonus,
@@ -153,6 +155,15 @@ def get_attack_target_score_components(region_name, faction_name, world):
         world,
     )
     attacker_strength += rebel_reclaim_bonus
+    ethnic_claim_bonus = 0
+    claim_ethnicity = None
+    if faction_has_ethnic_claim(world, region, faction_name):
+        attacker_primary_ethnicity = world.factions[faction_name].primary_ethnicity
+        defender_primary_ethnicity = defender_faction_state.primary_ethnicity
+        if attacker_primary_ethnicity and attacker_primary_ethnicity != defender_primary_ethnicity:
+            ethnic_claim_bonus = DIPLOMACY_ETHNIC_CLAIM_ATTACK_BONUS
+            claim_ethnicity = attacker_primary_ethnicity
+    attacker_strength += ethnic_claim_bonus
     diplomacy_attack_modifier, diplomacy_status = get_attack_diplomacy_modifier(
         world,
         faction_name,
@@ -196,6 +207,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "doctrine_combat_modifier": doctrine_alignment["combat_modifier"],
         "doctrine_economic_modifier": doctrine_alignment["economic_modifier"],
         "rebel_reclaim_bonus": rebel_reclaim_bonus,
+        "ethnic_claim_bonus": ethnic_claim_bonus,
         "diplomacy_status": diplomacy_status,
         "diplomacy_attack_modifier": diplomacy_attack_modifier,
         "terrain_affinity": doctrine_alignment["average_affinity"],
@@ -653,6 +665,8 @@ def attack(faction_name, target_region_name, world):
             "terrain_affinity": score_components["terrain_affinity"],
             "core_status": score_components["core_status"],
             "core_defense_bonus": score_components["core_defense_bonus"],
+            "ethnic_claim_attack": ethnic_claim_bonus > 0,
+            "claim_ethnicity": claim_ethnicity,
             "region_display_name": target_region.display_name,
             "region_reference": format_region_reference(target_region, include_code=True),
             "population_before": population_before,

@@ -1,4 +1,5 @@
 from src.ai_interpretation import generate_ai_interpretation, generate_victor_history
+from src.diplomacy import get_faction_diplomacy_summary
 from src.event_analysis import (
     apply_event_to_replay_state,
     build_initial_opening_state,
@@ -1846,6 +1847,23 @@ def get_winner_path_to_victory(outcome_type, winner, winner_strategy, standings)
     return f"{winner}'s {winner_strategy} approach produced the strongest final position"
 
 
+def get_claim_dispute_sentence(world, faction_name: str) -> str | None:
+    summary = get_faction_diplomacy_summary(world, faction_name)
+    counterpart = summary.get("top_claim_dispute")
+    disputed_regions = summary.get("top_claim_dispute_regions", 0)
+    disputed_ethnicity = summary.get("top_claim_dispute_ethnicity")
+    if counterpart is None or disputed_regions <= 0:
+        return None
+
+    faction_display = get_faction_display_name(world, faction_name)
+    counterpart_display = get_faction_display_name(world, counterpart)
+    people_label = disputed_ethnicity or "local"
+    return (
+        f"{faction_display} remained locked in a claim dispute with {counterpart_display} over "
+        f"{format_count_noun(disputed_regions, 'region')} dominated by {people_label} communities."
+    )
+
+
 def build_victor_history_summary(world, phase_analyses, standings, outcome_type):
     """Builds the compact structured payload sent to the victor-history layer."""
     winner = standings[0]["faction"]
@@ -1939,6 +1957,16 @@ def summarize_strategic_interpretation(world):
             lines.append(
                 f"The strongest finishing doctrine in this run was {standings_by_strategy[0]}."
             )
+        claim_dispute_line = (
+            get_claim_dispute_sentence(world, winner)
+            or (
+                get_claim_dispute_sentence(world, runner_up["faction"])
+                if runner_up is not None
+                else None
+            )
+        )
+        if claim_dispute_line is not None:
+            lines.append(claim_dispute_line)
         return lines
 
     lines = []
@@ -1985,6 +2013,17 @@ def summarize_strategic_interpretation(world):
         lines.append(
             f"The strongest finishing doctrine in this run was {standings_by_strategy[0]}."
         )
+
+    claim_dispute_line = (
+        get_claim_dispute_sentence(world, winner)
+        or (
+            get_claim_dispute_sentence(world, runner_up["faction"])
+            if runner_up is not None
+            else None
+        )
+    )
+    if claim_dispute_line is not None:
+        lines.append(claim_dispute_line)
 
     return lines
 

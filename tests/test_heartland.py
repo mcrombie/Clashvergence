@@ -16,8 +16,12 @@ from src.actions import (
 )
 from src.heartland import (
     CORE_INTEGRATION_SCORE,
+    apply_unrest_secession,
     estimate_region_population,
+    faction_has_ethnic_claim,
+    get_faction_ethnic_claims,
     get_region_dominant_ethnicity,
+    get_region_ethnic_claimants,
     get_region_ethnic_integration_multiplier,
     get_rebel_reclaim_bonus,
     get_region_attack_projection_modifier,
@@ -257,6 +261,51 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertGreater(aligned_region.integration_score, mismatched_region.integration_score)
         self.assertLess(aligned_region.unrest, mismatched_region.unrest)
 
+    def test_ethnic_claims_follow_dominant_ethnicity_and_help_the_ruler(self):
+        claim_world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        no_claim_world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(claim_world.factions))
+        primary_ethnicity = claim_world.factions[faction_name].primary_ethnicity
+
+        claim_region = claim_world.regions["M"]
+        claim_region.owner = faction_name
+        claim_region.integrated_owner = faction_name
+        claim_region.core_status = "frontier"
+        claim_region.integration_score = 1.0
+        claim_region.population = 100
+        claim_region.climate = claim_world.factions[faction_name].doctrine_state.homeland_climate
+        claim_region.ethnic_composition = {
+            primary_ethnicity: 45,
+            "Neighborfolk": 40,
+            "Hillfolk": 15,
+        }
+
+        no_claim_region = no_claim_world.regions["M"]
+        no_claim_region.owner = faction_name
+        no_claim_region.integrated_owner = faction_name
+        no_claim_region.core_status = "frontier"
+        no_claim_region.integration_score = 1.0
+        no_claim_region.population = 100
+        no_claim_region.climate = no_claim_world.factions[faction_name].doctrine_state.homeland_climate
+        no_claim_region.ethnic_composition = {
+            no_claim_world.factions[faction_name].primary_ethnicity: 45,
+            "Neighborfolk": 55,
+        }
+
+        self.assertTrue(faction_has_ethnic_claim(claim_world, claim_region, faction_name))
+        self.assertFalse(faction_has_ethnic_claim(no_claim_world, no_claim_region, faction_name))
+        self.assertIn(faction_name, get_region_ethnic_claimants(claim_region, claim_world))
+        self.assertIn("M", get_faction_ethnic_claims(claim_world, faction_name))
+
+        self.assertGreater(
+            get_region_ethnic_integration_multiplier(claim_region, claim_world),
+            get_region_ethnic_integration_multiplier(no_claim_region, no_claim_world),
+        )
+        self.assertLess(
+            get_region_unrest_pressure(claim_region, claim_world),
+            get_region_unrest_pressure(no_claim_region, no_claim_world),
+        )
+
     def test_expansion_transfers_population_from_adjacent_owned_region(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
@@ -452,6 +501,41 @@ class HeartlandSystemTests(unittest.TestCase):
             region.climate,
         )
 
+    def test_extinct_ethnicity_can_restore_original_faction_via_rebellion(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_names = list(world.factions)
+        occupier_name = faction_names[0]
+        restored_name = faction_names[1]
+        restored_ethnicity = world.factions[restored_name].primary_ethnicity
+        faction_count_before = len(world.factions)
+
+        restored_regions = [
+            region
+            for region in world.regions.values()
+            if region.owner == restored_name
+        ]
+        self.assertTrue(restored_regions)
+
+        target_region = restored_regions[0]
+        for region in restored_regions:
+            region.owner = occupier_name
+            region.integrated_owner = occupier_name
+            region.core_status = "frontier"
+            region.integration_score = 1.0
+
+        apply_unrest_secession(world, target_region)
+
+        self.assertEqual(target_region.owner, restored_name)
+        self.assertEqual(len(world.factions), faction_count_before)
+        self.assertEqual(world.events[-1].type, "unrest_secession")
+        self.assertTrue(world.events[-1].details["restoration"])
+        self.assertEqual(world.events[-1].details["restored_faction"], restored_name)
+        self.assertEqual(world.events[-1].details["revived_ethnicity"], restored_ethnicity)
+        self.assertIn("restoration", world.events[-1].tags)
+        self.assertIn("revival", world.events[-1].tags)
+        self.assertFalse(world.factions[restored_name].proto_state)
+        self.assertEqual(world.factions[restored_name].primary_ethnicity, restored_ethnicity)
+
     def test_origin_faction_gets_decay_reclaim_bonus_against_proto_rebels(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
@@ -614,10 +698,14 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertIn("population", snapshots[0]["regions"]["A"])
         self.assertIn("ruling_ethnic_affinity", snapshots[0]["regions"]["A"])
         self.assertIn("owner_primary_ethnicity", snapshots[0]["regions"]["A"])
+        self.assertIn("ethnic_claimants", snapshots[0]["regions"]["A"])
+        self.assertIn("owner_has_ethnic_claim", snapshots[0]["regions"]["A"])
 
         view_model = build_simulation_view_model(world)
         self.assertIn("population", view_model["regions"][0])
         self.assertIn("ruling_ethnic_affinity", view_model["regions"][0])
+        self.assertIn("ethnic_claimants", view_model["regions"][0])
+        self.assertIn("ethnic_claims", view_model["factions"][0])
 
 
 if __name__ == "__main__":

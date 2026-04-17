@@ -11,6 +11,7 @@ from src.diplomacy import (
     update_relationships,
 )
 from src.models import Event, Faction, Region, RelationshipState, WorldState
+from src.simulation_ui import _serialize_event
 
 
 class DiplomacySystemTests(unittest.TestCase):
@@ -22,6 +23,8 @@ class DiplomacySystemTests(unittest.TestCase):
                     neighbors=["B"],
                     owner="FactionA",
                     resources=4,
+                    population=100,
+                    ethnic_composition={"Aeth": 100},
                     terrain_tags=["plains"],
                     climate="temperate",
                 ),
@@ -30,13 +33,15 @@ class DiplomacySystemTests(unittest.TestCase):
                     neighbors=["A"],
                     owner="FactionB",
                     resources=4,
+                    population=100,
+                    ethnic_composition={"Beth": 100},
                     terrain_tags=["plains"],
                     climate="temperate",
                 ),
             },
             factions={
-                "FactionA": Faction(name="FactionA", treasury=8),
-                "FactionB": Faction(name="FactionB", treasury=8),
+                "FactionA": Faction(name="FactionA", treasury=8, primary_ethnicity="Aeth"),
+                "FactionB": Faction(name="FactionB", treasury=8, primary_ethnicity="Beth"),
             },
         )
         initialize_relationships(world)
@@ -134,6 +139,29 @@ class DiplomacySystemTests(unittest.TestCase):
         self.assertEqual(pact_score["diplomacy_attack_modifier"], -45)
         self.assertLess(pact_score["score"], neutral_score["score"])
 
+    def test_ethnic_claim_pressure_worsens_relations_when_claims_are_occupied(self):
+        world = self._make_two_faction_border_world()
+        world.regions["B"].ethnic_composition = {"Aeth": 100}
+        world.turn = 1
+
+        update_relationships(world)
+        state = get_relationship_state(world, "FactionA", "FactionB")
+
+        self.assertLess(state.score, 0.0)
+        self.assertEqual(state.status, "neutral")
+
+    def test_ethnic_claim_bonus_improves_attack_score_for_claimed_region(self):
+        neutral_world = self._make_two_faction_border_world()
+        neutral_score = get_attack_target_score_components("B", "FactionA", neutral_world)
+
+        claim_world = self._make_two_faction_border_world()
+        claim_world.regions["B"].ethnic_composition = {"Aeth": 100}
+        claim_score = get_attack_target_score_components("B", "FactionA", claim_world)
+
+        self.assertEqual(claim_score["ethnic_claim_bonus"], 4)
+        self.assertGreater(claim_score["attacker_strength"], neutral_score["attacker_strength"])
+        self.assertGreater(claim_score["score"], neutral_score["score"])
+
     def test_rebel_origin_relationship_starts_with_secession_truce(self):
         world = WorldState(
             regions={},
@@ -189,6 +217,58 @@ class DiplomacySystemTests(unittest.TestCase):
         self.assertEqual(summary["truce_count"], 0)
         self.assertEqual(summary["pact_count"], 1)
         self.assertEqual(summary["rival_count"], 1)
+
+    def test_diplomacy_summary_reports_top_claim_dispute(self):
+        world = self._make_two_faction_border_world()
+        world.regions["B"].ethnic_composition = {"Aeth": 100}
+
+        summary = get_faction_diplomacy_summary(world, "FactionA")
+
+        self.assertEqual(summary["top_claim_dispute"], "FactionB")
+        self.assertEqual(summary["top_claim_dispute_ethnicity"], "Aeth")
+        self.assertEqual(summary["top_claim_dispute_regions"], 1)
+        self.assertEqual(summary["claim_dispute_count"], 1)
+
+    def test_serialized_attack_event_mentions_claim_offensive(self):
+        world = self._make_two_faction_border_world()
+        event = Event(
+            turn=0,
+            type="attack",
+            faction="FactionA",
+            region="B",
+            details={
+                "defender": "FactionB",
+                "success": True,
+                "success_chance": 0.61,
+                "ethnic_claim_attack": True,
+                "claim_ethnicity": "Aeth",
+            },
+        )
+
+        serialized = _serialize_event(event, world)
+
+        self.assertIn("claim offensive", serialized["title"].lower())
+        self.assertIn("claim-driven", serialized["summary"].lower())
+
+    def test_serialized_secession_event_mentions_restoration_revolt(self):
+        world = self._make_two_faction_border_world()
+        event = Event(
+            turn=0,
+            type="unrest_secession",
+            faction="FactionB",
+            region="B",
+            details={
+                "rebel_faction": "FactionA",
+                "restoration": True,
+                "restored_faction": "FactionA",
+                "revived_ethnicity": "Aeth",
+            },
+        )
+
+        serialized = _serialize_event(event, world)
+
+        self.assertIn("restored", serialized["title"].lower())
+        self.assertIn("restoration revolt", serialized["summary"].lower())
 
 
 if __name__ == "__main__":

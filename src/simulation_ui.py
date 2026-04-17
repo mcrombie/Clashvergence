@@ -22,7 +22,10 @@ from src.map_visualization import (
 from src.maps import MAPS
 from src.metrics import get_turn_metrics
 from src.heartland import (
+    faction_has_ethnic_claim,
+    get_faction_ethnic_claims,
     get_region_dominant_ethnicity,
+    get_region_ethnic_claimants,
     get_region_owner_primary_ethnicity,
     get_region_ruling_ethnic_affinity,
 )
@@ -97,6 +100,11 @@ def _get_event_title(event, world):
         return f"{faction_name} expanded into {region_reference}"
     if event.type == "attack":
         defender = _get_faction_display_name(world, event.get("defender")) if event.get("defender") else "Unknown"
+        if event.get("ethnic_claim_attack"):
+            claim_ethnicity = event.get("claim_ethnicity") or "local"
+            if event.get("success", False):
+                return f"{faction_name} seized {region_reference} from {defender} in a {claim_ethnicity} claim offensive"
+            return f"{faction_name}'s {claim_ethnicity} claim offensive against {region_reference} failed"
         if event.get("success", False):
             return f"{faction_name} captured {region_reference} from {defender}"
         return f"{faction_name} failed to take {region_reference} from {defender}"
@@ -107,6 +115,8 @@ def _get_event_title(event, world):
     if event.type == "unrest_crisis":
         return f"Unrest crisis hit {region_reference} under {faction_name}"
     if event.type == "unrest_secession":
+        if event.get("restoration") and event.get("restored_faction"):
+            return f"{region_reference} rose against {faction_name} and restored {rebel_name}"
         if event.get("rebel_faction"):
             return f"{region_reference} broke away from {faction_name} as {rebel_name}"
         return f"{region_reference} broke away from {faction_name}"
@@ -141,6 +151,17 @@ def _get_event_summary(event, world):
         )
     if event.type == "attack":
         chance = event.get("success_chance", 0)
+        if event.get("ethnic_claim_attack"):
+            claim_ethnicity = event.get("claim_ethnicity") or "local"
+            if event.get("success", False):
+                return (
+                    f"A claim-driven attack by {claim_ethnicity} forces succeeded at {chance:.0%} displayed odds."
+                    f"{terrain_text}"
+                )
+            return (
+                f"A claim-driven attack by {claim_ethnicity} forces failed at {chance:.0%} displayed odds."
+                f"{terrain_text}"
+            )
         if event.get("success", False):
             return f"Successful attack at {chance:.0%} displayed odds.{terrain_text}"
         return f"Attack failed at {chance:.0%} displayed odds.{terrain_text}"
@@ -158,6 +179,11 @@ def _get_event_summary(event, world):
         )
     if event.type == "unrest_secession":
         rebel_faction = event.get("rebel_faction")
+        if event.get("restoration") and rebel_faction:
+            return (
+                f"Surviving {event.get('revived_ethnicity') or 'local'} communities turned sustained crisis into a restoration revolt for {rebel_faction}."
+                + terrain_text
+            )
         return (
             (
                 f"Sustained crisis raised {rebel_faction} out of {event.faction}'s collapsing rule."
@@ -215,7 +241,9 @@ def build_simulation_snapshots(world):
             "population": initial_region_history.get(region_name, {}).get("population", region.population),
             "ethnic_composition": dict(initial_region_history.get(region_name, {}).get("ethnic_composition", region.ethnic_composition)),
             "dominant_ethnicity": initial_region_history.get(region_name, {}).get("dominant_ethnicity"),
+            "ethnic_claimants": list(initial_region_history.get(region_name, {}).get("ethnic_claimants", get_region_ethnic_claimants(region, world))),
             "owner_primary_ethnicity": initial_region_history.get(region_name, {}).get("owner_primary_ethnicity", get_region_owner_primary_ethnicity(region, world)),
+            "owner_has_ethnic_claim": initial_region_history.get(region_name, {}).get("owner_has_ethnic_claim", faction_has_ethnic_claim(world, region, region.owner)),
             "ruling_ethnic_affinity": initial_region_history.get(region_name, {}).get("ruling_ethnic_affinity", round(get_region_ruling_ethnic_affinity(region, world), 2)),
             "neighbors": list(region.neighbors),
             "display_name": region.display_name if initial_state[region_name]["owner"] is not None else region.name,
@@ -251,7 +279,9 @@ def build_simulation_snapshots(world):
                 "population": region["population"],
                 "ethnic_composition": dict(region["ethnic_composition"]),
                 "dominant_ethnicity": region["dominant_ethnicity"],
+                "ethnic_claimants": list(region["ethnic_claimants"]),
                 "owner_primary_ethnicity": region["owner_primary_ethnicity"],
+                "owner_has_ethnic_claim": region["owner_has_ethnic_claim"],
                 "ruling_ethnic_affinity": region["ruling_ethnic_affinity"],
                 "display_name": region["display_name"],
                 "founding_name": region["founding_name"],
@@ -317,7 +347,9 @@ def build_simulation_snapshots(world):
             region_state[region_name]["population"] = history_region.get("population", region_state[region_name]["population"])
             region_state[region_name]["ethnic_composition"] = dict(history_region.get("ethnic_composition", region_state[region_name]["ethnic_composition"]))
             region_state[region_name]["dominant_ethnicity"] = history_region.get("dominant_ethnicity")
+            region_state[region_name]["ethnic_claimants"] = list(history_region.get("ethnic_claimants", region_state[region_name]["ethnic_claimants"]))
             region_state[region_name]["owner_primary_ethnicity"] = history_region.get("owner_primary_ethnicity")
+            region_state[region_name]["owner_has_ethnic_claim"] = history_region.get("owner_has_ethnic_claim", False)
             region_state[region_name]["ruling_ethnic_affinity"] = history_region.get("ruling_ethnic_affinity", 0.0)
             region_state[region_name]["display_name"] = history_region["display_name"] or region_state[region_name]["display_name"]
             region_state[region_name]["founding_name"] = history_region["founding_name"]
@@ -344,7 +376,9 @@ def build_simulation_snapshots(world):
                     "population": region["population"],
                     "ethnic_composition": dict(region["ethnic_composition"]),
                     "dominant_ethnicity": region["dominant_ethnicity"],
+                    "ethnic_claimants": list(region["ethnic_claimants"]),
                     "owner_primary_ethnicity": region["owner_primary_ethnicity"],
+                    "owner_has_ethnic_claim": region["owner_has_ethnic_claim"],
                     "ruling_ethnic_affinity": region["ruling_ethnic_affinity"],
                     "display_name": region["display_name"],
                     "founding_name": region["founding_name"],
@@ -469,6 +503,7 @@ def build_simulation_view_model(world):
             "proto_state": world.factions[faction_name].proto_state,
             "government_type": world.factions[faction_name].government_type,
             "primary_ethnicity": world.factions[faction_name].primary_ethnicity,
+            "ethnic_claims": get_faction_ethnic_claims(world, faction_name),
             "rebel_age": world.factions[faction_name].rebel_age,
             "independence_score": world.factions[faction_name].independence_score,
             "color": get_faction_color(
@@ -495,7 +530,9 @@ def build_simulation_view_model(world):
                 "display_name": get_region_display_name(world.regions[region_name]),
                 "population": world.regions[region_name].population,
                 "dominant_ethnicity": get_region_dominant_ethnicity(world.regions[region_name]),
+                "ethnic_claimants": get_region_ethnic_claimants(world.regions[region_name], world),
                 "owner_primary_ethnicity": get_region_owner_primary_ethnicity(world.regions[region_name], world),
+                "owner_has_ethnic_claim": faction_has_ethnic_claim(world, world.regions[region_name], world.regions[region_name].owner),
                 "ruling_ethnic_affinity": round(get_region_ruling_ethnic_affinity(world.regions[region_name], world), 2),
                 "terrain_tags": list(world.regions[region_name].terrain_tags),
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
@@ -516,7 +553,9 @@ def build_simulation_view_model(world):
                 "display_name": get_region_display_name(world.regions[region_name]),
                 "population": world.regions[region_name].population,
                 "dominant_ethnicity": get_region_dominant_ethnicity(world.regions[region_name]),
+                "ethnic_claimants": get_region_ethnic_claimants(world.regions[region_name], world),
                 "owner_primary_ethnicity": get_region_owner_primary_ethnicity(world.regions[region_name], world),
+                "owner_has_ethnic_claim": faction_has_ethnic_claim(world, world.regions[region_name], world.regions[region_name].owner),
                 "ruling_ethnic_affinity": round(get_region_ruling_ethnic_affinity(world.regions[region_name], world), 2),
                 "terrain_tags": list(world.regions[region_name].terrain_tags),
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
@@ -2217,6 +2256,20 @@ def render_simulation_html(world):
             </div>
           </div>
           <div class="detail-row">
+            <div class="detail-label">Ethnic Claims</div>
+            <div class="detail-value">
+              ${{
+                (() => {{
+                  const claimants = regionSnapshot.ethnic_claimants || staticRegion.ethnic_claimants || [];
+                  if (!claimants.length) {{
+                    return "None";
+                  }}
+                  return claimants.map((factionName) => escapeHtml(getFactionDisplayName(factionName))).join(", ");
+                }})()
+              }}
+            </div>
+          </div>
+          <div class="detail-row">
             <div class="detail-label">Integration</div>
             <div class="detail-value">${{escapeHtml(regionSnapshot.core_status || "frontier")}} (${{Number(regionSnapshot.integration_score || 0).toFixed(1)}})</div>
           </div>
@@ -2341,8 +2394,18 @@ def render_simulation_html(world):
                   <div class="detail-value">${{escapeHtml(metrics.top_rival || "None")}}</div>
                 </div>
                 <div class="detail-row">
+                  <div class="detail-label">Claim Dispute</div>
+                  <div class="detail-value">
+                    ${{
+                      metrics.top_claim_dispute
+                        ? `${{escapeHtml(metrics.top_claim_dispute)}} (${{Number(metrics.top_claim_dispute_regions || 0)}} region${{Number(metrics.top_claim_dispute_regions || 0) === 1 ? "" : "s"}})`
+                        : "None"
+                    }}
+                  </div>
+                </div>
+                <div class="detail-row">
                   <div class="detail-label">Diplomacy</div>
-                  <div class="detail-value">A${{metrics.alliance_count || 0}} / T${{metrics.truce_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}}</div>
+                  <div class="detail-value">A${{metrics.alliance_count || 0}} / T${{metrics.truce_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}} / C${{metrics.claim_dispute_count || 0}}</div>
                 </div>
               <div class="detail-row">
                 <div class="detail-label">Realm Structure</div>

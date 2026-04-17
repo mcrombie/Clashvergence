@@ -14,6 +14,8 @@ from src.config import (
     CLIMATE_MAINTENANCE_MAX_FACTOR,
     CLIMATE_MAINTENANCE_MIN_FACTOR,
     CORE_INCOME_FACTOR,
+    ETHNIC_CLAIM_INTEGRATION_BONUS,
+    ETHNIC_CLAIM_UNREST_REDUCTION,
     ETHNIC_INTEGRATION_MIN_MULTIPLIER,
     ETHNIC_UNREST_CALMING_EFFECT,
     ETHNIC_UNREST_CALMING_THRESHOLD,
@@ -182,12 +184,53 @@ def get_region_ruling_ethnic_affinity(
     )
 
 
+def faction_has_ethnic_claim(
+    world: WorldState,
+    region: Region,
+    faction_name: str | None,
+) -> bool:
+    if faction_name is None or faction_name not in world.factions:
+        return False
+    dominant_ethnicity = get_region_dominant_ethnicity(region)
+    if dominant_ethnicity is None:
+        return False
+    return world.factions[faction_name].primary_ethnicity == dominant_ethnicity
+
+
+def get_region_ethnic_claimants(region: Region, world: WorldState) -> list[str]:
+    dominant_ethnicity = get_region_dominant_ethnicity(region)
+    if dominant_ethnicity is None:
+        return []
+    return sorted(
+        [
+            faction_name
+            for faction_name, faction in world.factions.items()
+            if faction.primary_ethnicity == dominant_ethnicity
+        ],
+    )
+
+
+def get_faction_ethnic_claims(world: WorldState, faction_name: str) -> list[str]:
+    if faction_name not in world.factions:
+        return []
+    return sorted(
+        [
+            region.name
+            for region in world.regions.values()
+            if faction_has_ethnic_claim(world, region, faction_name)
+        ],
+    )
+
+
 def get_region_ethnic_integration_multiplier(region: Region, world: WorldState) -> float:
     if region.owner is None or region.owner not in world.factions:
         return 1.0
     if region.homeland_faction_id == region.owner:
         return 1.0
-    return ETHNIC_INTEGRATION_MIN_MULTIPLIER + get_region_ruling_ethnic_affinity(region, world)
+    multiplier = ETHNIC_INTEGRATION_MIN_MULTIPLIER + get_region_ruling_ethnic_affinity(region, world)
+    if faction_has_ethnic_claim(world, region, region.owner):
+        multiplier += ETHNIC_CLAIM_INTEGRATION_BONUS
+    return multiplier
 
 
 def get_region_ethnic_unrest_modifier(region: Region, world: WorldState) -> float:
@@ -198,12 +241,16 @@ def get_region_ethnic_unrest_modifier(region: Region, world: WorldState) -> floa
 
     affinity = get_region_ruling_ethnic_affinity(region, world)
     if affinity >= ETHNIC_UNREST_CALMING_THRESHOLD:
-        return ETHNIC_UNREST_CALMING_EFFECT
-    if affinity >= ETHNIC_UNREST_NEUTRAL_THRESHOLD:
-        return 0.0
-    if affinity >= ETHNIC_UNREST_SEVERE_THRESHOLD:
-        return ETHNIC_UNREST_LOW_AFFINITY_PRESSURE
-    return ETHNIC_UNREST_SEVERE_AFFINITY_PRESSURE
+        modifier = ETHNIC_UNREST_CALMING_EFFECT
+    elif affinity >= ETHNIC_UNREST_NEUTRAL_THRESHOLD:
+        modifier = 0.0
+    elif affinity >= ETHNIC_UNREST_SEVERE_THRESHOLD:
+        modifier = ETHNIC_UNREST_LOW_AFFINITY_PRESSURE
+    else:
+        modifier = ETHNIC_UNREST_SEVERE_AFFINITY_PRESSURE
+    if faction_has_ethnic_claim(world, region, region.owner):
+        modifier -= ETHNIC_CLAIM_UNREST_REDUCTION
+    return modifier
 
 
 def change_region_population(region: Region, amount: int) -> int:
@@ -634,8 +681,85 @@ def _next_dynamic_internal_id(world: WorldState) -> str:
     return f"Faction{next_index}"
 
 
-def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -> str:
+def get_owned_region_counts(world: WorldState) -> dict[str, int]:
+    counts = {faction_name: 0 for faction_name in world.factions}
+    for region in world.regions.values():
+        if region.owner in counts:
+            counts[region.owner] += 1
+    return counts
+
+
+def _find_extinct_ethnic_restoration_faction(
+    world: WorldState,
+    region: Region,
+    former_owner: str,
+) -> str | None:
+    if region.population <= 0 or not region.ethnic_composition:
+        return None
+
+    owned_region_counts = get_owned_region_counts(world)
+    ranked_ethnicities = sorted(
+        region.ethnic_composition.items(),
+        key=lambda item: (item[1], item[0]),
+        reverse=True,
+    )
+    for ethnicity_name, population in ranked_ethnicities:
+        if population <= 0:
+            continue
+        for faction_name, faction in world.factions.items():
+            if faction_name == former_owner:
+                continue
+            if faction.primary_ethnicity != ethnicity_name:
+                continue
+            if owned_region_counts.get(faction_name, 0) > 0:
+                continue
+            if faction.is_rebel and faction.proto_state:
+                continue
+            return faction_name
+    return None
+
+
+def _restore_extinct_faction(
+    world: WorldState,
+    faction_name: str,
+    *,
+    former_owner: str,
+    region_name: str,
+) -> None:
+    faction = world.factions[faction_name]
+    faction.treasury = REBEL_STARTING_TREASURY
+    faction.starting_treasury = REBEL_STARTING_TREASURY
+    faction.proto_state = False
+    faction.rebel_age = 0
+    faction.independence_score = (
+        REBEL_FULL_INDEPENDENCE_THRESHOLD
+        if faction.is_rebel
+        else 0.0
+    )
+    if faction.doctrine_state.homeland_region is None:
+        faction.doctrine_state.homeland_region = region_name
+        faction.doctrine_state.homeland_climate = world.regions[region_name].climate
+        faction.doctrine_state.homeland_terrain_tags = list(world.regions[region_name].terrain_tags)
+    if faction.origin_faction is None and faction.is_rebel:
+        faction.origin_faction = former_owner
+
+
+def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -> tuple[str, bool]:
     from src.doctrine import initialize_rebel_faction_doctrine
+
+    restored_faction_name = _find_extinct_ethnic_restoration_faction(
+        world,
+        region,
+        former_owner,
+    )
+    if restored_faction_name is not None:
+        _restore_extinct_faction(
+            world,
+            restored_faction_name,
+            former_owner=former_owner,
+            region_name=region.name,
+        )
+        return restored_faction_name, True
 
     rebel_name = _build_rebel_faction_name(world, region)
     inherited_ethnicity = world.factions[former_owner].primary_ethnicity
@@ -672,7 +796,7 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         region.name,
     )
     seed_rebel_origin_relationship(world, rebel_name, former_owner)
-    return rebel_name
+    return rebel_name, False
 
 
 def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
@@ -780,13 +904,7 @@ def get_rebel_reclaim_bonus(
 
 
 def update_rebel_faction_status(world: WorldState) -> None:
-    owned_region_counts: dict[str, int] = {
-        faction_name: 0
-        for faction_name in world.factions
-    }
-    for region in world.regions.values():
-        if region.owner in owned_region_counts:
-            owned_region_counts[region.owner] += 1
+    owned_region_counts = get_owned_region_counts(world)
 
     for faction_name, faction in world.factions.items():
         if not faction.is_rebel:
@@ -974,7 +1092,7 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
     unrest_before = region.unrest
     region.resources = max(1, region.resources - UNREST_SECESSION_RESOURCE_LOSS)
     population_loss = apply_region_population_loss(region, POPULATION_SECESSION_LOSS)
-    rebel_faction_name = create_rebel_faction(world, region, former_owner)
+    rebel_faction_name, restored_faction = create_rebel_faction(world, region, former_owner)
     region.owner = rebel_faction_name
     set_region_integration(
         region,
@@ -996,6 +1114,28 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
         details={
             "former_owner": former_owner,
             "rebel_faction": rebel_faction_name,
+            "restored_faction": rebel_faction_name if restored_faction else None,
+            "restoration": restored_faction,
+            "revived_ethnicity": (
+                world.factions[rebel_faction_name].primary_ethnicity
+                if restored_faction
+                else None
+            ),
+            "restoration_region_count": (
+                len(
+                    [
+                        other_region
+                        for other_region in world.regions.values()
+                        if (
+                            other_region.owner != former_owner
+                            and get_region_dominant_ethnicity(other_region)
+                            == world.factions[rebel_faction_name].primary_ethnicity
+                        )
+                    ]
+                )
+                if restored_faction
+                else 0
+            ),
             "unrest": round(unrest_before, 2),
             "population_before": population_before,
             "population_after": region.population,
@@ -1008,7 +1148,12 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
             "population_change": region.population - population_before,
             "population_after": region.population,
         },
-        tags=["unrest", "secession", "collapse"],
+        tags=[
+            "unrest",
+            "secession",
+            "collapse",
+            *(["restoration", "revival"] if restored_faction else []),
+        ],
         significance=UNREST_SECESSION_THRESHOLD,
     ))
 
@@ -1109,7 +1254,9 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "population": region.population,
             "ethnic_composition": dict(region.ethnic_composition),
             "dominant_ethnicity": get_region_dominant_ethnicity(region),
+            "ethnic_claimants": get_region_ethnic_claimants(region, world),
             "owner_primary_ethnicity": get_region_owner_primary_ethnicity(region, world),
+            "owner_has_ethnic_claim": faction_has_ethnic_claim(world, region, region.owner),
             "ruling_ethnic_affinity": round(get_region_ruling_ethnic_affinity(region, world), 2),
             "display_name": region.display_name,
             "founding_name": region.founding_name,

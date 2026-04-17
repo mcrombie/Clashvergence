@@ -6,6 +6,8 @@ from src.config import (
     DIPLOMACY_ALLIANCE_ATTACK_PENALTY,
     DIPLOMACY_ALLIANCE_BREAK_THRESHOLD,
     DIPLOMACY_ALLIANCE_THRESHOLD,
+    DIPLOMACY_ETHNIC_CLAIM_PRESSURE_MAX,
+    DIPLOMACY_ETHNIC_CLAIM_PRESSURE_PER_REGION,
     DIPLOMACY_ATTACK_GRIEVANCE_FAILURE,
     DIPLOMACY_ATTACK_GRIEVANCE_SUCCESS,
     DIPLOMACY_ATTACK_TRUST_HIT_FAILURE,
@@ -159,6 +161,31 @@ def _get_lineage_modifier(world: WorldState, faction_a: str, faction_b: str) -> 
             else DIPLOMACY_MATURE_REBEL_LINEAGE_BONUS
         )
     return 0.0
+
+
+def _get_ethnic_claim_pressure(world: WorldState, faction_a: str, faction_b: str) -> float:
+    faction_a_state = world.factions[faction_a]
+    faction_b_state = world.factions[faction_b]
+    if (
+        faction_a_state.primary_ethnicity is None
+        or faction_b_state.primary_ethnicity is None
+        or faction_a_state.primary_ethnicity == faction_b_state.primary_ethnicity
+    ):
+        return 0.0
+
+    from src.heartland import faction_has_ethnic_claim
+
+    disputed_regions = 0
+    for region in world.regions.values():
+        if region.owner == faction_b and faction_has_ethnic_claim(world, region, faction_a):
+            disputed_regions += 1
+        elif region.owner == faction_a and faction_has_ethnic_claim(world, region, faction_b):
+            disputed_regions += 1
+
+    return min(
+        DIPLOMACY_ETHNIC_CLAIM_PRESSURE_MAX,
+        disputed_regions * DIPLOMACY_ETHNIC_CLAIM_PRESSURE_PER_REGION,
+    )
 
 
 def _process_conflict_memory(world: WorldState) -> set[tuple[str, str]]:
@@ -352,6 +379,7 @@ def update_relationships(world: WorldState) -> None:
         doctrine_affinity = _get_doctrine_affinity(world, faction_a, faction_b)
         runaway_modifier = _get_runaway_modifier(world, faction_a, faction_b)
         lineage_modifier = _get_lineage_modifier(world, faction_a, faction_b)
+        ethnic_claim_pressure = _get_ethnic_claim_pressure(world, faction_a, faction_b)
         peace_modifier = min(
             DIPLOMACY_PEACE_SCORE_MAX,
             state.years_at_peace * DIPLOMACY_PEACE_SCORE_PER_TURN,
@@ -365,7 +393,8 @@ def update_relationships(world: WorldState) -> None:
                 + runaway_modifier
                 + lineage_modifier
                 - state.grievance
-                - state.border_friction,
+                - state.border_friction
+                - ethnic_claim_pressure,
                 DIPLOMACY_SCORE_MIN,
                 DIPLOMACY_SCORE_MAX,
             ),
@@ -428,11 +457,14 @@ def seed_rebel_origin_relationship(
 
 
 def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[str, object]:
+    from src.heartland import faction_has_ethnic_claim
+
     counterpart_scores = []
     alliance_count = 0
     pact_count = 0
     truce_count = 0
     rival_count = 0
+    claim_disputes: dict[str, int] = {}
 
     for other_faction in world.factions:
         if other_faction == faction_name:
@@ -448,6 +480,12 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
         elif state.status == "rival":
             rival_count += 1
 
+    for region in world.regions.values():
+        if region.owner is None or region.owner == faction_name:
+            continue
+        if faction_has_ethnic_claim(world, region, faction_name):
+            claim_disputes[region.owner] = claim_disputes.get(region.owner, 0) + 1
+
     top_ally = None
     allied_candidates = [item for item in counterpart_scores if item[1] > 0]
     if allied_candidates:
@@ -460,9 +498,21 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
         rival_candidates.sort(key=lambda item: (item[1], item[0]))
         top_rival = rival_candidates[0][0]
 
+    top_claim_dispute = None
+    top_claim_dispute_regions = 0
+    if claim_disputes:
+        top_claim_dispute, top_claim_dispute_regions = max(
+            claim_disputes.items(),
+            key=lambda item: (item[1], item[0]),
+        )
+
     return {
         "top_ally": top_ally,
         "top_rival": top_rival,
+        "top_claim_dispute": top_claim_dispute,
+        "top_claim_dispute_ethnicity": world.factions[faction_name].primary_ethnicity,
+        "top_claim_dispute_regions": top_claim_dispute_regions,
+        "claim_dispute_count": len(claim_disputes),
         "alliance_count": alliance_count,
         "truce_count": truce_count,
         "pact_count": pact_count,
