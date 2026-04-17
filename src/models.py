@@ -46,6 +46,7 @@ class Region:
     neighbors: list[str]
     owner: str | None
     resources: int
+    population: int = 0
     display_name: str = ""
     founding_name: str = ""
     original_namer_faction_id: str | None = None

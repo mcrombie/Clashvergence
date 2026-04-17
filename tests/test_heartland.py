@@ -10,21 +10,25 @@ from src.config import (
 )
 from src.actions import (
     attack,
+    expand,
     get_attack_target_score_components,
     get_treasury_concentration_multiplier,
 )
 from src.heartland import (
     CORE_INTEGRATION_SCORE,
+    estimate_region_population,
     get_rebel_reclaim_bonus,
     get_region_attack_projection_modifier,
     get_region_core_status,
     get_region_effective_income,
     get_region_maintenance_cost,
     resolve_unrest_events,
+    update_region_populations,
     update_rebel_faction_status,
     update_region_integration,
 )
 from src.metrics import build_turn_metrics
+from src.simulation_ui import build_simulation_snapshots, build_simulation_view_model
 from src.simulation import get_faction_economy_snapshot
 from src.world import create_world
 
@@ -145,6 +149,53 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertIn("frontier_regions", faction_metrics)
         self.assertGreaterEqual(faction_metrics["homeland_regions"], 1)
         self.assertGreaterEqual(faction_metrics["frontier_regions"], 1)
+
+    def test_world_seeds_population_only_for_starting_factions(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        owned_region = world.regions["A"]
+        unowned_region = world.regions["C"]
+
+        self.assertEqual(
+            owned_region.population,
+            estimate_region_population(
+                owned_region.resources,
+                len(owned_region.neighbors),
+                owner=owned_region.owner,
+            ),
+        )
+        self.assertEqual(unowned_region.population, 0)
+
+    def test_population_growth_responds_to_unrest(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        calm_region = world.regions["A"]
+        crisis_region = world.regions["M"]
+        calm_before = calm_region.population
+        crisis_region.owner = calm_region.owner
+        crisis_region.integrated_owner = calm_region.owner
+        crisis_region.population = calm_before
+        crisis_before = crisis_region.population
+        crisis_region.unrest = 10.0
+
+        update_region_populations(world)
+
+        self.assertGreater(calm_region.population, calm_before)
+        self.assertLess(crisis_region.population, crisis_before)
+
+    def test_expansion_transfers_population_from_adjacent_owned_region(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        source_region = world.regions["A"]
+        target_region = world.regions["B"]
+        world.factions[faction_name].treasury = 10
+        source_before = source_region.population
+
+        succeeded = expand(faction_name, "B", world)
+
+        self.assertTrue(succeeded)
+        self.assertEqual(target_region.owner, faction_name)
+        self.assertGreater(target_region.population, 0)
+        self.assertLess(source_region.population, source_before)
+        self.assertGreater(world.events[-1].details["population_transfer"], 0)
 
     def test_frontier_friction_reduces_income_and_attack_projection(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
@@ -301,6 +352,7 @@ class HeartlandSystemTests(unittest.TestCase):
         faction_name = next(iter(world.factions))
         region = world.regions["M"]
         region.resources = 4
+        population_before = region.population
 
         rebel_name, region = self._spawn_rebel_from_region(world, faction_name)
         self.assertIsNotNone(region.owner)
@@ -312,6 +364,7 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertEqual(region.integrated_owner, rebel_name)
         self.assertEqual(region.core_status, "core")
         self.assertEqual(region.resources, 3)
+        self.assertLess(region.population, population_before)
         self.assertEqual(region.unrest_crisis_streak, 0)
         self.assertEqual(world.events[-1].type, "unrest_secession")
         self.assertEqual(world.events[-1].details["rebel_faction"], rebel_name)
@@ -440,6 +493,35 @@ class HeartlandSystemTests(unittest.TestCase):
             large_empire_score["attacker_treasury_multiplier"],
             small_empire_score["attacker_treasury_multiplier"],
         )
+
+    def test_attack_inflicts_population_loss_on_target_region(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_names = list(world.factions)
+        attacker_name = faction_names[0]
+        defender_name = faction_names[1]
+        target_region = world.regions["B"]
+        target_region.owner = defender_name
+        before = target_region.population
+        world.factions[attacker_name].treasury = 10
+
+        with patch("src.actions.random.random", return_value=0.0):
+            attack(attacker_name, "B", world)
+
+        self.assertLess(target_region.population, before)
+        self.assertGreater(world.events[-1].details["population_loss"], 0)
+
+    def test_metrics_and_snapshots_include_population(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+
+        metrics = build_turn_metrics(world)
+        self.assertIn("population", metrics["factions"][faction_name])
+
+        snapshots = build_simulation_snapshots(world)
+        self.assertIn("population", snapshots[0]["regions"]["A"])
+
+        view_model = build_simulation_view_model(world)
+        self.assertIn("population", view_model["regions"][0])
 
 
 if __name__ == "__main__":

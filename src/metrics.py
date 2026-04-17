@@ -37,6 +37,7 @@ def build_turn_metrics(world, economy_snapshot=None):
         empire_penalty = economy_data.get("empire_penalty", 0)
         effective_income = economy_data.get("effective_income", 0)
         maintenance = economy_data.get("maintenance", 0)
+        total_population = economy_data.get("population")
 
         for event in turn_events:
             if event.faction != faction_name:
@@ -59,10 +60,15 @@ def build_turn_metrics(world, economy_snapshot=None):
                 core_regions += 1
             else:
                 frontier_regions += 1
+            if total_population is None:
+                total_population = 0
+            if "population" not in economy_data:
+                total_population += region.population
 
         faction_metrics[faction_name] = {
             "treasury": faction.treasury,
             "regions": owned_region_counts[faction_name],
+            "population": total_population or 0,
             "attacks": attacks,
             "expansions": expansions,
             "investments": investments,

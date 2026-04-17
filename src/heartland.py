@@ -17,6 +17,16 @@ from src.config import (
     FRONTIER_INCOME_FACTOR,
     FRONTIER_MAINTENANCE_SURCHARGE,
     HOMELAND_INCOME_FACTOR,
+    POPULATION_BASE,
+    POPULATION_GROWTH_PER_TURN,
+    POPULATION_MINIMUM,
+    POPULATION_PER_CONNECTION,
+    POPULATION_PER_RESOURCE,
+    POPULATION_SECESSION_LOSS,
+    POPULATION_STARTING_OWNER_BONUS,
+    POPULATION_UNOWNED_GROWTH_FACTOR,
+    POPULATION_UNREST_CRISIS_LOSS,
+    POPULATION_UNREST_GROWTH_PENALTY,
     REGION_MAINTENANCE_COST,
     UNREST_ATTACK_PROJECTION_MAX_PENALTY,
     UNREST_CLIMATE_PRESSURE_FACTOR,
@@ -65,6 +75,54 @@ PER_TURN_CORE_GAIN = 0.35
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
     return max(minimum, min(maximum, value))
+
+
+def change_region_population(region: Region, amount: int) -> int:
+    previous_population = region.population
+    if previous_population <= 0 and amount <= 0:
+        return 0
+    region.population = max(0, region.population + amount)
+    return region.population - previous_population
+
+
+def apply_region_population_loss(region: Region, ratio: float, *, minimum_loss: int = 1) -> int:
+    if region.population <= 0:
+        return 0
+    loss = max(minimum_loss, int(round(region.population * max(0.0, ratio))))
+    return -change_region_population(region, -loss)
+
+
+def estimate_region_population(
+    resources: int,
+    neighbor_count: int,
+    owner: str | None = None,
+) -> int:
+    if owner is None:
+        return 0
+    estimate = (
+        POPULATION_BASE
+        + (resources * POPULATION_PER_RESOURCE)
+        + (neighbor_count * POPULATION_PER_CONNECTION)
+    )
+    estimate += POPULATION_STARTING_OWNER_BONUS
+    return max(POPULATION_MINIMUM, estimate)
+
+
+def update_region_populations(world: WorldState) -> None:
+    for region in world.regions.values():
+        if region.population <= 0:
+            continue
+        growth_factor = POPULATION_GROWTH_PER_TURN
+        if region.owner is None:
+            growth_factor *= POPULATION_UNOWNED_GROWTH_FACTOR
+        unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
+        growth_factor -= unrest_ratio * POPULATION_UNREST_GROWTH_PENALTY * POPULATION_GROWTH_PER_TURN
+
+        change = int(round(region.population * growth_factor))
+        if change == 0 and growth_factor > 0:
+            change = 1
+        if change != 0:
+            change_region_population(region, change)
 
 
 def get_region_core_status(region: Region) -> str:
@@ -553,8 +611,10 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
 
     former_owner = region.owner
     resources_before = region.resources
+    population_before = region.population
     unrest_before = region.unrest
     region.resources = max(1, region.resources - UNREST_SECESSION_RESOURCE_LOSS)
+    population_loss = apply_region_population_loss(region, POPULATION_SECESSION_LOSS)
     rebel_faction_name = create_rebel_faction(world, region, former_owner)
     region.owner = rebel_faction_name
     set_region_integration(
@@ -578,11 +638,16 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
             "former_owner": former_owner,
             "rebel_faction": rebel_faction_name,
             "unrest": round(unrest_before, 2),
+            "population_before": population_before,
+            "population_after": region.population,
+            "population_loss": population_loss,
         },
         impact={
             "owner_after": rebel_faction_name,
             "resource_change": region.resources - resources_before,
             "new_resources": region.resources,
+            "population_change": region.population - population_before,
+            "population_after": region.population,
         },
         tags=["unrest", "secession", "collapse"],
         significance=UNREST_SECESSION_THRESHOLD,
@@ -624,6 +689,11 @@ def update_region_integration(world: WorldState) -> None:
         region.ownership_turns += 1
         if region.unrest_event_level == "crisis":
             region.unrest_crisis_streak += 1
+            apply_region_population_loss(
+                region,
+                POPULATION_UNREST_CRISIS_LOSS,
+                minimum_loss=1,
+            )
         else:
             reset_region_crisis_streak(region)
 
@@ -675,6 +745,7 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
         region_name: {
             "owner": region.owner,
             "resources": region.resources,
+            "population": region.population,
             "display_name": region.display_name,
             "founding_name": region.founding_name,
             "original_namer_faction_id": region.original_namer_faction_id,

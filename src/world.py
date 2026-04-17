@@ -1,7 +1,11 @@
 from src.diplomacy import initialize_relationships
 from src.doctrine import initialize_faction_doctrines
 from src.factions import create_factions, validate_map_factions
-from src.heartland import initialize_heartlands, initialize_region_history
+from src.heartland import (
+    estimate_region_population,
+    initialize_heartlands,
+    initialize_region_history,
+)
 from src.models import Region, WorldState
 from src.maps import MAPS
 from src.region_naming import assign_region_founding_name
@@ -29,6 +33,11 @@ def create_world(
             neighbors=region_data["neighbors"],
             owner=owner_name_map.get(region_data["owner"], region_data["owner"]),
             resources=region_data["resources"],
+            population=estimate_region_population(
+                region_data["resources"],
+                len(region_data["neighbors"]),
+                owner=owner_name_map.get(region_data["owner"], region_data["owner"]),
+            ),
             terrain_tags=region_data.get("terrain_tags", ["plains"]),
             climate=region_data.get("climate", "temperate"),
         )

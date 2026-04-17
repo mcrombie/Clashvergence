@@ -26,6 +26,7 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
     lines.append(f"Turns: {num_turns}")
     lines.append(f"Regions: {len(world.regions)}")
     lines.append(f"Factions: {len(world.factions)}")
+    lines.append(f"Starting Population: {sum(region.population for region in world.regions.values())}")
     lines.append("Faction Doctrines:")
 
     for faction_name, faction in world.factions.items():
@@ -279,6 +280,7 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
             f"ended as {closing.get('doctrine_label', 'Unknown')}, "
             f"terrain_identity={closing.get('terrain_identity', 'Unknown')}, "
             f"doctrine_shifts={doctrine_shifts}, "
+            f"population={closing.get('population', 0)}, "
             f"homeland_regions={closing.get('homeland_regions', 0)}, "
             f"core_regions={closing.get('core_regions', 0)}, "
             f"frontier_regions={closing.get('frontier_regions', 0)}"
@@ -294,6 +296,7 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
             lines.append(
                 f"  {faction_name}: treasury={faction_metrics['treasury']}, "
                 f"regions={faction_metrics['regions']}, "
+                f"population={faction_metrics.get('population', 0)}, "
                 f"attacks={faction_metrics['attacks']}, "
                 f"expansions={faction_metrics['expansions']}, "
                 f"investments={faction_metrics['investments']}, "

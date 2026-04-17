@@ -11,12 +11,18 @@ from src.config import (
     MAX_RESOURCES,
     INVEST_AMOUNT,
     MIN_TREASURY_CONCENTRATION,
+    POPULATION_ATTACK_FAILURE_LOSS,
+    POPULATION_ATTACK_SUCCESS_LOSS,
+    POPULATION_EXPANSION_TRANSFER_MIN,
+    POPULATION_EXPANSION_TRANSFER_RATIO,
     REBEL_PROTO_TREASURY_CONCENTRATION_FACTOR,
     REBEL_REABSORPTION_UNREST,
     TREASURY_CONCENTRATION_REGION_FACTOR,
 )
 from src.doctrine import get_faction_region_alignment
 from src.heartland import (
+    apply_region_population_loss,
+    change_region_population,
     get_region_attack_projection_modifier,
     get_region_core_defense_bonus,
     get_region_core_status,
@@ -399,6 +405,20 @@ def get_summary_reason(score_components, strategic_role, importance_tier):
     return "it provided a straightforward territorial gain"
 
 
+def _choose_expansion_population_source(faction_name, target_region_name, world):
+    candidate_regions = [
+        world.regions[neighbor_name]
+        for neighbor_name in world.regions[target_region_name].neighbors
+        if world.regions[neighbor_name].owner == faction_name
+    ]
+    if not candidate_regions:
+        return None
+    return max(
+        candidate_regions,
+        key=lambda region: (region.population, region.resources, region.name),
+    )
+
+
 def expand(faction_name, target_region_name, world):
     """Returns whether the Faction successfully expanded into the target Region."""
 
@@ -426,8 +446,21 @@ def expand(faction_name, target_region_name, world):
     income_gain = score_components["resources"]
     future_expansion_opened = score_components["unclaimed_neighbors"]
     importance_tier = get_importance_tier(score_components["score"])
+    population_source = _choose_expansion_population_source(faction_name, target_region_name, world)
+    source_region_name = population_source.name if population_source is not None else None
+    source_population_before = population_source.population if population_source is not None else 0
+    target_population_before = world.regions[target_region_name].population
     faction.treasury -= EXPANSION_COST
     handle_region_owner_change(world.regions[target_region_name], faction_name)
+    transferred_population = 0
+    if population_source is not None and population_source.population > 0:
+        transferred_population = max(
+            POPULATION_EXPANSION_TRANSFER_MIN,
+            int(round(population_source.population * POPULATION_EXPANSION_TRANSFER_RATIO)),
+        )
+        transferred_population = min(transferred_population, population_source.population)
+        change_region_population(population_source, -transferred_population)
+        change_region_population(world.regions[target_region_name], transferred_population)
     region_display_name = assign_region_founding_name(
         world,
         target_region_name,
@@ -479,6 +512,12 @@ def expand(faction_name, target_region_name, world):
             "terrain_affinity": score_components["terrain_affinity"],
             "core_status": score_components["core_status"],
             "region_display_name": region_display_name,
+            "population_source_region": source_region_name,
+            "population_source_before": source_population_before,
+            "population_source_after": population_source.population if population_source is not None else 0,
+            "population_before": target_population_before,
+            "population_after": world.regions[target_region_name].population,
+            "population_transfer": transferred_population,
             "region_reference": format_region_reference(
                 world.regions[target_region_name],
                 include_code=True,
@@ -495,6 +534,7 @@ def expand(faction_name, target_region_name, world):
             "treasury_change": -EXPANSION_COST,
             "regions_gained": 1,
             "income_gain": income_gain,
+            "population_change": world.regions[target_region_name].population - target_population_before,
             "rank_after": rank_after,
             "rank_change": rank_change,
             "future_expansion_opened": future_expansion_opened,
@@ -533,11 +573,13 @@ def attack(faction_name, target_region_name, world):
 
     score_components = get_attack_target_score_components(target_region_name, faction_name, world)
     treasury_before = attacker.treasury
+    population_before = target_region.population
     attacker.treasury -= ATTACK_COST
     success_roll = random.random()
     succeeded = success_roll < score_components["success_chance"]
     treasury_change = -ATTACK_COST
     actual_failure_penalty = 0
+    population_loss = 0
     defender_faction = world.factions.get(defender_name)
     is_reintegration_attempt = (
         defender_faction is not None
@@ -551,6 +593,10 @@ def attack(faction_name, target_region_name, world):
     )
 
     if succeeded:
+        population_loss = apply_region_population_loss(
+            target_region,
+            POPULATION_ATTACK_SUCCESS_LOSS,
+        )
         handle_region_owner_change(target_region, faction_name)
         if is_proto_reintegration_attempt:
             set_region_unrest(
@@ -565,6 +611,10 @@ def attack(faction_name, target_region_name, world):
                 is_homeland=False,
             )
     else:
+        population_loss = apply_region_population_loss(
+            target_region,
+            POPULATION_ATTACK_FAILURE_LOSS,
+        )
         actual_failure_penalty = min(ATTACK_FAILURE_PENALTY, attacker.treasury)
         treasury_change -= actual_failure_penalty
         attacker.treasury -= actual_failure_penalty
@@ -594,6 +644,9 @@ def attack(faction_name, target_region_name, world):
             "core_defense_bonus": score_components["core_defense_bonus"],
             "region_display_name": target_region.display_name,
             "region_reference": format_region_reference(target_region, include_code=True),
+            "population_before": population_before,
+            "population_after": target_region.population,
+            "population_loss": population_loss,
         },
         context={
             "treasury_before": treasury_before,
@@ -604,6 +657,8 @@ def attack(faction_name, target_region_name, world):
             "treasury_after": attacker.treasury,
             "treasury_change": treasury_change,
             "success": succeeded,
+            "population_change": target_region.population - population_before,
+            "population_after": target_region.population,
             "reintegrated_rebel": succeeded and is_proto_reintegration_attempt,
             "reclaimed_successor": succeeded and is_reintegration_attempt and not is_proto_reintegration_attempt,
         },

@@ -183,6 +183,7 @@ def build_simulation_snapshots(world):
         region_name: {
             "owner": initial_state[region_name]["owner"],
             "resources": initial_state[region_name]["resources"],
+            "population": initial_region_history.get(region_name, {}).get("population", region.population),
             "neighbors": list(region.neighbors),
             "display_name": region.display_name if initial_state[region_name]["owner"] is not None else region.name,
             "founding_name": region.founding_name if initial_state[region_name]["owner"] is not None else "",
@@ -214,6 +215,7 @@ def build_simulation_snapshots(world):
             region_name: {
                 "owner": region["owner"],
                 "resources": region["resources"],
+                "population": region["population"],
                 "display_name": region["display_name"],
                 "founding_name": region["founding_name"],
                 "original_namer_faction_id": region["original_namer_faction_id"],
@@ -275,6 +277,7 @@ def build_simulation_snapshots(world):
         for region_name, history_region in history_snapshot.items():
             region_state[region_name]["owner"] = history_region["owner"]
             region_state[region_name]["resources"] = history_region["resources"]
+            region_state[region_name]["population"] = history_region.get("population", region_state[region_name]["population"])
             region_state[region_name]["display_name"] = history_region["display_name"] or region_state[region_name]["display_name"]
             region_state[region_name]["founding_name"] = history_region["founding_name"]
             region_state[region_name]["original_namer_faction_id"] = history_region["original_namer_faction_id"]
@@ -297,6 +300,7 @@ def build_simulation_snapshots(world):
                 region_name: {
                     "owner": region["owner"],
                     "resources": region["resources"],
+                    "population": region["population"],
                     "display_name": region["display_name"],
                     "founding_name": region["founding_name"],
                     "original_namer_faction_id": region["original_namer_faction_id"],
@@ -442,6 +446,7 @@ def build_simulation_view_model(world):
             {
                 "name": region_name,
                 "display_name": get_region_display_name(world.regions[region_name]),
+                "population": world.regions[region_name].population,
                 "terrain_tags": list(world.regions[region_name].terrain_tags),
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
                 "climate": world.regions[region_name].climate,
@@ -459,6 +464,7 @@ def build_simulation_view_model(world):
             {
                 "name": region_name,
                 "display_name": get_region_display_name(world.regions[region_name]),
+                "population": world.regions[region_name].population,
                 "terrain_tags": list(world.regions[region_name].terrain_tags),
                 "terrain_label": format_terrain_label(world.regions[region_name].terrain_tags),
                 "climate": world.regions[region_name].climate,
@@ -2154,6 +2160,10 @@ def render_simulation_html(world):
             <div class="detail-value">R${{regionSnapshot.resources}}</div>
           </div>
           <div class="detail-row">
+            <div class="detail-label">Population</div>
+            <div class="detail-value">${{Number(regionSnapshot.population || staticRegion.population || 0).toLocaleString()}}</div>
+          </div>
+          <div class="detail-row">
             <div class="detail-label">Founding Name</div>
             <div class="detail-value">${{foundingText}}</div>
           </div>
@@ -2252,6 +2262,10 @@ def render_simulation_html(world):
                 <div class="detail-value">H${{metrics.homeland_regions}} / C${{metrics.core_regions}} / F${{metrics.frontier_regions}}</div>
               </div>
               <div class="detail-row">
+                <div class="detail-label">Population</div>
+                <div class="detail-value">${{Number(metrics.population || 0).toLocaleString()}}</div>
+              </div>
+              <div class="detail-row">
                 <div class="detail-label">Expansion</div>
                 <div class="detail-value">${{formatPosture(metrics.expansion_posture)}} (${{metrics.expansion_posture.toFixed(2)}})</div>
               </div>
@@ -2281,7 +2295,7 @@ def render_simulation_html(world):
             <strong>#${{index + 1}} ${{escapeHtml(entry.faction)}}</strong>
             <span class="pill" style="background:${{colorByFaction[entry.faction]}}22;">${{escapeHtml(data.factions.find((faction) => faction.name === entry.faction).doctrine_label)}}</span>
           </div>
-          <div class="subtle">Treasury $${{entry.treasury}} - Regions ${{entry.owned_regions}}</div>
+          <div class="subtle">Treasury $${{entry.treasury}} - Regions ${{entry.owned_regions}} - Pop ${{Number((snapshot.metrics && snapshot.metrics.factions[entry.faction] && snapshot.metrics.factions[entry.faction].population) || 0).toLocaleString()}}</div>
         </article>
       `).join("");
     }}
