@@ -37,6 +37,7 @@ from src.config import (
     POPULATION_UNOWNED_GROWTH_FACTOR,
     POPULATION_UNREST_CRISIS_LOSS,
     POPULATION_UNREST_GROWTH_PENALTY,
+    POLITY_ADVANCEMENT_UNREST_REDUCTION,
     REGION_MAINTENANCE_COST,
     UNREST_ATTACK_PROJECTION_MAX_PENALTY,
     UNREST_CLIMATE_PRESSURE_FACTOR,
@@ -115,6 +116,7 @@ POLITY_TIER_MODIFIERS = {
         "income_factor": 0.75,
         "maintenance_factor": 0.70,
         "integration_factor": 0.65,
+        "stability_factor": 0.90,
         "attack_bias": -1,
         "realm_size_unrest_factor": 1.40,
     },
@@ -122,6 +124,7 @@ POLITY_TIER_MODIFIERS = {
         "income_factor": 0.95,
         "maintenance_factor": 0.90,
         "integration_factor": 0.95,
+        "stability_factor": 1.00,
         "attack_bias": 0,
         "realm_size_unrest_factor": 1.10,
     },
@@ -129,6 +132,7 @@ POLITY_TIER_MODIFIERS = {
         "income_factor": 1.05,
         "maintenance_factor": 1.00,
         "integration_factor": 1.05,
+        "stability_factor": 1.08,
         "attack_bias": 1,
         "realm_size_unrest_factor": 0.95,
     },
@@ -136,6 +140,7 @@ POLITY_TIER_MODIFIERS = {
         "income_factor": 1.15,
         "maintenance_factor": 1.10,
         "integration_factor": 1.15,
+        "stability_factor": 1.16,
         "attack_bias": 1,
         "realm_size_unrest_factor": 0.85,
     },
@@ -220,8 +225,9 @@ def get_faction_integration_modifier(faction: Faction | None) -> float:
 
 
 def get_faction_stability_modifier(faction: Faction | None) -> float:
+    polity = get_faction_polity_modifiers(faction)
     form = get_faction_government_form_modifiers(faction)
-    return form["stability_factor"]
+    return polity["stability_factor"] * form["stability_factor"]
 
 
 def get_faction_realm_size_unrest_factor(faction: Faction | None) -> float:
@@ -648,6 +654,13 @@ def update_faction_polity_tiers(world: WorldState) -> None:
             current_form,
             update_display_name=refresh_display_name,
         )
+        for region in world.regions.values():
+            if region.owner != faction_name:
+                continue
+            set_region_unrest(
+                region,
+                max(0.0, region.unrest - POLITY_ADVANCEMENT_UNREST_REDUCTION),
+            )
 
         world.events.append(Event(
             turn=world.turn,

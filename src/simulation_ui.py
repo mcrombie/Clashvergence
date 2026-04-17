@@ -2504,6 +2504,16 @@ def render_simulation_html(world):
                   </div>
                 </div>
                 <div class="detail-row">
+                  <div class="detail-label">Tier Tension</div>
+                  <div class="detail-value">
+                    ${{
+                      metrics.top_polity_tension
+                        ? `${{escapeHtml(getFactionDisplayName(metrics.top_polity_tension))}} (${{metrics.top_polity_tension_reason === "peer_state_rivalry" ? "peer rival" : "status gap"}})`
+                        : "None"
+                    }}
+                  </div>
+                </div>
+                <div class="detail-row">
                   <div class="detail-label">Diplomacy</div>
                   <div class="detail-value">A${{metrics.alliance_count || 0}} / T${{metrics.truce_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}} / C${{metrics.claim_dispute_count || 0}}</div>
                 </div>

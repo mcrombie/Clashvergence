@@ -18,6 +18,7 @@ from src.config import (
     DIPLOMACY_EXISTING_ACCORD_PEACE_BONUS,
     DIPLOMACY_GRIEVANCE_DECAY,
     DIPLOMACY_GRIEVANCE_MAX,
+    DIPLOMACY_POLITY_TIER_DISTANCE_PENALTY,
     DIPLOMACY_MATURE_REBEL_LINEAGE_BONUS,
     DIPLOMACY_PACT_ATTACK_PENALTY,
     DIPLOMACY_PACT_BREAK_THRESHOLD,
@@ -37,6 +38,7 @@ from src.config import (
     DIPLOMACY_SCORE_MAX,
     DIPLOMACY_SCORE_MIN,
     DIPLOMACY_SHARED_BORDER_PEACE_GAIN,
+    DIPLOMACY_STATE_PEER_THREAT,
     DIPLOMACY_TRUCE_ATTACK_PENALTY,
     DIPLOMACY_TRUCE_DURATION,
     DIPLOMACY_TRUST_MAX,
@@ -186,6 +188,32 @@ def _get_ethnic_claim_pressure(world: WorldState, faction_a: str, faction_b: str
         DIPLOMACY_ETHNIC_CLAIM_PRESSURE_MAX,
         disputed_regions * DIPLOMACY_ETHNIC_CLAIM_PRESSURE_PER_REGION,
     )
+
+
+def _get_polity_tier_modifier(world: WorldState, faction_a: str, faction_b: str) -> float:
+    tier_order = {"band": 0, "tribe": 1, "chiefdom": 2, "state": 3}
+    tier_a = world.factions[faction_a].polity_tier
+    tier_b = world.factions[faction_b].polity_tier
+    distance_penalty = abs(
+        tier_order.get(tier_a, tier_order["tribe"])
+        - tier_order.get(tier_b, tier_order["tribe"])
+    ) * DIPLOMACY_POLITY_TIER_DISTANCE_PENALTY
+    peer_threat = (
+        DIPLOMACY_STATE_PEER_THREAT
+        if tier_a == "state" and tier_b == "state"
+        else 0.0
+    )
+    return distance_penalty + peer_threat
+
+
+def _get_polity_tier_tension_reason(world: WorldState, faction_a: str, faction_b: str) -> str | None:
+    tier_a = world.factions[faction_a].polity_tier
+    tier_b = world.factions[faction_b].polity_tier
+    if tier_a == "state" and tier_b == "state":
+        return "peer_state_rivalry"
+    if tier_a != tier_b:
+        return "status_gap"
+    return None
 
 
 def _process_conflict_memory(world: WorldState) -> set[tuple[str, str]]:
@@ -380,6 +408,7 @@ def update_relationships(world: WorldState) -> None:
         runaway_modifier = _get_runaway_modifier(world, faction_a, faction_b)
         lineage_modifier = _get_lineage_modifier(world, faction_a, faction_b)
         ethnic_claim_pressure = _get_ethnic_claim_pressure(world, faction_a, faction_b)
+        polity_tier_pressure = _get_polity_tier_modifier(world, faction_a, faction_b)
         peace_modifier = min(
             DIPLOMACY_PEACE_SCORE_MAX,
             state.years_at_peace * DIPLOMACY_PEACE_SCORE_PER_TURN,
@@ -394,7 +423,8 @@ def update_relationships(world: WorldState) -> None:
                 + lineage_modifier
                 - state.grievance
                 - state.border_friction
-                - ethnic_claim_pressure,
+                - ethnic_claim_pressure
+                - polity_tier_pressure,
                 DIPLOMACY_SCORE_MIN,
                 DIPLOMACY_SCORE_MAX,
             ),
@@ -465,12 +495,20 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
     truce_count = 0
     rival_count = 0
     claim_disputes: dict[str, int] = {}
+    polity_tensions: list[tuple[str, float, str | None]] = []
 
     for other_faction in world.factions:
         if other_faction == faction_name:
             continue
         state = get_relationship_state(world, faction_name, other_faction)
         counterpart_scores.append((other_faction, state.score, state.status))
+        polity_tension = _get_polity_tier_modifier(world, faction_name, other_faction)
+        if polity_tension > 0:
+            polity_tensions.append((
+                other_faction,
+                polity_tension,
+                _get_polity_tier_tension_reason(world, faction_name, other_faction),
+            ))
         if state.status == "alliance":
             alliance_count += 1
         elif state.status == "truce":
@@ -506,6 +544,15 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
             key=lambda item: (item[1], item[0]),
         )
 
+    top_polity_tension = None
+    top_polity_tension_value = 0.0
+    top_polity_tension_reason = None
+    if polity_tensions:
+        top_polity_tension, top_polity_tension_value, top_polity_tension_reason = max(
+            polity_tensions,
+            key=lambda item: (item[1], item[0]),
+        )
+
     return {
         "top_ally": top_ally,
         "top_rival": top_rival,
@@ -513,6 +560,9 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
         "top_claim_dispute_ethnicity": world.factions[faction_name].primary_ethnicity,
         "top_claim_dispute_regions": top_claim_dispute_regions,
         "claim_dispute_count": len(claim_disputes),
+        "top_polity_tension": top_polity_tension,
+        "top_polity_tension_value": round(top_polity_tension_value, 2),
+        "top_polity_tension_reason": top_polity_tension_reason,
         "alliance_count": alliance_count,
         "truce_count": truce_count,
         "pact_count": pact_count,

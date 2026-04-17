@@ -1864,6 +1864,27 @@ def get_claim_dispute_sentence(world, faction_name: str) -> str | None:
     )
 
 
+def get_polity_tension_sentence(world, faction_name: str) -> str | None:
+    summary = get_faction_diplomacy_summary(world, faction_name)
+    counterpart = summary.get("top_polity_tension")
+    if counterpart is None:
+        return None
+
+    reason = summary.get("top_polity_tension_reason")
+    faction_display = get_faction_display_name(world, faction_name)
+    counterpart_display = get_faction_display_name(world, counterpart)
+    if reason == "peer_state_rivalry":
+        return (
+            f"{faction_display} treated {counterpart_display} as a peer-state rival, "
+            f"with both polities reading each other as serious strategic threats."
+        )
+    if reason == "status_gap":
+        return (
+            f"{faction_display}'s dealings with {counterpart_display} were sharpened by a widening gap in political sophistication."
+        )
+    return None
+
+
 def build_victor_history_summary(world, phase_analyses, standings, outcome_type):
     """Builds the compact structured payload sent to the victor-history layer."""
     winner = standings[0]["faction"]
@@ -1967,6 +1988,16 @@ def summarize_strategic_interpretation(world):
         )
         if claim_dispute_line is not None:
             lines.append(claim_dispute_line)
+        polity_tension_line = (
+            get_polity_tension_sentence(world, winner)
+            or (
+                get_polity_tension_sentence(world, runner_up["faction"])
+                if runner_up is not None
+                else None
+            )
+        )
+        if polity_tension_line is not None:
+            lines.append(polity_tension_line)
         return lines
 
     lines = []
@@ -2024,6 +2055,17 @@ def summarize_strategic_interpretation(world):
     )
     if claim_dispute_line is not None:
         lines.append(claim_dispute_line)
+
+    polity_tension_line = (
+        get_polity_tension_sentence(world, winner)
+        or (
+            get_polity_tension_sentence(world, runner_up["faction"])
+            if runner_up is not None
+            else None
+        )
+    )
+    if polity_tension_line is not None:
+        lines.append(polity_tension_line)
 
     return lines
 
