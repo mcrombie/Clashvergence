@@ -23,6 +23,7 @@ from src.maps import MAPS
 from src.metrics import get_turn_metrics
 from src.heartland import (
     faction_has_ethnic_claim,
+    get_region_taxable_value,
     get_region_external_regime_agitation_modifier,
     get_region_external_regime_agitators,
     get_faction_ethnic_claims,
@@ -42,6 +43,7 @@ from src.narrative import (
     summarize_strategic_interpretation,
     summarize_victor_history,
 )
+from src.resources import format_resource_map
 from src.region_naming import format_region_reference, get_region_display_name
 from src.terrain import format_terrain_label
 
@@ -56,6 +58,47 @@ def _get_faction_display_name(world, faction_name: str | None) -> str:
     if faction is None:
         return faction_name
     return faction.display_name
+
+
+def _serialize_resource_map(resource_map):
+    return {
+        resource_name: round(float(amount), 3)
+        for resource_name, amount in (resource_map or {}).items()
+    }
+
+
+def _build_region_resource_payload(region):
+    fixed_text = format_resource_map(region.resource_fixed_endowments, limit=2)
+    wild_text = format_resource_map(region.resource_wild_endowments, limit=2)
+    established_text = format_resource_map(region.resource_established, limit=2)
+    profile_parts = []
+    if fixed_text != "None":
+        profile_parts.append(f"Fixed: {fixed_text}")
+    if wild_text != "None":
+        profile_parts.append(f"Wild: {wild_text}")
+    if established_text != "None":
+        profile_parts.append(f"Established: {established_text}")
+    return {
+        "resource_fixed_endowments": _serialize_resource_map(region.resource_fixed_endowments),
+        "resource_wild_endowments": _serialize_resource_map(region.resource_wild_endowments),
+        "resource_suitability": _serialize_resource_map(region.resource_suitability),
+        "resource_established": _serialize_resource_map(region.resource_established),
+        "resource_output": _serialize_resource_map(region.resource_output),
+        "resource_effective_output": _serialize_resource_map(region.resource_effective_output),
+        "resource_damage": _serialize_resource_map(region.resource_damage),
+        "resource_isolation_factor": round(float(region.resource_isolation_factor or 0.0), 3),
+        "resource_route_depth": region.resource_route_depth,
+        "resource_route_cost": round(float(region.resource_route_cost or 0.0), 3),
+        "resource_route_anchor": region.resource_route_anchor,
+        "resource_route_bottleneck": round(float(region.resource_route_bottleneck or 0.0), 3),
+        "resource_profile": " | ".join(profile_parts) if profile_parts else "None",
+        "resource_output_summary": format_resource_map(region.resource_effective_output or region.resource_output, limit=3),
+        "taxable_value": round(get_region_taxable_value(region), 3),
+        "infrastructure_level": round(region.infrastructure_level, 2),
+        "agriculture_level": round(region.agriculture_level, 2),
+        "pastoral_level": round(region.pastoral_level, 2),
+        "extractive_level": round(region.extractive_level, 2),
+    }
 
 
 def _serialize_event(event, world):
@@ -195,7 +238,7 @@ def _get_event_summary(event, world):
 
     if event.type == "expand":
         return (
-            f"Claimed a region worth R{event.get('resources', 0)} "
+            f"Claimed a region worth {event.get('taxable_value', event.get('resources', 0)):.2f} taxable value "
             f"with {event.get('neighbors', 0)} links.{terrain_text}"
         )
     if event.type == "attack":
@@ -227,7 +270,14 @@ def _get_event_summary(event, world):
             return f"Successful attack at {chance:.0%} displayed odds.{terrain_text}"
         return f"Attack failed at {chance:.0%} displayed odds.{terrain_text}"
     if event.type == "invest":
-        return f"Resources increased to R{event.get('new_resources', 0)}.{terrain_text}"
+        project_type = event.get("project_type", "development").replace("_", " ")
+        resource_focus = event.get("resource_focus")
+        focus_text = f" in {resource_focus}" if resource_focus else ""
+        return (
+            f"Completed a {project_type}{focus_text} project, bringing the region to "
+            f"{event.get('new_taxable_value', event.get('new_resources', 0)):.2f} taxable value."
+            f"{terrain_text}"
+        )
     if event.type == "unrest_disturbance":
         return (
             f"Moderate unrest disrupted local order and forced a treasury hit of "
@@ -405,6 +455,25 @@ def build_simulation_snapshots(world):
             "terrain_label": format_terrain_label(region.terrain_tags),
             "climate": region.climate,
             "climate_label": format_climate_label(region.climate),
+            "resource_fixed_endowments": dict(initial_region_history.get(region_name, {}).get("resource_fixed_endowments", region.resource_fixed_endowments)),
+            "resource_wild_endowments": dict(initial_region_history.get(region_name, {}).get("resource_wild_endowments", region.resource_wild_endowments)),
+            "resource_suitability": dict(initial_region_history.get(region_name, {}).get("resource_suitability", region.resource_suitability)),
+            "resource_established": dict(initial_region_history.get(region_name, {}).get("resource_established", region.resource_established)),
+            "resource_output": dict(initial_region_history.get(region_name, {}).get("resource_output", region.resource_output)),
+            "resource_effective_output": dict(initial_region_history.get(region_name, {}).get("resource_effective_output", region.resource_effective_output)),
+            "resource_damage": dict(initial_region_history.get(region_name, {}).get("resource_damage", region.resource_damage)),
+            "resource_isolation_factor": initial_region_history.get(region_name, {}).get("resource_isolation_factor", region.resource_isolation_factor),
+            "resource_route_depth": initial_region_history.get(region_name, {}).get("resource_route_depth", region.resource_route_depth),
+            "resource_route_cost": initial_region_history.get(region_name, {}).get("resource_route_cost", region.resource_route_cost),
+            "resource_route_anchor": initial_region_history.get(region_name, {}).get("resource_route_anchor", region.resource_route_anchor),
+            "resource_route_bottleneck": initial_region_history.get(region_name, {}).get("resource_route_bottleneck", region.resource_route_bottleneck),
+            "resource_profile": initial_region_history.get(region_name, {}).get("resource_profile", _build_region_resource_payload(region)["resource_profile"]),
+            "resource_output_summary": initial_region_history.get(region_name, {}).get("resource_output_summary", _build_region_resource_payload(region)["resource_output_summary"]),
+            "taxable_value": initial_region_history.get(region_name, {}).get("taxable_value", _build_region_resource_payload(region)["taxable_value"]),
+            "infrastructure_level": initial_region_history.get(region_name, {}).get("infrastructure_level", region.infrastructure_level),
+            "agriculture_level": initial_region_history.get(region_name, {}).get("agriculture_level", region.agriculture_level),
+            "pastoral_level": initial_region_history.get(region_name, {}).get("pastoral_level", region.pastoral_level),
+            "extractive_level": initial_region_history.get(region_name, {}).get("extractive_level", region.extractive_level),
             "homeland_faction_id": initial_region_history.get(region_name, {}).get("homeland_faction_id"),
             "integrated_owner": initial_region_history.get(region_name, {}).get("integrated_owner"),
             "integration_score": initial_region_history.get(region_name, {}).get("integration_score", 0.0),
@@ -445,6 +514,25 @@ def build_simulation_snapshots(world):
                 "terrain_label": region["terrain_label"],
                 "climate": region["climate"],
                 "climate_label": region["climate_label"],
+                "resource_fixed_endowments": dict(region["resource_fixed_endowments"]),
+                "resource_wild_endowments": dict(region["resource_wild_endowments"]),
+                "resource_suitability": dict(region["resource_suitability"]),
+                "resource_established": dict(region["resource_established"]),
+                "resource_output": dict(region["resource_output"]),
+                "resource_effective_output": dict(region["resource_effective_output"]),
+                "resource_damage": dict(region["resource_damage"]),
+                "resource_isolation_factor": region["resource_isolation_factor"],
+                "resource_route_depth": region["resource_route_depth"],
+                "resource_route_cost": region["resource_route_cost"],
+                "resource_route_anchor": region["resource_route_anchor"],
+                "resource_route_bottleneck": region["resource_route_bottleneck"],
+                "resource_profile": region["resource_profile"],
+                "resource_output_summary": region["resource_output_summary"],
+                "taxable_value": region["taxable_value"],
+                "infrastructure_level": region["infrastructure_level"],
+                "agriculture_level": region["agriculture_level"],
+                "pastoral_level": region["pastoral_level"],
+                "extractive_level": region["extractive_level"],
                 "homeland_faction_id": region["homeland_faction_id"],
                 "integrated_owner": region["integrated_owner"],
                 "integration_score": region["integration_score"],
@@ -513,6 +601,25 @@ def build_simulation_snapshots(world):
             region_state[region_name]["ruling_ethnic_affinity"] = history_region.get("ruling_ethnic_affinity", 0.0)
             region_state[region_name]["external_regime_agitators"] = list(history_region.get("external_regime_agitators", []))
             region_state[region_name]["external_regime_agitation"] = history_region.get("external_regime_agitation", 0.0)
+            region_state[region_name]["resource_fixed_endowments"] = dict(history_region.get("resource_fixed_endowments", region_state[region_name]["resource_fixed_endowments"]))
+            region_state[region_name]["resource_wild_endowments"] = dict(history_region.get("resource_wild_endowments", region_state[region_name]["resource_wild_endowments"]))
+            region_state[region_name]["resource_suitability"] = dict(history_region.get("resource_suitability", region_state[region_name]["resource_suitability"]))
+            region_state[region_name]["resource_established"] = dict(history_region.get("resource_established", region_state[region_name]["resource_established"]))
+            region_state[region_name]["resource_output"] = dict(history_region.get("resource_output", region_state[region_name]["resource_output"]))
+            region_state[region_name]["resource_effective_output"] = dict(history_region.get("resource_effective_output", region_state[region_name]["resource_effective_output"]))
+            region_state[region_name]["resource_damage"] = dict(history_region.get("resource_damage", region_state[region_name]["resource_damage"]))
+            region_state[region_name]["resource_isolation_factor"] = history_region.get("resource_isolation_factor", region_state[region_name]["resource_isolation_factor"])
+            region_state[region_name]["resource_route_depth"] = history_region.get("resource_route_depth", region_state[region_name]["resource_route_depth"])
+            region_state[region_name]["resource_route_cost"] = history_region.get("resource_route_cost", region_state[region_name]["resource_route_cost"])
+            region_state[region_name]["resource_route_anchor"] = history_region.get("resource_route_anchor", region_state[region_name]["resource_route_anchor"])
+            region_state[region_name]["resource_route_bottleneck"] = history_region.get("resource_route_bottleneck", region_state[region_name]["resource_route_bottleneck"])
+            region_state[region_name]["resource_profile"] = history_region.get("resource_profile", region_state[region_name]["resource_profile"])
+            region_state[region_name]["resource_output_summary"] = history_region.get("resource_output_summary", region_state[region_name]["resource_output_summary"])
+            region_state[region_name]["taxable_value"] = history_region.get("taxable_value", region_state[region_name]["taxable_value"])
+            region_state[region_name]["infrastructure_level"] = history_region.get("infrastructure_level", region_state[region_name]["infrastructure_level"])
+            region_state[region_name]["agriculture_level"] = history_region.get("agriculture_level", region_state[region_name]["agriculture_level"])
+            region_state[region_name]["pastoral_level"] = history_region.get("pastoral_level", region_state[region_name]["pastoral_level"])
+            region_state[region_name]["extractive_level"] = history_region.get("extractive_level", region_state[region_name]["extractive_level"])
             region_state[region_name]["display_name"] = history_region["display_name"] or region_state[region_name]["display_name"]
             region_state[region_name]["founding_name"] = history_region["founding_name"]
             region_state[region_name]["original_namer_faction_id"] = history_region["original_namer_faction_id"]
@@ -556,6 +663,25 @@ def build_simulation_snapshots(world):
                     "terrain_label": region["terrain_label"],
                     "climate": region["climate"],
                     "climate_label": region["climate_label"],
+                    "resource_fixed_endowments": dict(region["resource_fixed_endowments"]),
+                    "resource_wild_endowments": dict(region["resource_wild_endowments"]),
+                    "resource_suitability": dict(region["resource_suitability"]),
+                    "resource_established": dict(region["resource_established"]),
+                    "resource_output": dict(region["resource_output"]),
+                    "resource_effective_output": dict(region["resource_effective_output"]),
+                    "resource_damage": dict(region["resource_damage"]),
+                    "resource_isolation_factor": region["resource_isolation_factor"],
+                    "resource_route_depth": region["resource_route_depth"],
+                    "resource_route_cost": region["resource_route_cost"],
+                    "resource_route_anchor": region["resource_route_anchor"],
+                    "resource_route_bottleneck": region["resource_route_bottleneck"],
+                    "resource_profile": region["resource_profile"],
+                    "resource_output_summary": region["resource_output_summary"],
+                    "taxable_value": region["taxable_value"],
+                    "infrastructure_level": region["infrastructure_level"],
+                    "agriculture_level": region["agriculture_level"],
+                    "pastoral_level": region["pastoral_level"],
+                    "extractive_level": region["extractive_level"],
                     "homeland_faction_id": region["homeland_faction_id"],
                     "integrated_owner": region["integrated_owner"],
                     "integration_score": region["integration_score"],
@@ -679,6 +805,33 @@ def build_simulation_view_model(world):
             "ethnic_claims": get_faction_ethnic_claims(world, faction_name),
             "rebel_age": world.factions[faction_name].rebel_age,
             "independence_score": world.factions[faction_name].independence_score,
+            "resource_access": _serialize_resource_map(world.factions[faction_name].resource_access),
+            "resource_gross_output": _serialize_resource_map(world.factions[faction_name].resource_gross_output),
+            "resource_effective_access": _serialize_resource_map(world.factions[faction_name].resource_effective_access),
+            "resource_isolated_output": _serialize_resource_map(world.factions[faction_name].resource_isolated_output),
+            "resource_shortages": {
+                key: round(float(value), 3)
+                for key, value in (world.factions[faction_name].resource_shortages or {}).items()
+            },
+            "derived_capacity": {
+                key: round(float(value), 3)
+                for key, value in (world.factions[faction_name].derived_capacity or {}).items()
+            },
+            "resource_access_summary": format_resource_map(world.factions[faction_name].resource_access, limit=4),
+            "resource_gross_summary": format_resource_map(world.factions[faction_name].resource_gross_output, limit=4),
+            "resource_isolated_summary": format_resource_map(world.factions[faction_name].resource_isolated_output, limit=4),
+            "resource_shortage_summary": ", ".join(
+                [
+                    f"{label} {value:.1f}"
+                    for label, value in (
+                        ("Food", world.factions[faction_name].resource_shortages.get("food_security", 0.0)),
+                        ("Mobility", world.factions[faction_name].resource_shortages.get("mobility_capacity", 0.0)),
+                        ("Metal", world.factions[faction_name].resource_shortages.get("metal_capacity", 0.0)),
+                        ("Construction", world.factions[faction_name].resource_shortages.get("construction_capacity", 0.0)),
+                    )
+                    if value > 0
+                ]
+            ) or "None",
             "color": get_faction_color(
                 faction_name,
                 internal_id=world.factions[faction_name].internal_id,
@@ -718,6 +871,7 @@ def build_simulation_view_model(world):
                 "climate": world.regions[region_name].climate,
                 "climate_label": format_climate_label(world.regions[region_name].climate),
                 "settlement_level": world.regions[region_name].settlement_level,
+                **_build_region_resource_payload(world.regions[region_name]),
                 "x": round(positions[region_name][0], 1),
                 "y": round(positions[region_name][1], 1),
                 "neighbors": sorted(region_data["neighbors"], key=natural_sort_key),
@@ -748,6 +902,7 @@ def build_simulation_view_model(world):
                 "climate": world.regions[region_name].climate,
                 "climate_label": format_climate_label(world.regions[region_name].climate),
                 "settlement_level": world.regions[region_name].settlement_level,
+                **_build_region_resource_payload(world.regions[region_name]),
                 "polygon": [
                     [round(point[0], 1), round(point[1], 1)]
                     for point in atlas_geometry[region_name]["polygon"]
@@ -1852,6 +2007,17 @@ def render_simulation_html(world):
         .replaceAll(">", "&gt;");
     }}
 
+    function formatResourceDamage(resourceDamage) {{
+      const entries = Object.entries(resourceDamage || {{}})
+        .filter(([, value]) => Number(value || 0) > 0.04)
+        .sort((left, right) => Number(right[1]) - Number(left[1]));
+      if (!entries.length) {{
+        return "Low";
+      }}
+      const [resourceName, value] = entries[0];
+      return `${{escapeHtml(resourceName.replaceAll("_", " "))}} ${{Number(value).toFixed(2)}}`;
+    }}
+
     function colorizeFactionNames(text) {{
       let highlighted = escapeHtml(text ?? "");
       const factionsByLength = [...data.factions]
@@ -2803,8 +2969,15 @@ def render_simulation_html(world):
           <div class="detail-section-title">Economy And Stability</div>
           <div class="detail-grid detail-grid-two">
             <div class="detail-row">
-              <div class="detail-label">Resources</div>
-              <div class="detail-value">R${{regionSnapshot.resources}}</div>
+              <div class="detail-label">Taxable / Legacy</div>
+              <div class="detail-value">
+                ${{Number(regionSnapshot.taxable_value ?? staticRegion.taxable_value ?? 0).toFixed(2)}}
+                / R${{regionSnapshot.resources}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Resource Base</div>
+              <div class="detail-value">${{escapeHtml(regionSnapshot.resource_profile || staticRegion.resource_profile || "None")}}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">Population</div>
@@ -2822,6 +2995,33 @@ def render_simulation_html(world):
               <div class="detail-value">
                 ${{Number(regionSnapshot.productive_capacity ?? staticRegion.productive_capacity ?? 0).toFixed(2)}}
                 / ${{Number(regionSnapshot.population_pressure ?? staticRegion.population_pressure ?? 0).toFixed(2)}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Output / Taxable</div>
+              <div class="detail-value">
+                ${{escapeHtml(regionSnapshot.resource_output_summary || staticRegion.resource_output_summary || "None")}}
+                / ${{Number(regionSnapshot.taxable_value ?? staticRegion.taxable_value ?? 0).toFixed(2)}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Route / Isolation</div>
+              <div class="detail-value">
+                ${{(regionSnapshot.resource_route_anchor || staticRegion.resource_route_anchor) ? `${{escapeHtml(regionSnapshot.resource_route_anchor || staticRegion.resource_route_anchor)}} @ depth ${{Number(regionSnapshot.resource_route_depth ?? staticRegion.resource_route_depth ?? 0)}} / ` : ""}}
+                ${{Number((regionSnapshot.resource_isolation_factor ?? staticRegion.resource_isolation_factor ?? 0) * 100).toFixed(0)}}%
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Cost / Bottleneck</div>
+              <div class="detail-value">
+                ${{Number(regionSnapshot.resource_route_cost ?? staticRegion.resource_route_cost ?? 0).toFixed(2)}}
+                / ${{Number((regionSnapshot.resource_route_bottleneck ?? staticRegion.resource_route_bottleneck ?? 0) * 100).toFixed(0)}}%
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Route Damage</div>
+              <div class="detail-value">
+                ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_damage || staticRegion.resource_damage || {{}}))}}
               </div>
             </div>
             <div class="detail-row">
@@ -3015,6 +3215,22 @@ def render_simulation_html(world):
                   <div class="detail-label">Total Surplus</div>
                   <div class="detail-value">${{Number(metrics.total_surplus || 0).toFixed(2)}}</div>
                 </div>
+                <div class="detail-row">
+                  <div class="detail-label">Resource Access</div>
+                  <div class="detail-value">${{escapeHtml(faction.resource_access_summary || "None")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Gross Output</div>
+                  <div class="detail-value">${{escapeHtml(faction.resource_gross_summary || "None")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Isolated Output</div>
+                  <div class="detail-value">${{escapeHtml(faction.resource_isolated_summary || "None")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Shortages</div>
+                  <div class="detail-value">${{escapeHtml(faction.resource_shortage_summary || "None")}}</div>
+                </div>
               </div>
             </div>
             <div class="detail-section">
@@ -3141,7 +3357,7 @@ def render_simulation_html(world):
         node.classList.toggle("changed", changed.has(region.name));
         node.classList.toggle("contested", contested.has(region.name));
         label.textContent = regionSnapshot.display_name || region.display_name || region.name;
-        resource.textContent = `R${{regionSnapshot.resources}}${{(regionSnapshot.unrest_event_level || "none") === "crisis" ? " !!" : (Number(regionSnapshot.unrest || 0) >= 4 ? " !" : "")}}`;
+        resource.textContent = `T${{Number(regionSnapshot.taxable_value || 0).toFixed(1)}}${{(regionSnapshot.unrest_event_level || "none") === "crisis" ? " !!" : (Number(regionSnapshot.unrest || 0) >= 4 ? " !" : "")}}`;
         resource.setAttribute("fill", getUnrestColor(regionSnapshot));
         const title = document.getElementById(`region-title-${{region.name}}`);
         const terrainOverlay = document.getElementById(`region-terrain-${{region.name}}`);
@@ -3174,7 +3390,7 @@ def render_simulation_html(world):
         polygon.classList.toggle("changed", changed.has(region.name));
         polygon.classList.toggle("contested", contested.has(region.name));
         label.textContent = regionSnapshot.display_name || region.display_name || region.name;
-        resource.textContent = `R${{regionSnapshot.resources}}${{(regionSnapshot.unrest_event_level || "none") === "crisis" ? " !!" : (Number(regionSnapshot.unrest || 0) >= 4 ? " !" : "")}}`;
+        resource.textContent = `T${{Number(regionSnapshot.taxable_value || 0).toFixed(1)}}${{(regionSnapshot.unrest_event_level || "none") === "crisis" ? " !!" : (Number(regionSnapshot.unrest || 0) >= 4 ? " !" : "")}}`;
         resource.setAttribute("fill", getUnrestColor(regionSnapshot));
         const title = document.getElementById(`atlas-title-${{region.name}}`);
         const terrainOverlay = document.getElementById(`atlas-terrain-${{region.name}}`);

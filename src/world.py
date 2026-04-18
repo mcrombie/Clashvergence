@@ -2,11 +2,13 @@ from src.diplomacy import initialize_relationships
 from src.doctrine import initialize_faction_doctrines
 from src.factions import create_factions, validate_map_factions
 from src.heartland import (
-    estimate_region_population,
+    estimate_region_population_from_resource_profile,
     initialize_heartlands,
+    initialize_region_resources,
     initialize_region_history,
     register_ethnicity,
     seed_region_ethnicity,
+    update_faction_resource_economy,
     update_region_settlement_levels,
 )
 from src.models import Region, WorldState
@@ -38,11 +40,7 @@ def create_world(
             neighbors=region_data["neighbors"],
             owner=owner_name_map.get(region_data["owner"], region_data["owner"]),
             resources=region_data["resources"],
-            population=estimate_region_population(
-                region_data["resources"],
-                len(region_data["neighbors"]),
-                owner=owner_name_map.get(region_data["owner"], region_data["owner"]),
-            ),
+            population=0,
             terrain_tags=region_data.get("terrain_tags", ["plains"]),
             climate=region_data.get("climate", "temperate"),
         )
@@ -57,11 +55,17 @@ def create_world(
             language_profile=faction.identity.language_profile if faction.identity is not None else None,
         )
     initialize_heartlands(world)
+    initialize_region_resources(world)
+    initialize_faction_doctrines(world)
 
     homeland_assigned: dict[str, int] = {}
     for region_name, region in world.regions.items():
         if region.owner is None:
             continue
+        region.population = estimate_region_population_from_resource_profile(
+            region,
+            owner=region.owner,
+        )
 
         owned_count = homeland_assigned.get(region.owner, 0)
         assign_region_founding_name(
@@ -75,9 +79,10 @@ def create_world(
             seed_region_ethnicity(region, primary_ethnicity)
         homeland_assigned[region.owner] = owned_count + 1
 
-    initialize_faction_doctrines(world)
     initialize_relationships(world)
+    update_faction_resource_economy(world)
     update_region_settlement_levels(world)
+    update_faction_resource_economy(world)
     initialize_region_history(world)
 
     return world

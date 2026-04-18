@@ -139,6 +139,23 @@ class Region:
     neighbors: list[str]
     owner: str | None
     resources: int
+    resource_fixed_endowments: dict[str, float] = field(default_factory=dict)
+    resource_wild_endowments: dict[str, float] = field(default_factory=dict)
+    resource_suitability: dict[str, float] = field(default_factory=dict)
+    resource_established: dict[str, float] = field(default_factory=dict)
+    resource_output: dict[str, float] = field(default_factory=dict)
+    resource_effective_output: dict[str, float] = field(default_factory=dict)
+    resource_damage: dict[str, float] = field(default_factory=dict)
+    resource_isolation_factor: float = 0.0
+    resource_route_depth: int | None = None
+    resource_route_cost: float = 0.0
+    resource_route_anchor: str | None = None
+    resource_route_bottleneck: float = 1.0
+    last_resource_project_turn: int | None = None
+    infrastructure_level: float = 0.0
+    agriculture_level: float = 0.0
+    pastoral_level: float = 0.0
+    extractive_level: float = 0.0
     population: int = 0
     ethnic_composition: dict[str, int] = field(default_factory=dict)
     display_name: str = ""
@@ -245,6 +262,12 @@ class Faction:
     rebel_age: int = 0
     independence_score: float = 0.0
     proto_state: bool = False
+    resource_gross_output: dict[str, float] = field(default_factory=dict)
+    resource_effective_access: dict[str, float] = field(default_factory=dict)
+    resource_isolated_output: dict[str, float] = field(default_factory=dict)
+    resource_access: dict[str, float] = field(default_factory=dict)
+    resource_shortages: dict[str, float] = field(default_factory=dict)
+    derived_capacity: dict[str, float] = field(default_factory=dict)
 
     def __post_init__(self):
         if self.starting_treasury == 0:

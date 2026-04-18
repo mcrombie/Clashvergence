@@ -9,8 +9,6 @@ from src.config import (
     ATTACK_SUCCESS_STRENGTH_FACTOR,
     DIPLOMACY_ETHNIC_CLAIM_ATTACK_BONUS,
     EXPANSION_COST,
-    MAX_RESOURCES,
-    INVEST_AMOUNT,
     MIN_TREASURY_CONCENTRATION,
     POPULATION_ATTACK_FAILURE_LOSS,
     POPULATION_ATTACK_SUCCESS_LOSS,
@@ -27,18 +25,33 @@ from src.config import (
 from src.doctrine import get_faction_region_alignment
 from src.heartland import (
     apply_region_population_loss,
+    apply_region_resource_damage,
     factions_have_same_ethnicity_regime_tension,
     faction_has_ethnic_claim,
     get_region_dominant_ethnicity,
     get_region_attack_projection_modifier,
     get_region_core_defense_bonus,
     get_region_core_status,
+    get_region_taxable_value,
     get_rebel_reclaim_bonus,
     handle_region_owner_change,
     set_region_unrest,
     transfer_region_population,
+    update_faction_resource_economy,
 )
 from src.models import Event
+from src.resources import (
+    CAPACITY_FOOD_SECURITY,
+    CAPACITY_METAL,
+    CAPACITY_MOBILITY,
+    RESOURCE_COPPER,
+    RESOURCE_GRAIN,
+    RESOURCE_HORSES,
+    RESOURCE_STONE,
+    RESOURCE_TIMBER,
+    RESOURCE_WILD_FOOD,
+    format_resource_map,
+)
 from src.region_naming import assign_region_founding_name, format_region_reference
 from src.terrain import get_terrain_profile
 
@@ -78,6 +91,233 @@ def get_attackable_regions(faction_name, world):
                 attackable_regions.add(neighbor_name)
 
     return sorted(attackable_regions)
+
+
+def _get_region_resource_interest(region, faction_name, world) -> int:
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return 0
+    shortages = faction.resource_shortages
+    bonus = 0
+    if shortages.get(CAPACITY_FOOD_SECURITY, 0.0) > 0:
+        bonus += int(
+            round(
+                region.resource_suitability.get(RESOURCE_GRAIN, 0.0) * 5
+                + region.resource_wild_endowments.get("wild_food", 0.0) * 2
+            )
+        )
+    if shortages.get(CAPACITY_MOBILITY, 0.0) > 0:
+        bonus += int(round(region.resource_suitability.get(RESOURCE_HORSES, 0.0) * 4))
+    if shortages.get(CAPACITY_METAL, 0.0) > 0:
+        bonus += int(round(region.resource_fixed_endowments.get(RESOURCE_COPPER, 0.0) * 5))
+    bonus += int(round(region.resource_fixed_endowments.get(RESOURCE_STONE, 0.0) * 2))
+    return bonus
+
+
+def _get_region_strategic_value(region, world) -> float:
+    return round(get_region_taxable_value(region, world), 2)
+
+
+def _get_region_corridor_pressure(region) -> float:
+    isolation = float(region.resource_isolation_factor or 0.0)
+    bottleneck_gap = max(0.0, 0.82 - float(region.resource_route_bottleneck or 0.0))
+    depth_pressure = min(0.35, (region.resource_route_depth or 0) * 0.05)
+    return round(isolation + bottleneck_gap + depth_pressure, 3)
+
+
+def _faction_has_established_resource_source(
+    faction_name: str,
+    resource_name: str,
+    world,
+    *,
+    exclude_region_name: str | None = None,
+) -> bool:
+    for region in world.regions.values():
+        if region.owner != faction_name:
+            continue
+        if exclude_region_name is not None and region.name == exclude_region_name:
+            continue
+        if region.resource_established.get(resource_name, 0.0) > 0.2:
+            return True
+    return False
+
+
+def _get_owned_path_length(
+    faction_name: str,
+    source_region_name: str,
+    target_region_name: str,
+    world,
+) -> int | None:
+    if source_region_name == target_region_name:
+        return 0
+    queue = [(source_region_name, 0)]
+    seen = {source_region_name}
+    while queue:
+        region_name, distance = queue.pop(0)
+        for neighbor_name in world.regions[region_name].neighbors:
+            if neighbor_name in seen:
+                continue
+            seen.add(neighbor_name)
+            neighbor = world.regions[neighbor_name]
+            if neighbor_name == target_region_name and neighbor.owner == faction_name:
+                return distance + 1
+            if neighbor.owner != faction_name:
+                continue
+            queue.append((neighbor_name, distance + 1))
+    return None
+
+
+def _get_best_resource_source_region(
+    faction_name: str,
+    target_region_name: str,
+    resource_name: str,
+    world,
+):
+    best = None
+    for region in world.regions.values():
+        if region.owner != faction_name:
+            continue
+        if region.name == target_region_name:
+            continue
+        if region.resource_established.get(resource_name, 0.0) <= 0.2:
+            continue
+        path_length = _get_owned_path_length(
+            faction_name,
+            region.name,
+            target_region_name,
+            world,
+        )
+        if path_length is None:
+            continue
+        candidate = (
+            path_length,
+            -region.resource_established.get(resource_name, 0.0),
+            region.name,
+        )
+        if best is None or candidate < best[0]:
+            best = (candidate, region)
+    return None if best is None else best[1]
+
+
+def _get_investment_project_options(faction_name: str, region, world) -> list[dict[str, float | str]]:
+    faction = world.factions[faction_name]
+    shortages = faction.resource_shortages
+    options: list[dict[str, float | str]] = []
+    corridor_pressure = _get_region_corridor_pressure(region)
+    route_bottleneck = float(region.resource_route_bottleneck or 0.0)
+
+    grain_suitability = region.resource_suitability.get(RESOURCE_GRAIN, 0.0)
+    grain_established = region.resource_established.get(RESOURCE_GRAIN, 0.0)
+    grain_source = _get_best_resource_source_region(
+        faction_name,
+        region.name,
+        RESOURCE_GRAIN,
+        world,
+    )
+    if (
+        grain_suitability >= 0.35
+        and grain_established < max(0.28, grain_suitability - 0.08)
+        and grain_source is not None
+    ):
+        source_path = _get_owned_path_length(faction_name, grain_source.name, region.name, world) or 0
+        options.append({
+            "project_type": "introduce_grain",
+            "score": 5.0 + (grain_suitability * 4.0) + (shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 2.8) - (source_path * 0.35),
+            "resource_focus": RESOURCE_GRAIN,
+            "source_region": grain_source.name,
+        })
+    if grain_established > 0 and region.agriculture_level < 1.6:
+        options.append({
+            "project_type": "improve_agriculture",
+            "score": 3.5 + (grain_established * 3.0) + (shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 1.8),
+            "resource_focus": RESOURCE_GRAIN,
+        })
+
+    horse_suitability = region.resource_suitability.get(RESOURCE_HORSES, 0.0)
+    horse_established = region.resource_established.get(RESOURCE_HORSES, 0.0)
+    horse_source = _get_best_resource_source_region(
+        faction_name,
+        region.name,
+        RESOURCE_HORSES,
+        world,
+    )
+    if (
+        horse_suitability >= 0.55
+        and horse_established < max(0.16, horse_suitability - 0.1)
+        and horse_source is not None
+    ):
+        source_path = _get_owned_path_length(faction_name, horse_source.name, region.name, world) or 0
+        options.append({
+            "project_type": "introduce_horses",
+            "score": 4.5 + (horse_suitability * 3.5) + (shortages.get(CAPACITY_MOBILITY, 0.0) * 2.5) - (source_path * 0.45),
+            "resource_focus": RESOURCE_HORSES,
+            "source_region": horse_source.name,
+        })
+    if horse_established > 0 and region.pastoral_level < 1.6:
+        options.append({
+            "project_type": "improve_pastoralism",
+            "score": 3.0 + (horse_established * 2.5) + (shortages.get(CAPACITY_MOBILITY, 0.0) * 1.8),
+            "resource_focus": RESOURCE_HORSES,
+        })
+
+    extractive_potential = (
+        region.resource_fixed_endowments.get(RESOURCE_COPPER, 0.0)
+        + region.resource_fixed_endowments.get(RESOURCE_STONE, 0.0)
+    )
+    if extractive_potential > 0 and region.extractive_level < 1.8:
+        options.append({
+            "project_type": "improve_extraction",
+            "score": 3.6 + (extractive_potential * 3.0) + (shortages.get(CAPACITY_METAL, 0.0) * 2.0),
+            "resource_focus": (
+                RESOURCE_COPPER
+                if region.resource_fixed_endowments.get(RESOURCE_COPPER, 0.0)
+                >= region.resource_fixed_endowments.get(RESOURCE_STONE, 0.0)
+                else RESOURCE_STONE
+            ),
+        })
+
+    if region.infrastructure_level < 1.8:
+        infrastructure_shortage_bonus = (
+            shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 0.25
+            + shortages.get(CAPACITY_METAL, 0.0) * 0.45
+            + shortages.get(CAPACITY_MOBILITY, 0.0) * 0.2
+        )
+        options.append({
+            "project_type": "improve_infrastructure",
+            "score": (
+                1.9
+                + (get_region_taxable_value(region, world) * 0.48)
+                + (corridor_pressure * 4.4)
+                + (max(0.0, 0.78 - route_bottleneck) * 3.0)
+                + infrastructure_shortage_bonus
+            ),
+            "resource_focus": "mixed",
+        })
+
+    return options
+
+
+def get_invest_target_score_components(region_name: str, faction_name: str, world) -> dict[str, float | str]:
+    region = world.regions[region_name]
+    options = _get_investment_project_options(faction_name, region, world)
+    if not options:
+        return {
+            "score": 0.0,
+            "project_type": "none",
+            "resource_focus": "",
+            "resource_profile": "None",
+        }
+    best_option = max(
+        options,
+        key=lambda item: (float(item["score"]), str(item["project_type"])),
+    )
+    return {
+        "score": round(float(best_option["score"]), 3),
+        "project_type": str(best_option["project_type"]),
+        "resource_focus": str(best_option["resource_focus"]),
+        "source_region": str(best_option.get("source_region", "")),
+        "resource_profile": format_resource_map(region.resource_output or region.resource_fixed_endowments, limit=3),
+    }
 
 
 def get_owned_region_count(faction_name, world):
@@ -136,10 +376,13 @@ def get_attack_target_score_components(region_name, faction_name, world):
         for neighbor_name in region.neighbors
         if world.regions[neighbor_name].owner == faction_name
     ]
-    staging_resources = max((staging_region.resources for staging_region in staging_regions), default=0)
+    staging_resources = max(
+        (_get_region_strategic_value(staging_region, world) for staging_region in staging_regions),
+        default=0.0,
+    )
     staging_projection = max(
         (
-            staging_region.resources
+            _get_region_strategic_value(staging_region, world)
             + get_region_attack_projection_modifier(
                 staging_region,
                 world=world,
@@ -200,9 +443,11 @@ def get_attack_target_score_components(region_name, faction_name, world):
         faction_name,
         defender_name,
     )
+    resource_need_bonus = _get_region_resource_interest(region, faction_name, world)
+    target_value = _get_region_strategic_value(region, world)
     defender_strength = (
         defender_deployable_treasury
-        + region.resources
+        + target_value
         + terrain_profile["defense_modifier"]
         + core_defense_bonus
     )
@@ -212,16 +457,18 @@ def get_attack_target_score_components(region_name, faction_name, world):
     success_chance = max(ATTACK_SUCCESS_MIN, min(ATTACK_SUCCESS_MAX, success_chance))
     score = (
         int(success_chance * 100)
-        + (region.resources * 3)
+        + int(round(target_value * 3))
         + terrain_profile["economic_modifier"]
         + doctrine_alignment["economic_modifier"]
         + diplomacy_attack_modifier
         + regime_target_score_bonus
+        + resource_need_bonus
     )
 
     return {
         "defender": defender_name,
         "target_resources": region.resources,
+        "target_taxable_value": target_value,
         "attacker_region_count": attacker_region_count,
         "defender_region_count": defender_region_count,
         "attacker_treasury_multiplier": round(attacker_treasury_multiplier, 3),
@@ -246,6 +493,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "regime_target_reason": regime_target_reason,
         "diplomacy_status": diplomacy_status,
         "diplomacy_attack_modifier": diplomacy_attack_modifier,
+        "resource_need_bonus": resource_need_bonus,
         "terrain_affinity": doctrine_alignment["average_affinity"],
         "core_status": region_core_status,
         "core_defense_bonus": core_defense_bonus,
@@ -274,18 +522,26 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         if neighbor.owner is None:
             unclaimed_neighbors += 1
 
+    resource_need_bonus = (
+        _get_region_resource_interest(region, faction_name, world)
+        if faction_name is not None
+        else 0
+    )
+    target_value = _get_region_strategic_value(region, world)
     score = (
-        (region.resources * 2)
+        (target_value * 2)
         + len(region.neighbors)
         + (unclaimed_neighbors * 2)
         + terrain_profile["expansion_modifier"]
         + terrain_profile["economic_modifier"]
         + (doctrine_alignment["expansion_modifier"] if doctrine_alignment is not None else 0)
         + (doctrine_alignment["economic_modifier"] if doctrine_alignment is not None else 0)
+        + resource_need_bonus
     )
 
     return {
         "resources": region.resources,
+        "taxable_value": target_value,
         "neighbors": len(region.neighbors),
         "unclaimed_neighbors": unclaimed_neighbors,
         "terrain_tags": terrain_profile["terrain_tags"],
@@ -308,6 +564,7 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
             else 0.0
         ),
         "core_status": region_core_status,
+        "resource_need_bonus": resource_need_bonus,
         "score": score,
     }
 
@@ -330,7 +587,7 @@ def get_expand_event_tags(score_components):
         tags.append("pivotal")
     if score_components["unclaimed_neighbors"] == 0:
         tags.append("consolidating")
-    if score_components["resources"] <= 1 and score_components["unclaimed_neighbors"] == 0:
+    if score_components.get("taxable_value", score_components["resources"]) <= 1 and score_components["unclaimed_neighbors"] == 0:
         tags.append("risky")
 
     return tags
@@ -464,7 +721,11 @@ def _choose_expansion_population_source(faction_name, target_region_name, world)
         return None
     return max(
         candidate_regions,
-        key=lambda region: (region.population, region.resources, region.name),
+        key=lambda region: (
+            region.population,
+            _get_region_strategic_value(region, world),
+            region.name,
+        ),
     )
 
 
@@ -492,7 +753,7 @@ def expand(faction_name, target_region_name, world):
     )
     expand_tags = get_expand_event_tags(score_components)
     strategic_role = get_expand_strategic_role(score_components, expand_tags)
-    income_gain = score_components["resources"]
+    income_gain = score_components["taxable_value"]
     future_expansion_opened = score_components["unclaimed_neighbors"]
     importance_tier = get_importance_tier(score_components["score"])
     population_source = _choose_expansion_population_source(faction_name, target_region_name, world)
@@ -557,6 +818,7 @@ def expand(faction_name, target_region_name, world):
         details={
             "cost": EXPANSION_COST,
             "resources": score_components["resources"],
+            "taxable_value": score_components["taxable_value"],
             "neighbors": score_components["neighbors"],
             "unclaimed_neighbors": score_components["unclaimed_neighbors"],
             "score": score_components["score"],
@@ -656,6 +918,15 @@ def attack(faction_name, target_region_name, world):
             target_region,
             POPULATION_ATTACK_SUCCESS_LOSS,
         )
+        apply_region_resource_damage(
+            target_region,
+            {
+                RESOURCE_GRAIN: 0.06,
+                RESOURCE_HORSES: 0.04,
+                RESOURCE_WILD_FOOD: 0.03,
+                RESOURCE_TIMBER: 0.04,
+            },
+        )
         handle_region_owner_change(target_region, faction_name)
         if is_proto_reintegration_attempt:
             set_region_unrest(
@@ -674,6 +945,15 @@ def attack(faction_name, target_region_name, world):
             target_region,
             POPULATION_ATTACK_FAILURE_LOSS,
         )
+        apply_region_resource_damage(
+            target_region,
+            {
+                RESOURCE_GRAIN: 0.03,
+                RESOURCE_HORSES: 0.02,
+                RESOURCE_WILD_FOOD: 0.015,
+                RESOURCE_TIMBER: 0.02,
+            },
+        )
         actual_failure_penalty = min(ATTACK_FAILURE_PENALTY, attacker.treasury)
         treasury_change -= actual_failure_penalty
         attacker.treasury -= actual_failure_penalty
@@ -688,6 +968,7 @@ def attack(faction_name, target_region_name, world):
             "success": succeeded,
             "attack_cost": ATTACK_COST,
             "failure_penalty": actual_failure_penalty,
+            "target_taxable_value": score_components["target_taxable_value"],
             "success_chance": round(score_components["success_chance"], 3),
             "attack_strength": score_components["attacker_strength"],
             "defense_strength": score_components["defender_strength"],
@@ -743,7 +1024,7 @@ def get_investable_regions(faction_name, world):
     investable_regions: set[str] = set()
 
     for region in world.regions.values():
-        if region.owner == faction_name and region.resources < MAX_RESOURCES:
+        if region.owner == faction_name and _get_investment_project_options(faction_name, region, world):
             investable_regions.add(region.name)
 
     return sorted(investable_regions)
@@ -759,15 +1040,59 @@ def invest(faction_name, target_region_name, world):
         return False
 
     region = world.regions[target_region_name]
+    taxable_before = get_region_taxable_value(region, world)
     resources_before = region.resources
-
-    if region.resources >= MAX_RESOURCES:
+    score_components = get_invest_target_score_components(
+        target_region_name,
+        faction_name,
+        world,
+    )
+    project_type = score_components["project_type"]
+    source_region_name = score_components.get("source_region") or None
+    if project_type == "none":
         return False
 
-    region.resources += INVEST_AMOUNT
+    project_amount = 0.0
+    if project_type == "introduce_grain":
+        region.resource_established[RESOURCE_GRAIN] = min(
+            region.resource_suitability.get(RESOURCE_GRAIN, 0.0),
+            region.resource_established.get(RESOURCE_GRAIN, 0.0) + 0.24,
+        )
+        project_amount = 0.24
+    elif project_type == "introduce_horses":
+        region.resource_established[RESOURCE_HORSES] = min(
+            region.resource_suitability.get(RESOURCE_HORSES, 0.0),
+            region.resource_established.get(RESOURCE_HORSES, 0.0) + 0.16,
+        )
+        project_amount = 0.16
+    elif project_type == "improve_agriculture":
+        region.agriculture_level = round(min(1.8, region.agriculture_level + 0.28), 2)
+        project_amount = 0.28
+    elif project_type == "improve_pastoralism":
+        region.pastoral_level = round(min(1.8, region.pastoral_level + 0.24), 2)
+        project_amount = 0.24
+    elif project_type == "improve_extraction":
+        region.extractive_level = round(min(1.8, region.extractive_level + 0.28), 2)
+        project_amount = 0.28
+    else:
+        region.infrastructure_level = round(min(1.8, region.infrastructure_level + 0.22), 2)
+        project_amount = 0.22
 
-    if region.resources > MAX_RESOURCES:
-        region.resources = MAX_RESOURCES
+    region.last_resource_project_turn = world.turn
+    if source_region_name is not None and source_region_name in world.regions:
+        source_region = world.regions[source_region_name]
+        source_region.last_resource_project_turn = world.turn
+        apply_region_resource_damage(
+            source_region,
+            {
+                score_components["resource_focus"]: 0.05
+                if project_type == "introduce_grain"
+                else 0.04
+            },
+        )
+
+    update_faction_resource_economy(world)
+    taxable_after = get_region_taxable_value(region, world)
 
     world.events.append(Event(
         turn=world.turn,
@@ -775,19 +1100,25 @@ def invest(faction_name, target_region_name, world):
         faction=faction_name,
         region=target_region_name,
         details={
-            "invest_amount": INVEST_AMOUNT,
+            "invest_amount": project_amount,
+            "project_type": project_type,
+            "resource_focus": score_components["resource_focus"],
+            "source_region": source_region_name,
             "region_display_name": region.display_name,
             "region_reference": format_region_reference(region, include_code=True),
         },
         context={
             "resources_before": resources_before,
+            "taxable_before": taxable_before,
         },
         impact={
             "new_resources": region.resources,
             "resource_change": region.resources - resources_before,
+            "new_taxable_value": taxable_after,
+            "taxable_change": round(taxable_after - taxable_before, 2),
         },
-        tags=["investment", "development"],
-        significance=float(region.resources - resources_before),
+        tags=["investment", "development", str(project_type)],
+        significance=max(0.1, float(round(taxable_after - taxable_before, 2))),
     ))
 
     return True

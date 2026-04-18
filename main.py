@@ -75,7 +75,7 @@ def format_event(event, world):
     if event["type"] == "expand":
         return (
             f"Turn {event['turn'] + 1}: {faction_name} expanded into {region_reference} "
-            f"(score={event.get('score', 0)}, resources={event.get('resources', 0)}, "
+            f"(score={event.get('score', 0)}, taxable={event.get('taxable_value', event.get('resources', 0))}, "
             f"neighbors={event.get('neighbors', 0)}, "
             f"unclaimed_neighbors={event.get('unclaimed_neighbors', 0)}, "
             f"core_status={event.get('core_status', 'frontier')}, "
@@ -83,10 +83,14 @@ def format_event(event, world):
         )
 
     if event["type"] == "invest":
+        project_type = event.get("project_type", "development").replace("_", " ")
+        resource_focus = event.get("resource_focus")
         return (
             f"Turn {event['turn'] + 1}: {faction_name} invested in {region_reference} "
-            f"(invest_amount={event.get('invest_amount', 0)}, "
-            f"new_resources={event.get('new_resources', 0)}{terrain_text})"
+            f"(project={project_type}"
+            f"{f', focus={resource_focus}' if resource_focus else ''}, "
+            f"invest_amount={event.get('invest_amount', 0)}, "
+            f"new_taxable={event.get('new_taxable_value', event.get('new_resources', 0))}{terrain_text})"
         )
 
     if event["type"] == "attack":

@@ -1,85 +1,50 @@
 Simulation Chronicle
 
-On turn 2, Saklian Tribe made its first expansion into I2.
-On turn 2, Veneunar Tribe made its first expansion into M9.
-On turn 2, Noruand Tribe made its first expansion into M6.
-On turn 2, Aruangos Tribe made its first expansion into M3.
-On turn 7, Saklian Tribe seized O2, a frontier foothold that mattered because it opened new directions for future expansion and later supported its expansion into I7.
-On turn 14, Aruangos Tribe seized I4, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes.
-On turn 18, Noruand Plain Rebels made its first expansion into O11.
-On turn 20, Aruangos Tribe seized O3, a consolidating gain that mattered because it secured nearby territory and tightened the faction's position.
+On turn 2, Dahahmion Tribe made its first expansion into M.
+On turn 2, Pararvean Tribe made its first expansion into D.
 
 Opening Phase
 
-The strongest early land grab was Aruangos Chiefdom's claim of M2 on turn 3, a frontier foothold that stood out because it opened new directions for future expansion.
-In the first 3 turns, Saklian State, Aruangos Chiefdom, Noruand State, and Veneunar State led expansion with 2 claim(s).
-Across the first 5 turns, Saklian State, Aruangos Chiefdom, Noruand State, and Veneunar State invested most often with 2 investment(s).
-By the end of turn 5, Veneunar State held the opening treasury lead at 4.
+The strongest early land grab was Dahahmion Tribe's claim of M on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Dahahmion Tribe and Pararvean Tribe led expansion with 1 claim(s).
+Across the first 5 turns, Yanadand Tribe invested most often with 2 investment(s).
+By the end of turn 5, Pararvean Tribe held the opening treasury lead at 37.
 
 Phase Summaries
 
-Early phase: Saklian Tribe was strongest by the end of turns 1-33, with Saklian Tribe on 109 treasury and 8 regions. 38 successful attacks shifted control of 15 regions. 33 expansions added 33 new regions. 44 investments improved existing holdings. Veneunar Tribe gained 9 regions. Aruangos Wash Rebels 2 improved its standing most during the phase.
-Mid phase: Noruand Tribe was strongest by the end of turns 34-66, with Noruand Tribe on 286 treasury and 7 regions. 89 successful attacks shifted control of 25 regions. 6 investments improved existing holdings. Veneunar Tribe gained 9 regions while Noruand Plain Rebels lost 5 regions. Noruand Tribe improved its standing most during the phase.
-Late phase: Veneunar Tribe was strongest by the end of turns 67-100, with Veneunar Tribe on 1343 treasury and 19 regions. 58 successful attacks shifted control of 15 regions. 5 investments improved existing holdings. Noruand Tribe gained 2 regions while Aruangos Wash Rebels 2 lost 3 regions. Aruangos Tribe improved its standing most during the phase.
+Early phase: Dahahmion Tribe and Pararvean Tribe were strongest by the end of turns 1-1, with Dahahmion Tribe on 7 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
+Mid phase: Pararvean Tribe was strongest by the end of turns 2-2, with Pararvean Tribe on 10 treasury and 1 region. No faction pulled clear; 3 factions remained within a 1-region spread. 1 successful attacks shifted control of 1 region. 2 expansions added 2 new regions. Yanadand Tribe gained 1 region.
+Late phase: Pararvean Tribe was strongest by the end of turns 3-3, with Pararvean Tribe on 13 treasury and 1 region. No faction pulled clear; 3 factions remained within a 1-region spread. 2 successful attacks shifted control of 1 region. 1 investment improved existing holdings.
 
 Turning Points
 
-Late collapse: Veneunar Tribe's capture of I4 eliminated Aruangos Tribe's last territorial hold.
-Late collapse: Veneunar Tribe's capture of M9 eliminated Saklian Crossing Rebels 2's last territorial hold.
+Late leader change: Pararvean Tribe took the treasury lead.
 
 Outcome Type
 
-Outcome type: late_snowball.
+Outcome type: economic_win.
 
 Faction Trajectories
 
-Saklian State opened with 7 claims and grew to 8 regions by the end of the opening phase, peaked at 10 regions on turn 39 before slipping to 7 regions, and finished rank 3 on 825 treasury with 7 regions after gaining 820 treasury overall.
-Aruangos Chiefdom opened with 10 attack attempts and contested neighboring borders immediately, peaked at 7 regions on turn 17 before slipping to 0 regions, and closed on 2 treasury without territory after 17 attacks.
-Noruand State opened with 9 claims and grew to 8 regions by the end of the opening phase, peaked at 12 regions on turn 25 before slipping to 9 regions, and finished rank 2 on 840 treasury with 9 regions after gaining 835 treasury overall.
-Veneunar State opened with 9 claims and grew to 10 regions by the end of the opening phase, peaked at 21 regions on turn 91 before slipping to 19 regions, and finished first with 19 regions, 1343 treasury, and 74 total attacks.
-Aruangos Wash Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 0 treasury without territory after 1 attacks.
-Noruand Monarchy opened with 1 claim and grew to 4 regions by the end of the opening phase, peaked at 7 regions on turn 37 before slipping to 0 regions, and closed on 1 treasury without territory after 22 attacks.
-Aruangos Crown Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 6 treasury without territory after 1 attacks.
-Jiniaakhvar opened with 18 attack attempts and contested neighboring borders immediately, peaked at 7 regions on turn 45 before slipping to 0 regions, and closed on 1 treasury without territory after 46 attacks.
-Nduaenev opened with 14 attack attempts and contested neighboring borders immediately, lost ground mid-game, falling from 3 regions to 2 regions, and finished rank 4 on 295 treasury with 2 regions after gaining 294 treasury overall.
-Aruangos Bay Rebels opened with 3 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and closed on 4 treasury without territory after 3 attacks.
-Aruangos Crown Rebels 2 opened with 5 attack attempts and contested neighboring borders immediately, peaked at 2 regions on turn 37 before slipping to 0 regions, and closed on 16 treasury without territory after 5 attacks.
-Aruangos March Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 2 treasury without territory after 1 attacks.
-Noruand Plain Rebels 2 spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Noruand Wood Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 11 treasury without territory after 0 attacks.
-Saklian Crossing Rebels struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Saklian Grove Rebels struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Saklian Crossing Rebels 2 spent the opening consolidating its start with 1 investment, stayed active mid-game with 2 attack attempts while holding 1 region, and closed on 0 treasury without territory after 4 attacks.
+Dahahmion Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 3, and finished rank 2 on 9 treasury with 2 regions after gaining 2 treasury overall.
+Yanadand Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 3, and finished rank 3 on 6 treasury with 2 regions after gaining 1 treasury overall.
+Pararvean Tribe spent the opening consolidating its start with 1 investment, held steady at 1 region through the middle turns, and finished first with 1 region, 13 treasury, and 1 total attacks.
 
 Strategic Interpretation
 
-Veneunar State’s adaptive coastal forest approach produced the late separation because it converted a contested ring into a compounding territorial lead after a midgame where Noruand State was strongest. The decisive shift came late, when Veneunar’s captures removed the last territorial holds of Aruangos Tribe and Saklian Crossing Rebels 2, which prevented any recovery paths and let the winner finish 10 regions clear. Noruand’s midgame strength and small late gains mattered less because they could not offset the late collapse around the remaining rivals, so the final margin was decided by timing and elimination rather than early control.
-The closest challenger was Noruand State (Adaptive Coastal Forest) at 840 treasury and 9 regions.
-Veneunar State remained locked in a claim dispute with Noruand State over 1 region dominated by Veneunar communities.
-Veneunar State treated Saklian State as a peer-state rival, with both polities reading each other as serious strategic threats.
-Noruand State remained locked in a legitimacy struggle with Noruand Monarchy, with both regimes claiming to speak for the same people.
-Veneunar State and Saklian Grove Rebels kept a same-people accord alive, using calmer shared institutions to stop rivalry from hardening too quickly.
+On this compact 7-region map, early contact came quickly.
+Territory alone did not decide this run; Pararvean Tribe finished first on treasury without holding the largest empire at the end.
+Pararvean Tribe did not win on map share. It finished first on treasury while Dahahmion Tribe and Yanadand Tribe held more territory but failed to turn that size into enough net income.
+Pararvean Tribe finished first on 13 treasury with 1 region, while the largest empire finished on 2 regions.
+The closest challenger was Dahahmion Tribe (Adaptive Coastal Forest) at 9 treasury and 2 regions.
+Pararvean Tribe remained locked in a claim dispute with Yanadand Tribe over 1 region dominated by Pararvean communities.
 
 Final Standings
 
-Veneunar State finished first with a treasury of 1343 and control of 19 regions.
-Noruand State ended with a treasury of 840 and 9 regions.
-Saklian State ended with a treasury of 825 and 7 regions.
-Nduaenev ended with a treasury of 295 and 2 regions.
-Aruangos Crown Rebels 2 ended with a treasury of 16 and 0 regions.
-Noruand Wood Rebels ended with a treasury of 11 and 0 regions.
-Aruangos Crown Rebels ended with a treasury of 6 and 0 regions.
-Aruangos Bay Rebels ended with a treasury of 4 and 0 regions.
-Aruangos Chiefdom ended with a treasury of 2 and 0 regions.
-Aruangos March Rebels ended with a treasury of 2 and 0 regions.
-Noruand Monarchy ended with a treasury of 1 and 0 regions.
-Jiniaakhvar ended with a treasury of 1 and 0 regions.
-Noruand Plain Rebels 2 ended with a treasury of 1 and 0 regions.
-Saklian Crossing Rebels ended with a treasury of 1 and 0 regions.
-Saklian Grove Rebels ended with a treasury of 1 and 0 regions.
-Aruangos Wash Rebels ended with a treasury of 0 and 0 regions.
-Saklian Crossing Rebels 2 ended with a treasury of 0 and 0 regions.
+Pararvean Tribe finished first with a treasury of 13 and control of 1 region.
+Dahahmion Tribe ended with a treasury of 9 and 2 regions.
+Yanadand Tribe ended with a treasury of 6 and 2 regions.
 
 Victor's History
 
-In the end, the Veneunar State prevailed because its Adaptive Coastal Forest approach remained close to the ground early and then separated decisively late, a pattern of judgment better suited to a long contest than any brief surge. It opened with 9 claims, expanded to 10 regions by the end of the opening phase, and ultimately reached 21 regions on turn 91 before settling at 19 and finishing with the strongest treasury at 1343. The Noruand State was a serious rival, even peaking at 12 regions, but it could not sustain that position, while the late collapses of Aruangos Tribe and Saklian Crossing Rebels 2 marked the final narrowing of resistance.
+Pararvean Tribe's historians would treat this run as evidence that their adaptive coastal forest habits, forged by geography, proved stronger than the field's scattered efforts. They would point first to the decisive shift: late leader change: Pararvean Tribe took the treasury lead. In their telling, rivals mistook sheer map share for strength, while Pararvean Tribe finished ahead on treasury with 13 against Dahahmion Tribe's 9. From that partisan view, Dahahmion Tribe's resistance was real but never as durable as Pararvean Tribe's final position.

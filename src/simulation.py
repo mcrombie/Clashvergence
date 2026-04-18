@@ -11,9 +11,11 @@ from src.heartland import (
     get_region_effective_income,
     get_region_maintenance_cost,
     get_region_core_status,
+    get_region_taxable_value,
     record_region_history,
     resolve_unrest_events,
     update_faction_polity_tiers,
+    update_faction_resource_economy,
     update_region_settlement_levels,
     update_region_populations,
     update_rebel_faction_status,
@@ -48,7 +50,7 @@ def get_faction_economy_snapshot(world):
             snapshot[region.owner]["owned_regions"] += 1
             snapshot[region.owner]["population"] += region.population
             snapshot[region.owner]["total_surplus"] += get_region_surplus(region, world)
-            snapshot[region.owner]["nominal_income"] += region.resources
+            snapshot[region.owner]["nominal_income"] += get_region_taxable_value(region, world)
             snapshot[region.owner]["base_income"] += get_region_effective_income(region, world)
             snapshot[region.owner]["maintenance"] += get_region_maintenance_cost(region, world)
             core_status = get_region_core_status(region)
@@ -90,6 +92,8 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     if verbose:
         print(f"\nTurn {world.turn + 1}")
 
+    update_faction_resource_economy(world, advance_resources=True)
+
     # shuffle turn order
     if faction_order is None:
         turn_order = list(world.factions.keys())
@@ -100,6 +104,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
         if randomize_order: random.shuffle(turn_order)
 
     for faction_name in turn_order:
+        update_faction_resource_economy(world, advance_resources=False)
         action_name, target_region_name = choose_action(faction_name, world)
 
         if action_name == "expand":
@@ -130,11 +135,14 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
             if verbose:
                 print(f"{faction_name} skipped its turn")
 
+    update_faction_resource_economy(world, advance_resources=False)
     resolve_unrest_events(world)
+    update_faction_resource_economy(world, advance_resources=False)
     economy_snapshot = apply_turn_economy(world)
     update_region_integration(world)
     update_region_populations(world)
     update_region_settlement_levels(world)
+    update_faction_resource_economy(world, advance_resources=False)
     update_rebel_faction_status(world)
     update_faction_polity_tiers(world)
     update_relationships(world)

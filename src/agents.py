@@ -5,15 +5,16 @@ from src.actions import (
     get_expand_target_score_components,
     get_expandable_regions,
     get_investable_regions,
+    get_invest_target_score_components,
     invest,
 )
 from src.config import (
     ATTACK_COST,
     EXPANSION_COST,
-    MAX_RESOURCES,
     REBEL_PROTO_ATTACK_UTILITY_PENALTY,
     REBEL_PROTO_INVEST_UTILITY_BONUS,
 )
+from src.resources import CAPACITY_FOOD_SECURITY, CAPACITY_METAL, CAPACITY_MOBILITY
 
 
 def _clamp(value, minimum, maximum):
@@ -61,11 +62,10 @@ def choose_invest_target(faction_name, world):
     if not investable_regions:
         return None
 
-    # choose lowest-resource region (simple heuristic)
-    best_region = min(
+    best_region = max(
         investable_regions,
         key=lambda name: (
-            world.regions[name].resources,
+            get_invest_target_score_components(name, faction_name, world)["score"],
             name,
         )
     )
@@ -134,6 +134,13 @@ def choose_action(faction_name, world):
 
     if can_invest:
         best_invest_target = choose_invest_target(faction_name, world)
+        best_invest_components = get_invest_target_score_components(
+            best_invest_target,
+            faction_name,
+            world,
+        ) if best_invest_target is not None else None
+    else:
+        best_invest_components = None
 
     if can_attack:
         attack_utility = (
@@ -164,11 +171,16 @@ def choose_action(faction_name, world):
         action_utilities["expand"] = expand_utility
 
     if can_invest and best_invest_target is not None:
-        invest_need = 1.0 - (
-            world.regions[best_invest_target].resources / max(1, MAX_RESOURCES)
+        shortages = faction.resource_shortages
+        invest_need = (
+            shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 0.45
+            + shortages.get(CAPACITY_MOBILITY, 0.0) * 0.3
+            + shortages.get(CAPACITY_METAL, 0.0) * 0.3
         )
+        if best_invest_components is not None:
+            invest_need += max(0.0, best_invest_components["score"] / 12.0)
         invest_utility = (
-            invest_need * (0.68 + (doctrine.development_posture * 0.44))
+            invest_need * (0.4 + (doctrine.development_posture * 0.32))
             + (doctrine.insularity * 0.14)
             - (doctrine.expansion_posture * 0.06)
         )

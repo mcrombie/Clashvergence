@@ -1,5 +1,6 @@
 from src.maps import MAPS
 from src.metrics import get_turn_metrics
+from src.heartland import get_region_taxable_value
 
 # EVENT IMPORTANCE WEIGHTS
 IMPORTANCE_BASE_ATTACK = 3.0
@@ -147,6 +148,7 @@ def clone_replay_state(state):
     return {
         "owners": state["owners"].copy(),
         "resources": state["resources"].copy(),
+        "taxable_values": state["taxable_values"].copy(),
         "treasuries": state["treasuries"].copy(),
         "region_counts": state["region_counts"].copy(),
     }
@@ -176,6 +178,10 @@ def apply_event_to_replay_state(event, state):
             "new_resources",
             new_state["resources"].get(event.region, 0) + event.get("resource_change", 0),
         )
+        new_state["taxable_values"][event.region] = event.get(
+            "new_taxable_value",
+            new_state["taxable_values"].get(event.region, 0.0) + event.get("taxable_change", 0.0),
+        )
 
     treasury_after = event.get("treasury_after")
     treasury_change = event.get("treasury_change")
@@ -204,10 +210,15 @@ def build_replay_state(world):
         region_name: data["resources"]
         for region_name, data in initial_state.items()
     }
+    taxable_values = {
+        region_name: data["taxable_value"]
+        for region_name, data in initial_state.items()
+    }
 
     return {
         "owners": owners,
         "resources": resources,
+        "taxable_values": taxable_values,
         "treasuries": treasuries,
         "region_counts": get_region_counts_from_owners(owners, world.factions),
     }
@@ -218,18 +229,23 @@ def get_region_profile(world, event):
     if event.region is None or event.region not in world.regions:
         return {
             "resources": 0,
+            "economic_value": 0.0,
             "neighbors": 0,
             "is_junction": False,
             "is_frontier": False,
         }
 
     region = world.regions[event.region]
-    resources = event.get("resources", region.resources)
+    resources = event.get(
+        "taxable_value",
+        event.get("target_taxable_value", event.get("resources", get_region_taxable_value(region, world))),
+    )
     neighbors = event.get("neighbors", len(region.neighbors))
     strategic_role = event.get("strategic_role")
 
     return {
         "resources": resources,
+        "economic_value": resources,
         "neighbors": neighbors,
         "is_junction": strategic_role == "junction" or neighbors >= 4,
         "is_frontier": strategic_role == "frontier" or event.get("future_expansion_opened", 0) >= 2,
@@ -290,7 +306,7 @@ def score_event_importance(event, simulation_context):
         components["strategic_frontier"] = IMPORTANCE_STRATEGIC_FRONTIER
         reasons.append("opened new routes")
 
-    if region_profile["resources"] >= 3:
+    if region_profile["economic_value"] >= 2.5:
         components["resource_value"] = IMPORTANCE_RESOURCE_REGION
         reasons.append("high-resource region")
 
@@ -334,8 +350,8 @@ def score_event_importance(event, simulation_context):
         reasons.append("broke a close late game")
 
     if event.type == "invest":
-        resource_change = event.get("resource_change", 0)
-        if resource_change <= 1 and actor_region_delta <= 0 and rank_delta <= 0:
+        taxable_change = event.get("taxable_change", event.get("resource_change", 0))
+        if taxable_change <= 0.6 and actor_region_delta <= 0 and rank_delta <= 0:
             components["routine_investment_penalty"] = IMPORTANCE_LOW_IMPACT_INVESTMENT_PENALTY
         elif rank_delta > 0 or leader_after == faction_name:
             reasons.append("strengthened economic lead")
@@ -481,6 +497,7 @@ def summarize_expand_event(event, world=None):
         "faction": event.faction,
         "region": event.region,
         "resources": details.get("resources", event.get("resources", 0)),
+        "taxable_value": details.get("taxable_value", event.get("taxable_value", 0)),
         "neighbors": details.get("neighbors", event.get("neighbors", 0)),
         "unclaimed_neighbors": details.get(
             "unclaimed_neighbors",
@@ -500,7 +517,7 @@ def summarize_expand_event(event, world=None):
         "treasury_change": impact.get("treasury_change"),
         "regions_gained": impact.get("regions_gained"),
         "strategic_role": impact.get("strategic_role"),
-        "income_gain": impact.get("income_gain", details.get("resources", 0)),
+        "income_gain": impact.get("income_gain", details.get("taxable_value", details.get("resources", 0))),
         "rank_after": impact.get("rank_after"),
         "rank_change": impact.get("rank_change"),
         "future_expansion_opened": impact.get(
@@ -557,6 +574,8 @@ def summarize_major_event(event, world=None):
         summary.update({
             "resource_change": event.get("resource_change", 0),
             "new_resources": event.get("new_resources"),
+            "taxable_change": event.get("taxable_change", 0),
+            "new_taxable_value": event.get("new_taxable_value"),
         })
 
     return summary
@@ -687,18 +706,18 @@ def get_opening_investment_leaders(world, opening_turns=5):
 
 
 def build_initial_opening_state(world):
-    """Returns initial ownership/resource values from the authored map state."""
-    map_regions = MAPS[world.map_name]["regions"]
+    """Returns initial ownership and native economic values for replay analysis."""
     owner_name_map = {
         faction.internal_id: faction_name
         for faction_name, faction in world.factions.items()
     }
     region_state = {}
 
-    for region_name, region_data in map_regions.items():
+    for region_name, region in world.regions.items():
         region_state[region_name] = {
-            "owner": owner_name_map.get(region_data["owner"], region_data["owner"]),
-            "resources": region_data["resources"],
+            "owner": owner_name_map.get(region.owner, region.owner),
+            "resources": region.resources,
+            "taxable_value": get_region_taxable_value(region, world),
         }
 
     return region_state
@@ -727,10 +746,14 @@ def replay_opening_treasury_snapshots(world, opening_turns=5):
                     "new_resources",
                     region_state[event.region]["resources"] + event.get("invest_amount", 0),
                 )
+                region_state[event.region]["taxable_value"] = event.get(
+                    "new_taxable_value",
+                    region_state[event.region]["taxable_value"] + event.get("taxable_change", 0.0),
+                )
 
         for region in region_state.values():
             if region["owner"] is not None:
-                treasuries[region["owner"]] += region["resources"]
+                treasuries[region["owner"]] += int(round(region["taxable_value"]))
 
         snapshots.append({
             "turn": turn,

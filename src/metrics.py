@@ -42,6 +42,12 @@ def build_turn_metrics(world, economy_snapshot=None):
         maintenance = economy_data.get("maintenance", 0)
         total_population = economy_data.get("population")
         total_surplus = economy_data.get("total_surplus", 0.0)
+        resource_access = faction.resource_access or {}
+        gross_output = faction.resource_gross_output or {}
+        effective_access = faction.resource_effective_access or {}
+        isolated_output = faction.resource_isolated_output or {}
+        resource_shortages = faction.resource_shortages or {}
+        derived_capacity = faction.derived_capacity or {}
 
         for event in turn_events:
             if event.faction != faction_name:
@@ -106,6 +112,33 @@ def build_turn_metrics(world, economy_snapshot=None):
             "city_regions": city_regions,
             "polity_tier": faction.polity_tier,
             "government_form": faction.government_form,
+            "food_security": round(derived_capacity.get("food_security", 0.0), 3),
+            "mobility_capacity": round(derived_capacity.get("mobility_capacity", 0.0), 3),
+            "construction_capacity": round(derived_capacity.get("construction_capacity", 0.0), 3),
+            "metal_capacity": round(derived_capacity.get("metal_capacity", 0.0), 3),
+            "taxable_value": round(derived_capacity.get("taxable_value", 0.0), 3),
+            "grain_access": round(resource_access.get("grain", 0.0), 3),
+            "wild_food_access": round(resource_access.get("wild_food", 0.0), 3),
+            "timber_access": round(resource_access.get("timber", 0.0), 3),
+            "horse_access": round(resource_access.get("horses", 0.0), 3),
+            "copper_access": round(resource_access.get("copper", 0.0), 3),
+            "stone_access": round(resource_access.get("stone", 0.0), 3),
+            "gross_grain_output": round(gross_output.get("grain", 0.0), 3),
+            "gross_horse_output": round(gross_output.get("horses", 0.0), 3),
+            "gross_copper_output": round(gross_output.get("copper", 0.0), 3),
+            "gross_stone_output": round(gross_output.get("stone", 0.0), 3),
+            "effective_grain_access": round(effective_access.get("grain", 0.0), 3),
+            "effective_horse_access": round(effective_access.get("horses", 0.0), 3),
+            "effective_copper_access": round(effective_access.get("copper", 0.0), 3),
+            "effective_stone_access": round(effective_access.get("stone", 0.0), 3),
+            "isolated_grain_output": round(isolated_output.get("grain", 0.0), 3),
+            "isolated_horse_output": round(isolated_output.get("horses", 0.0), 3),
+            "isolated_copper_output": round(isolated_output.get("copper", 0.0), 3),
+            "isolated_stone_output": round(isolated_output.get("stone", 0.0), 3),
+            "food_shortage": round(resource_shortages.get("food_security", 0.0), 3),
+            "mobility_shortage": round(resource_shortages.get("mobility_capacity", 0.0), 3),
+            "metal_shortage": round(resource_shortages.get("metal_capacity", 0.0), 3),
+            "construction_shortage": round(resource_shortages.get("construction_capacity", 0.0), 3),
             **get_faction_diplomacy_summary(world, faction_name),
         }
 
