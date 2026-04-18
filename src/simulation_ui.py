@@ -792,26 +792,28 @@ def render_simulation_html(world):
   <title>{html.escape(world.map_name)} Simulation Viewer</title>
   <style>
     :root {{
-      --bg: #080909;
-      --panel: rgba(255, 251, 245, 0.88);
+      --bg: #0d1117;
+      --panel: rgba(252, 248, 241, 0.94);
       --panel-strong: #fffdf8;
-      --ink: #1f2933;
-      --muted: #5d6d7e;
-      --line: rgba(63, 74, 89, 0.14);
-      --accent: #204e4a;
+      --panel-soft: rgba(255, 255, 255, 0.72);
+      --ink: #17212b;
+      --muted: #4f6273;
+      --line: rgba(46, 58, 71, 0.16);
+      --accent: #1d5a55;
       --accent-soft: #d7ebe8;
-      --shadow: 0 22px 60px rgba(31, 41, 51, 0.12);
+      --shadow: 0 22px 60px rgba(10, 18, 28, 0.16);
     }}
     * {{
       box-sizing: border-box;
     }}
     body {{
       margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
+      font-family: "Aptos", "Segoe UI", "Trebuchet MS", sans-serif;
+      line-height: 1.5;
       color: var(--ink);
       background:
-        radial-gradient(circle at top, rgba(48, 89, 122, 0.18), transparent 34%),
-        linear-gradient(180deg, #0b0d10 0%, #080909 52%, #050606 100%);
+        radial-gradient(circle at top, rgba(72, 122, 148, 0.18), transparent 32%),
+        linear-gradient(180deg, #10151d 0%, #0d1117 52%, #080b10 100%);
     }}
     .page {{
       max-width: 1440px;
@@ -821,10 +823,14 @@ def render_simulation_html(world):
     .panel {{
       background: var(--panel);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.45);
+      border: 1px solid rgba(255,255,255,0.48);
       border-radius: 24px;
       box-shadow: var(--shadow);
-      padding: 22px;
+      padding: 24px;
+    }}
+    h1, h2, h3, strong {{
+      font-family: "Iowan Old Style", Georgia, "Times New Roman", serif;
+      letter-spacing: -0.01em;
     }}
     .eyebrow {{
       display: inline-flex;
@@ -900,7 +906,7 @@ def render_simulation_html(world):
     }}
     .section-title {{
       margin: 0 0 14px;
-      font-size: 1.15rem;
+      font-size: 1.2rem;
     }}
     .section-header {{
       display: flex;
@@ -925,8 +931,8 @@ def render_simulation_html(world):
       min-width: 0;
     }}
     .side-section {{
-      background: rgba(255,255,255,0.46);
-      border: 1px solid rgba(63, 74, 89, 0.08);
+      background: rgba(255,255,255,0.5);
+      border: 1px solid rgba(63, 74, 89, 0.1);
       border-radius: 20px;
       padding: 16px;
     }}
@@ -949,6 +955,10 @@ def render_simulation_html(world):
       display: grid;
       gap: 14px;
       margin-bottom: 14px;
+      background: rgba(255,255,255,0.52);
+      border: 1px solid rgba(63, 74, 89, 0.08);
+      border-radius: 18px;
+      padding: 14px;
     }}
     .transport {{
       display: flex;
@@ -972,6 +982,7 @@ def render_simulation_html(world):
       border-radius: 999px;
       padding: 10px 16px;
       font: inherit;
+      font-weight: 700;
       color: #fff;
       background: linear-gradient(135deg, #204e4a, #356f69);
       cursor: pointer;
@@ -990,6 +1001,7 @@ def render_simulation_html(world):
     .turn-readout {{
       font-size: 0.95rem;
       color: var(--muted);
+      font-weight: 600;
     }}
     .timeline-controls {{
       display: flex;
@@ -1072,9 +1084,12 @@ def render_simulation_html(world):
       stroke: #8a2f1f;
     }}
     .region-label {{
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       fill: #111827;
+      paint-order: stroke;
+      stroke: rgba(255, 252, 245, 0.94);
+      stroke-width: 3px;
       pointer-events: none;
     }}
     .region-resource {{
@@ -1082,6 +1097,9 @@ def render_simulation_html(world):
       letter-spacing: 0.05em;
       font-weight: 700;
       fill: #274c5e;
+      paint-order: stroke;
+      stroke: rgba(255, 252, 245, 0.92);
+      stroke-width: 2.6px;
       pointer-events: none;
     }}
     .terrain-overlay {{
@@ -1092,6 +1110,35 @@ def render_simulation_html(world):
       fill: #4b5f4b;
       pointer-events: none;
       opacity: 0.88;
+    }}
+    .atlas-polity-label {{
+      font-size: 18px;
+      font-weight: 800;
+      fill: #14202b;
+      text-anchor: middle;
+      pointer-events: none;
+      paint-order: stroke;
+      stroke: rgba(255, 252, 245, 0.96);
+      stroke-width: 5px;
+      letter-spacing: 0.01em;
+    }}
+    .atlas-polity-label.small {{
+      font-size: 15px;
+    }}
+    .atlas-polity-label.large {{
+      font-size: 21px;
+    }}
+    .atlas-polity-label-sub {{
+      font-size: 13px;
+      font-weight: 700;
+      fill: var(--muted);
+      text-anchor: middle;
+      pointer-events: none;
+      paint-order: stroke;
+      stroke: rgba(255, 252, 245, 0.94);
+      stroke-width: 4px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }}
     .map-layer.hidden {{
       display: none;
@@ -1223,10 +1270,62 @@ def render_simulation_html(world):
       color: var(--muted);
       line-height: 1.5;
     }}
+    .card-header strong {{
+      margin-bottom: 0;
+    }}
     .summary-copy {{
       margin: 8px 0 0;
       color: var(--muted);
       line-height: 1.55;
+    }}
+    .scroll-panel {{
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }}
+    .scroll-panel::-webkit-scrollbar {{
+      width: 10px;
+    }}
+    .scroll-panel::-webkit-scrollbar-thumb {{
+      background: rgba(63, 74, 89, 0.2);
+      border-radius: 999px;
+    }}
+    .card-header {{
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }}
+    .stat-grid {{
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }}
+    .stat-grid.compact {{
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 12px;
+    }}
+    .stat-chip {{
+      display: grid;
+      gap: 2px;
+      padding: 10px 12px;
+      background: var(--panel-soft);
+      border: 1px solid rgba(63, 74, 89, 0.08);
+      border-radius: 14px;
+      min-width: 0;
+    }}
+    .stat-label {{
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }}
+    .stat-value {{
+      color: var(--ink);
+      font-size: 1rem;
+      font-weight: 700;
     }}
     .summary-list {{
       margin: 10px 0 0;
@@ -1309,6 +1408,10 @@ def render_simulation_html(world):
       background: rgba(110, 42, 74, 0.18);
       color: #6e2a4a;
     }}
+    .event-icon-success {{
+      background: rgba(46, 111, 76, 0.16);
+      color: #2f6a39;
+    }}
     .faction-inline {{
       font-weight: 700;
     }}
@@ -1317,6 +1420,8 @@ def render_simulation_html(world):
       border-radius: 999px;
       font-size: 12px;
       background: rgba(0,0,0,0.05);
+      font-weight: 700;
+      white-space: nowrap;
     }}
     .mini-stats {{
       display: flex;
@@ -1328,6 +1433,22 @@ def render_simulation_html(world):
     .detail-grid {{
       display: grid;
       gap: 10px;
+    }}
+    .detail-grid-two {{
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }}
+    .detail-section + .detail-section {{
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }}
+    .detail-section-title {{
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }}
     .detail-row {{
       display: grid;
@@ -1343,12 +1464,22 @@ def render_simulation_html(world):
       font-size: 0.98rem;
       color: var(--ink);
     }}
+    .panel-note {{
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }}
+    .summary-card .panel-note {{
+      margin: 6px 0 0;
+    }}
     @media (max-width: 1100px) {{
       .playback-layout {{
         grid-template-columns: 1fr;
       }}
       .standings-bar,
-      .hero-meta {{
+      .hero-meta,
+      .stat-grid,
+      .detail-grid-two {{
         grid-template-columns: 1fr;
       }}
       .settings-block {{
@@ -1364,6 +1495,9 @@ def render_simulation_html(world):
         grid-template-columns: 1fr;
       }}
       .standings-bar {{
+        grid-template-columns: 1fr;
+      }}
+      .stat-grid.compact {{
         grid-template-columns: 1fr;
       }}
       h1 {{
@@ -1432,6 +1566,7 @@ def render_simulation_html(world):
                 <g id="atlas-layer" class="map-layer"></g>
                 <g id="atlas-symbol-layer" class="map-layer"></g>
                 <g id="atlas-label-layer" class="map-layer"></g>
+                <g id="atlas-polity-label-layer" class="map-layer hidden"></g>
                 <g id="atlas-terrain-layer" class="map-layer hidden"></g>
                 <g id="graph-layer" class="map-layer">
                   <g id="edge-layer"></g>
@@ -1449,16 +1584,17 @@ def render_simulation_html(world):
               <h3 class="side-title">Current Turn</h3>
               <div class="summary-stack">
                 <article class="summary-card" id="turn-context"></article>
-                <div class="list" id="turn-events"></div>
+                <div class="list scroll-panel" id="turn-events"></div>
               </div>
-            </section>
-            <section class="side-section">
-              <h3 class="side-title">Doctrine Evolution</h3>
-              <div class="summary-stack" id="doctrine-panel"></div>
             </section>
             <section class="side-section">
               <h3 class="side-title">Region Detail</h3>
               <article class="summary-card" id="region-detail"></article>
+            </section>
+            <section class="side-section">
+              <h3 class="side-title">Doctrine Evolution</h3>
+              <p class="panel-note">Faction posture, diplomacy, and structural pressure at the current turn.</p>
+              <div class="summary-stack scroll-panel" id="doctrine-panel"></div>
             </section>
           </aside>
         </div>
@@ -1492,6 +1628,7 @@ def render_simulation_html(world):
       playing: false,
       timer: null,
       mapView: data.atlas_regions.length ? "atlas" : "graph",
+      atlasLabelMode: "regions",
       showTerrainOverlay: false,
       colorMode: "ownership",
       focusRegionName: null,
@@ -1508,6 +1645,7 @@ def render_simulation_html(world):
     const atlasLayer = document.getElementById("atlas-layer");
     const atlasSymbolLayer = document.getElementById("atlas-symbol-layer");
     const atlasLabelLayer = document.getElementById("atlas-label-layer");
+    const atlasPolityLabelLayer = document.getElementById("atlas-polity-label-layer");
     const atlasTerrainLayer = document.getElementById("atlas-terrain-layer");
     const graphLayer = document.getElementById("graph-layer");
     const regionLayer = document.getElementById("region-layer");
@@ -1529,6 +1667,8 @@ def render_simulation_html(world):
     const doctrineTimelineCaption = document.getElementById("doctrine-timeline-caption");
 
     const colorByFaction = Object.fromEntries(data.factions.map((faction) => [faction.name, faction.color]));
+    const staticRegionByName = Object.fromEntries(data.regions.map((region) => [region.name, region]));
+    const atlasRegionByName = Object.fromEntries(data.atlas_regions.map((region) => [region.name, region]));
     const terrainBaseColors = {{
       coast: "#5a88c7",
       riverland: "#43b38f",
@@ -1786,6 +1926,137 @@ def render_simulation_html(world):
         return filtered.slice(0, 3);
       }}
       return ["plains"];
+    }}
+
+    function splitPolityLabel(displayName) {{
+      const words = String(displayName || "").trim().split(/\\s+/).filter(Boolean);
+      if (words.length <= 1) {{
+        return [displayName || "Unclaimed"];
+      }}
+      if (words.length === 2) {{
+        return words;
+      }}
+      return [words.slice(0, -1).join(" "), words.at(-1)];
+    }}
+
+    function resolvePolityLabelOverlap(labels) {{
+      const minimumDistance = 58;
+      const resolved = labels
+        .map((label) => ({{ ...label }}))
+        .sort((left, right) => left.y - right.y);
+
+      for (let index = 0; index < resolved.length; index += 1) {{
+        for (let compareIndex = 0; compareIndex < index; compareIndex += 1) {{
+          const current = resolved[index];
+          const previous = resolved[compareIndex];
+          const dx = current.x - previous.x;
+          const dy = current.y - previous.y;
+          if (Math.hypot(dx, dy) < minimumDistance) {{
+            current.y = Math.min(850, previous.y + minimumDistance);
+          }}
+        }}
+      }}
+
+      return resolved;
+    }}
+
+    function getAtlasPolityLabelData(snapshot) {{
+      const visited = new Set();
+      const clusters = [];
+
+      for (const region of data.atlas_regions) {{
+        const regionSnapshot = snapshot.regions[region.name];
+        if (!regionSnapshot || !regionSnapshot.owner || visited.has(region.name)) {{
+          continue;
+        }}
+
+        const owner = regionSnapshot.owner;
+        const stack = [region.name];
+        const component = [];
+
+        while (stack.length) {{
+          const currentName = stack.pop();
+          if (visited.has(currentName)) {{
+            continue;
+          }}
+
+          const currentSnapshot = snapshot.regions[currentName];
+          if (!currentSnapshot || currentSnapshot.owner !== owner) {{
+            continue;
+          }}
+
+          visited.add(currentName);
+          component.push(currentName);
+
+          for (const neighborName of staticRegionByName[currentName]?.neighbors || []) {{
+            if (!visited.has(neighborName) && snapshot.regions[neighborName]?.owner === owner) {{
+              stack.push(neighborName);
+            }}
+          }}
+        }}
+
+        const atlasComponent = component
+          .map((regionName) => atlasRegionByName[regionName])
+          .filter(Boolean);
+
+        if (!atlasComponent.length) {{
+          continue;
+        }}
+
+        const centroidX = atlasComponent.reduce((total, item) => total + item.label_x, 0) / atlasComponent.length;
+        const centroidY = atlasComponent.reduce((total, item) => total + item.label_y, 0) / atlasComponent.length;
+        const displayName = getFactionDisplayName(owner);
+        clusters.push({{
+          owner,
+          regionCount: component.length,
+          x: centroidX,
+          y: centroidY,
+          lines: splitPolityLabel(displayName),
+        }});
+      }}
+
+      return resolvePolityLabelOverlap(clusters);
+    }}
+
+    function renderAtlasPolityLabels(snapshot) {{
+      if (!data.atlas_regions.length) {{
+        return;
+      }}
+
+      atlasPolityLabelLayer.replaceChildren();
+
+      for (const cluster of getAtlasPolityLabelData(snapshot)) {{
+        const group = svgElement("g", {{}});
+        const mainLabelClass = cluster.regionCount >= 4
+          ? "atlas-polity-label large"
+          : (cluster.regionCount === 1 ? "atlas-polity-label small" : "atlas-polity-label");
+        const firstLineY = cluster.lines.length > 1 ? cluster.y - 8 : cluster.y;
+
+        cluster.lines.forEach((line, index) => {{
+          const text = svgElement("text", {{
+            x: cluster.x.toFixed(1),
+            y: (firstLineY + (index * 18)).toFixed(1),
+            class: mainLabelClass,
+          }});
+          text.textContent = line;
+          group.appendChild(text);
+        }});
+
+        if (cluster.regionCount > 1) {{
+          const subLabel = svgElement("text", {{
+            x: cluster.x.toFixed(1),
+            y: (cluster.lines.length > 1 ? firstLineY + 34 : cluster.y + 18).toFixed(1),
+            class: "atlas-polity-label-sub",
+          }});
+          subLabel.textContent = `${{cluster.regionCount}} regions`;
+          group.appendChild(subLabel);
+        }}
+
+        const title = svgElement("title", {{}});
+        title.textContent = `${{getFactionDisplayName(cluster.owner)}} controls ${{cluster.regionCount}} connected region${{cluster.regionCount === 1 ? "" : "s"}}.`;
+        group.appendChild(title);
+        atlasPolityLabelLayer.appendChild(group);
+      }}
     }}
 
     function appendAtlasTerrainSymbol(group, tag, centerX, centerY, size) {{
@@ -2056,9 +2327,13 @@ def render_simulation_html(world):
     }}
 
     function renderViewToggle() {{
+      const overlayLabel = state.showTerrainOverlay ? "Terrain Labels On" : "Terrain Labels";
+      const colorModeLabel = `Colors: ${{getColorModeLabel()}}`;
+      const atlasLabelModeLabel = `Labels: ${{state.atlasLabelMode === "realms" ? "Realms" : "Regions"}}`;
       terrainToggle.innerHTML = `
-        <button type="button" class="secondary" data-terrain="overlay">Show Terrain</button>
-        <button type="button" class="secondary" data-terrain="mode">Cycle Map Colors</button>
+        <button type="button" class="secondary" data-terrain="overlay">${{overlayLabel}}</button>
+        <button type="button" class="secondary" data-terrain="mode">${{colorModeLabel}}</button>
+        ${{data.atlas_regions.length ? `<button type="button" class="secondary" data-terrain="labels">${{atlasLabelModeLabel}}</button>` : ""}}
       `;
 
       if (!data.atlas_regions.length) {{
@@ -2069,6 +2344,7 @@ def render_simulation_html(world):
           const isActive = (
             (button.dataset.terrain === "overlay" && state.showTerrainOverlay)
             || (button.dataset.terrain === "mode" && state.colorMode !== "ownership")
+            || (button.dataset.terrain === "labels" && state.atlasLabelMode !== "regions")
           );
           button.classList.toggle("active", isActive);
           button.addEventListener("click", () => {{
@@ -2076,8 +2352,10 @@ def render_simulation_html(world):
               state.showTerrainOverlay = !state.showTerrainOverlay;
             }} else if (button.dataset.terrain === "mode") {{
               cycleColorMode();
+            }} else if (button.dataset.terrain === "labels") {{
+              state.atlasLabelMode = state.atlasLabelMode === "regions" ? "realms" : "regions";
             }}
-            syncMapView();
+            renderViewToggle();
             renderLegend();
             renderTurn(state.currentTurn);
           }});
@@ -2095,7 +2373,7 @@ def render_simulation_html(world):
         button.classList.toggle("active", button.dataset.view === state.mapView);
         button.addEventListener("click", () => {{
           state.mapView = button.dataset.view;
-          syncMapView();
+          renderViewToggle();
           renderTurn(state.currentTurn);
         }});
       }}
@@ -2104,6 +2382,7 @@ def render_simulation_html(world):
         const isActive = (
           (button.dataset.terrain === "overlay" && state.showTerrainOverlay)
           || (button.dataset.terrain === "mode" && state.colorMode !== "ownership")
+          || (button.dataset.terrain === "labels" && state.atlasLabelMode !== "regions")
         );
         button.classList.toggle("active", isActive);
         button.addEventListener("click", () => {{
@@ -2111,8 +2390,10 @@ def render_simulation_html(world):
             state.showTerrainOverlay = !state.showTerrainOverlay;
           }} else if (button.dataset.terrain === "mode") {{
             cycleColorMode();
+          }} else if (button.dataset.terrain === "labels") {{
+            state.atlasLabelMode = state.atlasLabelMode === "regions" ? "realms" : "regions";
           }}
-          syncMapView();
+          renderViewToggle();
           renderLegend();
           renderTurn(state.currentTurn);
         }});
@@ -2126,7 +2407,8 @@ def render_simulation_html(world):
       atlasBackgroundLayer.classList.toggle("hidden", !showAtlas);
       atlasLayer.classList.toggle("hidden", !showAtlas);
       atlasSymbolLayer.classList.toggle("hidden", !showAtlas);
-      atlasLabelLayer.classList.toggle("hidden", !showAtlas);
+      atlasLabelLayer.classList.toggle("hidden", !showAtlas || state.atlasLabelMode !== "regions");
+      atlasPolityLabelLayer.classList.toggle("hidden", !showAtlas || state.atlasLabelMode !== "realms");
       atlasTerrainLayer.classList.toggle("hidden", !showAtlas || !state.showTerrainOverlay);
       graphLayer.classList.toggle("hidden", showAtlas);
       terrainLayer.classList.toggle("hidden", !state.showTerrainOverlay);
@@ -2138,12 +2420,13 @@ def render_simulation_html(world):
         const isActive = (
           (button.dataset.terrain === "overlay" && state.showTerrainOverlay)
           || (button.dataset.terrain === "mode" && state.colorMode !== "ownership")
+          || (button.dataset.terrain === "labels" && state.atlasLabelMode !== "regions")
         );
         button.classList.toggle("active", isActive);
       }}
     }}
 
-    function renderLegend() {{
+    function renderLegend(snapshot = data.snapshots[state.currentTurn]) {{
       let items;
       if (state.colorMode === "terrain") {{
         const uniqueTerrain = new Map();
@@ -2187,10 +2470,21 @@ def render_simulation_html(world):
           </span>
         `);
       }} else {{
+        const ownedFactions = new Set(
+          Object.values(snapshot?.regions || {{}})
+            .map((region) => region.owner)
+            .filter(Boolean),
+        );
+        const hasUnclaimedRegions = Object.values(snapshot?.regions || {{}})
+          .some((region) => !region.owner);
         items = [
-          ...data.factions.map((faction) => `<span class="legend-item"><span class="swatch" style="background:${{faction.color}}"></span>${{escapeHtml(faction.display_name || faction.name)}} <span class="subtle">${{escapeHtml(faction.doctrine_label)}}</span></span>`),
-          `<span class="legend-item"><span class="swatch" style="background:${{unclaimedColor}}"></span>Unclaimed</span>`,
+          ...data.factions
+            .filter((faction) => ownedFactions.has(faction.name))
+            .map((faction) => `<span class="legend-item"><span class="swatch" style="background:${{faction.color}}"></span>${{escapeHtml(faction.display_name || faction.name)}} <span class="subtle">${{escapeHtml(faction.doctrine_label)}}</span></span>`),
         ];
+        if (hasUnclaimedRegions) {{
+          items.push(`<span class="legend-item"><span class="swatch" style="background:${{unclaimedColor}}"></span>Unclaimed</span>`);
+        }}
       }}
       legend.innerHTML = items.join("");
     }}
@@ -2371,17 +2665,39 @@ def render_simulation_html(world):
         : leaderText;
 
       turnContext.innerHTML = `
-        <strong>${{turn === 0 ? "Initial State" : `Turn ${{turn}} Snapshot`}}</strong>
+        <div class="card-header">
+          <strong>${{turn === 0 ? "Initial State" : `Turn ${{turn}} Snapshot`}}</strong>
+          <span class="pill">Palette: ${{escapeHtml(getColorModeLabel())}}</span>
+        </div>
         <p class="summary-copy">${{escapeHtml(contextText)}}</p>
-          <div class="mini-stats">
-            <span>${{eventCount}} event${{eventCount === 1 ? "" : "s"}} on this turn</span>
-            <span>${{changedCount}} region${{changedCount === 1 ? "" : "s"}} changed</span>
-            <span>${{contestedCount}} contested region${{contestedCount === 1 ? "" : "s"}}</span>
-            <span>${{unstableCount}} unstable region${{unstableCount === 1 ? "" : "s"}}</span>
-            <span>Map mode: ${{getColorModeLabel()}}</span>
+        <div class="stat-grid">
+          <div class="stat-chip">
+            <div class="stat-label">Events</div>
+            <div class="stat-value">${{eventCount}}</div>
           </div>
-        `;
-      }}
+          <div class="stat-chip">
+            <div class="stat-label">Changed Regions</div>
+            <div class="stat-value">${{changedCount}}</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-label">Contested</div>
+            <div class="stat-value">${{contestedCount}}</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-label">Unstable</div>
+            <div class="stat-value">${{unstableCount}}</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-label">Leading Faction</div>
+            <div class="stat-value">${{escapeHtml(leader ? getFactionDisplayName(leader.faction) : "None")}}</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-label">Leading Treasury</div>
+            <div class="stat-value">${{leader ? `$${{leader.treasury}}` : "-"}}</div>
+          </div>
+        </div>
+      `;
+    }}
 
     function renderRegionDetail(snapshot) {{
       const regionName = state.focusRegionName || snapshot.changed_regions[0] || data.regions[0]?.name;
@@ -2398,136 +2714,142 @@ def render_simulation_html(world):
       }}
 
       const ownerText = getFactionDisplayName(regionSnapshot.owner);
+      const ownerColor = colorByFaction[regionSnapshot.owner] || unclaimedColor;
       const foundingText = regionSnapshot.founding_name
         ? `${{escapeHtml(regionSnapshot.founding_name)}}${{regionSnapshot.founding_name !== regionName ? ` <span class="subtle">(${{
           escapeHtml(regionName)
         }})</span>` : ""}}`
         : escapeHtml(regionName);
+      const claimants = regionSnapshot.ethnic_claimants || staticRegion.ethnic_claimants || [];
+      const claimsText = claimants.length
+        ? claimants.map((factionName) => escapeHtml(getFactionDisplayName(factionName))).join(", ")
+        : "None";
+      const agitators = regionSnapshot.external_regime_agitators || staticRegion.external_regime_agitators || [];
+      const agitationPressure = Number(regionSnapshot.external_regime_agitation ?? staticRegion.external_regime_agitation ?? 0);
+      const agitationText = (!agitators.length || agitationPressure <= 0)
+        ? "None"
+        : `${{agitators.map((factionName) => escapeHtml(getFactionDisplayName(factionName))).join(", ")}} (${{agitationPressure.toFixed(3)}})`;
 
       regionDetail.innerHTML = `
-        <strong>${{escapeHtml(regionSnapshot.display_name || staticRegion.display_name || regionName)}}</strong>
-        <div class="detail-grid">
-          <div class="detail-row">
-            <div class="detail-label">Region Code</div>
-            <div class="detail-value">${{escapeHtml(regionName)}}</div>
+        <div class="card-header">
+          <div>
+            <strong>${{escapeHtml(regionSnapshot.display_name || staticRegion.display_name || regionName)}}</strong>
+            <p class="panel-note">${{escapeHtml(regionSnapshot.terrain_label || staticRegion.terrain_label || "Plains")}} terrain, ${{escapeHtml(regionSnapshot.climate_label || staticRegion.climate_label || "Temperate")}} climate.</p>
           </div>
-          <div class="detail-row">
-            <div class="detail-label">Terrain</div>
-            <div class="detail-value">
-              <span class="terrain-chip" style="background:${{getTerrainColor(regionSnapshot.terrain_tags || staticRegion.terrain_tags)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
-              ${{escapeHtml(regionSnapshot.terrain_label || staticRegion.terrain_label)}}
+          <span class="pill" style="background:${{ownerColor}}22; color:${{ownerColor}};">${{escapeHtml(ownerText)}}</span>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">Identity</div>
+          <div class="detail-grid detail-grid-two">
+            <div class="detail-row">
+              <div class="detail-label">Region Code</div>
+              <div class="detail-value">${{escapeHtml(regionName)}}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Homeland Of</div>
+              <div class="detail-value">${{escapeHtml(regionSnapshot.homeland_faction_id || "None")}}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Owner</div>
+              <div class="detail-value">${{escapeHtml(ownerText)}}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Founding Name</div>
+              <div class="detail-value">${{foundingText}}</div>
             </div>
           </div>
-          <div class="detail-row">
-            <div class="detail-label">Climate</div>
-            <div class="detail-value">
-              <span class="terrain-chip" style="background:${{getClimateColor(regionSnapshot.climate || staticRegion.climate)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
-              ${{escapeHtml(regionSnapshot.climate_label || staticRegion.climate_label || "Temperate")}}
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">Land And People</div>
+          <div class="detail-grid detail-grid-two">
+            <div class="detail-row">
+              <div class="detail-label">Terrain</div>
+              <div class="detail-value">
+                <span class="terrain-chip" style="background:${{getTerrainColor(regionSnapshot.terrain_tags || staticRegion.terrain_tags)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
+                ${{escapeHtml(regionSnapshot.terrain_label || staticRegion.terrain_label)}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Climate</div>
+              <div class="detail-value">
+                <span class="terrain-chip" style="background:${{getClimateColor(regionSnapshot.climate || staticRegion.climate)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
+                ${{escapeHtml(regionSnapshot.climate_label || staticRegion.climate_label || "Temperate")}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Settlement</div>
+              <div class="detail-value">${{escapeHtml(regionSnapshot.settlement_level || staticRegion.settlement_level || "wild")}}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Dominant Ethnicity</div>
+              <div class="detail-value">${{escapeHtml(regionSnapshot.dominant_ethnicity || staticRegion.dominant_ethnicity || "None")}}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Ruling Affinity</div>
+              <div class="detail-value">
+                ${{Number((regionSnapshot.ruling_ethnic_affinity ?? staticRegion.ruling_ethnic_affinity ?? 0) * 100).toFixed(0)}}%
+                ${{(regionSnapshot.owner_primary_ethnicity || staticRegion.owner_primary_ethnicity) ? ` (${{
+                  escapeHtml(regionSnapshot.owner_primary_ethnicity || staticRegion.owner_primary_ethnicity)
+                }})` : ""}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Ethnic Claims</div>
+              <div class="detail-value">${{claimsText}}</div>
             </div>
           </div>
-          <div class="detail-row">
-            <div class="detail-label">Owner</div>
-            <div class="detail-value">${{escapeHtml(ownerText)}}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Dominant Ethnicity</div>
-            <div class="detail-value">${{escapeHtml(regionSnapshot.dominant_ethnicity || staticRegion.dominant_ethnicity || "None")}}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Ruling Affinity</div>
-            <div class="detail-value">
-              ${{Number((regionSnapshot.ruling_ethnic_affinity ?? staticRegion.ruling_ethnic_affinity ?? 0) * 100).toFixed(0)}}%
-              ${{(regionSnapshot.owner_primary_ethnicity || staticRegion.owner_primary_ethnicity) ? ` (${{
-                escapeHtml(regionSnapshot.owner_primary_ethnicity || staticRegion.owner_primary_ethnicity)
-              }})` : ""}}
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">Economy And Stability</div>
+          <div class="detail-grid detail-grid-two">
+            <div class="detail-row">
+              <div class="detail-label">Resources</div>
+              <div class="detail-value">R${{regionSnapshot.resources}}</div>
             </div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Ethnic Claims</div>
-            <div class="detail-value">
-              ${{
-                (() => {{
-                  const claimants = regionSnapshot.ethnic_claimants || staticRegion.ethnic_claimants || [];
-                  if (!claimants.length) {{
-                    return "None";
-                  }}
-                  return claimants.map((factionName) => escapeHtml(getFactionDisplayName(factionName))).join(", ");
-                }})()
-              }}
+            <div class="detail-row">
+              <div class="detail-label">Population</div>
+              <div class="detail-value">${{Number(regionSnapshot.population || staticRegion.population || 0).toLocaleString()}}</div>
             </div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Regime Agitation</div>
-            <div class="detail-value">
-              ${{
-                (() => {{
-                  const agitators = regionSnapshot.external_regime_agitators || staticRegion.external_regime_agitators || [];
-                  const pressure = Number(regionSnapshot.external_regime_agitation ?? staticRegion.external_regime_agitation ?? 0);
-                  if (!agitators.length || pressure <= 0) {{
-                    return "None";
-                  }}
-                  return `${{agitators.map((factionName) => escapeHtml(getFactionDisplayName(factionName))).join(", ")}} (${{
-                    pressure.toFixed(3)
-                  }})`;
-                }})()
-              }}
+            <div class="detail-row">
+              <div class="detail-label">Surplus</div>
+              <div class="detail-value">
+                ${{Number(regionSnapshot.surplus ?? staticRegion.surplus ?? 0).toFixed(2)}}
+                (${{escapeHtml(regionSnapshot.surplus_label || staticRegion.surplus_label || "stable")}})
+              </div>
             </div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Integration</div>
-            <div class="detail-value">${{escapeHtml(regionSnapshot.core_status || "frontier")}} (${{Number(regionSnapshot.integration_score || 0).toFixed(1)}})</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Settlement</div>
-            <div class="detail-value">${{escapeHtml(regionSnapshot.settlement_level || staticRegion.settlement_level || "wild")}}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Unrest</div>
-            <div class="detail-value">
-              <span class="terrain-chip" style="background:${{getUnrestColor(regionSnapshot)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
-              ${{escapeHtml(getUnrestLabel(regionSnapshot))}}
+            <div class="detail-row">
+              <div class="detail-label">Capacity / Pressure</div>
+              <div class="detail-value">
+                ${{Number(regionSnapshot.productive_capacity ?? staticRegion.productive_capacity ?? 0).toFixed(2)}}
+                / ${{Number(regionSnapshot.population_pressure ?? staticRegion.population_pressure ?? 0).toFixed(2)}}
+              </div>
             </div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Unrest Event</div>
-            <div class="detail-value">
-              ${{escapeHtml(regionSnapshot.unrest_event_level || "none")}}
-              ${{Number(regionSnapshot.unrest_event_turns_remaining || 0) > 0 ? ` (${{Number(regionSnapshot.unrest_event_turns_remaining)}} turn${{Number(regionSnapshot.unrest_event_turns_remaining) === 1 ? "" : "s"}} left)` : ""}}
+            <div class="detail-row">
+              <div class="detail-label">Integration</div>
+              <div class="detail-value">${{escapeHtml(regionSnapshot.core_status || "frontier")}} (${{Number(regionSnapshot.integration_score || 0).toFixed(1)}})</div>
             </div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Homeland Of</div>
-            <div class="detail-value">${{escapeHtml(regionSnapshot.homeland_faction_id || "None")}}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Resources</div>
-            <div class="detail-value">R${{regionSnapshot.resources}}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Population</div>
-            <div class="detail-value">${{Number(regionSnapshot.population || staticRegion.population || 0).toLocaleString()}}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Surplus</div>
-            <div class="detail-value">
-              ${{Number(regionSnapshot.surplus ?? staticRegion.surplus ?? 0).toFixed(2)}}
-              (${{escapeHtml(regionSnapshot.surplus_label || staticRegion.surplus_label || "stable")}})
+            <div class="detail-row">
+              <div class="detail-label">Unrest</div>
+              <div class="detail-value">
+                <span class="terrain-chip" style="background:${{getUnrestColor(regionSnapshot)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
+                ${{escapeHtml(getUnrestLabel(regionSnapshot))}}
+              </div>
             </div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Capacity / Pressure</div>
-            <div class="detail-value">
-              ${{Number(regionSnapshot.productive_capacity ?? staticRegion.productive_capacity ?? 0).toFixed(2)}}
-              / ${{Number(regionSnapshot.population_pressure ?? staticRegion.population_pressure ?? 0).toFixed(2)}}
+            <div class="detail-row">
+              <div class="detail-label">Unrest Event</div>
+              <div class="detail-value">
+                ${{escapeHtml(regionSnapshot.unrest_event_level || "none")}}
+                ${{Number(regionSnapshot.unrest_event_turns_remaining || 0) > 0 ? ` (${{Number(regionSnapshot.unrest_event_turns_remaining)}} turn${{Number(regionSnapshot.unrest_event_turns_remaining) === 1 ? "" : "s"}} left)` : ""}}
+              </div>
             </div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Founding Name</div>
-            <div class="detail-value">${{foundingText}}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Neighbors</div>
-            <div class="detail-value">${{staticRegion.neighbors.length}}</div>
+            <div class="detail-row">
+              <div class="detail-label">Regime Agitation</div>
+              <div class="detail-value">${{agitationText}}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Neighbors</div>
+              <div class="detail-value">${{staticRegion.neighbors.length}}</div>
+            </div>
           </div>
         </div>
       `;
@@ -2547,7 +2869,10 @@ def render_simulation_html(world):
         if (!metrics) {{
           return `
             <article class="summary-card">
-              <strong>${{escapeHtml(faction.display_name || faction.name)}}</strong>
+              <div class="card-header">
+                <strong>${{escapeHtml(faction.display_name || faction.name)}}</strong>
+                <span class="pill" style="background:${{faction.color}}22; color:${{faction.color}};">Forming</span>
+              </div>
               <div class="subtle">${{escapeHtml(faction.homeland_identity)}} homeland</div>
               <p class="summary-copy">Doctrine is still forming from the starting terrain before the first turn resolves.</p>
             </article>
@@ -2584,41 +2909,47 @@ def render_simulation_html(world):
 
         return `
           <article class="summary-card">
-            <strong>${{escapeHtml(faction.display_name || faction.name)}}</strong>
-            <div class="detail-grid">
-              <div class="detail-row">
-                <div class="detail-label">Polity</div>
-                <div class="detail-value">${{polityStatus}}</div>
+            <div class="card-header">
+              <div>
+                <strong>${{escapeHtml(faction.display_name || faction.name)}}</strong>
+                <p class="panel-note">${{polityStatus}}</p>
               </div>
-              <div class="detail-row">
-                <div class="detail-label">Tier / Government</div>
-                <div class="detail-value">${{escapeHtml(faction.polity_tier || "tribe")}} / ${{escapeHtml(faction.government_form || "council")}}</div>
+              <span class="pill" style="background:${{faction.color}}22; color:${{faction.color}};">${{escapeHtml(metrics.doctrine_label)}}</span>
+            </div>
+            ${{doctrineShift}}
+            <div class="detail-section">
+              <div class="detail-section-title">Identity</div>
+              <div class="detail-grid detail-grid-two">
+                <div class="detail-row">
+                  <div class="detail-label">Tier / Government</div>
+                  <div class="detail-value">${{escapeHtml(faction.polity_tier || "tribe")}} / ${{escapeHtml(faction.government_form || "council")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Primary Ethnicity</div>
+                  <div class="detail-value">${{escapeHtml(faction.primary_ethnicity || "Unknown")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Homeland</div>
+                  <div class="detail-value">${{escapeHtml(metrics.homeland_identity)}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Terrain Identity</div>
+                  <div class="detail-value">${{escapeHtml(metrics.terrain_identity)}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Climate Identity</div>
+                  <div class="detail-value">${{escapeHtml(metrics.climate_identity || faction.climate_identity || "Temperate")}}</div>
+                </div>
+                ${{rebelLifecycle}}
               </div>
-              <div class="detail-row">
-                <div class="detail-label">Primary Ethnicity</div>
-                <div class="detail-value">${{escapeHtml(faction.primary_ethnicity || "Unknown")}}</div>
-              </div>
-              ${{rebelLifecycle}}
-              <div class="detail-row">
-                <div class="detail-label">Doctrine</div>
-                <div class="detail-value">${{escapeHtml(metrics.doctrine_label)}}</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">Homeland</div>
-                <div class="detail-value">${{escapeHtml(metrics.homeland_identity)}}</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">Current Terrain Identity</div>
-                <div class="detail-value">${{escapeHtml(metrics.terrain_identity)}}</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">Climate Identity</div>
-                <div class="detail-value">${{escapeHtml(metrics.climate_identity || faction.climate_identity || "Temperate")}}</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">Top Ally</div>
-                <div class="detail-value">${{escapeHtml(metrics.top_ally || "None")}}</div>
-              </div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-section-title">Pressure Map</div>
+              <div class="detail-grid detail-grid-two">
+                <div class="detail-row">
+                  <div class="detail-label">Top Ally</div>
+                  <div class="detail-value">${{escapeHtml(metrics.top_ally || "None")}}</div>
+                </div>
                 <div class="detail-row">
                   <div class="detail-label">Top Rival</div>
                   <div class="detail-value">${{escapeHtml(metrics.top_rival || "None")}}</div>
@@ -2663,40 +2994,50 @@ def render_simulation_html(world):
                     }}
                   </div>
                 </div>
+              </div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-section-title">Realm</div>
+              <div class="detail-grid detail-grid-two">
                 <div class="detail-row">
                   <div class="detail-label">Diplomacy</div>
                   <div class="detail-value">A${{metrics.alliance_count || 0}} / T${{metrics.truce_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}} / C${{metrics.claim_dispute_count || 0}} / G${{metrics.regime_tension_count || 0}} / O${{metrics.regime_accommodation_count || 0}}</div>
                 </div>
-              <div class="detail-row">
-                <div class="detail-label">Realm Structure</div>
-                <div class="detail-value">H${{metrics.homeland_regions}} / C${{metrics.core_regions}} / F${{metrics.frontier_regions}}</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">Population</div>
-                <div class="detail-value">${{Number(metrics.population || 0).toLocaleString()}}</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">Total Surplus</div>
-                <div class="detail-value">${{Number(metrics.total_surplus || 0).toFixed(2)}}</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">Expansion</div>
-                <div class="detail-value">${{formatPosture(metrics.expansion_posture)}} (${{metrics.expansion_posture.toFixed(2)}})</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">War</div>
-                <div class="detail-value">${{formatPosture(metrics.war_posture)}} (${{metrics.war_posture.toFixed(2)}})</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">Development</div>
-                <div class="detail-value">${{formatPosture(metrics.development_posture)}} (${{metrics.development_posture.toFixed(2)}})</div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-label">Insularity</div>
-                <div class="detail-value">${{formatPosture(metrics.insularity)}} (${{metrics.insularity.toFixed(2)}})</div>
+                <div class="detail-row">
+                  <div class="detail-label">Realm Structure</div>
+                  <div class="detail-value">H${{metrics.homeland_regions}} / C${{metrics.core_regions}} / F${{metrics.frontier_regions}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Population</div>
+                  <div class="detail-value">${{Number(metrics.population || 0).toLocaleString()}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Total Surplus</div>
+                  <div class="detail-value">${{Number(metrics.total_surplus || 0).toFixed(2)}}</div>
+                </div>
               </div>
             </div>
-            ${{doctrineShift}}
+            <div class="detail-section">
+              <div class="detail-section-title">Posture</div>
+              <div class="stat-grid compact">
+                <div class="stat-chip">
+                  <div class="stat-label">Expansion</div>
+                  <div class="stat-value">${{formatPosture(metrics.expansion_posture)}} (${{metrics.expansion_posture.toFixed(2)}})</div>
+                </div>
+                <div class="stat-chip">
+                  <div class="stat-label">War</div>
+                  <div class="stat-value">${{formatPosture(metrics.war_posture)}} (${{metrics.war_posture.toFixed(2)}})</div>
+                </div>
+                <div class="stat-chip">
+                  <div class="stat-label">Development</div>
+                  <div class="stat-value">${{formatPosture(metrics.development_posture)}} (${{metrics.development_posture.toFixed(2)}})</div>
+                </div>
+                <div class="stat-chip">
+                  <div class="stat-label">Insularity</div>
+                  <div class="stat-value">${{formatPosture(metrics.insularity)}} (${{metrics.insularity.toFixed(2)}})</div>
+                </div>
+              </div>
+            </div>
           </article>
         `;
       }}).join("");
@@ -2705,11 +3046,24 @@ def render_simulation_html(world):
     function renderStandings(snapshot) {{
       standings.innerHTML = snapshot.standings.map((entry, index) => `
         <article class="standing-item bar">
-          <div class="standing-row">
+          <div class="card-header">
             <strong>#${{index + 1}} ${{escapeHtml(getFactionDisplayName(entry.faction))}}</strong>
-            <span class="pill" style="background:${{colorByFaction[entry.faction]}}22;">${{escapeHtml(data.factions.find((faction) => faction.name === entry.faction).doctrine_label)}}</span>
+            <span class="pill" style="background:${{colorByFaction[entry.faction]}}22; color:${{colorByFaction[entry.faction]}};">${{escapeHtml(data.factions.find((faction) => faction.name === entry.faction).doctrine_label)}}</span>
           </div>
-          <div class="subtle">Treasury $${{entry.treasury}} - Regions ${{entry.owned_regions}} - Pop ${{Number((snapshot.metrics && snapshot.metrics.factions[entry.faction] && snapshot.metrics.factions[entry.faction].population) || 0).toLocaleString()}}</div>
+          <div class="stat-grid compact">
+            <div class="stat-chip">
+              <div class="stat-label">Treasury</div>
+              <div class="stat-value">$${{entry.treasury}}</div>
+            </div>
+            <div class="stat-chip">
+              <div class="stat-label">Regions</div>
+              <div class="stat-value">${{entry.owned_regions}}</div>
+            </div>
+            <div class="stat-chip">
+              <div class="stat-label">Population</div>
+              <div class="stat-value">${{Number((snapshot.metrics && snapshot.metrics.factions[entry.faction] && snapshot.metrics.factions[entry.faction].population) || 0).toLocaleString()}}</div>
+            </div>
+          </div>
         </article>
       `).join("");
     }}
@@ -2773,6 +3127,7 @@ def render_simulation_html(world):
     function updateMap(snapshot) {{
       const changed = new Set(snapshot.changed_regions);
       const contested = new Set(snapshot.contested_regions);
+      renderAtlasPolityLabels(snapshot);
 
       for (const region of data.regions) {{
         const regionSnapshot = snapshot.regions[region.name];
@@ -2844,6 +3199,7 @@ def render_simulation_html(world):
       readout.textContent = `Turn ${{turn}} of ${{data.turns}}`;
       syncRunSummaryVisibility(turn);
       updateMap(snapshot);
+      renderLegend(snapshot);
       renderStandings(snapshot);
       renderTurnContext(turn, snapshot);
       renderTurnEvents(snapshot);

@@ -163,6 +163,14 @@ class FactionDoctrineTests(unittest.TestCase):
         self.assertIn('id="atlas-symbol-layer"', html)
         self.assertIn("atlas-symbol", html)
 
+    def test_viewer_html_contains_atlas_polity_label_mode(self):
+        world = create_world(map_name="thirty_seven_region_ring", num_factions=4)
+        html = render_simulation_html(world)
+
+        self.assertIn('id="atlas-polity-label-layer"', html)
+        self.assertIn('data-terrain="labels"', html)
+        self.assertIn('atlasLabelMode: "regions"', html)
+
 
 if __name__ == "__main__":
     unittest.main()
