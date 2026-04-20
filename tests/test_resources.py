@@ -1,11 +1,13 @@
 import unittest
 
 from src.actions import get_invest_target_score_components, invest
-from src.heartland import (
+from src.resource_economy import (
     advance_region_domesticable_resources,
+    update_faction_resource_economy,
+)
+from src.heartland import (
     estimate_region_population_from_resource_profile,
     handle_region_owner_change,
-    update_faction_resource_economy,
 )
 from src.models import Faction, Region, WorldState
 from src.resources import (

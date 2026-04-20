@@ -15,8 +15,16 @@ from src.actions import (
     get_attack_target_score_components,
     get_treasury_concentration_multiplier,
 )
-from src.heartland import (
+from src.region_state import (
     CORE_INTEGRATION_SCORE,
+    get_region_attack_projection_modifier,
+    get_region_core_status,
+)
+from src.resource_economy import (
+    get_region_effective_income,
+    get_region_maintenance_cost,
+)
+from src.heartland import (
     REBEL_CONFLICT_CIVIL_WAR,
     REBEL_CONFLICT_SECESSION,
     apply_unrest_secession,
@@ -31,10 +39,6 @@ from src.heartland import (
     get_region_ethnic_claimants,
     get_region_ethnic_integration_multiplier,
     get_rebel_reclaim_bonus,
-    get_region_attack_projection_modifier,
-    get_region_core_status,
-    get_region_effective_income,
-    get_region_maintenance_cost,
     get_region_ruling_ethnic_affinity,
     get_region_unrest_pressure,
     resolve_unrest_events,

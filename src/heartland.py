@@ -1,20 +1,10 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from heapq import heappop, heappush
-from math import ceil
 import random
 import re
 
 from src.config import (
-    CLIMATE_ATTACK_PROJECTION_MAX_PENALTY,
-    CLIMATE_CORE_INTEGRATION_CLIMATE_FACTOR,
-    CLIMATE_FRONTIER_INTEGRATION_CLIMATE_FACTOR,
-    CLIMATE_INCOME_MAX_FACTOR,
-    CLIMATE_INCOME_MIN_FACTOR,
-    CLIMATE_MAINTENANCE_MAX_FACTOR,
-    CLIMATE_MAINTENANCE_MIN_FACTOR,
-    CORE_INCOME_FACTOR,
     DIPLOMACY_RIVAL_THRESHOLD,
     ETHNIC_CLAIM_INTEGRATION_BONUS,
     ETHNIC_CLAIM_UNREST_REDUCTION,
@@ -33,6 +23,7 @@ from src.config import (
     REGIME_AGITATION_HEAVY_COST_MULTIPLIER,
     REGIME_AGITATION_HEAVY_MODE_THRESHOLD,
     REGIME_AGITATION_HEAVY_PRESSURE_MULTIPLIER,
+    REGIME_AGITATION_HOMEFRONT_UNREST_FACTOR,
     REGIME_AGITATION_INSULARITY_FACTOR,
     REGIME_AGITATION_LOW_BACKLASH_MULTIPLIER,
     REGIME_AGITATION_LOW_COST_MULTIPLIER,
@@ -41,16 +32,11 @@ from src.config import (
     REGIME_AGITATION_MAX,
     REGIME_AGITATION_MAX_SPONSOR_FACTOR,
     REGIME_AGITATION_MIN_SPONSOR_FACTOR,
-    REGIME_AGITATION_HOMEFRONT_UNREST_FACTOR,
     REGIME_AGITATION_TREASURY_COST_FACTOR,
     REGIME_AGITATION_TREASURY_FACTOR,
     REGIME_AGITATION_TREASURY_MAX_BONUS,
     REGIME_AGITATION_UNREST_PER_SPONSOR,
     REGIME_AGITATION_WAR_POSTURE_FACTOR,
-    FRONTIER_ATTACK_PROJECTION_PENALTY,
-    FRONTIER_INCOME_FACTOR,
-    FRONTIER_MAINTENANCE_SURCHARGE,
-    HOMELAND_INCOME_FACTOR,
     POPULATION_BASE,
     POPULATION_GROWTH_PER_TURN,
     POPULATION_MINIMUM,
@@ -62,31 +48,24 @@ from src.config import (
     POPULATION_UNREST_CRISIS_LOSS,
     POPULATION_UNREST_GROWTH_PENALTY,
     POLITY_ADVANCEMENT_UNREST_REDUCTION,
-    REGION_MAINTENANCE_COST,
-    UNREST_ATTACK_PROJECTION_MAX_PENALTY,
     UNREST_CLIMATE_PRESSURE_FACTOR,
     UNREST_CONQUEST_START,
-    UNREST_DECAY_PER_TURN,
     UNREST_CRISIS_DURATION,
-    UNREST_CRISIS_INCOME_FACTOR,
     UNREST_CRISIS_TREASURY_HIT,
     UNREST_CRITICAL_THRESHOLD,
+    UNREST_DECAY_PER_TURN,
     UNREST_DISTURBANCE_DURATION,
-    UNREST_DISTURBANCE_INCOME_FACTOR,
     UNREST_DISTURBANCE_TREASURY_HIT,
-    UNREST_EVENT_ATTACK_PROJECTION_PENALTY,
     UNREST_EXPANSION_START,
     UNREST_FRONTIER_BURDEN_FACTOR,
     UNREST_FRONTIER_PRESSURE,
-    UNREST_INCOME_MIN_FACTOR,
     UNREST_INTEGRATION_PRESSURE_FACTOR,
-    UNREST_MAINTENANCE_MAX_FACTOR,
     UNREST_MAX,
     UNREST_MODERATE_THRESHOLD,
     REBEL_FULL_INDEPENDENCE_THRESHOLD,
-    REBEL_INDEPENDENCE_TREASURY_BONUS,
     REBEL_INDEPENDENCE_PER_EXTRA_REGION,
     REBEL_INDEPENDENCE_PER_TURN,
+    REBEL_INDEPENDENCE_TREASURY_BONUS,
     REBEL_MATURE_GOVERNMENT_TYPE,
     REBEL_PARENT_RECLAIM_MAX_BONUS,
     REBEL_RECURSIVE_UNREST_REDUCTION,
@@ -98,6 +77,15 @@ from src.config import (
     UNREST_SECESSION_THRESHOLD,
 )
 from src.diplomacy import seed_rebel_origin_relationship
+from src.governance import (
+    REGIME_AGITATION_DIPLOMATIC_FORMS,
+    REGIME_AGITATION_GOVERNMENT_FORM_BIAS,
+    get_faction_income_modifier,
+    get_faction_integration_modifier,
+    get_faction_maintenance_modifier,
+    get_faction_realm_size_unrest_factor,
+    get_faction_stability_modifier,
+)
 from src.models import (
     Ethnicity,
     Event,
@@ -109,37 +97,44 @@ from src.models import (
     WorldState,
     get_default_government_form,
 )
+from src.region_state import (
+    CORE_INTEGRATION_SCORE,
+    HOMELAND_INTEGRATION_SCORE,
+    get_faction_frontier_burden,
+    get_region_attack_projection_modifier,
+    get_region_climate_affinity,
+    get_region_climate_integration_modifier,
+    get_region_core_defense_bonus,
+    get_region_core_status,
+)
+from src.resource_economy import (
+    advance_region_domesticable_resources,
+    apply_region_resource_damage,
+    ensure_region_resource_state,
+    get_region_effective_income,
+    get_region_maintenance_cost,
+    get_region_taxable_value,
+    initialize_region_resources,
+    refresh_region_resource_state,
+    update_faction_resource_economy,
+)
 from src.resources import (
-    ALL_CAPACITIES,
-    ALL_RESOURCES,
-    CAPACITY_CONSTRUCTION,
     CAPACITY_FOOD_SECURITY,
-    CAPACITY_METAL,
-    CAPACITY_MOBILITY,
-    CAPACITY_TAXABLE_VALUE,
-    DOMESTICABLE_RESOURCES,
-    EXTRACTIVE_RESOURCES,
     RESOURCE_COPPER,
     RESOURCE_GRAIN,
     RESOURCE_HORSES,
+    RESOURCE_VALUE_WEIGHTS,
     RESOURCE_STONE,
     RESOURCE_TIMBER,
     RESOURCE_WILD_FOOD,
-    WILD_RESOURCES,
-    build_empty_capacity_map,
-    build_empty_resource_map,
     format_resource_map,
     get_legacy_region_resource_value,
     get_region_resource_summary,
-    normalize_capacity_map,
     normalize_resource_map,
-    seed_region_resource_profile,
 )
 from src.terrain import get_terrain_profile
 
 
-HOMELAND_INTEGRATION_SCORE = 10.0
-CORE_INTEGRATION_SCORE = 6.0
 CONQUEST_INTEGRATION_SCORE = 1.0
 PER_TURN_FRONTIER_GAIN = 1.0
 PER_TURN_CORE_GAIN = 0.35
@@ -161,87 +156,6 @@ SURPLUS_TERRAIN_PRODUCTIVITY = {
     "marsh": -0.8,
     "steppe": 1.0,
 }
-POLITY_TIER_MODIFIERS = {
-    "band": {
-        "income_factor": 0.75,
-        "maintenance_factor": 0.70,
-        "integration_factor": 0.65,
-        "stability_factor": 0.90,
-        "attack_bias": -1,
-        "realm_size_unrest_factor": 1.40,
-    },
-    "tribe": {
-        "income_factor": 0.95,
-        "maintenance_factor": 0.90,
-        "integration_factor": 1.00,
-        "stability_factor": 1.00,
-        "attack_bias": 0,
-        "realm_size_unrest_factor": 1.10,
-    },
-    "chiefdom": {
-        "income_factor": 1.05,
-        "maintenance_factor": 1.00,
-        "integration_factor": 1.05,
-        "stability_factor": 1.08,
-        "attack_bias": 1,
-        "realm_size_unrest_factor": 0.95,
-    },
-    "state": {
-        "income_factor": 1.15,
-        "maintenance_factor": 1.10,
-        "integration_factor": 1.15,
-        "stability_factor": 1.16,
-        "attack_bias": 1,
-        "realm_size_unrest_factor": 0.85,
-    },
-}
-GOVERNMENT_FORM_MODIFIERS = {
-    "leader": {
-        "income_factor": 0.95,
-        "stability_factor": 0.92,
-        "attack_bias": 1,
-        "integration_factor": 0.95,
-    },
-    "council": {
-        "income_factor": 1.00,
-        "stability_factor": 1.06,
-        "attack_bias": 0,
-        "integration_factor": 1.00,
-    },
-    "assembly": {
-        "income_factor": 0.98,
-        "stability_factor": 1.10,
-        "attack_bias": -1,
-        "integration_factor": 1.02,
-    },
-    "monarchy": {
-        "income_factor": 1.03,
-        "stability_factor": 0.98,
-        "attack_bias": 1,
-        "integration_factor": 1.05,
-    },
-    "republic": {
-        "income_factor": 1.08,
-        "stability_factor": 1.04,
-        "attack_bias": 0,
-        "integration_factor": 1.08,
-    },
-    "oligarchy": {
-        "income_factor": 1.10,
-        "stability_factor": 0.94,
-        "attack_bias": 0,
-        "integration_factor": 0.96,
-    },
-}
-REGIME_AGITATION_GOVERNMENT_FORM_BIAS = {
-    "leader": 0.14,
-    "council": -0.08,
-    "assembly": -0.16,
-    "monarchy": 0.16,
-    "republic": -0.10,
-    "oligarchy": 0.12,
-}
-REGIME_AGITATION_DIPLOMATIC_FORMS = {"council", "assembly", "republic"}
 REBEL_CONFLICT_SECESSION = "secession"
 REBEL_CONFLICT_CIVIL_WAR = "civil_war"
 CIVIL_WAR_AFFINITY_THRESHOLD = 0.65
@@ -276,814 +190,9 @@ CIVIL_WAR_REGIME_LABELS = {
     ("state", "oligarchy"): "Oligarchy",
 }
 
-RESOURCE_BASE_OUTPUT = {
-    RESOURCE_GRAIN: 3.4,
-    RESOURCE_HORSES: 1.9,
-    RESOURCE_WILD_FOOD: 1.8,
-    RESOURCE_TIMBER: 1.5,
-    RESOURCE_COPPER: 1.7,
-    RESOURCE_STONE: 1.55,
-}
-RESOURCE_GROWTH_STEP = {
-    RESOURCE_GRAIN: 0.04,
-    RESOURCE_HORSES: 0.025,
-}
-RESOURCE_DAMAGE_DECAY = 0.03
-RESOURCE_MAX_DAMAGE = 0.65
-RESOURCE_FRONTIER_DISTRIBUTION_PENALTY = 0.18
-RESOURCE_LOW_SETTLEMENT_DISTRIBUTION_PENALTY = 0.08
-RESOURCE_ROUTE_BASE_STEP_COST = 1.0
-RESOURCE_ROUTE_FRONTIER_STEP_PENALTY = 0.42
-RESOURCE_ROUTE_CORE_STEP_PENALTY = 0.08
-RESOURCE_ROUTE_UNREST_STEP_FACTOR = 0.05
-RESOURCE_ROUTE_CRISIS_STEP_PENALTY = 0.35
-RESOURCE_ROUTE_DISTURBANCE_STEP_PENALTY = 0.15
-RESOURCE_ROUTE_POPULATION_STEP_PENALTY = 0.08
-RESOURCE_ROUTE_INFRASTRUCTURE_STEP_BONUS = 0.12
-RESOURCE_ROUTE_DAMAGE_STEP_FACTOR = 0.7
-RESOURCE_ROUTE_SETTLEMENT_STEP_PENALTIES = {
-    "wild": 0.45,
-    "rural": 0.18,
-    "town": 0.08,
-    "city": 0.0,
-}
-RESOURCE_ROUTE_BOTTLENECK_FRONTIER_PENALTY = 0.14
-RESOURCE_ROUTE_BOTTLENECK_WILD_PENALTY = 0.18
-RESOURCE_ROUTE_BOTTLENECK_UNREST_FACTOR = 0.03
-RESOURCE_ROUTE_BOTTLENECK_DAMAGE_FACTOR = 0.45
-RESOURCE_ROUTE_BOTTLENECK_INFRASTRUCTURE_BONUS = 0.09
-RESOURCE_ROUTE_BOTTLENECK_INTEGRATION_BONUS = 0.015
-
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
     return max(minimum, min(maximum, value))
-
-
-def _ensure_region_resource_state(region: Region) -> None:
-    has_seed_data = any([
-        bool(region.resource_fixed_endowments),
-        bool(region.resource_wild_endowments),
-        bool(region.resource_suitability),
-    ])
-    if not has_seed_data:
-        seed_region_resource_profile(region)
-    else:
-        region.resource_fixed_endowments = normalize_resource_map(region.resource_fixed_endowments)
-        region.resource_wild_endowments = normalize_resource_map(region.resource_wild_endowments)
-        region.resource_suitability = normalize_resource_map(region.resource_suitability)
-        region.resource_established = normalize_resource_map(region.resource_established)
-        region.resource_output = normalize_resource_map(region.resource_output)
-        region.resource_effective_output = normalize_resource_map(region.resource_effective_output)
-        region.resource_damage = normalize_resource_map(region.resource_damage)
-    region.resource_effective_output = normalize_resource_map(region.resource_effective_output)
-    region.resource_damage = normalize_resource_map(region.resource_damage)
-    region.resource_isolation_factor = round(float(region.resource_isolation_factor or 0.0), 3)
-    region.resource_route_depth = (
-        int(region.resource_route_depth)
-        if region.resource_route_depth is not None
-        else None
-    )
-    region.resource_route_cost = round(float(region.resource_route_cost or 0.0), 3)
-    region.resource_route_anchor = region.resource_route_anchor or None
-    region.resource_route_bottleneck = round(float(region.resource_route_bottleneck or 0.0), 3)
-
-
-def _ensure_faction_resource_state(faction: Faction) -> None:
-    faction.resource_gross_output = normalize_resource_map(faction.resource_gross_output)
-    faction.resource_effective_access = normalize_resource_map(faction.resource_effective_access)
-    faction.resource_isolated_output = normalize_resource_map(faction.resource_isolated_output)
-    faction.resource_access = normalize_resource_map(faction.resource_access)
-    faction.resource_shortages = {
-        **build_empty_resource_map(),
-        **build_empty_capacity_map(),
-        **{
-            key: round(float(value), 3)
-            for key, value in (faction.resource_shortages or {}).items()
-        },
-    }
-    faction.derived_capacity = normalize_capacity_map(faction.derived_capacity)
-
-
-def get_region_resource_workforce_factor(region: Region) -> float:
-    if region.population <= 0:
-        return 0.2 if region.owner is None else 0.3
-    settlement_bonus = {
-        "wild": 0.0,
-        "rural": 0.05,
-        "town": 0.12,
-        "city": 0.22,
-    }.get(region.settlement_level, 0.0)
-    base = 0.2 if region.owner is None else 0.35
-    return _clamp(base + min(0.95, region.population / 180.0) + settlement_bonus, 0.2, 1.45)
-
-
-def get_region_resource_integration_factor(region: Region) -> float:
-    if region.owner is None:
-        return 0.45
-    status = get_region_core_status(region)
-    if status == "homeland":
-        return 1.0
-    if status == "core":
-        return 0.9
-    return _clamp(0.6 + (region.integration_score * 0.03), 0.6, 0.82)
-
-
-def get_region_resource_unrest_factor(region: Region) -> float:
-    unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
-    return _clamp(1.0 - (unrest_ratio * 0.65), 0.35, 1.0)
-
-
-def get_region_resource_climate_factor(region: Region, world: WorldState | None) -> float:
-    if world is None or region.owner is None or region.owner not in world.factions:
-        return 1.0
-    return 0.85 + (get_region_climate_affinity(region, world) * 0.3)
-
-
-def get_region_resource_development_factor(region: Region, resource_name: str) -> float:
-    if resource_name == RESOURCE_GRAIN:
-        return 1.0 + (region.agriculture_level * 0.35) + (region.infrastructure_level * 0.1)
-    if resource_name == RESOURCE_HORSES:
-        return 1.0 + (region.pastoral_level * 0.35) + (region.infrastructure_level * 0.08)
-    if resource_name in EXTRACTIVE_RESOURCES:
-        return 0.9 + (region.extractive_level * 0.4) + (region.infrastructure_level * 0.12)
-    return 0.95 + (region.infrastructure_level * 0.1)
-
-
-def _get_domestic_resource_decay(region: Region, resource_name: str) -> float:
-    decay = 0.0
-    if region.owner is None:
-        decay += 0.018
-    if region.population < 90:
-        decay += 0.012
-    if region.unrest >= UNREST_MODERATE_THRESHOLD:
-        decay += 0.012
-    if region.unrest_event_level == "crisis":
-        decay += 0.018
-    if get_region_core_status(region) == "frontier":
-        decay += 0.006
-    if resource_name == RESOURCE_GRAIN and region.agriculture_level < 0.1:
-        decay += 0.007
-    if resource_name == RESOURCE_HORSES and region.pastoral_level < 0.1:
-        decay += 0.007
-    decay += region.resource_damage.get(resource_name, 0.0) * 0.06
-    return decay
-
-
-def _advance_region_resource_damage(region: Region) -> None:
-    for resource_name in ALL_RESOURCES:
-        current_damage = region.resource_damage.get(resource_name, 0.0)
-        if current_damage <= 0:
-            continue
-        region.resource_damage[resource_name] = round(
-            max(0.0, current_damage - RESOURCE_DAMAGE_DECAY),
-            3,
-        )
-
-
-def advance_region_domesticable_resources(region: Region) -> None:
-    _ensure_region_resource_state(region)
-    _advance_region_resource_damage(region)
-    for resource_name in DOMESTICABLE_RESOURCES:
-        established = region.resource_established.get(resource_name, 0.0)
-        if established <= 0:
-            continue
-        cap = region.resource_suitability.get(resource_name, 0.0)
-        if cap <= 0:
-            continue
-        growth = 0.0
-        if region.owner is not None:
-            growth = RESOURCE_GROWTH_STEP.get(resource_name, 0.02)
-            if resource_name == RESOURCE_GRAIN:
-                growth += region.agriculture_level * 0.01
-            elif resource_name == RESOURCE_HORSES:
-                growth += region.pastoral_level * 0.01
-            growth *= max(0.35, get_region_resource_unrest_factor(region))
-        decay = _get_domestic_resource_decay(region, resource_name)
-        region.resource_established[resource_name] = round(
-            _clamp(established + growth - decay, 0.0, cap),
-            3,
-        )
-
-
-def _get_owned_resource_anchor_names(world: WorldState, faction_name: str) -> set[str]:
-    homeland_names = {
-        region.name
-        for region in world.regions.values()
-        if region.owner == faction_name and get_region_core_status(region) == "homeland"
-    }
-    if homeland_names:
-        return homeland_names
-
-    core_names = {
-        region.name
-        for region in world.regions.values()
-        if region.owner == faction_name and get_region_core_status(region) == "core"
-    }
-    if core_names:
-        return core_names
-
-    return {
-        region.name
-        for region in world.regions.values()
-        if region.owner == faction_name
-    }
-
-
-def _get_region_route_step_cost(region: Region) -> float:
-    step_cost = RESOURCE_ROUTE_BASE_STEP_COST
-    status = get_region_core_status(region)
-    if status == "frontier":
-        step_cost += RESOURCE_ROUTE_FRONTIER_STEP_PENALTY
-    elif status == "core":
-        step_cost += RESOURCE_ROUTE_CORE_STEP_PENALTY
-
-    step_cost += RESOURCE_ROUTE_SETTLEMENT_STEP_PENALTIES.get(region.settlement_level, 0.1)
-    step_cost += min(0.65, region.unrest * RESOURCE_ROUTE_UNREST_STEP_FACTOR)
-    if region.unrest_event_level == "disturbance":
-        step_cost += RESOURCE_ROUTE_DISTURBANCE_STEP_PENALTY
-    elif region.unrest_event_level == "crisis":
-        step_cost += RESOURCE_ROUTE_CRISIS_STEP_PENALTY
-    if region.population < 90:
-        step_cost += RESOURCE_ROUTE_POPULATION_STEP_PENALTY
-
-    average_damage = sum(region.resource_damage.values()) / max(1, len(ALL_RESOURCES))
-    step_cost += min(0.3, average_damage * RESOURCE_ROUTE_DAMAGE_STEP_FACTOR)
-    step_cost -= min(0.28, region.infrastructure_level * RESOURCE_ROUTE_INFRASTRUCTURE_STEP_BONUS)
-    return _clamp(step_cost, 0.55, 2.4)
-
-
-def _get_region_corridor_support_factor(region: Region) -> float:
-    support = 0.78
-    status = get_region_core_status(region)
-    if status == "homeland":
-        support += 0.12
-    elif status == "core":
-        support += 0.04
-    else:
-        support -= RESOURCE_ROUTE_BOTTLENECK_FRONTIER_PENALTY
-
-    if region.settlement_level == "wild":
-        support -= RESOURCE_ROUTE_BOTTLENECK_WILD_PENALTY
-    elif region.settlement_level == "rural":
-        support -= 0.08
-    elif region.settlement_level == "city":
-        support += 0.04
-
-    if region.population < 60:
-        support -= 0.08
-    elif region.population >= 180:
-        support += 0.03
-
-    support += min(0.16, region.infrastructure_level * RESOURCE_ROUTE_BOTTLENECK_INFRASTRUCTURE_BONUS)
-    support += min(0.12, region.integration_score * RESOURCE_ROUTE_BOTTLENECK_INTEGRATION_BONUS)
-    support -= min(0.18, region.unrest * RESOURCE_ROUTE_BOTTLENECK_UNREST_FACTOR)
-    average_damage = sum(region.resource_damage.values()) / max(1, len(ALL_RESOURCES))
-    support -= min(0.16, average_damage * RESOURCE_ROUTE_BOTTLENECK_DAMAGE_FACTOR)
-
-    if region.unrest_event_level == "disturbance":
-        support -= 0.05
-    elif region.unrest_event_level == "crisis":
-        support -= 0.12
-
-    return _clamp(support, 0.32, 1.0)
-
-
-def build_faction_resource_route_map(
-    world: WorldState,
-    faction_name: str,
-) -> dict[str, dict[str, float | int | str | None]]:
-    anchor_names = _get_owned_resource_anchor_names(world, faction_name)
-    if not anchor_names:
-        return {}
-
-    route_map: dict[str, dict[str, float | int | str | None]] = {}
-    frontier: list[tuple[float, float, int, str, str]] = []
-    best_routes: dict[str, tuple[float, float]] = {}
-
-    for anchor_name in sorted(anchor_names):
-        route_map[anchor_name] = {
-            "anchor": anchor_name,
-            "depth": 0,
-            "cost": 0.0,
-            "bottleneck": 1.0,
-        }
-        best_routes[anchor_name] = (0.0, 1.0)
-        heappush(frontier, (0.0, -1.0, 0, anchor_name, anchor_name))
-
-    while frontier:
-        route_cost, negative_bottleneck, route_depth, region_name, anchor_name = heappop(frontier)
-        route_bottleneck = -negative_bottleneck
-        best_cost, best_bottleneck = best_routes.get(region_name, (float("inf"), 0.0))
-        if (
-            route_cost > best_cost + 1e-9
-            or (abs(route_cost - best_cost) <= 1e-9 and route_bottleneck < best_bottleneck - 1e-9)
-        ):
-            continue
-        current_region = world.regions[region_name]
-        for neighbor_name in current_region.neighbors:
-            neighbor = world.regions[neighbor_name]
-            if neighbor.owner != faction_name:
-                continue
-            step_cost = _get_region_route_step_cost(neighbor)
-            step_support = _get_region_corridor_support_factor(neighbor)
-            next_cost = route_cost + step_cost
-            next_bottleneck = min(route_bottleneck, step_support)
-            best_known = best_routes.get(neighbor_name)
-            if best_known is not None:
-                best_known_cost, best_known_bottleneck = best_known
-                if (
-                    next_cost > best_known_cost + 0.25
-                    or (
-                        abs(next_cost - best_known_cost) <= 0.25
-                        and next_bottleneck <= best_known_bottleneck + 1e-9
-                    )
-                ):
-                    continue
-            if best_known is None or next_cost < best_known[0] - 1e-9 or (
-                abs(next_cost - best_known[0]) <= 0.25 and next_bottleneck > best_known[1] + 1e-9
-            ):
-                best_routes[neighbor_name] = (next_cost, next_bottleneck)
-            else:
-                continue
-            route_map[neighbor_name] = {
-                "anchor": anchor_name,
-                "depth": route_depth + 1,
-                "cost": round(next_cost, 3),
-                "bottleneck": round(next_bottleneck, 3),
-            }
-            heappush(frontier, (next_cost, -next_bottleneck, route_depth + 1, neighbor_name, anchor_name))
-
-    return route_map
-
-
-def _build_world_resource_route_maps(world: WorldState) -> dict[str, dict[str, dict[str, float | int | str | None]]]:
-    return {
-        faction_name: build_faction_resource_route_map(world, faction_name)
-        for faction_name in world.factions
-    }
-
-
-def get_region_internal_distribution_state(
-    region: Region,
-    world: WorldState | None = None,
-    *,
-    faction_route_map: dict[str, dict[str, float | int | str | None]] | None = None,
-) -> dict[str, float | int | str | None]:
-    if world is None or region.owner is None or region.owner not in world.factions:
-        return {
-            "factor": 0.55,
-            "isolation": 0.45,
-            "depth": None,
-            "cost": 0.0,
-            "anchor": None,
-            "bottleneck": 0.65,
-        }
-
-    route_state = None
-    if faction_route_map is not None:
-        route_state = faction_route_map.get(region.name)
-    if route_state is None:
-        route_state = build_faction_resource_route_map(world, region.owner).get(region.name)
-
-    if route_state is None:
-        return {
-            "factor": 0.38,
-            "isolation": 0.62,
-            "depth": None,
-            "cost": 0.0,
-            "anchor": None,
-            "bottleneck": 0.4,
-        }
-
-    status = get_region_core_status(region)
-    local_factor = 1.0
-    if status == "frontier":
-        local_factor -= 0.08
-    elif status == "core":
-        local_factor -= 0.02
-
-    if region.settlement_level == "wild":
-        local_factor -= 0.12
-    elif region.settlement_level == "rural":
-        local_factor -= 0.05
-
-    local_factor -= min(0.18, region.unrest * 0.015)
-    average_damage = sum(region.resource_damage.values()) / max(1, len(ALL_RESOURCES))
-    local_factor -= min(0.12, average_damage * 0.5)
-    local_factor += min(0.12, region.infrastructure_level * 0.06)
-    local_factor = _clamp(local_factor, 0.58, 1.02)
-
-    route_cost = float(route_state.get("cost", 0.0) or 0.0)
-    route_bottleneck = float(route_state.get("bottleneck", 0.7) or 0.7)
-    if int(route_state.get("depth", 0) or 0) <= 0:
-        path_factor = 1.0
-    else:
-        path_factor = _clamp(1.02 - (route_cost * 0.11), 0.42, 0.96)
-    bottleneck_factor = _clamp(0.5 + (route_bottleneck * 0.5), 0.48, 1.0)
-
-    factor = _clamp(local_factor * path_factor * bottleneck_factor, 0.28, 1.0)
-    return {
-        "factor": round(factor, 3),
-        "isolation": round(1.0 - factor, 3),
-        "depth": (
-            int(route_state["depth"])
-            if route_state.get("depth") is not None
-            else None
-        ),
-        "cost": round(route_cost, 3),
-        "anchor": route_state.get("anchor"),
-        "bottleneck": round(route_bottleneck, 3),
-    }
-
-
-def get_region_internal_distribution_factor(
-    region: Region,
-    world: WorldState | None = None,
-    *,
-    faction_route_map: dict[str, dict[str, float | int | str | None]] | None = None,
-) -> float:
-    distribution_state = get_region_internal_distribution_state(
-        region,
-        world,
-        faction_route_map=faction_route_map,
-    )
-    region.resource_isolation_factor = float(distribution_state["isolation"])
-    region.resource_route_depth = (
-        int(distribution_state["depth"])
-        if distribution_state["depth"] is not None
-        else None
-    )
-    region.resource_route_cost = float(distribution_state["cost"] or 0.0)
-    region.resource_route_anchor = (
-        str(distribution_state["anchor"])
-        if distribution_state["anchor"] is not None
-        else None
-    )
-    region.resource_route_bottleneck = float(distribution_state["bottleneck"] or 0.0)
-    return float(distribution_state["factor"])
-
-
-def get_region_effective_resource_output(
-    region: Region,
-    world: WorldState | None = None,
-    raw_output: dict[str, float] | None = None,
-    *,
-    faction_route_map: dict[str, dict[str, float | int | str | None]] | None = None,
-) -> dict[str, float]:
-    raw_output = normalize_resource_map(raw_output or region.resource_output)
-    distribution_factor = get_region_internal_distribution_factor(
-        region,
-        world,
-        faction_route_map=faction_route_map,
-    )
-    effective_output = build_empty_resource_map()
-    for resource_name, amount in raw_output.items():
-        resource_specific_factor = distribution_factor
-        route_bottleneck = max(0.35, float(region.resource_route_bottleneck or 0.35))
-        if resource_name in EXTRACTIVE_RESOURCES and get_region_core_status(region) == "frontier":
-            resource_specific_factor *= 0.88
-        if resource_name in EXTRACTIVE_RESOURCES:
-            resource_specific_factor *= _clamp(0.68 + (route_bottleneck * 0.4), 0.62, 1.0)
-        elif resource_name in {RESOURCE_GRAIN, RESOURCE_HORSES}:
-            resource_specific_factor *= _clamp(0.78 + (route_bottleneck * 0.24), 0.72, 1.0)
-        damage_penalty = 1.0 - min(
-            0.4,
-            region.resource_damage.get(resource_name, 0.0) * 0.6,
-        )
-        effective_output[resource_name] = round(
-            amount * resource_specific_factor * damage_penalty,
-            3,
-        )
-    return normalize_resource_map(effective_output)
-
-
-def refresh_region_resource_state(
-    region: Region,
-    world: WorldState | None = None,
-    *,
-    faction_route_map: dict[str, dict[str, float | int | str | None]] | None = None,
-) -> None:
-    _ensure_region_resource_state(region)
-    region.resource_output = get_region_resource_output(region, world)
-    region.resource_effective_output = get_region_effective_resource_output(
-        region,
-        world,
-        raw_output=region.resource_output,
-        faction_route_map=faction_route_map,
-    )
-    region.resources = get_legacy_region_resource_value(
-        region.resource_effective_output if region.owner is not None else region.resource_output,
-        fixed_endowments=region.resource_fixed_endowments,
-        wild_endowments=region.resource_wild_endowments,
-        suitability=region.resource_suitability,
-        established=region.resource_established,
-    )
-
-
-def get_region_resource_output(region: Region, world: WorldState | None = None) -> dict[str, float]:
-    _ensure_region_resource_state(region)
-    workforce_factor = get_region_resource_workforce_factor(region)
-    integration_factor = get_region_resource_integration_factor(region)
-    unrest_factor = get_region_resource_unrest_factor(region)
-    climate_factor = get_region_resource_climate_factor(region, world)
-    output = build_empty_resource_map()
-
-    for resource_name in DOMESTICABLE_RESOURCES:
-        suitability = region.resource_suitability.get(resource_name, 0.0)
-        established = region.resource_established.get(resource_name, 0.0)
-        if suitability <= 0 or established <= 0:
-            continue
-        output[resource_name] = round(
-            RESOURCE_BASE_OUTPUT[resource_name]
-            * suitability
-            * established
-            * workforce_factor
-            * get_region_resource_development_factor(region, resource_name)
-            * integration_factor
-            * unrest_factor
-            * climate_factor,
-            3,
-        )
-
-    for resource_name in WILD_RESOURCES:
-        endowment = region.resource_wild_endowments.get(resource_name, 0.0)
-        if endowment <= 0:
-            continue
-        output[resource_name] = round(
-            RESOURCE_BASE_OUTPUT[resource_name]
-            * endowment
-            * (0.5 + (workforce_factor * 0.55))
-            * get_region_resource_development_factor(region, resource_name)
-            * unrest_factor,
-            3,
-        )
-
-    for resource_name in EXTRACTIVE_RESOURCES:
-        endowment = region.resource_fixed_endowments.get(resource_name, 0.0)
-        if endowment <= 0:
-            continue
-        output[resource_name] = round(
-            RESOURCE_BASE_OUTPUT[resource_name]
-            * endowment
-            * workforce_factor
-            * get_region_resource_development_factor(region, resource_name)
-            * integration_factor
-            * unrest_factor,
-            3,
-        )
-
-    return normalize_resource_map(output)
-
-
-def _get_taxable_value_from_output(output: dict[str, float]) -> float:
-    return round(
-        sum(
-            amount * {
-                RESOURCE_GRAIN: 1.1,
-                RESOURCE_HORSES: 0.9,
-                RESOURCE_WILD_FOOD: 0.9,
-                RESOURCE_TIMBER: 0.85,
-                RESOURCE_COPPER: 1.35,
-                RESOURCE_STONE: 0.8,
-            }.get(resource_name, 1.0)
-            for resource_name, amount in output.items()
-        ),
-        2,
-    )
-
-
-def get_region_taxable_value(
-    region: Region,
-    world: WorldState | None = None,
-    *,
-    faction_route_map: dict[str, dict[str, float | int | str | None]] | None = None,
-) -> float:
-    if world is not None and faction_route_map is None and any(region.resource_effective_output.values()):
-        return _get_taxable_value_from_output(normalize_resource_map(region.resource_effective_output))
-    if world is None and any(region.resource_output.values()):
-        return _get_taxable_value_from_output(normalize_resource_map(region.resource_output))
-
-    raw_output = get_region_resource_output(region, world)
-    output = (
-        get_region_effective_resource_output(
-            region,
-            world,
-            raw_output=raw_output,
-            faction_route_map=faction_route_map,
-        )
-        if world is not None
-        else raw_output
-    )
-    return _get_taxable_value_from_output(normalize_resource_map(output))
-
-
-def get_faction_resource_demand(
-    world: WorldState,
-    faction_name: str,
-) -> dict[str, float]:
-    demand = {
-        **build_empty_resource_map(),
-        **build_empty_capacity_map(),
-    }
-    owned_regions = [
-        region
-        for region in world.regions.values()
-        if region.owner == faction_name
-    ]
-    if not owned_regions or faction_name not in world.factions:
-        return demand
-
-    total_population = sum(region.population for region in owned_regions)
-    rural_regions = sum(1 for region in owned_regions if region.settlement_level == "rural")
-    town_regions = sum(1 for region in owned_regions if region.settlement_level == "town")
-    city_regions = sum(1 for region in owned_regions if region.settlement_level == "city")
-    faction = world.factions[faction_name]
-    war_bias = max(0.0, faction.doctrine_profile.war_posture - 0.5)
-
-    frontier_regions = sum(1 for region in owned_regions if get_region_core_status(region) == "frontier")
-    avg_infrastructure = (
-        sum(region.infrastructure_level for region in owned_regions) / max(1, len(owned_regions))
-    )
-    food_demand = max(0.8, total_population / 138.0)
-    mobility_demand = max(0.0, len(owned_regions) * 0.18 + frontier_regions * 0.1 + war_bias * 1.2)
-    metal_demand = max(
-        0.0,
-        len(owned_regions) * 0.16
-        + town_regions * 0.12
-        + city_regions * 0.28
-        + (0.25 if faction.polity_tier in {"chiefdom", "state"} else 0.0)
-        + war_bias * 0.5,
-    )
-    construction_demand = max(
-        0.0,
-        len(owned_regions) * 0.18
-        + rural_regions * 0.04
-        + town_regions * 0.18
-        + city_regions * 0.38,
-    )
-    infrastructure_gap = max(0.0, 1.2 - avg_infrastructure)
-    construction_demand += infrastructure_gap * len(owned_regions) * 0.18
-
-    demand[CAPACITY_FOOD_SECURITY] = round(food_demand, 3)
-    demand[CAPACITY_MOBILITY] = round(mobility_demand, 3)
-    demand[CAPACITY_METAL] = round(metal_demand, 3)
-    demand[CAPACITY_CONSTRUCTION] = round(construction_demand, 3)
-    demand[RESOURCE_GRAIN] = round(max(0.3, food_demand * 0.65), 3)
-    demand[RESOURCE_HORSES] = round(mobility_demand, 3)
-    demand[RESOURCE_COPPER] = round(metal_demand, 3)
-    demand[RESOURCE_STONE] = round(construction_demand * 0.55, 3)
-    demand[RESOURCE_TIMBER] = round(construction_demand * 0.45, 3)
-    demand[RESOURCE_WILD_FOOD] = round(max(0.2, food_demand * 0.35), 3)
-    demand[CAPACITY_TAXABLE_VALUE] = round(food_demand + mobility_demand + metal_demand + construction_demand, 3)
-    return demand
-
-
-def update_faction_resource_economy(
-    world: WorldState,
-    *,
-    advance_resources: bool = False,
-) -> None:
-    faction_route_maps = _build_world_resource_route_maps(world)
-    faction_gross_totals = {
-        faction_name: build_empty_resource_map()
-        for faction_name in world.factions
-    }
-    faction_effective_totals = {
-        faction_name: build_empty_resource_map()
-        for faction_name in world.factions
-    }
-
-    for region in world.regions.values():
-        _ensure_region_resource_state(region)
-        if advance_resources:
-            advance_region_domesticable_resources(region)
-        refresh_region_resource_state(
-            region,
-            world,
-            faction_route_map=faction_route_maps.get(region.owner or "", {}),
-        )
-        if region.owner in faction_gross_totals:
-            for resource_name, amount in region.resource_output.items():
-                faction_gross_totals[region.owner][resource_name] += amount
-            for resource_name, amount in region.resource_effective_output.items():
-                faction_effective_totals[region.owner][resource_name] += amount
-
-    for faction_name, faction in world.factions.items():
-        _ensure_faction_resource_state(faction)
-        faction.resource_gross_output = normalize_resource_map(faction_gross_totals[faction_name])
-        faction.resource_effective_access = normalize_resource_map(faction_effective_totals[faction_name])
-        faction.resource_isolated_output = normalize_resource_map({
-            resource_name: round(
-                faction.resource_gross_output.get(resource_name, 0.0)
-                - faction.resource_effective_access.get(resource_name, 0.0),
-                3,
-            )
-            for resource_name in ALL_RESOURCES
-        })
-        faction.resource_access = normalize_resource_map(faction.resource_effective_access)
-        derived_capacity = build_empty_capacity_map()
-        derived_capacity[CAPACITY_FOOD_SECURITY] = round(
-            faction.resource_effective_access[RESOURCE_GRAIN] + faction.resource_effective_access[RESOURCE_WILD_FOOD],
-            3,
-        )
-        derived_capacity[CAPACITY_MOBILITY] = round(faction.resource_effective_access[RESOURCE_HORSES], 3)
-        derived_capacity[CAPACITY_METAL] = round(faction.resource_effective_access[RESOURCE_COPPER], 3)
-        derived_capacity[CAPACITY_CONSTRUCTION] = round(
-            faction.resource_effective_access[RESOURCE_TIMBER] + faction.resource_effective_access[RESOURCE_STONE],
-            3,
-        )
-        derived_capacity[CAPACITY_TAXABLE_VALUE] = round(
-            sum(
-                get_region_taxable_value(
-                    region,
-                    world,
-                    faction_route_map=faction_route_maps.get(faction_name, {}),
-                )
-                for region in world.regions.values()
-                if region.owner == faction_name
-            ),
-            3,
-        )
-        faction.derived_capacity = normalize_capacity_map(derived_capacity)
-
-        demand = get_faction_resource_demand(world, faction_name)
-        shortages = {
-            **build_empty_resource_map(),
-            **build_empty_capacity_map(),
-        }
-        for key, demand_value in demand.items():
-            access_value = (
-                faction.derived_capacity.get(key, 0.0)
-                if key in ALL_CAPACITIES
-                else faction.resource_effective_access.get(key, 0.0)
-            )
-            shortages[key] = round(max(0.0, demand_value - access_value), 3)
-        faction.resource_shortages = shortages
-
-
-def initialize_region_resources(world: WorldState) -> None:
-    for region in world.regions.values():
-        seed_region_resource_profile(region)
-    update_faction_resource_economy(world, advance_resources=False)
-
-
-def apply_region_resource_damage(
-    region: Region,
-    damage_by_resource: dict[str, float],
-) -> None:
-    _ensure_region_resource_state(region)
-    for resource_name, damage_amount in damage_by_resource.items():
-        current_damage = region.resource_damage.get(resource_name, 0.0)
-        region.resource_damage[resource_name] = round(
-            _clamp(current_damage + damage_amount, 0.0, RESOURCE_MAX_DAMAGE),
-            3,
-        )
-
-
-def get_faction_polity_modifiers(faction: Faction | None) -> dict[str, float]:
-    if faction is None:
-        return POLITY_TIER_MODIFIERS["tribe"]
-    return POLITY_TIER_MODIFIERS.get(
-        faction.polity_tier,
-        POLITY_TIER_MODIFIERS["tribe"],
-    )
-
-
-def get_faction_government_form_modifiers(faction: Faction | None) -> dict[str, float]:
-    if faction is None:
-        return GOVERNMENT_FORM_MODIFIERS["council"]
-    return GOVERNMENT_FORM_MODIFIERS.get(
-        faction.government_form,
-        GOVERNMENT_FORM_MODIFIERS["council"],
-    )
-
-
-def get_faction_income_modifier(faction: Faction | None) -> float:
-    polity = get_faction_polity_modifiers(faction)
-    form = get_faction_government_form_modifiers(faction)
-    return polity["income_factor"] * form["income_factor"]
-
-
-def get_faction_maintenance_modifier(faction: Faction | None) -> float:
-    polity = get_faction_polity_modifiers(faction)
-    return polity["maintenance_factor"]
-
-
-def get_faction_integration_modifier(faction: Faction | None) -> float:
-    polity = get_faction_polity_modifiers(faction)
-    form = get_faction_government_form_modifiers(faction)
-    return polity["integration_factor"] * form["integration_factor"]
-
-
-def get_faction_stability_modifier(faction: Faction | None) -> float:
-    polity = get_faction_polity_modifiers(faction)
-    form = get_faction_government_form_modifiers(faction)
-    return polity["stability_factor"] * form["stability_factor"]
-
-
-def get_faction_realm_size_unrest_factor(faction: Faction | None) -> float:
-    polity = get_faction_polity_modifiers(faction)
-    return polity["realm_size_unrest_factor"]
 
 
 def _normalize_region_ethnic_composition(region: Region) -> None:
@@ -1430,19 +539,23 @@ def get_region_external_regime_agitation_breakdown(
             agitator_name,
             owner_name=owner_name,
         )
+        agitator = world.factions.get(agitator_name)
+        is_claimant = (
+            agitator is not None
+            and owner_name is not None
+            and agitator.rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR
+            and not agitator.proto_state
+            and agitator.origin_faction == owner_name
+        )
+        if mode == "none" and is_claimant:
+            mode = "standard"
         if mode == "none":
             continue
         mode_multipliers = get_regime_agitation_mode_multipliers(mode)
         sponsor_factor = get_regime_agitation_sponsor_factor(world, agitator_name)
         base_contribution = REGIME_AGITATION_UNREST_PER_SPONSOR * sponsor_factor
-        agitator = world.factions.get(agitator_name)
         claimant_bonus = 0.0
-        if (
-            agitator is not None
-            and agitator.rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR
-            and not agitator.proto_state
-            and agitator.origin_faction == owner_name
-        ):
+        if is_claimant:
             claimant_bonus = REGIME_AGITATION_CLAIMANT_BONUS
         contribution = (base_contribution + claimant_bonus) * mode_multipliers["pressure"]
         contributions[agitator_name] = {
@@ -1701,7 +814,7 @@ def transfer_region_population(source: Region, target: Region, amount: int) -> i
 
 
 def estimate_region_population(
-    resources: int,
+    resources: float,
     neighbor_count: int,
     owner: str | None = None,
 ) -> int:
@@ -1713,7 +826,20 @@ def estimate_region_population(
         + (neighbor_count * POPULATION_PER_CONNECTION)
     )
     estimate += POPULATION_STARTING_OWNER_BONUS
-    return max(POPULATION_MINIMUM, estimate)
+    return max(POPULATION_MINIMUM, int(round(estimate)))
+
+
+def _get_region_starting_resource_potential(region: Region) -> float:
+    total_value = 0.0
+    for resource_name, amount in region.resource_fixed_endowments.items():
+        total_value += amount * RESOURCE_VALUE_WEIGHTS.get(resource_name, 1.0) * 0.55
+    for resource_name, amount in region.resource_wild_endowments.items():
+        total_value += amount * RESOURCE_VALUE_WEIGHTS.get(resource_name, 1.0) * 0.3
+    for resource_name, amount in region.resource_suitability.items():
+        total_value += amount * RESOURCE_VALUE_WEIGHTS.get(resource_name, 1.0) * 0.45
+    for resource_name, amount in region.resource_established.items():
+        total_value += amount * RESOURCE_VALUE_WEIGHTS.get(resource_name, 1.0) * 0.5
+    return total_value / 1.8
 
 
 def estimate_region_population_from_resource_profile(
@@ -1721,15 +847,21 @@ def estimate_region_population_from_resource_profile(
     *,
     owner: str | None = None,
 ) -> int:
-    _ensure_region_resource_state(region)
+    ensure_region_resource_state(region)
     owner_name = owner if owner is not None else region.owner
-    resource_potential = get_legacy_region_resource_value(
-        None,
-        fixed_endowments=region.resource_fixed_endowments,
-        wild_endowments=region.resource_wild_endowments,
-        suitability=region.resource_suitability,
-        established=region.resource_established,
-    )
+    if any(region.resource_output.values()) or any(region.resource_effective_output.values()):
+        resource_potential = float(region.resources)
+    else:
+        resource_potential = max(
+            _get_region_starting_resource_potential(region),
+            float(get_legacy_region_resource_value(
+                None,
+                fixed_endowments=region.resource_fixed_endowments,
+                wild_endowments=region.resource_wild_endowments,
+                suitability=region.resource_suitability,
+                established=region.resource_established,
+            )),
+        )
     return estimate_region_population(
         resource_potential,
         len(region.neighbors),
@@ -1738,7 +870,7 @@ def estimate_region_population_from_resource_profile(
 
 
 def get_region_productive_capacity(region: Region, world: WorldState | None = None) -> float:
-    _ensure_region_resource_state(region)
+    ensure_region_resource_state(region)
     terrain_profile = get_terrain_profile(region)
     terrain_productivity = sum(
         SURPLUS_TERRAIN_PRODUCTIVITY.get(tag, 0.0)
@@ -1963,152 +1095,6 @@ def update_region_populations(world: WorldState) -> None:
             change = 1
         if change != 0:
             change_region_population(region, change)
-
-
-def get_region_core_status(region: Region) -> str:
-    if region.owner is None:
-        return "frontier"
-    if region.homeland_faction_id == region.owner:
-        return "homeland"
-    if region.integration_score >= CORE_INTEGRATION_SCORE:
-        return "core"
-    return "frontier"
-
-
-def get_region_core_defense_bonus(region: Region) -> int:
-    status = get_region_core_status(region)
-    if status == "homeland":
-        return 2
-    if status == "core":
-        return 1
-    return 0
-
-
-def get_region_climate_affinity(region: Region, world: WorldState) -> float:
-    if region.owner is None or region.owner not in world.factions:
-        return 0.5
-    from src.doctrine import get_faction_climate_affinity
-
-    return get_faction_climate_affinity(world.factions[region.owner], region.climate)
-
-
-def get_region_income_factor(region: Region) -> float:
-    status = get_region_core_status(region)
-    if status == "homeland":
-        return HOMELAND_INCOME_FACTOR
-    if status == "core":
-        return CORE_INCOME_FACTOR
-    return FRONTIER_INCOME_FACTOR
-
-
-def get_faction_frontier_burden(world: WorldState, faction_name: str) -> float:
-    owned_regions = [
-        region
-        for region in world.regions.values()
-        if region.owner == faction_name
-    ]
-    if not owned_regions:
-        return 0.0
-
-    frontier_regions = sum(
-        1
-        for region in owned_regions
-        if get_region_core_status(region) == "frontier"
-    )
-    return frontier_regions / len(owned_regions)
-
-
-def get_region_unrest_income_factor(region: Region) -> float:
-    unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
-    income_factor = 1.0 - ((1.0 - UNREST_INCOME_MIN_FACTOR) * unrest_ratio)
-    if region.unrest_event_level == "disturbance":
-        income_factor *= UNREST_DISTURBANCE_INCOME_FACTOR
-    elif region.unrest_event_level == "crisis":
-        income_factor *= UNREST_CRISIS_INCOME_FACTOR
-    return income_factor
-
-
-def get_region_climate_income_factor(region: Region, world: WorldState) -> float:
-    affinity = get_region_climate_affinity(region, world)
-    return CLIMATE_INCOME_MIN_FACTOR + (
-        (CLIMATE_INCOME_MAX_FACTOR - CLIMATE_INCOME_MIN_FACTOR) * affinity
-    )
-
-
-def get_region_effective_income(region: Region, world: WorldState | None = None) -> int:
-    income_factor = get_region_income_factor(region)
-    taxable_value = get_region_taxable_value(region, world)
-    if world is not None and region.owner in world.factions:
-        income_factor *= get_faction_income_modifier(world.factions[region.owner])
-    return int(round(taxable_value * income_factor))
-
-
-def get_region_climate_maintenance_factor(region: Region, world: WorldState) -> float:
-    affinity = get_region_climate_affinity(region, world)
-    return CLIMATE_MAINTENANCE_MAX_FACTOR - (
-        (CLIMATE_MAINTENANCE_MAX_FACTOR - CLIMATE_MAINTENANCE_MIN_FACTOR) * affinity
-    )
-
-
-def get_region_maintenance_cost(region: Region, world: WorldState | None = None) -> int:
-    status = get_region_core_status(region)
-    if status == "frontier":
-        base_cost = REGION_MAINTENANCE_COST + FRONTIER_MAINTENANCE_SURCHARGE
-    else:
-        base_cost = REGION_MAINTENANCE_COST
-    if world is None:
-        unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
-        unrest_factor = 1.0 + ((UNREST_MAINTENANCE_MAX_FACTOR - 1.0) * unrest_ratio)
-        return int(ceil(base_cost * unrest_factor))
-    if region.owner in world.factions:
-        base_cost *= get_faction_maintenance_modifier(world.factions[region.owner])
-    climate_factor = get_region_climate_maintenance_factor(region, world)
-    unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
-    unrest_factor = 1.0 + ((UNREST_MAINTENANCE_MAX_FACTOR - 1.0) * unrest_ratio)
-    return int(ceil(base_cost * climate_factor * unrest_factor))
-
-
-def get_region_climate_integration_modifier(region: Region, world: WorldState) -> float:
-    if region.owner is None or region.owner not in world.factions:
-        return 0.0
-    if region.homeland_faction_id == region.owner:
-        return 0.0
-
-    affinity = get_region_climate_affinity(region, world)
-    status = get_region_core_status(region)
-    centered_affinity = (affinity - 0.5) * 2
-
-    if status == "frontier":
-        return centered_affinity * CLIMATE_FRONTIER_INTEGRATION_CLIMATE_FACTOR
-
-    return centered_affinity * CLIMATE_CORE_INTEGRATION_CLIMATE_FACTOR
-
-
-def get_region_attack_projection_modifier(
-    region: Region,
-    *,
-    world: WorldState | None = None,
-    faction_name: str | None = None,
-) -> int:
-    modifier = 0
-    if get_region_core_status(region) == "frontier":
-        modifier -= FRONTIER_ATTACK_PROJECTION_PENALTY
-
-    unrest_penalty = int(
-        round(_clamp(region.unrest / UNREST_MAX, 0.0, 1.0) * UNREST_ATTACK_PROJECTION_MAX_PENALTY)
-    )
-    modifier -= unrest_penalty
-    if region.unrest_event_level in {"disturbance", "crisis"}:
-        modifier -= UNREST_EVENT_ATTACK_PROJECTION_PENALTY
-
-    if world is not None and faction_name is not None and faction_name in world.factions:
-        from src.doctrine import get_faction_climate_affinity
-
-        climate_affinity = get_faction_climate_affinity(world.factions[faction_name], region.climate)
-        climate_penalty = int(round((1.0 - climate_affinity) * CLIMATE_ATTACK_PROJECTION_MAX_PENALTY))
-        modifier -= climate_penalty
-
-    return modifier
 
 
 def set_region_integration(
@@ -2565,6 +1551,7 @@ def _transfer_region_to_rebellion(
     reset_region_crisis_streak(region)
     set_region_secession_cooldown(region, REBEL_SECESSION_COOLDOWN_TURNS)
     refresh_region_resource_state(region, world)
+    region.resources = max(region.resources, max(1, resources_before - 1))
     return {
         "region": region.name,
         "resource_change": region.resources - resources_before,

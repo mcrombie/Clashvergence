@@ -23,21 +23,25 @@ from src.config import (
     TREASURY_CONCENTRATION_REGION_FACTOR,
 )
 from src.doctrine import get_faction_region_alignment
-from src.heartland import (
-    apply_region_population_loss,
-    apply_region_resource_damage,
-    factions_have_same_ethnicity_regime_tension,
-    faction_has_ethnic_claim,
-    get_region_dominant_ethnicity,
+from src.region_state import (
     get_region_attack_projection_modifier,
     get_region_core_defense_bonus,
     get_region_core_status,
+)
+from src.resource_economy import (
+    apply_region_resource_damage,
     get_region_taxable_value,
+    update_faction_resource_economy,
+)
+from src.heartland import (
+    apply_region_population_loss,
+    factions_have_same_ethnicity_regime_tension,
+    faction_has_ethnic_claim,
+    get_region_dominant_ethnicity,
     get_rebel_reclaim_bonus,
     handle_region_owner_change,
     set_region_unrest,
     transfer_region_population,
-    update_faction_resource_economy,
 )
 from src.models import Event
 from src.resources import (

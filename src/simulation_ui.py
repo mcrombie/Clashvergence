@@ -21,9 +21,9 @@ from src.map_visualization import (
 )
 from src.maps import MAPS
 from src.metrics import get_turn_metrics
+from src.resource_economy import get_region_taxable_value
 from src.heartland import (
     faction_has_ethnic_claim,
-    get_region_taxable_value,
     get_region_external_regime_agitation_modifier,
     get_region_external_regime_agitators,
     get_faction_ethnic_claims,

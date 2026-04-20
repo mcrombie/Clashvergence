@@ -1,6 +1,6 @@
 from src.maps import MAPS
 from src.metrics import get_turn_metrics
-from src.heartland import get_region_taxable_value
+from src.resource_economy import get_region_taxable_value
 
 # EVENT IMPORTANCE WEIGHTS
 IMPORTANCE_BASE_ATTACK = 3.0

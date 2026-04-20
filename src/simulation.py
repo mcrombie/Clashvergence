@@ -6,16 +6,18 @@ from src.config import (
 )
 from src.diplomacy import update_relationships
 from src.doctrine import update_faction_doctrines
-from src.heartland import (
-    get_region_surplus,
+from src.region_state import get_region_core_status
+from src.resource_economy import (
     get_region_effective_income,
     get_region_maintenance_cost,
-    get_region_core_status,
     get_region_taxable_value,
+    update_faction_resource_economy,
+)
+from src.heartland import (
+    get_region_surplus,
     record_region_history,
     resolve_unrest_events,
     update_faction_polity_tiers,
-    update_faction_resource_economy,
     update_region_settlement_levels,
     update_region_populations,
     update_rebel_faction_status,

@@ -3,7 +3,7 @@ from __future__ import annotations
 from copy import deepcopy
 
 from src.climate import format_climate_label, normalize_climate
-from src.heartland import get_region_core_status
+from src.region_state import get_region_core_status
 from src.models import Faction, FactionDoctrineProfile, WorldState
 from src.terrain import format_terrain_label, normalize_terrain_tags
 

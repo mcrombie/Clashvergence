@@ -2,18 +2,21 @@ from src.diplomacy import initialize_relationships
 from src.doctrine import initialize_faction_doctrines
 from src.factions import create_factions, validate_map_factions
 from src.heartland import (
+    estimate_region_population,
     estimate_region_population_from_resource_profile,
     initialize_heartlands,
-    initialize_region_resources,
     initialize_region_history,
     register_ethnicity,
     seed_region_ethnicity,
-    update_faction_resource_economy,
     update_region_settlement_levels,
 )
 from src.models import Region, WorldState
 from src.maps import MAPS
 from src.region_naming import assign_region_founding_name
+from src.resource_economy import (
+    initialize_region_resources,
+    update_faction_resource_economy,
+)
 
 
 def create_world(
@@ -81,6 +84,17 @@ def create_world(
 
     initialize_relationships(world)
     update_faction_resource_economy(world)
+    for region in world.regions.values():
+        if region.owner is None:
+            continue
+        region.population = estimate_region_population(
+            region.resources,
+            len(region.neighbors),
+            owner=region.owner,
+        )
+        primary_ethnicity = world.factions[region.owner].primary_ethnicity
+        if primary_ethnicity is not None:
+            seed_region_ethnicity(region, primary_ethnicity)
     update_region_settlement_levels(world)
     update_faction_resource_economy(world)
     initialize_region_history(world)

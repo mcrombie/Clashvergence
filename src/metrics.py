@@ -1,5 +1,5 @@
 from src.diplomacy import get_faction_diplomacy_summary
-from src.heartland import get_region_core_status
+from src.region_state import get_region_core_status
 
 
 def get_turn_events(world, turn):

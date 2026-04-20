@@ -6,10 +6,12 @@ from src.doctrine import (
     get_faction_region_alignment,
     update_faction_doctrines,
 )
-from src.heartland import (
+from src.region_state import get_region_attack_projection_modifier
+from src.resource_economy import (
     get_region_effective_income,
     get_region_maintenance_cost,
-    get_region_attack_projection_modifier,
+)
+from src.heartland import (
     update_region_integration,
 )
 from src.world import create_world
