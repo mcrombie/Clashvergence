@@ -49,6 +49,7 @@ from src.resources import (
     CAPACITY_FOOD_SECURITY,
     CAPACITY_METAL,
     CAPACITY_MOBILITY,
+    CAPACITY_TAXABLE_VALUE,
     RESOURCE_COPPER,
     RESOURCE_GRAIN,
     RESOURCE_HORSES,
@@ -219,6 +220,26 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
     local_storage_gap = max(0.0, region.food_produced - region.food_storage_capacity)
     local_food_waste = region.food_overflow + region.food_spoilage
     local_deficit_pressure = region.food_deficit
+    raw_total_output = sum((region.resource_output or {}).values())
+    retained_total_output = sum((region.resource_retained_output or {}).values())
+    routed_total_output = sum((region.resource_routed_output or region.resource_effective_output or {}).values())
+    retained_loss = max(0.0, raw_total_output - retained_total_output)
+    routed_loss = max(0.0, retained_total_output - routed_total_output)
+    monetization_gap = max(0.0, routed_total_output - float(region.resource_monetized_value or 0.0))
+    extractive_pressure = (
+        region.resource_output.get(RESOURCE_COPPER, 0.0)
+        + region.resource_output.get(RESOURCE_STONE, 0.0)
+        + region.resource_output.get(RESOURCE_TIMBER, 0.0)
+    )
+    has_material_site = any(
+        level > 0
+        for level in (
+            region.logging_camp_level,
+            region.copper_mine_level,
+            region.stone_quarry_level,
+            region.extractive_level,
+        )
+    )
 
     grain_suitability = region.resource_suitability.get(RESOURCE_GRAIN, 0.0)
     grain_established = region.resource_established.get(RESOURCE_GRAIN, 0.0)
@@ -349,6 +370,34 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
             "resource_focus": RESOURCE_TIMBER,
         })
 
+    if (
+        region.storehouse_level < 1.8
+        and has_material_site
+        and (
+            extractive_pressure > 0.55
+            or retained_loss > 0.35
+            or routed_loss > 0.45
+            or local_food_waste > 0.18
+        )
+    ):
+        options.append({
+            "project_type": (
+                "build_storehouse"
+                if region.storehouse_level <= 0
+                else "expand_storehouse"
+            ),
+            "score": (
+                2.9
+                + (extractive_pressure * 1.8)
+                + (retained_loss * 2.6)
+                + (routed_loss * 2.3)
+                + (local_food_waste * 0.9)
+                + (corridor_pressure * 1.2)
+                + (0.35 if region.storehouse_level <= 0 else region.storehouse_level * 0.28)
+            ),
+            "resource_focus": "storage",
+        })
+
     copper_endowment = region.resource_fixed_endowments.get(RESOURCE_COPPER, 0.0)
     if copper_endowment > 0 and region.copper_mine_level < 1.8:
         options.append({
@@ -412,6 +461,31 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
                 + (0.4 if region.road_level <= 0 else region.road_level * 0.3)
             ),
             "resource_focus": "mixed",
+        })
+
+    market_eligible = (
+        region.settlement_level in {"town", "city"}
+        or region.infrastructure_level >= 0.9
+        or region.storehouse_level >= 0.6
+    )
+    if region.market_level < 1.8 and market_eligible and routed_total_output > 0.6:
+        market_pressure = shortages.get(CAPACITY_TAXABLE_VALUE, 0.0) * 0.28
+        options.append({
+            "project_type": (
+                "build_market"
+                if region.market_level <= 0
+                else "expand_market"
+            ),
+            "score": (
+                3.1
+                + (routed_total_output * 1.4)
+                + (monetization_gap * 2.2)
+                + (get_region_taxable_value(region, world) * 0.42)
+                + (max(0.0, 0.8 - route_bottleneck) * 1.6)
+                + market_pressure
+                + (0.4 if region.market_level <= 0 else region.market_level * 0.32)
+            ),
+            "resource_focus": "trade",
         })
 
     if region.infrastructure_level < 1.6:
@@ -671,6 +745,7 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         if faction_name is not None
         else 0
     )
+    resource_need_bonus = min(resource_need_bonus, 4)
     target_value = _get_region_strategic_value(region, world)
     score = (
         (target_value * 2)
@@ -1234,6 +1309,20 @@ def develop(faction_name, target_region_name, world):
     elif project_type == "build_granary":
         region.granary_level = round(min(1.8, region.granary_level + 0.32), 2)
         project_amount = 0.32
+    elif project_type == "build_storehouse":
+        region.storehouse_level = round(min(1.8, region.storehouse_level + 0.34), 2)
+        region.infrastructure_level = round(min(1.8, region.infrastructure_level + 0.05), 2)
+        project_amount = 0.34
+    elif project_type == "expand_storehouse":
+        region.storehouse_level = round(min(1.8, region.storehouse_level + 0.24), 2)
+        project_amount = 0.24
+    elif project_type == "build_market":
+        region.market_level = round(min(1.8, region.market_level + 0.3), 2)
+        region.infrastructure_level = round(min(1.8, region.infrastructure_level + 0.04), 2)
+        project_amount = 0.3
+    elif project_type == "expand_market":
+        region.market_level = round(min(1.8, region.market_level + 0.22), 2)
+        project_amount = 0.22
     elif project_type == "establish_pasture":
         region.pasture_level = round(min(1.8, region.pasture_level + 0.34), 2)
         region.pastoral_level = round(min(1.8, region.pastoral_level + 0.06), 2)

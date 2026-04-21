@@ -109,6 +109,31 @@ RESOURCE_TIMBER_LOGGING_LEVEL_FACTOR = 0.78
 RESOURCE_EXTRACTIVE_UNDEVELOPED_FACTOR = 0.18
 RESOURCE_EXTRACTIVE_SITE_LEVEL_FACTOR = 0.95
 RESOURCE_EXTRACTIVE_SUPPORT_LEVEL_FACTOR = 0.16
+RESOURCE_RETENTION_BASE_FACTOR = 0.72
+RESOURCE_RETENTION_INFRASTRUCTURE_FACTOR = 0.05
+RESOURCE_RETENTION_STOREHOUSE_FACTOR = 0.18
+RESOURCE_RETENTION_MARKET_FACTOR = 0.04
+RESOURCE_RETENTION_GRANARY_FACTOR = 0.16
+RESOURCE_RETENTION_SETTLEMENT_BONUSES = {
+    "wild": -0.08,
+    "rural": -0.02,
+    "town": 0.04,
+    "city": 0.08,
+}
+RESOURCE_MONETIZATION_SETTLEMENT_BASE = {
+    "wild": 0.28,
+    "rural": 0.4,
+    "town": 0.56,
+    "city": 0.72,
+}
+RESOURCE_MONETIZATION_MARKET_FACTOR = 0.22
+RESOURCE_MONETIZATION_INFRASTRUCTURE_FACTOR = 0.04
+RESOURCE_MONETIZATION_ROAD_FACTOR = 0.04
+RESOURCE_MONETIZATION_STOREHOUSE_FACTOR = 0.03
+RESOURCE_MONETIZATION_ROUTE_FACTOR = 0.12
+RESOURCE_MONETIZATION_BOTTLENECK_FACTOR = 0.08
+RESOURCE_MONETIZATION_HOMELAND_BONUS = 0.05
+RESOURCE_MONETIZATION_CORE_BONUS = 0.03
 
 RouteState = dict[str, float | int | str | None]
 
@@ -131,10 +156,15 @@ def ensure_region_resource_state(region: Region) -> None:
         region.resource_suitability = normalize_resource_map(region.resource_suitability)
         region.resource_established = normalize_resource_map(region.resource_established)
         region.resource_output = normalize_resource_map(region.resource_output)
+        region.resource_retained_output = normalize_resource_map(region.resource_retained_output)
+        region.resource_routed_output = normalize_resource_map(region.resource_routed_output)
         region.resource_effective_output = normalize_resource_map(region.resource_effective_output)
         region.resource_damage = normalize_resource_map(region.resource_damage)
+    region.resource_retained_output = normalize_resource_map(region.resource_retained_output)
+    region.resource_routed_output = normalize_resource_map(region.resource_routed_output)
     region.resource_effective_output = normalize_resource_map(region.resource_effective_output)
     region.resource_damage = normalize_resource_map(region.resource_damage)
+    region.resource_monetized_value = round(max(0.0, float(region.resource_monetized_value or 0.0)), 3)
     region.resource_isolation_factor = round(float(region.resource_isolation_factor or 0.0), 3)
     region.resource_route_depth = (
         int(region.resource_route_depth)
@@ -144,6 +174,8 @@ def ensure_region_resource_state(region: Region) -> None:
     region.resource_route_cost = round(float(region.resource_route_cost or 0.0), 3)
     region.resource_route_anchor = region.resource_route_anchor or None
     region.resource_route_bottleneck = round(float(region.resource_route_bottleneck or 0.0), 3)
+    region.storehouse_level = round(max(0.0, float(region.storehouse_level or 0.0)), 2)
+    region.market_level = round(max(0.0, float(region.market_level or 0.0)), 2)
     region.irrigation_level = round(max(0.0, float(region.irrigation_level or 0.0)), 2)
     region.pasture_level = round(max(0.0, float(region.pasture_level or 0.0)), 2)
     region.logging_camp_level = round(max(0.0, float(region.logging_camp_level or 0.0)), 2)
@@ -526,6 +558,7 @@ def get_region_internal_distribution_state(
     average_damage = sum(region.resource_damage.values()) / max(1, len(ALL_RESOURCES))
     local_factor -= min(0.12, average_damage * 0.5)
     local_factor += min(0.12, region.infrastructure_level * 0.06)
+    local_factor += min(0.14, region.storehouse_level * 0.06)
     local_factor = _clamp(local_factor, 0.58, 1.02)
 
     route_cost = float(route_state.get("cost", 0.0) or 0.0)
@@ -585,31 +618,143 @@ def get_region_effective_resource_output(
     *,
     faction_route_map: dict[str, RouteState] | None = None,
 ) -> dict[str, float]:
-    raw_output = normalize_resource_map(raw_output or region.resource_output)
+    retained_output = get_region_retained_resource_output(
+        region,
+        world,
+        raw_output=raw_output or region.resource_retained_output or region.resource_output,
+    )
     distribution_factor = get_region_internal_distribution_factor(
         region,
         world,
         faction_route_map=faction_route_map,
     )
     effective_output = build_empty_resource_map()
-    for resource_name, amount in raw_output.items():
+    for resource_name, amount in retained_output.items():
         resource_specific_factor = distribution_factor
         route_bottleneck = max(0.35, float(region.resource_route_bottleneck or 0.35))
         if resource_name in EXTRACTIVE_RESOURCES and get_region_core_status(region) == "frontier":
             resource_specific_factor *= 0.88
-        if resource_name in EXTRACTIVE_RESOURCES:
-            resource_specific_factor *= _clamp(0.68 + (route_bottleneck * 0.4), 0.62, 1.0)
+        if resource_name in EXTRACTIVE_RESOURCES or resource_name == RESOURCE_TIMBER:
+            resource_specific_factor *= _clamp(
+                0.66
+                + (route_bottleneck * 0.4)
+                + (region.storehouse_level * 0.05)
+                + (region.road_level * 0.02),
+                0.58,
+                1.05,
+            )
         elif resource_name in {RESOURCE_GRAIN, RESOURCE_HORSES}:
             resource_specific_factor *= _clamp(0.78 + (route_bottleneck * 0.24), 0.72, 1.0)
-        damage_penalty = 1.0 - min(
-            0.4,
-            region.resource_damage.get(resource_name, 0.0) * 0.6,
-        )
         effective_output[resource_name] = round(
-            amount * resource_specific_factor * damage_penalty,
+            amount * resource_specific_factor,
             3,
         )
     return normalize_resource_map(effective_output)
+
+
+def get_region_resource_retention_factor(region: Region, resource_name: str) -> float:
+    status = get_region_core_status(region)
+    factor = RESOURCE_RETENTION_BASE_FACTOR
+    factor += RESOURCE_RETENTION_SETTLEMENT_BONUSES.get(region.settlement_level, 0.0)
+    factor += min(0.16, region.infrastructure_level * RESOURCE_RETENTION_INFRASTRUCTURE_FACTOR)
+    if resource_name in EXTRACTIVE_RESOURCES or resource_name == RESOURCE_TIMBER:
+        factor += min(0.28, region.storehouse_level * RESOURCE_RETENTION_STOREHOUSE_FACTOR)
+    if resource_name in {RESOURCE_GRAIN, RESOURCE_WILD_FOOD}:
+        factor += min(0.24, region.granary_level * RESOURCE_RETENTION_GRANARY_FACTOR)
+        factor += min(0.08, region.storehouse_level * 0.05)
+    if status == "homeland":
+        factor += 0.04
+    elif status == "core":
+        factor += 0.02
+    factor -= min(0.14, region.unrest * 0.012)
+    if region.unrest_event_level == "disturbance":
+        factor -= 0.04
+    elif region.unrest_event_level == "crisis":
+        factor -= 0.08
+    return _clamp(factor, 0.38, 1.0)
+
+
+def get_region_retained_resource_output(
+    region: Region,
+    world: WorldState | None = None,
+    raw_output: dict[str, float] | None = None,
+) -> dict[str, float]:
+    raw_output = normalize_resource_map(raw_output or region.resource_output)
+    retained_output = build_empty_resource_map()
+    for resource_name, amount in raw_output.items():
+        damage_penalty = 1.0 - min(
+            0.42,
+            region.resource_damage.get(resource_name, 0.0) * 0.62,
+        )
+        retained_output[resource_name] = round(
+            amount
+            * get_region_resource_retention_factor(region, resource_name)
+            * damage_penalty,
+            3,
+        )
+    return normalize_resource_map(retained_output)
+
+
+def get_region_monetization_factor(
+    region: Region,
+    world: WorldState | None = None,
+    *,
+    faction_route_map: dict[str, RouteState] | None = None,
+) -> float:
+    factor = RESOURCE_MONETIZATION_SETTLEMENT_BASE.get(region.settlement_level, 0.38)
+    factor += min(0.34, region.market_level * RESOURCE_MONETIZATION_MARKET_FACTOR)
+    factor += min(0.08, region.infrastructure_level * RESOURCE_MONETIZATION_INFRASTRUCTURE_FACTOR)
+    factor += min(0.08, region.road_level * RESOURCE_MONETIZATION_ROAD_FACTOR)
+    factor += min(0.06, region.storehouse_level * RESOURCE_MONETIZATION_STOREHOUSE_FACTOR)
+    if region.owner is not None:
+        factor += min(0.1, region.integration_score * 0.01)
+    status = get_region_core_status(region)
+    if status == "homeland":
+        factor += RESOURCE_MONETIZATION_HOMELAND_BONUS
+    elif status == "core":
+        factor += RESOURCE_MONETIZATION_CORE_BONUS
+    distribution_state = get_region_internal_distribution_state(
+        region,
+        world,
+        faction_route_map=faction_route_map,
+    )
+    factor += min(0.14, float(distribution_state["factor"] or 0.0) * RESOURCE_MONETIZATION_ROUTE_FACTOR)
+    factor += min(0.08, float(distribution_state["bottleneck"] or 0.0) * RESOURCE_MONETIZATION_BOTTLENECK_FACTOR)
+    factor -= min(0.18, region.unrest * 0.015)
+    if region.unrest_event_level == "disturbance":
+        factor -= 0.04
+    elif region.unrest_event_level == "crisis":
+        factor -= 0.08
+    return _clamp(factor, 0.18, 1.25)
+
+
+def _get_monetized_value_from_output(
+    output: dict[str, float],
+    region: Region,
+    world: WorldState | None = None,
+    *,
+    faction_route_map: dict[str, RouteState] | None = None,
+) -> float:
+    base_value = sum(
+        amount * {
+            RESOURCE_GRAIN: 0.82,
+            RESOURCE_HORSES: 0.95,
+            RESOURCE_WILD_FOOD: 0.58,
+            RESOURCE_TIMBER: 0.9,
+            RESOURCE_COPPER: 1.48,
+            RESOURCE_STONE: 0.86,
+        }.get(resource_name, 1.0)
+        for resource_name, amount in output.items()
+    )
+    return round(
+        base_value
+        * get_region_monetization_factor(
+            region,
+            world,
+            faction_route_map=faction_route_map,
+        ),
+        2,
+    )
 
 
 def refresh_region_resource_state(
@@ -620,14 +765,26 @@ def refresh_region_resource_state(
 ) -> None:
     ensure_region_resource_state(region)
     region.resource_output = get_region_resource_output(region, world)
-    region.resource_effective_output = get_region_effective_resource_output(
+    region.resource_retained_output = get_region_retained_resource_output(
         region,
         world,
         raw_output=region.resource_output,
+    )
+    region.resource_routed_output = get_region_effective_resource_output(
+        region,
+        world,
+        raw_output=region.resource_retained_output,
+        faction_route_map=faction_route_map,
+    )
+    region.resource_effective_output = normalize_resource_map(region.resource_routed_output)
+    region.resource_monetized_value = _get_monetized_value_from_output(
+        region.resource_routed_output if region.owner is not None else region.resource_retained_output,
+        region,
+        world,
         faction_route_map=faction_route_map,
     )
     region.resources = get_legacy_region_resource_value(
-        region.resource_effective_output if region.owner is not None else region.resource_output,
+        region.resource_effective_output if region.owner is not None else region.resource_retained_output,
         fixed_endowments=region.resource_fixed_endowments,
         wild_endowments=region.resource_wild_endowments,
         suitability=region.resource_suitability,
@@ -713,28 +870,39 @@ def get_region_taxable_value(
     *,
     faction_route_map: dict[str, RouteState] | None = None,
 ) -> float:
-    if region.resources > 0:
+    if region.resource_monetized_value > 0:
+        return float(region.resource_monetized_value)
+
+    if region.resources > 0 and world is None:
         return float(region.resources)
 
     raw_output = get_region_resource_output(region, world)
-    output = (
+    retained_output = get_region_retained_resource_output(
+        region,
+        world,
+        raw_output=raw_output,
+    )
+    routed_output = (
         get_region_effective_resource_output(
             region,
             world,
-            raw_output=raw_output,
+            raw_output=retained_output,
             faction_route_map=faction_route_map,
         )
         if world is not None
-        else raw_output
+        else retained_output
     )
-    return _get_taxable_value_from_output(normalize_resource_map(output))
+    return _get_monetized_value_from_output(
+        normalize_resource_map(routed_output),
+        region,
+        world,
+        faction_route_map=faction_route_map,
+    )
 
 
 def get_region_effective_income(region: Region, world: WorldState | None = None) -> int:
     income_factor = get_region_income_factor(region)
-    base_value = float(region.resources)
-    if base_value <= 0:
-        base_value = float(get_region_taxable_value(region, world))
+    base_value = float(get_region_taxable_value(region, world))
     base_value *= get_region_unrest_income_factor(region)
     if world is not None and region.owner in world.factions:
         income_factor *= get_faction_income_modifier(world.factions[region.owner])

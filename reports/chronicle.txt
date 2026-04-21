@@ -1,52 +1,43 @@
 Simulation Chronicle
 
-On turn 2, Aruangos Tribe made its first expansion into M3.
-On turn 2, Saklian Tribe made its first expansion into M12.
-On turn 2, Ananiasha Tribe made its first expansion into I8.
-On turn 7, Rnutuan Tribe made its first expansion into I6.
 
 Opening Phase
 
-The strongest early land grab was Aruangos Chiefdom's claim of M3 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Saklian Chiefdom and Aruangos Chiefdom led expansion with 2 claim(s).
-Across the first 5 turns, Rnutuan Chiefdom developed most often with 5 development(s).
-By the end of turn 5, Rnutuan Chiefdom held the opening treasury lead at 24.
+Across the first 5 turns, Akhakiar Tribe, Persermia Tribe, Noraraand Tribe, and Veneunar Tribe developed most often with 3 development(s).
+By the end of turn 5, Noraraand Tribe held the opening treasury lead at 14.
 
 Phase Summaries
 
-Early phase: Rnutuan Tribe was strongest by the end of turns 1-2, with Rnutuan Tribe on 9 treasury and 1 region. No faction pulled clear; 4 factions remained within a 1-region spread. 3 expansions added 3 new regions. 5 developments improved existing holdings. Rnutuan Tribe improved its standing most during the phase.
-Mid phase: Rnutuan Tribe was strongest by the end of turns 3-5, with Rnutuan Tribe on 24 treasury and 1 region. 3 expansions added 3 new regions. 9 developments improved existing holdings. Aruangos Tribe gained 2 regions. Saklian Tribe improved its standing most during the phase.
-Late phase: Rnutuan Tribe was strongest by the end of turns 6-8, with Rnutuan Tribe on 27 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 3 expansions added 3 new regions. 9 developments improved existing holdings. Rnutuan Tribe gained 2 regions. Aruangos Tribe improved its standing most during the phase.
-
-Turning Points
-
-Late economic shift: Rnutuan Tribe created a treasury edge that became central to the finish.
-Early leader change: Aruangos Tribe took the treasury lead.
+Early phase: Noraraand Tribe was strongest by the end of turns 1-1, with Noraraand Tribe on 2 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
+Mid phase: Noraraand Tribe was strongest by the end of turns 2-2, with Noraraand Tribe on 3 treasury and 1 region. The board stabilized after turn 2 with little territorial change.
+Late phase: Noraraand Tribe was strongest by the end of turns 3-3, with Noraraand Tribe on 5 treasury and 1 region. The board stabilized after turn 3 with little territorial change.
 
 Outcome Type
 
-Outcome type: economic_win.
+Outcome type: balanced_contest.
 
 Faction Trajectories
 
-Saklian Chiefdom opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 8, and finished rank 3 on 0 treasury with 4 regions.
-Aruangos Chiefdom opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 8, and finished rank 2 on 1 treasury with 4 regions.
-Rnutuan Chiefdom spent the opening consolidating its start with 2 developments, built steadily past the opening, reaching 3 regions by turn 8, and finished first with 3 regions, 27 treasury, and 0 total attacks.
-Ananiasha Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, held steady at 2 regions through the middle turns, and finished rank 4 on -2 treasury with 2 regions.
+Akhakiar Tribe spent the opening consolidating its start with 1 development, held steady at 1 region through the middle turns, and finished rank 2 on 3 treasury with 1 region after gaining 2 treasury overall.
+Persermia Tribe spent the opening consolidating its start with 1 development, held steady at 1 region through the middle turns, and finished rank 3 on 1 treasury with 1 region.
+Noraraand Tribe spent the opening consolidating its start with 1 development, held steady at 1 region through the middle turns, and finished first with 1 region, 5 treasury, and 0 total attacks.
+Veneunar Tribe spent the opening consolidating its start with 1 development, held steady at 1 region through the middle turns, and finished rank 4 on 1 treasury with 1 region.
 
 Strategic Interpretation
 
-Because the board stayed contested through most of the game, Rnutuan Chiefdom’s Adaptive Riverland Plains approach mattered more for treasury growth than for territory, and that resource edge became the deciding mechanism. Aruangos Chiefdom briefly led the treasury and held one more region at the finish, but it could not convert that map position into income, which left Rnutuan ahead by 26 in treasury despite trailing by one region. The late economic shift was decisive because it created separation only after the midgame remained balanced, so the final result was set by efficiency rather than expansion.
-The closest challenger was Aruangos Chiefdom (Adaptive Hill Forest) at 1 treasury and 4 regions.
-Rnutuan Chiefdom's dealings with Ananiasha Tribe were sharpened by a widening gap in political sophistication.
+On this larger 37-region layout, the wider front and multiple routes delayed a clean break.
+No faction broke the map open. The run stayed competitive to the end, with 4 factions still alive and only 0-region variation across the final board.
+No decisive collapse or phase break separated the field. Noraraand Tribe edged ahead in a finish that remained close across 4 surviving factions.
+The final margin stayed narrow: Noraraand Tribe beat Akhakiar Tribe by 2 treasury.
+The closest challenger was Akhakiar Tribe (Developmental Plains) at 3 treasury and 1 region.
 
 Final Standings
 
-Rnutuan Chiefdom finished first with a treasury of 27 and control of 3 regions.
-Aruangos Chiefdom ended with a treasury of 1 and 4 regions.
-Saklian Chiefdom ended with a treasury of 0 and 4 regions.
-Ananiasha Tribe ended with a treasury of -2 and 2 regions.
+Noraraand Tribe finished first with a treasury of 5 and control of 1 region.
+Akhakiar Tribe ended with a treasury of 3 and 1 region.
+Persermia Tribe ended with a treasury of 1 and 1 region.
+Veneunar Tribe ended with a treasury of 1 and 1 region.
 
 Victor's History
 
-Rnutuan Chiefdom’s victory was a study in disciplined stewardship rather than mere territorial appetite: it finished first on treasury with 27, even while conceding map share and ending with 3 regions. The opening consolidation and steady build past the opening gave it a coherent base, and the late economic shift that created a treasury edge proved decisive. Aruangos Chiefdom did well to grow from an early claim to 4 regions, but its brief treasury lead did not hold against a more durable finish. On a contested thirty-seven-region ring, the result favored the faction that managed its resources with the greater consistency and judgment.
+Noraraand Tribe's historians would treat this run as evidence that their developmental riverland plains habits, forged by geography, proved stronger than the field's scattered efforts. The final margin stayed narrow: Noraraand Tribe beat Akhakiar Tribe by 2 treasury. From that partisan view, Akhakiar Tribe's resistance was real but never as durable as Noraraand Tribe's final position.

@@ -12,6 +12,7 @@ from src.resource_economy import (
     apply_turn_food_economy,
     get_faction_food_storage_capacity,
     get_region_food_storage_capacity,
+    get_region_taxable_value,
     update_faction_resource_economy,
 )
 from src.heartland import (
@@ -510,6 +511,125 @@ class ResourceSystemTests(unittest.TestCase):
         self.assertEqual(world.regions["C"].resource_route_depth, 2)
         self.assertLess(world.regions["C"].resource_route_bottleneck, 1.0)
 
+    def test_resource_pipeline_tracks_raw_retained_routed_and_monetized_stages(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=210,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    homeland_faction_id="FactionA",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.2,
+                    market_level=0.8,
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionA",
+                    resources=2,
+                    population=120,
+                    terrain_tags=["highland", "forest"],
+                    climate="cold",
+                    integration_score=1.3,
+                    settlement_level="rural",
+                    copper_mine_level=1.2,
+                    logging_camp_level=1.0,
+                ),
+            },
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        world.regions["B"].resource_fixed_endowments[RESOURCE_COPPER] = 1.2
+        world.regions["B"].resource_wild_endowments[RESOURCE_TIMBER] = 1.1
+
+        update_faction_resource_economy(world)
+        frontier = world.regions["B"]
+
+        raw_total = sum(frontier.resource_output.values())
+        retained_total = sum(frontier.resource_retained_output.values())
+        routed_total = sum(frontier.resource_routed_output.values())
+
+        self.assertGreater(raw_total, retained_total)
+        self.assertGreater(retained_total, routed_total)
+        self.assertGreater(frontier.resource_monetized_value, 0.0)
+
+    def test_storehouse_improves_retained_output_for_material_region(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=150,
+            terrain_tags=["highland", "forest"],
+            climate="temperate",
+            settlement_level="rural",
+            copper_mine_level=1.4,
+            logging_camp_level=1.2,
+        )
+        seed_region_resource_profile(region)
+        region.resource_fixed_endowments[RESOURCE_COPPER] = 1.1
+        region.resource_wild_endowments[RESOURCE_TIMBER] = 1.0
+
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        update_faction_resource_economy(world)
+        baseline_retained = (
+            world.regions["A"].resource_retained_output[RESOURCE_COPPER]
+            + world.regions["A"].resource_retained_output[RESOURCE_TIMBER]
+        )
+
+        world.regions["A"].storehouse_level = 1.0
+        update_faction_resource_economy(world)
+        stored_retained = (
+            world.regions["A"].resource_retained_output[RESOURCE_COPPER]
+            + world.regions["A"].resource_retained_output[RESOURCE_TIMBER]
+        )
+
+        self.assertGreater(stored_retained, baseline_retained)
+
+    def test_market_improves_monetized_value_without_changing_routed_output(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=220,
+            terrain_tags=["highland", "forest"],
+            climate="temperate",
+            settlement_level="town",
+            infrastructure_level=1.1,
+            road_level=1.0,
+            storehouse_level=1.0,
+            copper_mine_level=1.8,
+            logging_camp_level=1.4,
+        )
+        seed_region_resource_profile(region)
+        region.resource_fixed_endowments[RESOURCE_COPPER] = 1.2
+        region.resource_wild_endowments[RESOURCE_TIMBER] = 1.0
+
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        update_faction_resource_economy(world)
+        baseline_routed = dict(world.regions["A"].resource_routed_output)
+        baseline_taxable = get_region_taxable_value(world.regions["A"], world)
+
+        world.regions["A"].market_level = 1.0
+        update_faction_resource_economy(world)
+
+        self.assertEqual(world.regions["A"].resource_routed_output, baseline_routed)
+        self.assertGreater(get_region_taxable_value(world.regions["A"], world), baseline_taxable)
+
     def test_domestic_resources_decay_under_crisis_and_neglect(self):
         region = Region(
             name="A",
@@ -715,6 +835,74 @@ class ResourceSystemTests(unittest.TestCase):
 
         self.assertEqual(components["project_type"], "build_road_station")
         self.assertLess(world.regions["B"].resource_route_bottleneck, 0.7)
+
+    def test_develop_can_build_storehouse_for_material_frontier(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=140,
+            terrain_tags=["highland", "forest"],
+            climate="cold",
+            settlement_level="rural",
+            infrastructure_level=0.5,
+            copper_mine_level=1.8,
+            stone_quarry_level=1.8,
+            logging_camp_level=1.8,
+        )
+        seed_region_resource_profile(region)
+        region.resource_fixed_endowments[RESOURCE_COPPER] = 1.2
+        region.resource_fixed_endowments[RESOURCE_STONE] = 1.0
+        region.resource_wild_endowments[RESOURCE_TIMBER] = 1.0
+
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        update_faction_resource_economy(world)
+
+        components = get_development_target_score_components("A", "FactionA", world)
+
+        self.assertEqual(components["project_type"], "build_storehouse")
+        self.assertTrue(develop("FactionA", "A", world))
+        self.assertGreater(world.regions["A"].storehouse_level, 0.0)
+
+    def test_develop_can_build_market_in_connected_town(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=240,
+            terrain_tags=["highland", "forest"],
+            climate="temperate",
+            settlement_level="town",
+            infrastructure_level=1.2,
+            road_level=1.0,
+            storehouse_level=1.0,
+            copper_mine_level=1.8,
+            stone_quarry_level=1.8,
+            logging_camp_level=1.6,
+        )
+        seed_region_resource_profile(region)
+        region.resource_fixed_endowments[RESOURCE_COPPER] = 1.2
+        region.resource_fixed_endowments[RESOURCE_STONE] = 1.0
+        region.resource_wild_endowments[RESOURCE_TIMBER] = 1.0
+
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        update_faction_resource_economy(world)
+
+        components = get_development_target_score_components("A", "FactionA", world)
+
+        self.assertEqual(components["project_type"], "build_market")
+        taxable_before = get_region_taxable_value(world.regions["A"], world)
+        self.assertTrue(develop("FactionA", "A", world))
+        self.assertGreater(world.regions["A"].market_level, 0.0)
+        self.assertGreater(get_region_taxable_value(world.regions["A"], world), taxable_before)
 
 
 if __name__ == "__main__":

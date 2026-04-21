@@ -160,8 +160,11 @@ class Region:
     resource_suitability: dict[str, float] = field(default_factory=dict)
     resource_established: dict[str, float] = field(default_factory=dict)
     resource_output: dict[str, float] = field(default_factory=dict)
+    resource_retained_output: dict[str, float] = field(default_factory=dict)
+    resource_routed_output: dict[str, float] = field(default_factory=dict)
     resource_effective_output: dict[str, float] = field(default_factory=dict)
     resource_damage: dict[str, float] = field(default_factory=dict)
+    resource_monetized_value: float = 0.0
     resource_isolation_factor: float = 0.0
     resource_route_depth: int | None = None
     resource_route_cost: float = 0.0
@@ -170,6 +173,8 @@ class Region:
     last_resource_project_turn: int | None = None
     infrastructure_level: float = 0.0
     granary_level: float = 0.0
+    storehouse_level: float = 0.0
+    market_level: float = 0.0
     irrigation_level: float = 0.0
     pasture_level: float = 0.0
     logging_camp_level: float = 0.0
