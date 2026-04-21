@@ -1,8 +1,17 @@
 import unittest
 
-from src.actions import get_invest_target_score_components, invest
+from src.actions import (
+    develop,
+    get_developable_regions,
+    get_development_target_score_components,
+    get_invest_target_score_components,
+    invest,
+)
 from src.resource_economy import (
     advance_region_domesticable_resources,
+    apply_turn_food_economy,
+    get_faction_food_storage_capacity,
+    get_region_food_storage_capacity,
     update_faction_resource_economy,
 )
 from src.heartland import (
@@ -131,6 +140,138 @@ class ResourceSystemTests(unittest.TestCase):
         self.assertIn("food_security", faction.derived_capacity)
         self.assertIn("metal_capacity", faction.resource_shortages)
         self.assertGreaterEqual(faction.derived_capacity["food_security"], 0.0)
+
+    def test_granary_increases_faction_food_storage_capacity(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=140,
+            terrain_tags=["plains"],
+            climate="temperate",
+            settlement_level="town",
+        )
+        seed_region_resource_profile(region)
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+
+        base_capacity = get_faction_food_storage_capacity(world, "FactionA")
+        region.granary_level = 0.8
+        region.infrastructure_level = 0.6
+        region.agriculture_level = 0.5
+        expanded_capacity = get_faction_food_storage_capacity(world, "FactionA")
+
+        self.assertGreater(expanded_capacity, base_capacity)
+        self.assertGreater(get_region_food_storage_capacity(region), 0.0)
+
+    def test_invest_can_build_granary_when_food_storage_is_tight(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=190,
+            terrain_tags=["plains"],
+            climate="temperate",
+            settlement_level="town",
+        )
+        seed_region_resource_profile(region)
+        region.resource_established[RESOURCE_GRAIN] = 0.55
+        region.agriculture_level = 1.8
+
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        update_faction_resource_economy(world)
+        world.factions["FactionA"].food_consumption = 3.0
+        world.factions["FactionA"].food_storage_capacity = 0.0
+        world.factions["FactionA"].food_overflow = 0.4
+
+        components = get_invest_target_score_components("A", "FactionA", world)
+
+        self.assertEqual(components["project_type"], "build_granary")
+        self.assertTrue(invest("FactionA", "A", world))
+        self.assertGreater(world.regions["A"].granary_level, 0.0)
+        self.assertEqual(world.events[-1].details["project_type"], "build_granary")
+
+    def test_region_food_deficits_are_local_not_faction_shared(self):
+        abundant = Region(
+            name="A",
+            neighbors=["B"],
+            owner="FactionA",
+            resources=2,
+            population=80,
+            terrain_tags=["riverland"],
+            climate="temperate",
+            settlement_level="town",
+        )
+        hungry = Region(
+            name="B",
+            neighbors=["A"],
+            owner="FactionA",
+            resources=2,
+            population=320,
+            terrain_tags=["highland"],
+            climate="cold",
+            settlement_level="rural",
+        )
+        for region in (abundant, hungry):
+            seed_region_resource_profile(region)
+        abundant.resource_established[RESOURCE_GRAIN] = 0.8
+        abundant.agriculture_level = 1.2
+        abundant.granary_level = 1.0
+
+        world = WorldState(
+            regions={"A": abundant, "B": hungry},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+
+        update_faction_resource_economy(world)
+        apply_turn_food_economy(world)
+
+        self.assertGreater(world.regions["A"].food_stored, 0.0)
+        self.assertGreater(world.regions["B"].food_deficit, 0.0)
+        self.assertGreater(world.factions["FactionA"].food_deficit, 0.0)
+
+    def test_development_aliases_match_invest_flow(self):
+        source = Region(
+            name="A",
+            neighbors=["B"],
+            owner="FactionA",
+            resources=2,
+            population=140,
+            terrain_tags=["plains"],
+            climate="temperate",
+        )
+        target = Region(
+            name="B",
+            neighbors=["A"],
+            owner="FactionA",
+            resources=2,
+            population=120,
+            terrain_tags=["plains"],
+            climate="temperate",
+        )
+        seed_region_resource_profile(source)
+        seed_region_resource_profile(target)
+        target.resource_established[RESOURCE_GRAIN] = 0.0
+
+        world = WorldState(
+            regions={"A": source, "B": target},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        update_faction_resource_economy(world)
+
+        self.assertEqual(get_developable_regions("FactionA", world), ["A", "B"])
+        self.assertEqual(
+            get_development_target_score_components("B", "FactionA", world)["project_type"],
+            get_invest_target_score_components("B", "FactionA", world)["project_type"],
+        )
+        self.assertTrue(develop("FactionA", "B", world))
 
     def test_isolated_frontier_output_is_lower_than_gross_output(self):
         world = WorldState(

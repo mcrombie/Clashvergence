@@ -242,6 +242,32 @@ def _get_investment_project_options(faction_name: str, region, world) -> list[di
             "score": 3.5 + (grain_established * 3.0) + (shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 1.8),
             "resource_focus": RESOURCE_GRAIN,
         })
+    local_storage_gap = max(0.0, region.food_produced - region.food_storage_capacity)
+    local_food_waste = region.food_overflow + region.food_spoilage
+    local_deficit_pressure = region.food_deficit
+    if (
+        region.granary_level < 1.8
+        and (
+            grain_established > 0
+            or region.agriculture_level > 0.2
+            or region.food_produced > 0.6
+        )
+    ):
+        options.append({
+            "project_type": "build_granary",
+            "score": (
+                3.2
+                + (grain_established * 2.6)
+                + (region.agriculture_level * 1.8)
+                + (shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 2.4)
+                + (local_storage_gap * 1.8)
+                + (local_food_waste * 1.5)
+                + (local_deficit_pressure * 0.9)
+                + (region.infrastructure_level * 0.4)
+                + (0.35 if region.settlement_level in {"town", "city"} else 0.0)
+            ),
+            "resource_focus": RESOURCE_GRAIN,
+        })
 
     horse_suitability = region.resource_suitability.get(RESOURCE_HORSES, 0.0)
     horse_established = region.resource_established.get(RESOURCE_HORSES, 0.0)
@@ -328,6 +354,11 @@ def get_invest_target_score_components(region_name: str, faction_name: str, worl
         "source_region": str(best_option.get("source_region", "")),
         "resource_profile": format_resource_map(region.resource_output or region.resource_fixed_endowments, limit=3),
     }
+
+
+def get_development_target_score_components(region_name: str, faction_name: str, world) -> dict[str, float | str]:
+    """Compatibility-forward name for region project scoring."""
+    return get_invest_target_score_components(region_name, faction_name, world)
 
 
 def get_owned_region_count(faction_name, world):
@@ -1044,6 +1075,11 @@ def get_investable_regions(faction_name, world):
     return sorted(investable_regions)
 
 
+def get_developable_regions(faction_name, world):
+    """Compatibility-forward name for owned regions with development projects."""
+    return get_investable_regions(faction_name, world)
+
+
 def invest(faction_name, target_region_name, world):
     """Returns whether the Faction successfully invested in the target Region."""
 
@@ -1082,6 +1118,9 @@ def invest(faction_name, target_region_name, world):
     elif project_type == "improve_agriculture":
         region.agriculture_level = round(min(1.8, region.agriculture_level + 0.28), 2)
         project_amount = 0.28
+    elif project_type == "build_granary":
+        region.granary_level = round(min(1.8, region.granary_level + 0.32), 2)
+        project_amount = 0.32
     elif project_type == "improve_pastoralism":
         region.pastoral_level = round(min(1.8, region.pastoral_level + 0.24), 2)
         project_amount = 0.24
@@ -1136,3 +1175,8 @@ def invest(faction_name, target_region_name, world):
     ))
 
     return True
+
+
+def develop(faction_name, target_region_name, world):
+    """Forward-facing alias for regional development projects."""
+    return invest(faction_name, target_region_name, world)

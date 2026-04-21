@@ -1087,11 +1087,10 @@ def update_region_populations(world: WorldState) -> None:
         growth_factor += surplus_growth_modifier
 
         if region.owner in world.factions:
-            faction = world.factions[region.owner]
-            food_consumption = max(0.8, faction.food_consumption)
+            food_consumption = max(0.2, region.food_consumption)
             food_deficit_ratio = min(
                 1.0,
-                faction.food_deficit / food_consumption,
+                region.food_deficit / food_consumption,
             )
             if food_deficit_ratio > 0:
                 growth_factor -= min(
@@ -1101,7 +1100,7 @@ def update_region_populations(world: WorldState) -> None:
             else:
                 food_surplus_ratio = min(
                     1.0,
-                    max(0.0, faction.food_balance) / food_consumption,
+                    max(0.0, region.food_balance) / food_consumption,
                 )
                 growth_factor += min(
                     POPULATION_FOOD_SURPLUS_MAX_BONUS,
@@ -2183,9 +2182,18 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             )["resource_output"],
             "taxable_value": get_region_taxable_value(region, world),
             "infrastructure_level": round(region.infrastructure_level, 2),
+            "granary_level": round(region.granary_level, 2),
             "agriculture_level": round(region.agriculture_level, 2),
             "pastoral_level": round(region.pastoral_level, 2),
             "extractive_level": round(region.extractive_level, 2),
+            "food_stored": round(region.food_stored, 3),
+            "food_storage_capacity": round(region.food_storage_capacity, 3),
+            "food_produced": round(region.food_produced, 3),
+            "food_consumption": round(region.food_consumption, 3),
+            "food_balance": round(region.food_balance, 3),
+            "food_deficit": round(region.food_deficit, 3),
+            "food_spoilage": round(region.food_spoilage, 3),
+            "food_overflow": round(region.food_overflow, 3),
             "population": region.population,
             "productive_capacity": get_region_productive_capacity(region, world),
             "population_pressure": get_region_population_pressure(region),

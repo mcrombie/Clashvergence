@@ -95,9 +95,18 @@ def _build_region_resource_payload(region):
         "resource_output_summary": format_resource_map(region.resource_effective_output or region.resource_output, limit=3),
         "taxable_value": round(get_region_taxable_value(region), 3),
         "infrastructure_level": round(region.infrastructure_level, 2),
+        "granary_level": round(region.granary_level, 2),
         "agriculture_level": round(region.agriculture_level, 2),
         "pastoral_level": round(region.pastoral_level, 2),
         "extractive_level": round(region.extractive_level, 2),
+        "food_stored": round(region.food_stored, 3),
+        "food_storage_capacity": round(region.food_storage_capacity, 3),
+        "food_produced": round(region.food_produced, 3),
+        "food_consumption": round(region.food_consumption, 3),
+        "food_balance": round(region.food_balance, 3),
+        "food_deficit": round(region.food_deficit, 3),
+        "food_spoilage": round(region.food_spoilage, 3),
+        "food_overflow": round(region.food_overflow, 3),
     }
 
 
@@ -471,9 +480,18 @@ def build_simulation_snapshots(world):
             "resource_output_summary": initial_region_history.get(region_name, {}).get("resource_output_summary", _build_region_resource_payload(region)["resource_output_summary"]),
             "taxable_value": initial_region_history.get(region_name, {}).get("taxable_value", _build_region_resource_payload(region)["taxable_value"]),
             "infrastructure_level": initial_region_history.get(region_name, {}).get("infrastructure_level", region.infrastructure_level),
+            "granary_level": initial_region_history.get(region_name, {}).get("granary_level", region.granary_level),
             "agriculture_level": initial_region_history.get(region_name, {}).get("agriculture_level", region.agriculture_level),
             "pastoral_level": initial_region_history.get(region_name, {}).get("pastoral_level", region.pastoral_level),
             "extractive_level": initial_region_history.get(region_name, {}).get("extractive_level", region.extractive_level),
+            "food_stored": initial_region_history.get(region_name, {}).get("food_stored", region.food_stored),
+            "food_storage_capacity": initial_region_history.get(region_name, {}).get("food_storage_capacity", region.food_storage_capacity),
+            "food_produced": initial_region_history.get(region_name, {}).get("food_produced", region.food_produced),
+            "food_consumption": initial_region_history.get(region_name, {}).get("food_consumption", region.food_consumption),
+            "food_balance": initial_region_history.get(region_name, {}).get("food_balance", region.food_balance),
+            "food_deficit": initial_region_history.get(region_name, {}).get("food_deficit", region.food_deficit),
+            "food_spoilage": initial_region_history.get(region_name, {}).get("food_spoilage", region.food_spoilage),
+            "food_overflow": initial_region_history.get(region_name, {}).get("food_overflow", region.food_overflow),
             "homeland_faction_id": initial_region_history.get(region_name, {}).get("homeland_faction_id"),
             "integrated_owner": initial_region_history.get(region_name, {}).get("integrated_owner"),
             "integration_score": initial_region_history.get(region_name, {}).get("integration_score", 0.0),
@@ -530,9 +548,18 @@ def build_simulation_snapshots(world):
                 "resource_output_summary": region["resource_output_summary"],
                 "taxable_value": region["taxable_value"],
                 "infrastructure_level": region["infrastructure_level"],
+                "granary_level": region["granary_level"],
                 "agriculture_level": region["agriculture_level"],
                 "pastoral_level": region["pastoral_level"],
                 "extractive_level": region["extractive_level"],
+                "food_stored": region["food_stored"],
+                "food_storage_capacity": region["food_storage_capacity"],
+                "food_produced": region["food_produced"],
+                "food_consumption": region["food_consumption"],
+                "food_balance": region["food_balance"],
+                "food_deficit": region["food_deficit"],
+                "food_spoilage": region["food_spoilage"],
+                "food_overflow": region["food_overflow"],
                 "homeland_faction_id": region["homeland_faction_id"],
                 "integrated_owner": region["integrated_owner"],
                 "integration_score": region["integration_score"],
@@ -617,9 +644,18 @@ def build_simulation_snapshots(world):
             region_state[region_name]["resource_output_summary"] = history_region.get("resource_output_summary", region_state[region_name]["resource_output_summary"])
             region_state[region_name]["taxable_value"] = history_region.get("taxable_value", region_state[region_name]["taxable_value"])
             region_state[region_name]["infrastructure_level"] = history_region.get("infrastructure_level", region_state[region_name]["infrastructure_level"])
+            region_state[region_name]["granary_level"] = history_region.get("granary_level", region_state[region_name]["granary_level"])
             region_state[region_name]["agriculture_level"] = history_region.get("agriculture_level", region_state[region_name]["agriculture_level"])
             region_state[region_name]["pastoral_level"] = history_region.get("pastoral_level", region_state[region_name]["pastoral_level"])
             region_state[region_name]["extractive_level"] = history_region.get("extractive_level", region_state[region_name]["extractive_level"])
+            region_state[region_name]["food_stored"] = history_region.get("food_stored", region_state[region_name]["food_stored"])
+            region_state[region_name]["food_storage_capacity"] = history_region.get("food_storage_capacity", region_state[region_name]["food_storage_capacity"])
+            region_state[region_name]["food_produced"] = history_region.get("food_produced", region_state[region_name]["food_produced"])
+            region_state[region_name]["food_consumption"] = history_region.get("food_consumption", region_state[region_name]["food_consumption"])
+            region_state[region_name]["food_balance"] = history_region.get("food_balance", region_state[region_name]["food_balance"])
+            region_state[region_name]["food_deficit"] = history_region.get("food_deficit", region_state[region_name]["food_deficit"])
+            region_state[region_name]["food_spoilage"] = history_region.get("food_spoilage", region_state[region_name]["food_spoilage"])
+            region_state[region_name]["food_overflow"] = history_region.get("food_overflow", region_state[region_name]["food_overflow"])
             region_state[region_name]["display_name"] = history_region["display_name"] or region_state[region_name]["display_name"]
             region_state[region_name]["founding_name"] = history_region["founding_name"]
             region_state[region_name]["original_namer_faction_id"] = history_region["original_namer_faction_id"]
@@ -679,9 +715,18 @@ def build_simulation_snapshots(world):
                     "resource_output_summary": region["resource_output_summary"],
                     "taxable_value": region["taxable_value"],
                     "infrastructure_level": region["infrastructure_level"],
+                    "granary_level": region["granary_level"],
                     "agriculture_level": region["agriculture_level"],
                     "pastoral_level": region["pastoral_level"],
                     "extractive_level": region["extractive_level"],
+                    "food_stored": region["food_stored"],
+                    "food_storage_capacity": region["food_storage_capacity"],
+                    "food_produced": region["food_produced"],
+                    "food_consumption": region["food_consumption"],
+                    "food_balance": region["food_balance"],
+                    "food_deficit": region["food_deficit"],
+                    "food_spoilage": region["food_spoilage"],
+                    "food_overflow": region["food_overflow"],
                     "homeland_faction_id": region["homeland_faction_id"],
                     "integrated_owner": region["integrated_owner"],
                     "integration_score": region["integration_score"],
@@ -3015,6 +3060,31 @@ def render_simulation_html(world):
               <div class="detail-value">
                 ${{escapeHtml(regionSnapshot.resource_output_summary || staticRegion.resource_output_summary || "None")}}
                 / ${{Number(regionSnapshot.taxable_value ?? staticRegion.taxable_value ?? 0).toFixed(2)}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Development</div>
+              <div class="detail-value">
+                Infra ${{Number(regionSnapshot.infrastructure_level ?? staticRegion.infrastructure_level ?? 0).toFixed(2)}}
+                / Granary ${{Number(regionSnapshot.granary_level ?? staticRegion.granary_level ?? 0).toFixed(2)}}
+                / Agri ${{Number(regionSnapshot.agriculture_level ?? staticRegion.agriculture_level ?? 0).toFixed(2)}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Local Food</div>
+              <div class="detail-value">
+                ${{Number(regionSnapshot.food_stored ?? staticRegion.food_stored ?? 0).toFixed(1)}}
+                / ${{Number(regionSnapshot.food_storage_capacity ?? staticRegion.food_storage_capacity ?? 0).toFixed(1)}}
+                | +${{Number(regionSnapshot.food_produced ?? staticRegion.food_produced ?? 0).toFixed(1)}}
+                / -${{Number(regionSnapshot.food_consumption ?? staticRegion.food_consumption ?? 0).toFixed(1)}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Food Outcome</div>
+              <div class="detail-value">
+                Balance ${{Number(regionSnapshot.food_balance ?? staticRegion.food_balance ?? 0).toFixed(1)}}
+                / Deficit ${{Number(regionSnapshot.food_deficit ?? staticRegion.food_deficit ?? 0).toFixed(1)}}
+                / Waste ${{Number(((regionSnapshot.food_spoilage ?? staticRegion.food_spoilage ?? 0) + (regionSnapshot.food_overflow ?? staticRegion.food_overflow ?? 0))).toFixed(1)}}
               </div>
             </div>
             <div class="detail-row">

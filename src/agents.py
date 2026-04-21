@@ -1,6 +1,9 @@
 from src.actions import (
+    develop,
     get_attack_target_score_components,
     get_attackable_regions,
+    get_developable_regions,
+    get_development_target_score_components,
     expand,
     get_expand_target_score_components,
     get_expandable_regions,
@@ -57,7 +60,7 @@ def choose_expand_target(faction_name, world):
     return best_region
 
 def choose_invest_target(faction_name, world):
-    investable_regions = get_investable_regions(faction_name, world)
+    investable_regions = get_developable_regions(faction_name, world)
 
     if not investable_regions:
         return None
@@ -65,7 +68,7 @@ def choose_invest_target(faction_name, world):
     best_region = max(
         investable_regions,
         key=lambda name: (
-            get_invest_target_score_components(name, faction_name, world)["score"],
+            get_development_target_score_components(name, faction_name, world)["score"],
             name,
         )
     )
@@ -100,7 +103,7 @@ def choose_action(faction_name, world):
 
     attackable_regions = get_attackable_regions(faction_name, world)
     expandable_regions = get_expandable_regions(faction_name, world)
-    investable_regions = get_investable_regions(faction_name, world)
+    investable_regions = get_developable_regions(faction_name, world)
 
     can_attack = bool(attackable_regions) and faction.treasury >= ATTACK_COST
     can_expand = bool(expandable_regions) and faction.treasury >= EXPANSION_COST
@@ -134,7 +137,7 @@ def choose_action(faction_name, world):
 
     if can_invest:
         best_invest_target = choose_invest_target(faction_name, world)
-        best_invest_components = get_invest_target_score_components(
+        best_invest_components = get_development_target_score_components(
             best_invest_target,
             faction_name,
             world,
@@ -188,7 +191,7 @@ def choose_action(faction_name, world):
             invest_utility += 0.03
         if is_proto_state:
             invest_utility += REBEL_PROTO_INVEST_UTILITY_BONUS
-        action_utilities["invest"] = invest_utility
+        action_utilities["develop"] = invest_utility
 
     if action_utilities:
         best_action = max(
@@ -199,13 +202,13 @@ def choose_action(faction_name, world):
             return ("attack", best_attack_target)
         if best_action == "expand":
             return ("expand", best_expand_target)
-        if best_action == "invest":
-            return ("invest", best_invest_target)
+        if best_action == "develop":
+            return ("develop", best_invest_target)
 
     if can_expand:
         return ("expand", best_expand_target)
     if can_invest:
-        return ("invest", best_invest_target)
+        return ("develop", best_invest_target)
     if can_attack:
         return ("attack", best_attack_target)
 

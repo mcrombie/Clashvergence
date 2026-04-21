@@ -153,9 +153,18 @@ class Region:
     resource_route_bottleneck: float = 1.0
     last_resource_project_turn: int | None = None
     infrastructure_level: float = 0.0
+    granary_level: float = 0.0
     agriculture_level: float = 0.0
     pastoral_level: float = 0.0
     extractive_level: float = 0.0
+    food_stored: float = 0.0
+    food_storage_capacity: float = 0.0
+    food_produced: float = 0.0
+    food_consumption: float = 0.0
+    food_balance: float = 0.0
+    food_deficit: float = 0.0
+    food_spoilage: float = 0.0
+    food_overflow: float = 0.0
     population: int = 0
     ethnic_composition: dict[str, int] = field(default_factory=dict)
     display_name: str = ""

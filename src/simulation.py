@@ -1,5 +1,5 @@
 from src.agents import choose_action
-from src.actions import attack, expand, invest
+from src.actions import attack, develop, expand, invest
 from src.config import (
     EMPIRE_FREE_REGIONS,
     EMPIRE_SCALE_COST,
@@ -129,13 +129,13 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
                 else:
                     print(f"{faction_name} attacked {target_region_name} but failed")
 
-        elif action_name == "invest":
-            success = invest(faction_name, target_region_name, world)
+        elif action_name in {"develop", "invest"}:
+            success = develop(faction_name, target_region_name, world)
             if verbose:
                 if success:
-                    print(f"{faction_name} invested in {target_region_name}")
+                    print(f"{faction_name} developed {target_region_name}")
                 else:
-                    print(f"{faction_name} failed to invest in {target_region_name}")
+                    print(f"{faction_name} failed to develop {target_region_name}")
 
         else:
             if verbose:

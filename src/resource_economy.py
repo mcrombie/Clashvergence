@@ -9,6 +9,8 @@ from src.config import (
     FOOD_STORAGE_BASE_SPOILAGE,
     FOOD_STORAGE_CITY_BONUS,
     FOOD_STORAGE_CORE_BONUS,
+    FOOD_STORAGE_GRANARY_FACTOR,
+    FOOD_STORAGE_GRANARY_SPOILAGE_REDUCTION,
     FOOD_STORAGE_HOMELAND_BONUS,
     FOOD_STORAGE_INFRASTRUCTURE_FACTOR,
     FOOD_STORAGE_INFRASTRUCTURE_SPOILAGE_REDUCTION,
@@ -129,6 +131,17 @@ def ensure_region_resource_state(region: Region) -> None:
     region.resource_route_cost = round(float(region.resource_route_cost or 0.0), 3)
     region.resource_route_anchor = region.resource_route_anchor or None
     region.resource_route_bottleneck = round(float(region.resource_route_bottleneck or 0.0), 3)
+
+
+def ensure_region_food_state(region: Region) -> None:
+    region.food_stored = round(max(0.0, float(region.food_stored or 0.0)), 3)
+    region.food_storage_capacity = round(max(0.0, float(region.food_storage_capacity or 0.0)), 3)
+    region.food_produced = round(max(0.0, float(region.food_produced or 0.0)), 3)
+    region.food_consumption = round(max(0.0, float(region.food_consumption or 0.0)), 3)
+    region.food_balance = round(float(region.food_balance or 0.0), 3)
+    region.food_deficit = round(max(0.0, float(region.food_deficit or 0.0)), 3)
+    region.food_spoilage = round(max(0.0, float(region.food_spoilage or 0.0)), 3)
+    region.food_overflow = round(max(0.0, float(region.food_overflow or 0.0)), 3)
 
 
 def _ensure_faction_resource_state(faction: Faction) -> None:
@@ -760,30 +773,34 @@ def get_faction_food_storage_capacity(
     world: WorldState,
     faction_name: str,
 ) -> float:
-    owned_regions = [
-        region
-        for region in world.regions.values()
-        if region.owner == faction_name
-    ]
-    if not owned_regions:
-        return 0.0
+    return round(
+        sum(
+            get_region_food_storage_capacity(region)
+            for region in world.regions.values()
+            if region.owner == faction_name
+        ),
+        3,
+    )
 
-    capacity = 0.0
-    for region in owned_regions:
-        capacity += FOOD_STORAGE_BASE_PER_REGION
-        capacity += region.infrastructure_level * FOOD_STORAGE_INFRASTRUCTURE_FACTOR
-        capacity += region.agriculture_level * FOOD_STORAGE_AGRICULTURE_FACTOR
-        capacity += {
-            "rural": FOOD_STORAGE_RURAL_BONUS,
-            "town": FOOD_STORAGE_TOWN_BONUS,
-            "city": FOOD_STORAGE_CITY_BONUS,
-        }.get(region.settlement_level, 0.0)
-        status = get_region_core_status(region)
-        if status == "homeland":
-            capacity += FOOD_STORAGE_HOMELAND_BONUS
-        elif status == "core":
-            capacity += FOOD_STORAGE_CORE_BONUS
 
+def get_region_food_storage_capacity(region: Region) -> float:
+    capacity = FOOD_STORAGE_BASE_PER_REGION
+    capacity += {
+        "rural": FOOD_STORAGE_RURAL_BONUS,
+        "town": FOOD_STORAGE_TOWN_BONUS,
+        "city": FOOD_STORAGE_CITY_BONUS,
+    }.get(region.settlement_level, 0.0)
+    if region.granary_level > 0:
+        capacity += region.granary_level * (
+            FOOD_STORAGE_GRANARY_FACTOR
+            + (region.infrastructure_level * FOOD_STORAGE_INFRASTRUCTURE_FACTOR)
+            + (region.agriculture_level * FOOD_STORAGE_AGRICULTURE_FACTOR)
+        )
+    status = get_region_core_status(region)
+    if status == "homeland":
+        capacity += FOOD_STORAGE_HOMELAND_BONUS
+    elif status == "core":
+        capacity += FOOD_STORAGE_CORE_BONUS
     return round(capacity, 3)
 
 
@@ -799,13 +816,36 @@ def get_faction_food_spoilage_rate(
     if not owned_regions:
         return FOOD_STORAGE_BASE_SPOILAGE
 
-    average_infrastructure = (
-        sum(region.infrastructure_level for region in owned_regions) / max(1, len(owned_regions))
-    )
+    total_stored = sum(region.food_stored for region in owned_regions)
+    if total_stored <= 0:
+        return round(
+            sum(get_region_food_spoilage_rate(region) for region in owned_regions) / max(1, len(owned_regions)),
+            3,
+        )
+
+    weighted_rate = sum(
+        region.food_stored * get_region_food_spoilage_rate(region)
+        for region in owned_regions
+    ) / total_stored
+    return round(weighted_rate, 3)
+
+
+def get_region_food_spoilage_rate(region: Region) -> float:
     spoilage_rate = FOOD_STORAGE_BASE_SPOILAGE - (
-        average_infrastructure * FOOD_STORAGE_INFRASTRUCTURE_SPOILAGE_REDUCTION
+        region.infrastructure_level * FOOD_STORAGE_INFRASTRUCTURE_SPOILAGE_REDUCTION
+    ) - (
+        region.granary_level * FOOD_STORAGE_GRANARY_SPOILAGE_REDUCTION
     )
-    return round(_clamp(spoilage_rate, FOOD_STORAGE_MIN_SPOILAGE, FOOD_STORAGE_BASE_SPOILAGE), 3)
+    return round(
+        _clamp(spoilage_rate, FOOD_STORAGE_MIN_SPOILAGE, FOOD_STORAGE_BASE_SPOILAGE),
+        3,
+    )
+
+
+def get_region_food_demand(region: Region) -> float:
+    if region.owner is None or region.population <= 0:
+        return 0.0
+    return round(max(0.2, region.population / 138.0), 3)
 
 
 def _build_faction_derived_capacity(
@@ -855,9 +895,33 @@ def _build_faction_resource_shortages(
             else faction.resource_effective_access.get(key, 0.0)
         )
         if key == CAPACITY_FOOD_SECURITY:
-            access_value += min(faction.food_stored, demand_value)
+            shortages[key] = round(
+                max(
+                    max(0.0, demand_value - access_value),
+                    faction.food_deficit,
+                ),
+                3,
+            )
+            continue
         shortages[key] = round(max(0.0, demand_value - access_value), 3)
     return shortages
+
+
+def _update_faction_food_aggregate(world: WorldState, faction_name: str) -> None:
+    faction = world.factions[faction_name]
+    owned_regions = [
+        region
+        for region in world.regions.values()
+        if region.owner == faction_name
+    ]
+    faction.food_storage_capacity = round(sum(region.food_storage_capacity for region in owned_regions), 3)
+    faction.food_stored = round(sum(region.food_stored for region in owned_regions), 3)
+    faction.food_produced = round(sum(region.food_produced for region in owned_regions), 3)
+    faction.food_consumption = round(sum(region.food_consumption for region in owned_regions), 3)
+    faction.food_balance = round(sum(region.food_balance for region in owned_regions), 3)
+    faction.food_deficit = round(sum(region.food_deficit for region in owned_regions), 3)
+    faction.food_spoilage = round(sum(region.food_spoilage for region in owned_regions), 3)
+    faction.food_overflow = round(sum(region.food_overflow for region in owned_regions), 3)
 
 
 def update_faction_resource_economy(
@@ -877,6 +941,7 @@ def update_faction_resource_economy(
 
     for region in world.regions.values():
         ensure_region_resource_state(region)
+        ensure_region_food_state(region)
         if advance_resources:
             advance_region_domesticable_resources(region)
         refresh_region_resource_state(
@@ -884,6 +949,27 @@ def update_faction_resource_economy(
             world,
             faction_route_map=faction_route_maps.get(region.owner or "", {}),
         )
+        if region.owner is None:
+            region.food_storage_capacity = 0.0
+            region.food_stored = 0.0
+            region.food_produced = 0.0
+            region.food_consumption = 0.0
+            region.food_balance = 0.0
+            region.food_deficit = 0.0
+            region.food_spoilage = 0.0
+            region.food_overflow = 0.0
+        else:
+            region.food_storage_capacity = get_region_food_storage_capacity(region)
+            region.food_stored = round(
+                min(region.food_stored, region.food_storage_capacity),
+                3,
+            )
+            region.food_produced = round(
+                region.resource_output.get(RESOURCE_GRAIN, 0.0)
+                + region.resource_output.get(RESOURCE_WILD_FOOD, 0.0),
+                3,
+            )
+            region.food_consumption = get_region_food_demand(region)
         if region.owner in faction_gross_totals:
             for resource_name, amount in region.resource_output.items():
                 faction_gross_totals[region.owner][resource_name] += amount
@@ -903,11 +989,7 @@ def update_faction_resource_economy(
             for resource_name in ALL_RESOURCES
         })
         faction.resource_access = normalize_resource_map(faction.resource_effective_access)
-        faction.food_storage_capacity = get_faction_food_storage_capacity(world, faction_name)
-        faction.food_stored = round(
-            min(faction.food_stored, faction.food_storage_capacity),
-            3,
-        )
+        _update_faction_food_aggregate(world, faction_name)
         faction.derived_capacity = _build_faction_derived_capacity(
             world,
             faction_name,
@@ -918,16 +1000,28 @@ def update_faction_resource_economy(
 
 
 def apply_turn_food_economy(world: WorldState) -> None:
-    for faction_name, faction in world.factions.items():
-        _ensure_faction_resource_state(faction)
-        food_demand = get_faction_resource_demand(world, faction_name)[CAPACITY_FOOD_SECURITY]
+    for region in world.regions.values():
+        ensure_region_food_state(region)
+        if region.owner is None:
+            region.food_storage_capacity = 0.0
+            region.food_stored = 0.0
+            region.food_produced = 0.0
+            region.food_consumption = 0.0
+            region.food_balance = 0.0
+            region.food_deficit = 0.0
+            region.food_spoilage = 0.0
+            region.food_overflow = 0.0
+            continue
+
         food_produced = round(
-            faction.derived_capacity.get(CAPACITY_FOOD_SECURITY, 0.0),
+            region.resource_output.get(RESOURCE_GRAIN, 0.0)
+            + region.resource_output.get(RESOURCE_WILD_FOOD, 0.0),
             3,
         )
-        food_storage_capacity = get_faction_food_storage_capacity(world, faction_name)
-        food_stored = min(faction.food_stored, food_storage_capacity)
-        spoilage_rate = get_faction_food_spoilage_rate(world, faction_name)
+        food_demand = get_region_food_demand(region)
+        food_storage_capacity = get_region_food_storage_capacity(region)
+        food_stored = min(region.food_stored, food_storage_capacity)
+        spoilage_rate = get_region_food_spoilage_rate(region)
         food_spoilage = round(min(food_stored, food_stored * spoilage_rate), 3)
         usable_stored_food = round(max(0.0, food_stored - food_spoilage), 3)
         available_food = round(food_produced + usable_stored_food, 3)
@@ -939,17 +1033,21 @@ def apply_turn_food_economy(world: WorldState) -> None:
             3,
         )
 
-        faction.food_storage_capacity = round(food_storage_capacity, 3)
-        faction.food_stored = round(
+        region.food_storage_capacity = round(food_storage_capacity, 3)
+        region.food_stored = round(
             min(food_storage_capacity, stored_after_consumption),
             3,
         )
-        faction.food_produced = food_produced
-        faction.food_consumption = round(food_demand, 3)
-        faction.food_balance = net_food
-        faction.food_deficit = food_deficit
-        faction.food_spoilage = food_spoilage
-        faction.food_overflow = food_overflow
+        region.food_produced = food_produced
+        region.food_consumption = round(food_demand, 3)
+        region.food_balance = net_food
+        region.food_deficit = food_deficit
+        region.food_spoilage = food_spoilage
+        region.food_overflow = food_overflow
+
+    for faction_name, faction in world.factions.items():
+        _ensure_faction_resource_state(faction)
+        _update_faction_food_aggregate(world, faction_name)
 
 
 def initialize_region_resources(world: WorldState) -> None:
