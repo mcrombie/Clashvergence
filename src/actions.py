@@ -58,6 +58,7 @@ from src.resources import (
 )
 from src.region_naming import assign_region_founding_name, format_region_reference
 from src.terrain import get_terrain_profile
+from src.visibility import faction_knows_region
 
 
 def get_expandable_regions(faction_name, world):
@@ -66,11 +67,14 @@ def get_expandable_regions(faction_name, world):
     expandable_regions: set[str] = set()
 
     for region in world.regions.values():
-        if region.owner == faction_name:
-            for neighbor_name in region.neighbors:
-                neighbor = world.regions[neighbor_name]
-                if neighbor.owner is None:
-                    expandable_regions.add(neighbor_name)
+        if region.owner != faction_name or not faction_knows_region(world, faction_name, region.name):
+            continue
+        for neighbor_name in region.neighbors:
+            if not faction_knows_region(world, faction_name, neighbor_name):
+                continue
+            neighbor = world.regions[neighbor_name]
+            if neighbor.owner is None:
+                expandable_regions.add(neighbor_name)
 
     return sorted(expandable_regions)
 
@@ -81,10 +85,12 @@ def get_attackable_regions(faction_name, world):
     attackable_regions: set[str] = set()
 
     for region in world.regions.values():
-        if region.owner != faction_name:
+        if region.owner != faction_name or not faction_knows_region(world, faction_name, region.name):
             continue
 
         for neighbor_name in region.neighbors:
+            if not faction_knows_region(world, faction_name, neighbor_name):
+                continue
             neighbor = world.regions[neighbor_name]
             if (
                 neighbor.owner is not None
@@ -1028,7 +1034,11 @@ def get_investable_regions(faction_name, world):
     investable_regions: set[str] = set()
 
     for region in world.regions.values():
-        if region.owner == faction_name and _get_investment_project_options(faction_name, region, world):
+        if (
+            region.owner == faction_name
+            and faction_knows_region(world, faction_name, region.name)
+            and _get_investment_project_options(faction_name, region, world)
+        ):
             investable_regions.add(region.name)
 
     return sorted(investable_regions)

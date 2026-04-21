@@ -49,6 +49,7 @@ from src.config import (
     DIPLOMACY_TRUST_MAX,
 )
 from src.models import Event, RelationshipState, WorldState
+from src.visibility import faction_knows_faction
 
 REGIME_ACCORD_DIPLOMATIC_FORMS = {"council", "assembly", "republic"}
 
@@ -66,8 +67,32 @@ def initialize_relationships(world: WorldState) -> None:
     ensure_relationship_entries(world)
 
 
+def _factions_have_diplomatic_contact(
+    world: WorldState,
+    faction_a: str,
+    faction_b: str,
+) -> bool:
+    faction_a_state = world.factions.get(faction_a)
+    faction_b_state = world.factions.get(faction_b)
+    if faction_a_state is None or faction_b_state is None:
+        return False
+    if (
+        not faction_a_state.known_factions
+        and not faction_b_state.known_factions
+        and not faction_a_state.known_regions
+        and not faction_b_state.known_regions
+    ):
+        return True
+    return (
+        faction_knows_faction(world, faction_a, faction_b)
+        and faction_knows_faction(world, faction_b, faction_a)
+    )
+
+
 def ensure_relationship_entries(world: WorldState) -> None:
     for faction_a, faction_b in combinations(sorted(world.factions), 2):
+        if not _factions_have_diplomatic_contact(world, faction_a, faction_b):
+            continue
         key = canonical_relationship_pair(faction_a, faction_b)
         world.relationships.setdefault(key, RelationshipState())
 
@@ -79,6 +104,8 @@ def get_relationship_state(
 ) -> RelationshipState:
     key = canonical_relationship_pair(faction_a, faction_b)
     if key not in world.relationships:
+        if not _factions_have_diplomatic_contact(world, faction_a, faction_b):
+            return RelationshipState()
         world.relationships[key] = RelationshipState()
     return world.relationships[key]
 
@@ -92,6 +119,9 @@ def get_relationship_score(world: WorldState, faction_a: str, faction_b: str) ->
 def get_relationship_status(world: WorldState, faction_a: str, faction_b: str) -> str:
     if faction_a == faction_b:
         return "self"
+    key = canonical_relationship_pair(faction_a, faction_b)
+    if key not in world.relationships and not _factions_have_diplomatic_contact(world, faction_a, faction_b):
+        return "unknown"
     return get_relationship_state(world, faction_a, faction_b).status
 
 
@@ -459,6 +489,8 @@ def update_relationships(world: WorldState) -> None:
     conflict_pairs = _process_conflict_memory(world)
 
     for faction_a, faction_b in combinations(sorted(world.factions), 2):
+        if not _factions_have_diplomatic_contact(world, faction_a, faction_b):
+            continue
         state = get_relationship_state(world, faction_a, faction_b)
         shared_borders = _count_shared_borders(world, faction_a, faction_b)
         state.border_friction = min(
@@ -592,6 +624,8 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
     for other_faction in world.factions:
         if other_faction == faction_name:
             continue
+        if not _factions_have_diplomatic_contact(world, faction_name, other_faction):
+            continue
         state = get_relationship_state(world, faction_name, other_faction)
         counterpart_scores.append((other_faction, state.score, state.status))
         polity_tension = _get_polity_tier_modifier(world, faction_name, other_faction)
@@ -627,6 +661,8 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
 
     for region in world.regions.values():
         if region.owner is None or region.owner == faction_name:
+            continue
+        if not _factions_have_diplomatic_contact(world, faction_name, region.owner):
             continue
         if faction_has_ethnic_claim(world, region, faction_name):
             claim_disputes[region.owner] = claim_disputes.get(region.owner, 0) + 1

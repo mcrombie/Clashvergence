@@ -1327,6 +1327,8 @@ def _restore_extinct_faction(
     former_owner: str,
     region_name: str,
 ) -> None:
+    from src.visibility import inherit_parent_visibility
+
     faction = world.factions[faction_name]
     faction.treasury = REBEL_STARTING_TREASURY
     faction.starting_treasury = REBEL_STARTING_TREASURY
@@ -1343,6 +1345,12 @@ def _restore_extinct_faction(
         faction.doctrine_state.homeland_terrain_tags = list(world.regions[region_name].terrain_tags)
     if faction.origin_faction is None and faction.is_rebel:
         faction.origin_faction = former_owner
+    inherit_parent_visibility(
+        world,
+        faction_name,
+        former_owner,
+        extra_region_names=[region_name, *world.regions[region_name].neighbors],
+    )
 
 
 def _find_adjacent_rebel_destination(
@@ -1426,6 +1434,7 @@ def _get_civil_war_display_name(
 
 def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -> tuple[str, bool]:
     from src.doctrine import initialize_rebel_faction_doctrine
+    from src.visibility import inherit_parent_visibility
 
     restored_faction_name = _find_extinct_ethnic_restoration_faction(
         world,
@@ -1490,6 +1499,12 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         rebel_name,
         former_owner,
         region.name,
+    )
+    inherit_parent_visibility(
+        world,
+        rebel_name,
+        former_owner,
+        extra_region_names=[region.name, *region.neighbors],
     )
     seed_rebel_origin_relationship(world, rebel_name, former_owner)
     return rebel_name, False

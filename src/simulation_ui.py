@@ -798,6 +798,7 @@ def build_simulation_view_model(world):
             "origin_faction": world.factions[faction_name].origin_faction,
             "rebel_conflict_type": world.factions[faction_name].rebel_conflict_type,
             "proto_state": world.factions[faction_name].proto_state,
+            "known_factions": list(world.factions[faction_name].known_factions or []),
             "government_type": world.factions[faction_name].government_type,
             "polity_tier": world.factions[faction_name].polity_tier,
             "government_form": world.factions[faction_name].government_form,

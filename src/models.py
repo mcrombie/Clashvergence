@@ -268,6 +268,9 @@ class Faction:
     resource_access: dict[str, float] = field(default_factory=dict)
     resource_shortages: dict[str, float] = field(default_factory=dict)
     derived_capacity: dict[str, float] = field(default_factory=dict)
+    known_regions: list[str] = field(default_factory=list)
+    visible_regions: list[str] = field(default_factory=list)
+    known_factions: list[str] = field(default_factory=list)
 
     def __post_init__(self):
         if self.starting_treasury == 0:

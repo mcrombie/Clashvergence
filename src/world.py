@@ -17,6 +17,7 @@ from src.resource_economy import (
     initialize_region_resources,
     update_faction_resource_economy,
 )
+from src.visibility import initialize_faction_visibility
 
 
 def create_world(
@@ -82,7 +83,6 @@ def create_world(
             seed_region_ethnicity(region, primary_ethnicity)
         homeland_assigned[region.owner] = owned_count + 1
 
-    initialize_relationships(world)
     update_faction_resource_economy(world)
     for region in world.regions.values():
         if region.owner is None:
@@ -97,6 +97,8 @@ def create_world(
             seed_region_ethnicity(region, primary_ethnicity)
     update_region_settlement_levels(world)
     update_faction_resource_economy(world)
+    initialize_faction_visibility(world)
+    initialize_relationships(world)
     initialize_region_history(world)
 
     return world

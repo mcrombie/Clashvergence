@@ -12,6 +12,8 @@ from src.diplomacy import (
 )
 from src.models import Event, Faction, FactionIdentity, Region, RelationshipState, WorldState
 from src.simulation_ui import _serialize_event
+from src.visibility import establish_faction_contact, initialize_faction_visibility, refresh_faction_visibility
+from src.world import create_world
 
 
 class DiplomacySystemTests(unittest.TestCase):
@@ -589,6 +591,104 @@ class DiplomacySystemTests(unittest.TestCase):
 
         self.assertIn("stirred unrest", serialized["title"].lower())
         self.assertIn("backing same-people unrest", serialized["summary"].lower())
+
+    def test_uncontacted_factions_start_with_unknown_relationship_status(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_names = list(world.factions)
+
+        self.assertEqual(get_relationship_status(world, faction_names[0], faction_names[1]), "unknown")
+        self.assertEqual(world.relationships, {})
+
+    def test_visible_border_discovers_faction_and_creates_relationship_entry(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=2,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionB",
+                    resources=2,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA"),
+                "FactionB": Faction(name="FactionB"),
+            },
+        )
+
+        initialize_faction_visibility(world)
+        initialize_relationships(world)
+
+        self.assertIn("FactionB", world.factions["FactionA"].known_factions)
+        self.assertIn(("FactionA", "FactionB"), world.relationships)
+        self.assertEqual(get_relationship_status(world, "FactionA", "FactionB"), "neutral")
+
+    def test_diplomacy_summary_ignores_unknown_factions(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+
+        summary = get_faction_diplomacy_summary(world, faction_name)
+
+        self.assertEqual(summary["top_ally"], None)
+        self.assertEqual(summary["top_rival"], None)
+        self.assertEqual(summary["alliance_count"], 0)
+        self.assertEqual(summary["pact_count"], 0)
+        self.assertEqual(summary["rival_count"], 0)
+
+    def test_expansion_contact_refresh_can_discover_new_faction(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=2,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A", "C"],
+                    owner=None,
+                    resources=2,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+                "C": Region(
+                    name="C",
+                    neighbors=["B"],
+                    owner="FactionB",
+                    resources=2,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA"),
+                "FactionB": Faction(name="FactionB"),
+            },
+        )
+
+        initialize_faction_visibility(world)
+        initialize_relationships(world)
+
+        self.assertEqual(get_relationship_status(world, "FactionA", "FactionB"), "unknown")
+
+        world.regions["B"].owner = "FactionA"
+        refresh_faction_visibility(world, "FactionA")
+        update_relationships(world)
+
+        self.assertIn("FactionB", world.factions["FactionA"].known_factions)
+        self.assertEqual(get_relationship_status(world, "FactionA", "FactionB"), "neutral")
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ from src.resource_economy import (
     get_region_taxable_value,
     update_faction_resource_economy,
 )
+from src.visibility import refresh_all_faction_visibility, refresh_faction_visibility
 from src.heartland import (
     get_region_surplus,
     record_region_history,
@@ -95,6 +96,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
         print(f"\nTurn {world.turn + 1}")
 
     update_faction_resource_economy(world, advance_resources=True)
+    refresh_all_faction_visibility(world)
 
     # shuffle turn order
     if faction_order is None:
@@ -107,6 +109,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
 
     for faction_name in turn_order:
         update_faction_resource_economy(world, advance_resources=False)
+        refresh_faction_visibility(world, faction_name)
         action_name, target_region_name = choose_action(faction_name, world)
 
         if action_name == "expand":
@@ -137,6 +140,8 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
             if verbose:
                 print(f"{faction_name} skipped its turn")
 
+        refresh_faction_visibility(world, faction_name)
+
     update_faction_resource_economy(world, advance_resources=False)
     resolve_unrest_events(world)
     update_faction_resource_economy(world, advance_resources=False)
@@ -149,6 +154,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     update_faction_polity_tiers(world)
     update_relationships(world)
     update_faction_doctrines(world)
+    refresh_all_faction_visibility(world)
     if verbose:
         for faction_name in turn_order:
             data = economy_snapshot[faction_name]

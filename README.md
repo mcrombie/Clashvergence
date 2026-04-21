@@ -4,7 +4,7 @@ Clashvergence is a simulation-first project about how polities grow, compete, co
 
 At its current stage, the simulation already supports territory expansion, war, investment, population, settlement growth, climate and terrain effects, faction doctrine, diplomacy, ethnicity, unrest, secession, rebel proto-states, government forms, polity advancement, narrative reporting, and an HTML turn-by-turn viewer.
 
-`README.TXT` remains in the repo as an earlier development journal. This `README.md` describes the current project state.
+This `README.md` describes the current project state.
 
 ## Project Direction
 
