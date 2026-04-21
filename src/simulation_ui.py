@@ -450,8 +450,8 @@ def build_simulation_snapshots(world):
     initial_region_history = world.region_history[0] if world.region_history else {}
     region_state = {
         region_name: {
-            "owner": initial_state[region_name]["owner"],
-            "resources": initial_state[region_name]["resources"],
+            "owner": initial_region_history.get(region_name, {}).get("owner", initial_state[region_name]["owner"]),
+            "resources": initial_region_history.get(region_name, {}).get("resources", initial_state[region_name]["resources"]),
             "population": initial_region_history.get(region_name, {}).get("population", region.population),
             "productive_capacity": initial_region_history.get(region_name, {}).get("productive_capacity", get_region_productive_capacity(region, world)),
             "population_pressure": initial_region_history.get(region_name, {}).get("population_pressure", get_region_population_pressure(region)),
@@ -466,17 +466,22 @@ def build_simulation_snapshots(world):
             "external_regime_agitators": list(initial_region_history.get(region_name, {}).get("external_regime_agitators", get_region_external_regime_agitators(region, world))),
             "external_regime_agitation": initial_region_history.get(region_name, {}).get("external_regime_agitation", round(get_region_external_regime_agitation_modifier(region, world), 3)),
             "neighbors": list(region.neighbors),
-            "display_name": region.display_name if initial_state[region_name]["owner"] is not None else region.name,
-            "founding_name": region.founding_name if initial_state[region_name]["owner"] is not None else "",
-            "original_namer_faction_id": (
-                region.original_namer_faction_id
-                if initial_state[region_name]["owner"] is not None
-                else None
+            "display_name": initial_region_history.get(region_name, {}).get(
+                "display_name",
+                region.display_name if initial_state[region_name]["owner"] is not None else region.name,
+            ),
+            "founding_name": initial_region_history.get(region_name, {}).get(
+                "founding_name",
+                region.founding_name if initial_state[region_name]["owner"] is not None else "",
+            ),
+            "original_namer_faction_id": initial_region_history.get(region_name, {}).get(
+                "original_namer_faction_id",
+                region.original_namer_faction_id if initial_state[region_name]["owner"] is not None else None,
             ),
             "terrain_tags": list(region.terrain_tags),
             "terrain_label": format_terrain_label(region.terrain_tags),
-            "climate": region.climate,
-            "climate_label": format_climate_label(region.climate),
+            "climate": initial_region_history.get(region_name, {}).get("climate", region.climate),
+            "climate_label": format_climate_label(initial_region_history.get(region_name, {}).get("climate", region.climate)),
             "resource_fixed_endowments": dict(initial_region_history.get(region_name, {}).get("resource_fixed_endowments", region.resource_fixed_endowments)),
             "resource_wild_endowments": dict(initial_region_history.get(region_name, {}).get("resource_wild_endowments", region.resource_wild_endowments)),
             "resource_suitability": dict(initial_region_history.get(region_name, {}).get("resource_suitability", region.resource_suitability)),
@@ -1194,6 +1199,15 @@ def render_simulation_html(world):
       margin-bottom: 14px;
       flex-wrap: wrap;
     }}
+    .playback-section-tabs {{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }}
+    .playback-tab-panel.hidden {{
+      display: none;
+    }}
     .playback-layout {{
       display: grid;
       grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.62fr);
@@ -1275,6 +1289,11 @@ def render_simulation_html(world):
       color: #fff;
       background: linear-gradient(135deg, #204e4a, #356f69);
       box-shadow: 0 10px 20px rgba(32, 78, 74, 0.16);
+    }}
+    button:disabled {{
+      cursor: not-allowed;
+      opacity: 0.52;
+      box-shadow: none;
     }}
     .turn-readout {{
       font-size: 0.95rem;
@@ -1649,6 +1668,27 @@ def render_simulation_html(world):
       border-radius: 16px;
       min-width: 0;
     }}
+    .standing-item.selectable {{
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }}
+    .standing-item.selectable:hover {{
+      transform: translateY(-1px);
+      border-color: rgba(32, 78, 74, 0.24);
+      box-shadow: 0 10px 24px rgba(32, 78, 74, 0.08);
+    }}
+    .standing-item.selectable:focus-visible {{
+      outline: 3px solid rgba(32, 78, 74, 0.24);
+      outline-offset: 2px;
+    }}
+    .standing-cta {{
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-top: 2px;
+    }}
     .standing-row {{
       display: flex;
       justify-content: space-between;
@@ -1754,6 +1794,150 @@ def render_simulation_html(world):
       font-size: 0.98rem;
       color: var(--ink);
     }}
+    .region-focus-layout {{
+      display: grid;
+      gap: 18px;
+    }}
+    .region-focus-hero {{
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }}
+    .region-portrait-card {{
+      background:
+        radial-gradient(circle at 25% 20%, rgba(255,255,255,0.9), rgba(255,255,255,0.22)),
+        linear-gradient(160deg, rgba(32, 78, 74, 0.1), rgba(212, 183, 132, 0.16));
+      border: 1px solid rgba(63, 74, 89, 0.1);
+      border-radius: 24px;
+      padding: 16px;
+    }}
+    .region-portrait-frame {{
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(63, 74, 89, 0.12);
+      background:
+        radial-gradient(circle at 20% 18%, rgba(255,255,255,0.76), transparent 42%),
+        linear-gradient(180deg, rgba(248, 244, 236, 0.92), rgba(227, 236, 232, 0.86));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+    }}
+    .region-portrait-svg {{
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      display: block;
+    }}
+    .region-portrait-caption {{
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }}
+    .region-focus-headline {{
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }}
+    .region-focus-main-column {{
+      display: grid;
+      gap: 14px;
+      align-content: start;
+      min-width: 0;
+    }}
+    .region-focus-event-card {{
+      align-self: stretch;
+    }}
+    .region-focus-title {{
+      margin: 0;
+      font-size: 2rem;
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+      color: #13212c;
+    }}
+    .region-focus-subtitle {{
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.55;
+    }}
+    .region-focus-kpis {{
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }}
+    .region-focus-grid {{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }}
+    .inspector-card {{
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.6);
+      border: 1px solid rgba(63, 74, 89, 0.08);
+      min-width: 0;
+    }}
+    .inspector-card.prominent {{
+      background:
+        linear-gradient(160deg, rgba(32, 78, 74, 0.08), rgba(255,255,255,0.7)),
+        rgba(255,255,255,0.62);
+    }}
+    .inspector-title {{
+      margin: 0;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }}
+    .metric-strip {{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }}
+    .metric-block {{
+      display: grid;
+      gap: 3px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.64);
+      border: 1px solid rgba(63, 74, 89, 0.08);
+      min-width: 0;
+    }}
+    .metric-number {{
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #13212c;
+    }}
+    .metric-caption {{
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }}
+    .metric-line {{
+      color: var(--ink);
+      font-size: 0.96rem;
+      line-height: 1.5;
+    }}
+    .metric-line strong {{
+      color: #13212c;
+    }}
+    .region-focus-actions {{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }}
+    .region-event-list {{
+      display: grid;
+      gap: 10px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }}
     .panel-note {{
       margin: 6px 0 0;
       color: var(--muted);
@@ -1769,7 +1953,13 @@ def render_simulation_html(world):
       .standings-bar,
       .hero-meta,
       .stat-grid,
-      .detail-grid-two {{
+      .detail-grid-two,
+      .region-focus-grid,
+      .region-focus-kpis,
+      .metric-strip {{
+        grid-template-columns: 1fr;
+      }}
+      .region-focus-hero {{
         grid-template-columns: 1fr;
       }}
       .settings-block {{
@@ -1789,6 +1979,9 @@ def render_simulation_html(world):
       }}
       .stat-grid.compact {{
         grid-template-columns: 1fr;
+      }}
+      .playback-section-tabs {{
+        display: grid;
       }}
       h1 {{
         line-height: 1.02;
@@ -1835,6 +2028,7 @@ def render_simulation_html(world):
         </div>
 
         <h2 class="section-title">Map Playback</h2>
+        <div class="playback-section-tabs" id="playback-tabs"></div>
         <div class="controls">
           <div class="transport">
             <button type="button" id="play-toggle">Play</button>
@@ -1848,6 +2042,7 @@ def render_simulation_html(world):
           </div>
           <input id="turn-slider" type="range" min="0" max="0" value="0">
         </div>
+        <div class="playback-tab-panel" id="map-playback-panel">
         <div class="playback-layout">
           <div class="map-stage">
             <div class="map-shell">
@@ -1877,16 +2072,14 @@ def render_simulation_html(world):
                 <div class="list scroll-panel" id="turn-events"></div>
               </div>
             </section>
-            <section class="side-section">
-              <h3 class="side-title">Region Detail</h3>
-              <article class="summary-card" id="region-detail"></article>
-            </section>
-            <section class="side-section">
-              <h3 class="side-title">Doctrine Evolution</h3>
-              <p class="panel-note">Faction posture, diplomacy, and structural pressure at the current turn.</p>
-              <div class="summary-stack scroll-panel" id="doctrine-panel"></div>
-            </section>
           </aside>
+        </div>
+        </div>
+        <div class="playback-tab-panel hidden" id="region-playback-panel">
+          <div class="region-focus-layout" id="selected-region-view"></div>
+        </div>
+        <div class="playback-tab-panel hidden" id="faction-playback-panel">
+          <div class="region-focus-layout" id="selected-faction-view"></div>
         </div>
         <div class="standings-bar" id="standings"></div>
       </div>
@@ -1896,17 +2089,6 @@ def render_simulation_html(world):
         <div class="summary-stack" id="run-summary"></div>
       </div>
 
-      <div class="panel">
-        <div class="section-header">
-          <h2 class="section-title">Doctrine Timeline</h2>
-          <div class="timeline-controls" id="doctrine-timeline-controls"></div>
-        </div>
-        <div class="timeline-shell">
-          <svg viewBox="0 0 920 320" role="img" aria-label="Doctrine posture timeline" id="doctrine-timeline"></svg>
-          <div class="timeline-key" id="doctrine-timeline-key"></div>
-          <p class="timeline-caption" id="doctrine-timeline-caption"></p>
-        </div>
-      </div>
     </section>
   </div>
 
@@ -1922,7 +2104,9 @@ def render_simulation_html(world):
       showTerrainOverlay: false,
       colorMode: "ownership",
       mapDataMode: "taxable",
+      playbackTab: "map",
       focusRegionName: null,
+      focusFactionName: null,
     }};
 
     const slider = document.getElementById("turn-slider");
@@ -1930,6 +2114,10 @@ def render_simulation_html(world):
     const playToggle = document.getElementById("play-toggle");
     const prevButton = document.getElementById("prev-turn");
     const nextButton = document.getElementById("next-turn");
+    const playbackTabs = document.getElementById("playback-tabs");
+    const mapPlaybackPanel = document.getElementById("map-playback-panel");
+    const regionPlaybackPanel = document.getElementById("region-playback-panel");
+    const factionPlaybackPanel = document.getElementById("faction-playback-panel");
     const viewToggle = document.getElementById("view-toggle");
     const terrainToggle = document.getElementById("terrain-toggle");
     const atlasBackgroundLayer = document.getElementById("atlas-background-layer");
@@ -1948,14 +2136,10 @@ def render_simulation_html(world):
     const standings = document.getElementById("standings");
     const turnContext = document.getElementById("turn-context");
     const turnEvents = document.getElementById("turn-events");
-    const doctrinePanel = document.getElementById("doctrine-panel");
-    const regionDetail = document.getElementById("region-detail");
+    const selectedRegionView = document.getElementById("selected-region-view");
+    const selectedFactionView = document.getElementById("selected-faction-view");
     const runSummaryPanel = document.getElementById("run-summary-panel");
     const runSummary = document.getElementById("run-summary");
-    const doctrineTimelineControls = document.getElementById("doctrine-timeline-controls");
-    const doctrineTimeline = document.getElementById("doctrine-timeline");
-    const doctrineTimelineKey = document.getElementById("doctrine-timeline-key");
-    const doctrineTimelineCaption = document.getElementById("doctrine-timeline-caption");
 
     const colorByFaction = Object.fromEntries(data.factions.map((faction) => [faction.name, faction.color]));
     const staticRegionByName = Object.fromEntries(data.regions.map((region) => [region.name, region]));
@@ -2019,10 +2203,6 @@ def render_simulation_html(world):
       development_posture: "#3c78a8",
       insularity: "#7b5ea7",
     }};
-
-    if (!state.focusFactionName && data.factions.length) {{
-      state.focusFactionName = data.factions[0].name;
-    }}
 
     function getTerrainColor(tags) {{
       const [primaryTag = "plains"] = tags || [];
@@ -2156,6 +2336,10 @@ def render_simulation_html(world):
       return faction ? (faction.display_name || faction.name) : factionName;
     }}
 
+    function formatDoctrineLabel(label) {{
+      return escapeHtml(label || "Forming");
+    }}
+
     function svgElement(name, attrs) {{
       const element = document.createElementNS("http://www.w3.org/2000/svg", name);
       for (const [key, value] of Object.entries(attrs)) {{
@@ -2169,6 +2353,418 @@ def render_simulation_html(world):
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;");
+    }}
+
+    function sumResourceMap(resourceMap) {{
+      return Object.values(resourceMap || {{}})
+        .reduce((total, value) => total + Number(value || 0), 0);
+    }}
+
+    function hexToRgba(hex, alpha) {{
+      const normalized = String(hex || "").replace("#", "");
+      if (normalized.length !== 6) {{
+        return `rgba(32, 78, 74, ${{alpha}})`;
+      }}
+      const red = Number.parseInt(normalized.slice(0, 2), 16);
+      const green = Number.parseInt(normalized.slice(2, 4), 16);
+      const blue = Number.parseInt(normalized.slice(4, 6), 16);
+      return `rgba(${{red}}, ${{green}}, ${{blue}}, ${{alpha}})`;
+    }}
+
+    function fitPolygonPointsToFrame(points, frameX, frameY, frameWidth, frameHeight) {{
+      if (!Array.isArray(points) || !points.length) {{
+        return "";
+      }}
+      const xs = points.map((point) => Number(point[0]));
+      const ys = points.map((point) => Number(point[1]));
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const width = Math.max(1, maxX - minX);
+      const height = Math.max(1, maxY - minY);
+      const scale = Math.min(frameWidth / width, frameHeight / height);
+      const offsetX = frameX + ((frameWidth - (width * scale)) / 2) - (minX * scale);
+      const offsetY = frameY + ((frameHeight - (height * scale)) / 2) - (minY * scale);
+      return points
+        .map((point) => `${{(Number(point[0]) * scale + offsetX).toFixed(1)}},${{(Number(point[1]) * scale + offsetY).toFixed(1)}}`)
+        .join(" ");
+    }}
+
+    function getPointBounds(points) {{
+      if (!Array.isArray(points) || !points.length) {{
+        return {{ minX: 0, maxX: 1, minY: 0, maxY: 1 }};
+      }}
+      const xs = points.map((point) => Number(point[0]));
+      const ys = points.map((point) => Number(point[1]));
+      return {{
+        minX: Math.min(...xs),
+        maxX: Math.max(...xs),
+        minY: Math.min(...ys),
+        maxY: Math.max(...ys),
+      }};
+    }}
+
+    function transformPointsWithBounds(points, bounds, frameX, frameY, frameWidth, frameHeight) {{
+      if (!Array.isArray(points) || !points.length) {{
+        return "";
+      }}
+      const width = Math.max(1, Number(bounds.maxX) - Number(bounds.minX));
+      const height = Math.max(1, Number(bounds.maxY) - Number(bounds.minY));
+      const scale = Math.min(frameWidth / width, frameHeight / height);
+      const offsetX = frameX + ((frameWidth - (width * scale)) / 2) - (Number(bounds.minX) * scale);
+      const offsetY = frameY + ((frameHeight - (height * scale)) / 2) - (Number(bounds.minY) * scale);
+      return points
+        .map((point) => `${{(Number(point[0]) * scale + offsetX).toFixed(1)}},${{(Number(point[1]) * scale + offsetY).toFixed(1)}}`)
+        .join(" ");
+    }}
+
+    function getMiniTerrainSymbolMarkup(tag, centerX, centerY, size) {{
+      if (tag === "forest") {{
+        return `
+          <path d="M ${{centerX - size}} ${{centerY + (size * 0.9)}} L ${{centerX}} ${{centerY - size}} L ${{centerX + size}} ${{centerY + (size * 0.9)}} Z" fill="rgba(61, 122, 72, 0.18)" stroke="rgba(55, 98, 60, 0.72)" stroke-width="1.8" stroke-linejoin="round" />
+          <path d="M ${{centerX - (size * 0.5)}} ${{centerY + size}} L ${{centerX - (size * 0.5)}} ${{centerY + (size * 1.45)}}" stroke="rgba(74, 59, 43, 0.58)" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M ${{centerX + (size * 0.24)}} ${{centerY + (size * 0.7)}} L ${{centerX + (size * 0.24)}} ${{centerY + (size * 1.38)}}" stroke="rgba(74, 59, 43, 0.58)" stroke-width="1.8" stroke-linecap="round" />
+        `;
+      }}
+      if (tag === "riverland" || tag === "coast") {{
+        return `
+          <path d="M ${{centerX - (size * 1.2)}} ${{centerY - (size * 0.2)}} C ${{centerX - (size * 0.6)}} ${{centerY - (size * 1.1)}}, ${{centerX - (size * 0.1)}} ${{centerY + (size * 0.9)}}, ${{centerX + (size * 0.3)}} ${{centerY + (size * 0.1)}} C ${{centerX + (size * 0.62)}} ${{centerY - (size * 0.55)}}, ${{centerX + (size * 0.96)}} ${{centerY + (size * 0.8)}}, ${{centerX + (size * 1.3)}} ${{centerY + (size * 0.2)}}" fill="none" stroke="rgba(54, 105, 150, 0.76)" stroke-width="2.2" stroke-linecap="round" />
+        `;
+      }}
+      if (tag === "marsh") {{
+        return `
+          <path d="M ${{centerX - (size * 1.15)}} ${{centerY + (size * 0.65)}} Q ${{centerX - (size * 0.48)}} ${{centerY + (size * 0.12)}} ${{centerX}} ${{centerY + (size * 0.5)}} T ${{centerX + (size * 1.12)}} ${{centerY + (size * 0.52)}}" fill="none" stroke="rgba(76, 122, 110, 0.72)" stroke-width="2" stroke-linecap="round" />
+          <path d="M ${{centerX - (size * 0.65)}} ${{centerY + size}} Q ${{centerX - (size * 0.7)}} ${{centerY + (size * 0.1)}} ${{centerX - (size * 0.5)}} ${{centerY - (size * 0.6)}}" fill="none" stroke="rgba(55, 98, 60, 0.68)" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M ${{centerX + (size * 0.55)}} ${{centerY + size}} Q ${{centerX + (size * 0.52)}} ${{centerY + (size * 0.16)}} ${{centerX + (size * 0.68)}} ${{centerY - (size * 0.52)}}" fill="none" stroke="rgba(55, 98, 60, 0.68)" stroke-width="1.8" stroke-linecap="round" />
+        `;
+      }}
+      if (tag === "highland" || tag === "hills") {{
+        return `
+          <path d="M ${{centerX - (size * 1.25)}} ${{centerY + (size * 0.95)}} L ${{centerX - (size * 0.48)}} ${{centerY - (size * 0.7)}} L ${{centerX + (size * 0.08)}} ${{centerY + (size * 0.24)}} L ${{centerX + (size * 0.78)}} ${{centerY - (size * 0.44)}} L ${{centerX + (size * 1.25)}} ${{centerY + (size * 0.95)}}" fill="rgba(133, 104, 76, 0.12)" stroke="rgba(104, 81, 56, 0.74)" stroke-width="2" stroke-linejoin="round" />
+        `;
+      }}
+      if (tag === "steppe" || tag === "plains") {{
+        return `
+          <path d="M ${{centerX - (size * 1.2)}} ${{centerY + (size * 0.7)}} Q ${{centerX - (size * 0.5)}} ${{centerY - (size * 0.18)}} ${{centerX}} ${{centerY + (size * 0.34)}} T ${{centerX + (size * 1.2)}} ${{centerY + (size * 0.3)}}" fill="none" stroke="rgba(118, 125, 76, 0.74)" stroke-width="2" stroke-linecap="round" />
+        `;
+      }}
+      return `
+        <circle cx="${{centerX}}" cy="${{centerY}}" r="${{size * 0.68}}" fill="rgba(255,255,255,0.3)" stroke="rgba(63, 74, 89, 0.3)" stroke-width="1.6" />
+      `;
+    }}
+
+    function buildRegionPortraitSvg(regionName, regionSnapshot, staticRegion, ownerColor) {{
+      const terrainTags = getDisplayTerrainTags(regionSnapshot.terrain_tags || staticRegion.terrain_tags).slice(0, 3);
+      const terrainColor = getTerrainColor(regionSnapshot.terrain_tags || staticRegion.terrain_tags);
+      const climateColor = getClimateColor(regionSnapshot.climate || staticRegion.climate);
+      const atlasRegion = atlasRegionByName[regionName];
+      const polygonPoints = atlasRegion && Array.isArray(atlasRegion.polygon) && atlasRegion.polygon.length
+        ? fitPolygonPointsToFrame(atlasRegion.polygon, 34, 34, 152, 132)
+        : "";
+      const shapeMarkup = polygonPoints
+        ? `
+            <polygon points="${{polygonPoints}}" fill="${{hexToRgba(ownerColor, 0.15)}}" stroke="${{hexToRgba(ownerColor, 0.82)}}" stroke-width="2.4" stroke-linejoin="round" />
+            <polygon points="${{polygonPoints}}" fill="url(#terrain-wash-${{regionName}})" opacity="0.86" />
+          `
+        : `
+            <path d="M 42 132 L 82 54 L 162 44 L 186 114 L 140 176 L 62 170 Z" fill="${{hexToRgba(ownerColor, 0.14)}}" stroke="${{hexToRgba(ownerColor, 0.84)}}" stroke-width="2.4" stroke-linejoin="round" />
+            <path d="M 42 132 L 82 54 L 162 44 L 186 114 L 140 176 L 62 170 Z" fill="url(#terrain-wash-${{regionName}})" opacity="0.86" />
+          `;
+      const symbolCenters = [
+        [74, 88],
+        [112, 112],
+        [148, 82],
+      ];
+      const symbolMarkup = terrainTags
+        .map((tag, index) => getMiniTerrainSymbolMarkup(tag, symbolCenters[index][0], symbolCenters[index][1], 16))
+        .join("");
+      const settlementText = String(regionSnapshot.settlement_level || staticRegion.settlement_level || "wild")
+        .replaceAll("_", " ")
+        .replace(/(^|\\s)\\S/g, (match) => match.toUpperCase());
+
+      return `
+        <svg class="region-portrait-svg" viewBox="0 0 220 220" role="img" aria-label="Portrait of ${{escapeHtml(regionSnapshot.display_name || staticRegion.display_name || regionName)}}">
+          <defs>
+            <linearGradient id="sky-wash-${{regionName}}" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="${{hexToRgba(climateColor, 0.44)}}" />
+              <stop offset="100%" stop-color="${{hexToRgba(terrainColor, 0.38)}}" />
+            </linearGradient>
+            <linearGradient id="terrain-wash-${{regionName}}" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="${{hexToRgba(terrainColor, 0.62)}}" />
+              <stop offset="100%" stop-color="${{hexToRgba(climateColor, 0.5)}}" />
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="220" height="220" rx="24" fill="url(#sky-wash-${{regionName}})" />
+          <circle cx="44" cy="42" r="34" fill="rgba(255,255,255,0.32)" />
+          <circle cx="184" cy="176" r="54" fill="${{hexToRgba(ownerColor, 0.12)}}" />
+          <rect x="16" y="16" width="188" height="188" rx="22" fill="rgba(255,255,255,0.16)" stroke="rgba(255,255,255,0.4)" />
+          <g filter="drop-shadow(0 10px 18px rgba(24, 32, 43, 0.12))">
+            ${{shapeMarkup}}
+          </g>
+          <g>
+            ${{symbolMarkup}}
+          </g>
+          <rect x="16" y="16" width="58" height="24" rx="12" fill="rgba(255,255,255,0.72)" />
+          <text x="45" y="32" text-anchor="middle" font-size="10" font-weight="700" fill="#173040" letter-spacing="1.2">${{escapeHtml(regionName)}}</text>
+          <rect x="124" y="178" width="80" height="24" rx="12" fill="${{hexToRgba(ownerColor, 0.18)}}" />
+          <text x="164" y="194" text-anchor="middle" font-size="10" font-weight="700" fill="#173040" letter-spacing="1">${{escapeHtml(settlementText)}}</text>
+        </svg>
+      `;
+    }}
+
+    function buildFactionRealmMiniMapSvg(factionName, snapshot) {{
+      const factionColor = colorByFaction[factionName] || "#204e4a";
+      const ownedRegions = Object.entries(snapshot.regions || {{}})
+        .filter(([, region]) => region.owner === factionName)
+        .map(([regionName]) => regionName);
+      const selectedOwnedRegion = ownedRegions.includes(state.focusRegionName) ? state.focusRegionName : null;
+
+      if (data.atlas_regions.length) {{
+        const atlasPoints = data.atlas_regions.flatMap((region) => region.polygon || []);
+        const coastlinePoints = Array.isArray(data.atlas_coastline) ? data.atlas_coastline : [];
+        const bounds = getPointBounds([
+          ...atlasPoints,
+          ...coastlinePoints,
+        ]);
+        const coastMarkup = coastlinePoints.length
+          ? `<polygon points="${{transformPointsWithBounds(coastlinePoints, bounds, 18, 18, 184, 184)}}" fill="rgba(41, 94, 140, 0.12)" stroke="rgba(41, 94, 140, 0.2)" stroke-width="1.6" />`
+          : "";
+        const regionMarkup = data.atlas_regions.map((region) => {{
+          const regionSnapshot = snapshot.regions[region.name];
+          const polygonPoints = transformPointsWithBounds(region.polygon || [], bounds, 18, 18, 184, 184);
+          const isOwned = regionSnapshot?.owner === factionName;
+          const isSelected = selectedOwnedRegion === region.name;
+          const fill = isOwned ? hexToRgba(factionColor, 0.72) : "rgba(232, 228, 218, 0.62)";
+          const stroke = isOwned ? hexToRgba(factionColor, isSelected ? 1 : 0.9) : "rgba(111, 102, 86, 0.18)";
+          const strokeWidth = isSelected ? 3.6 : (isOwned ? 2.2 : 1.2);
+          return `<polygon points="${{polygonPoints}}" fill="${{fill}}" stroke="${{stroke}}" stroke-width="${{strokeWidth}}" stroke-linejoin="round" />`;
+        }}).join("");
+
+        return `
+          <svg class="region-portrait-svg" viewBox="0 0 220 220" role="img" aria-label="Territorial realm map for ${{escapeHtml(getFactionDisplayName(factionName))}}">
+            <rect x="0" y="0" width="220" height="220" rx="24" fill="rgba(241, 246, 248, 0.96)" />
+            <rect x="16" y="16" width="188" height="188" rx="22" fill="rgba(255,255,255,0.56)" stroke="rgba(255,255,255,0.42)" />
+            ${{coastMarkup}}
+            <g filter="drop-shadow(0 8px 16px rgba(24, 32, 43, 0.08))">
+              ${{regionMarkup}}
+            </g>
+            <rect x="16" y="16" width="76" height="24" rx="12" fill="rgba(255,255,255,0.78)" />
+            <text x="54" y="32" text-anchor="middle" font-size="10" font-weight="700" fill="#173040" letter-spacing="1">${{ownedRegions.length}} Regions</text>
+            <rect x="126" y="178" width="78" height="24" rx="12" fill="${{hexToRgba(factionColor, 0.18)}}" />
+            <text x="165" y="194" text-anchor="middle" font-size="10" font-weight="700" fill="#173040" letter-spacing="1">${{escapeHtml(getFactionDisplayName(factionName)).slice(0, 12)}}</text>
+          </svg>
+        `;
+      }}
+
+      const graphPoints = data.regions.map((region) => [Number(region.x), Number(region.y)]);
+      const bounds = getPointBounds(graphPoints);
+      const edgeMarkup = data.edges.map(([fromName, toName]) => {{
+        const fromRegion = getRegionDataByName(fromName);
+        const toRegion = getRegionDataByName(toName);
+        if (!fromRegion || !toRegion) {{
+          return "";
+        }}
+        const transformed = transformPointsWithBounds([[fromRegion.x, fromRegion.y], [toRegion.x, toRegion.y]], bounds, 24, 24, 172, 172).split(" ");
+        const [fromPoint, toPoint] = transformed;
+        if (!fromPoint || !toPoint) {{
+          return "";
+        }}
+        const [x1, y1] = fromPoint.split(",");
+        const [x2, y2] = toPoint.split(",");
+        return `<line x1="${{x1}}" y1="${{y1}}" x2="${{x2}}" y2="${{y2}}" stroke="rgba(99, 105, 114, 0.22)" stroke-width="1.2" />`;
+      }}).join("");
+      const nodeMarkup = data.regions.map((region) => {{
+        const regionSnapshot = snapshot.regions[region.name];
+        const transformed = transformPointsWithBounds([[region.x, region.y]], bounds, 24, 24, 172, 172);
+        const [point] = transformed.split(" ");
+        const [x, y] = point.split(",");
+        const isOwned = regionSnapshot?.owner === factionName;
+        const isSelected = selectedOwnedRegion === region.name;
+        return `<circle cx="${{x}}" cy="${{y}}" r="${{isSelected ? 6.2 : 4.8}}" fill="${{isOwned ? factionColor : "rgba(205, 201, 192, 0.88)"}}" stroke="${{isOwned ? hexToRgba(factionColor, 0.95) : "rgba(79, 89, 102, 0.22)"}}" stroke-width="${{isSelected ? 2.4 : 1.2}}" />`;
+      }}).join("");
+
+      return `
+        <svg class="region-portrait-svg" viewBox="0 0 220 220" role="img" aria-label="Territorial realm map for ${{escapeHtml(getFactionDisplayName(factionName))}}">
+          <rect x="0" y="0" width="220" height="220" rx="24" fill="rgba(243, 246, 240, 0.96)" />
+          <rect x="16" y="16" width="188" height="188" rx="22" fill="rgba(255,255,255,0.58)" stroke="rgba(255,255,255,0.42)" />
+          ${{edgeMarkup}}
+          ${{nodeMarkup}}
+          <rect x="16" y="16" width="76" height="24" rx="12" fill="rgba(255,255,255,0.78)" />
+          <text x="54" y="32" text-anchor="middle" font-size="10" font-weight="700" fill="#173040" letter-spacing="1">${{ownedRegions.length}} Regions</text>
+        </svg>
+      `;
+    }}
+
+    function getSelectedRegionContext(snapshot) {{
+      const regionName = state.focusRegionName;
+      if (!regionName) {{
+        return null;
+      }}
+
+      const staticRegion = getRegionDataByName(regionName);
+      const regionSnapshot = snapshot.regions[regionName];
+      if (!staticRegion || !regionSnapshot) {{
+        return null;
+      }}
+
+      const ownerText = getFactionDisplayName(regionSnapshot.owner);
+      const ownerColor = colorByFaction[regionSnapshot.owner] || unclaimedColor;
+      const foundingText = regionSnapshot.founding_name
+        ? `${{escapeHtml(regionSnapshot.founding_name)}}${{regionSnapshot.founding_name !== regionName ? ` <span class="subtle">(${{escapeHtml(regionName)}})</span>` : ""}}`
+        : escapeHtml(regionName);
+      const claimants = regionSnapshot.ethnic_claimants || staticRegion.ethnic_claimants || [];
+      const claimsText = claimants.length
+        ? claimants.map((factionName) => escapeHtml(getFactionDisplayName(factionName))).join(", ")
+        : "None";
+      const agitators = regionSnapshot.external_regime_agitators || staticRegion.external_regime_agitators || [];
+      const agitationPressure = Number(regionSnapshot.external_regime_agitation ?? staticRegion.external_regime_agitation ?? 0);
+      const agitationText = (!agitators.length || agitationPressure <= 0)
+        ? "None"
+        : `${{agitators.map((factionName) => escapeHtml(getFactionDisplayName(factionName))).join(", ")}} (${{agitationPressure.toFixed(3)}})`;
+
+      return {{
+        regionName,
+        staticRegion,
+        regionSnapshot,
+        ownerText,
+        ownerColor,
+        foundingText,
+        claimsText,
+        agitationText,
+      }};
+    }}
+
+    function getSelectedFactionContext(snapshot) {{
+      const factionName = state.focusFactionName;
+      if (!factionName) {{
+        return null;
+      }}
+
+      const faction = getFactionDataByName(factionName);
+      if (!faction) {{
+        return null;
+      }}
+
+      const standingsEntry = snapshot.standings.find((entry) => entry.faction === factionName) || null;
+      const recordedMetrics = snapshot.metrics?.factions?.[factionName] || null;
+      const ownedRegions = Object.values(snapshot.regions || {{}})
+        .filter((region) => region.owner === factionName);
+      const openingMetrics = {{
+        doctrine_label: faction.doctrine_label || "Forming",
+        homeland_identity: faction.homeland_identity || "Unknown",
+        terrain_identity: faction.terrain_identity || "Unknown",
+        expansion_posture: 0,
+        war_posture: 0,
+        development_posture: 0,
+        insularity: 0,
+        population: ownedRegions.reduce((total, region) => total + Number(region.population || 0), 0),
+        net_income: 0,
+        base_income: 0,
+        nominal_income: ownedRegions.reduce((total, region) => total + Number(region.taxable_value || 0), 0),
+        maintenance: 0,
+        total_surplus: ownedRegions.reduce((total, region) => total + Number(region.surplus || 0), 0),
+        homeland_regions: ownedRegions.filter((region) => region.core_status === "homeland").length,
+        core_regions: ownedRegions.filter((region) => region.core_status === "core").length,
+        frontier_regions: ownedRegions.filter((region) => !["homeland", "core"].includes(region.core_status)).length,
+        food_stored: ownedRegions.reduce((total, region) => total + Number(region.food_stored || 0), 0),
+        food_storage_capacity: ownedRegions.reduce((total, region) => total + Number(region.food_storage_capacity || 0), 0),
+        food_produced: ownedRegions.reduce((total, region) => total + Number(region.food_produced || 0), 0),
+        food_consumption: ownedRegions.reduce((total, region) => total + Number(region.food_consumption || 0), 0),
+        food_balance: ownedRegions.reduce((total, region) => total + Number(region.food_balance || 0), 0),
+        food_deficit: ownedRegions.reduce((total, region) => total + Number(region.food_deficit || 0), 0),
+        food_spoilage: ownedRegions.reduce((total, region) => total + Number(region.food_spoilage || 0), 0),
+        food_overflow: ownedRegions.reduce((total, region) => total + Number(region.food_overflow || 0), 0),
+        grain_access: 0,
+        timber_access: 0,
+        horse_access: 0,
+        copper_access: 0,
+        stone_access: 0,
+        gross_grain_output: 0,
+        gross_horse_output: 0,
+        gross_copper_output: 0,
+        gross_stone_output: 0,
+        isolated_grain_output: 0,
+        isolated_horse_output: 0,
+        isolated_copper_output: 0,
+        isolated_stone_output: 0,
+        food_shortage: 0,
+        mobility_shortage: 0,
+        metal_shortage: 0,
+        construction_shortage: 0,
+        top_ally: "None",
+        top_rival: "None",
+        top_claim_dispute: null,
+        top_claim_dispute_regions: 0,
+        alliance_count: 0,
+        truce_count: 0,
+        pact_count: 0,
+        rival_count: 0,
+        claim_dispute_count: 0,
+      }};
+      const metrics = recordedMetrics || openingMetrics;
+      const history = data.snapshots
+        .filter((turnSnapshot) => turnSnapshot.turn <= snapshot.turn)
+        .map((turnSnapshot) => {{
+          const turnMetrics = turnSnapshot.metrics?.factions?.[factionName];
+          return turnMetrics
+            ? {{ turn: turnSnapshot.turn, ...turnMetrics }}
+            : null;
+        }})
+        .filter(Boolean);
+      return {{
+        factionName,
+        faction,
+        metrics,
+        standingsEntry,
+        history: history.length
+          ? history
+          : [{{
+              turn: snapshot.turn,
+              doctrine_label: metrics.doctrine_label,
+              expansion_posture: metrics.expansion_posture,
+              war_posture: metrics.war_posture,
+              development_posture: metrics.development_posture,
+              insularity: metrics.insularity,
+            }}],
+        hasRecordedMetrics: Boolean(recordedMetrics),
+      }};
+    }}
+
+    function getEthnicCompositionTotal(ethnicComposition) {{
+      return Object.values(ethnicComposition || {{}})
+        .reduce((total, value) => total + Number(value || 0), 0);
+    }}
+
+    function formatEthnicComposition(ethnicComposition, limit = 4) {{
+      const entries = Object.entries(ethnicComposition || {{}})
+        .filter(([, value]) => Number(value || 0) > 0)
+        .sort((left, right) => Number(right[1]) - Number(left[1]));
+      if (!entries.length) {{
+        return "None";
+      }}
+      const total = getEthnicCompositionTotal(ethnicComposition);
+      return entries
+        .slice(0, limit)
+        .map(([ethnicity, value]) => {{
+          const numericValue = Number(value || 0);
+          const share = total > 0 ? (numericValue / total) * 100 : 0;
+          return `${{escapeHtml(ethnicity)}} ${{share.toFixed(0)}}% (${{numericValue.toLocaleString()}})`;
+        }})
+        .join(" / ");
+    }}
+
+    function buildFactionEthnicComposition(snapshot, factionName) {{
+      const aggregate = {{}};
+      for (const region of Object.values(snapshot.regions || {{}})) {{
+        if (region.owner !== factionName) {{
+          continue;
+        }}
+        for (const [ethnicity, value] of Object.entries(region.ethnic_composition || {{}})) {{
+          aggregate[ethnicity] = Number(aggregate[ethnicity] || 0) + Number(value || 0);
+        }}
+      }}
+      return aggregate;
     }}
 
     function formatResourceDamage(resourceDamage) {{
@@ -2281,10 +2877,80 @@ def render_simulation_html(world):
       }}
     }}
 
+    function syncPlaybackPanels() {{
+      const showMapView = state.playbackTab === "map";
+      mapPlaybackPanel.classList.toggle("hidden", !showMapView);
+      regionPlaybackPanel.classList.toggle("hidden", state.playbackTab !== "region");
+      factionPlaybackPanel.classList.toggle("hidden", state.playbackTab !== "faction");
+      standings.classList.toggle("panel-hidden", !showMapView);
+    }}
+
+    function renderPlaybackTabs() {{
+      const selectedRegionLabel = state.focusRegionName
+        ? `Selected Region: ${{escapeHtml(state.focusRegionName)}}`
+        : "Selected Region";
+      const selectedFactionLabel = state.focusFactionName
+        ? `Selected Faction: ${{escapeHtml(getFactionDisplayName(state.focusFactionName))}}`
+        : "Selected Faction";
+      playbackTabs.innerHTML = `
+        <button type="button" class="${{state.playbackTab === "map" ? "secondary active" : "secondary"}}" id="playback-tab-map">Map View</button>
+        <button type="button" class="${{state.playbackTab === "region" ? "secondary active" : "secondary"}}" id="playback-tab-region" ${{state.focusRegionName ? "" : "disabled"}}>${{selectedRegionLabel}}</button>
+        <button type="button" class="${{state.playbackTab === "faction" ? "secondary active" : "secondary"}}" id="playback-tab-faction" ${{state.focusFactionName ? "" : "disabled"}}>${{selectedFactionLabel}}</button>
+      `;
+      document.getElementById("playback-tab-map")?.addEventListener("click", () => {{
+        state.playbackTab = "map";
+        syncPlaybackPanels();
+        renderPlaybackTabs();
+      }});
+      document.getElementById("playback-tab-region")?.addEventListener("click", () => {{
+        if (!state.focusRegionName) {{
+          return;
+        }}
+        state.playbackTab = "region";
+        syncPlaybackPanels();
+        renderPlaybackTabs();
+      }});
+      document.getElementById("playback-tab-faction")?.addEventListener("click", () => {{
+        if (!state.focusFactionName) {{
+          return;
+        }}
+        state.playbackTab = "faction";
+        syncPlaybackPanels();
+        renderPlaybackTabs();
+      }});
+    }}
+
+    function syncSelectedFactionToRegionOwner(snapshot) {{
+      if (!state.focusRegionName) {{
+        return;
+      }}
+      const regionSnapshot = snapshot?.regions?.[state.focusRegionName];
+      state.focusFactionName = regionSnapshot?.owner || null;
+    }}
+
     function selectRegion(regionName) {{
       state.focusRegionName = regionName;
+      const snapshot = data.snapshots[state.currentTurn];
+      syncSelectedFactionToRegionOwner(snapshot);
       updateSelectedRegionHighlight();
-      renderRegionDetail(data.snapshots[state.currentTurn]);
+      renderPlaybackTabs();
+      renderSelectedRegionView(snapshot);
+      renderSelectedFactionView(snapshot);
+      syncPlaybackPanels();
+    }}
+
+    function selectFaction(factionName, openTab = false) {{
+      if (!factionName) {{
+        return;
+      }}
+      state.focusFactionName = factionName;
+      if (openTab) {{
+        state.playbackTab = "faction";
+      }}
+      const snapshot = data.snapshots[state.currentTurn];
+      renderPlaybackTabs();
+      renderSelectedFactionView(snapshot);
+      syncPlaybackPanels();
     }}
 
     function colorizeFactionNames(text) {{
@@ -2977,116 +3643,6 @@ def render_simulation_html(world):
       `;
     }}
 
-    function buildDoctrineTimelineControls() {{
-      doctrineTimelineControls.innerHTML = data.factions.map((faction) => `
-        <button type="button" class="secondary${{faction.name === state.focusFactionName ? " active" : ""}}" data-faction="${{escapeHtml(faction.name)}}">
-          ${{escapeHtml(faction.display_name || faction.name)}}
-        </button>
-      `).join("");
-
-      for (const button of doctrineTimelineControls.querySelectorAll("[data-faction]")) {{
-        button.addEventListener("click", () => {{
-          state.focusFactionName = button.dataset.faction;
-          buildDoctrineTimelineControls();
-          renderDoctrineTimeline();
-        }});
-      }}
-    }}
-
-    function renderDoctrineTimeline() {{
-      const factionName = state.focusFactionName || data.factions[0]?.name;
-      const faction = getFactionDataByName(factionName);
-      if (!faction) {{
-        doctrineTimeline.innerHTML = "";
-        doctrineTimelineKey.innerHTML = "";
-        doctrineTimelineCaption.textContent = "No faction selected.";
-        return;
-      }}
-
-      const history = data.snapshots
-        .filter((snapshot) => snapshot.turn > 0 && snapshot.metrics && snapshot.metrics.factions[factionName])
-        .map((snapshot) => ({{
-          turn: snapshot.turn,
-          ...snapshot.metrics.factions[factionName],
-        }}));
-
-      if (!history.length) {{
-        doctrineTimeline.innerHTML = "";
-        doctrineTimelineKey.innerHTML = "";
-        doctrineTimelineCaption.textContent = `${{factionName}} has no doctrine history yet.`;
-        return;
-      }}
-
-      const width = 920;
-      const height = 320;
-      const margin = {{ top: 24, right: 22, bottom: 42, left: 54 }};
-      const innerWidth = width - margin.left - margin.right;
-      const innerHeight = height - margin.top - margin.bottom;
-      const maxTurn = Math.max(...history.map((entry) => entry.turn));
-      const xForTurn = (turn) => margin.left + (((turn - 1) / Math.max(1, maxTurn - 1)) * innerWidth);
-      const yForValue = (value) => margin.top + ((1 - value) * innerHeight);
-      const postureKeys = ["expansion_posture", "war_posture", "development_posture", "insularity"];
-      const postureLabels = {{
-        expansion_posture: "Expansion",
-        war_posture: "War",
-        development_posture: "Development",
-        insularity: "Insularity",
-      }};
-      const horizontalTicks = [0, 0.25, 0.5, 0.75, 1];
-      const verticalTicks = history.map((entry) => entry.turn);
-      const shiftPoints = history.filter((entry, index) => index > 0 && history[index - 1].doctrine_label !== entry.doctrine_label);
-      const makePath = (key) => history.map((entry, index) => {{
-        const x = xForTurn(entry.turn).toFixed(1);
-        const y = yForValue(entry[key]).toFixed(1);
-        return `${{index === 0 ? "M" : "L"}}${{x}},${{y}}`;
-      }}).join(" ");
-
-      doctrineTimeline.innerHTML = `
-        <rect x="0" y="0" width="${{width}}" height="${{height}}" rx="16" fill="rgba(255,255,255,0.72)"></rect>
-        ${{horizontalTicks.map((tick) => `
-          <g>
-            <line x1="${{margin.left}}" y1="${{yForValue(tick).toFixed(1)}}" x2="${{(width - margin.right).toFixed(1)}}" y2="${{yForValue(tick).toFixed(1)}}" class="timeline-grid"></line>
-            <text x="${{(margin.left - 12).toFixed(1)}}" y="${{(yForValue(tick) + 4).toFixed(1)}}" text-anchor="end" class="timeline-label">${{tick.toFixed(2)}}</text>
-          </g>
-        `).join("")}}
-        ${{verticalTicks.map((tick) => `
-          <g>
-            <line x1="${{xForTurn(tick).toFixed(1)}}" y1="${{margin.top}}" x2="${{xForTurn(tick).toFixed(1)}}" y2="${{(height - margin.bottom).toFixed(1)}}" class="timeline-grid"></line>
-            <text x="${{xForTurn(tick).toFixed(1)}}" y="${{(height - 16).toFixed(1)}}" text-anchor="middle" class="timeline-label">T${{tick}}</text>
-          </g>
-        `).join("")}}
-        <line x1="${{margin.left}}" y1="${{(height - margin.bottom).toFixed(1)}}" x2="${{(width - margin.right).toFixed(1)}}" y2="${{(height - margin.bottom).toFixed(1)}}" class="timeline-axis"></line>
-        <line x1="${{margin.left}}" y1="${{margin.top}}" x2="${{margin.left}}" y2="${{(height - margin.bottom).toFixed(1)}}" class="timeline-axis"></line>
-        ${{postureKeys.map((key) => `
-          <path d="${{makePath(key)}}" class="timeline-line" stroke="${{doctrineLineColors[key]}}"></path>
-          ${{history.map((entry) => `
-            <circle cx="${{xForTurn(entry.turn).toFixed(1)}}" cy="${{yForValue(entry[key]).toFixed(1)}}" r="4.5" class="timeline-dot" fill="${{doctrineLineColors[key]}}">
-              <title>${{escapeHtml(factionName)}} | Turn ${{entry.turn}} | ${{escapeHtml(postureLabels[key])}}: ${{entry[key].toFixed(2)}} | Doctrine: ${{escapeHtml(entry.doctrine_label)}}</title>
-            </circle>
-          `).join("")}}
-        `).join("")}}
-        ${{shiftPoints.map((entry) => `
-          <g>
-            <circle cx="${{xForTurn(entry.turn).toFixed(1)}}" cy="${{(margin.top - 8).toFixed(1)}}" r="6" class="timeline-shift">
-              <title>${{escapeHtml(factionName)}} | Turn ${{entry.turn}} | Doctrine shift to ${{escapeHtml(entry.doctrine_label)}}</title>
-            </circle>
-          </g>
-        `).join("")}}
-      `;
-
-      doctrineTimelineKey.innerHTML = postureKeys.map((key) => `
-        <span class="timeline-key-item">
-          <span class="timeline-line-chip" style="background:${{doctrineLineColors[key]}}"></span>
-          ${{escapeHtml(postureLabels[key])}}
-        </span>
-      `).join("");
-
-      const openingDoctrine = history[0].doctrine_label;
-      const closingDoctrine = history[history.length - 1].doctrine_label;
-      const shiftCount = shiftPoints.length;
-      doctrineTimelineCaption.textContent = `${{factionName}} began this run as ${{openingDoctrine}}, ended as ${{closingDoctrine}}, and shifted doctrine ${{shiftCount}} time${{shiftCount === 1 ? "" : "s"}} while its posture scores evolved across the simulation.`;
-    }}
-
     function syncRunSummaryVisibility(turn) {{
       runSummaryPanel.classList.toggle("panel-hidden", turn < data.turns);
     }}
@@ -3142,35 +3698,22 @@ def render_simulation_html(world):
     }}
 
     function renderRegionDetail(snapshot) {{
-      const regionName = state.focusRegionName;
-      if (!regionName) {{
+      const selected = getSelectedRegionContext(snapshot);
+      if (!selected) {{
         regionDetail.innerHTML = `<strong>No Region Selected</strong><p class="summary-copy">Click a region on the map to inspect its terrain, resources, and development.</p>`;
         return;
       }}
 
-      const staticRegion = getRegionDataByName(regionName);
-      const regionSnapshot = snapshot.regions[regionName];
-      if (!staticRegion || !regionSnapshot) {{
-        regionDetail.innerHTML = `<strong>No Region Selected</strong><p class="summary-copy">Click a region on the map to inspect its terrain, resources, and development.</p>`;
-        return;
-      }}
-
-      const ownerText = getFactionDisplayName(regionSnapshot.owner);
-      const ownerColor = colorByFaction[regionSnapshot.owner] || unclaimedColor;
-      const foundingText = regionSnapshot.founding_name
-        ? `${{escapeHtml(regionSnapshot.founding_name)}}${{regionSnapshot.founding_name !== regionName ? ` <span class="subtle">(${{
-          escapeHtml(regionName)
-        }})</span>` : ""}}`
-        : escapeHtml(regionName);
-      const claimants = regionSnapshot.ethnic_claimants || staticRegion.ethnic_claimants || [];
-      const claimsText = claimants.length
-        ? claimants.map((factionName) => escapeHtml(getFactionDisplayName(factionName))).join(", ")
-        : "None";
-      const agitators = regionSnapshot.external_regime_agitators || staticRegion.external_regime_agitators || [];
-      const agitationPressure = Number(regionSnapshot.external_regime_agitation ?? staticRegion.external_regime_agitation ?? 0);
-      const agitationText = (!agitators.length || agitationPressure <= 0)
-        ? "None"
-        : `${{agitators.map((factionName) => escapeHtml(getFactionDisplayName(factionName))).join(", ")}} (${{agitationPressure.toFixed(3)}})`;
+      const {{
+        regionName,
+        staticRegion,
+        regionSnapshot,
+        ownerText,
+        ownerColor,
+        foundingText,
+        claimsText,
+        agitationText,
+      }} = selected;
 
       regionDetail.innerHTML = `
         <div class="card-header">
@@ -3373,7 +3916,491 @@ def render_simulation_html(world):
             </div>
           </div>
         </div>
+        <div class="detail-section">
+          <div class="detail-section-title">Focused View</div>
+          <button type="button" class="secondary" id="open-region-focus">Open Selected Region Tab</button>
+          <p class="panel-note">Switch to a dedicated region view with a miniature portrait and a cleaner data-first layout.</p>
+        </div>
       `;
+
+      document.getElementById("open-region-focus")?.addEventListener("click", () => {{
+        state.playbackTab = "region";
+        syncPlaybackPanels();
+        renderPlaybackTabs();
+        renderSelectedRegionView(snapshot);
+      }});
+    }}
+
+    function renderEventCardMarkup(event) {{
+      const icon = getEventIconData(event.type);
+      if (event.type === "unrest_disturbance" || event.type === "unrest_crisis") {{
+        icon.symbol = "!";
+        icon.className = "event-icon-unrest";
+        icon.label = "Unrest";
+      }} else if (event.type === "unrest_secession") {{
+        icon.symbol = "x";
+        icon.className = "event-icon-secession";
+        icon.label = "Secession";
+      }} else if (event.type === "rebel_independence") {{
+        icon.symbol = "*";
+        icon.className = "event-icon-success";
+        icon.label = "Independence";
+      }} else if (
+        event.type === "diplomacy_rivalry"
+        || event.type === "diplomacy_pact"
+        || event.type === "diplomacy_alliance"
+        || event.type === "diplomacy_truce"
+        || event.type === "diplomacy_truce_end"
+        || event.type === "diplomacy_break"
+      ) {{
+        icon.symbol = "=";
+        icon.className = "event-icon-develop";
+        icon.label = "Diplomacy";
+      }}
+      return `
+        <article class="event-item">
+          <div class="event-header">
+            <span class="event-icon ${{icon.className}}" title="${{escapeHtml(icon.label)}}">${{icon.symbol}}</span>
+            <strong>${{colorizeFactionNames(event.title)}}</strong>
+          </div>
+          <div>${{colorizeFactionNames(event.summary)}}</div>
+          <div class="event-meta">Type: ${{escapeHtml(event.type)}}${{event.region_reference ? ` - Region ${{escapeHtml(event.region_reference)}}` : ""}}${{event.terrain_label ? ` - Terrain ${{escapeHtml(event.terrain_label)}}` : ""}}</div>
+        </article>
+      `;
+    }}
+
+    function isEventRelatedToFaction(event, factionName) {{
+      if (!factionName || !event) {{
+        return false;
+      }}
+      const sponsors = Array.isArray(event.sponsors) ? event.sponsors : [];
+      return (
+        event.faction === factionName
+        || event.defender === factionName
+        || event.counterpart === factionName
+        || event.origin_faction === factionName
+        || event.rebel_faction === factionName
+        || event.lead_sponsor === factionName
+        || event.restored_faction === factionName
+        || sponsors.includes(factionName)
+        || event.context?.owner_before === factionName
+      );
+    }}
+
+    function renderSelectedRegionView(snapshot) {{
+      const selected = getSelectedRegionContext(snapshot);
+      if (!selected) {{
+        selectedRegionView.innerHTML = `
+          <article class="summary-card">
+            <strong>No Region Selected</strong>
+            <p class="summary-copy">Stay in Map View, click a region, and then open this tab for a focused inspection screen.</p>
+          </article>
+        `;
+        return;
+      }}
+
+      const {{
+        regionName,
+        staticRegion,
+        regionSnapshot,
+        ownerText,
+        ownerColor,
+        foundingText,
+        claimsText,
+        agitationText,
+      }} = selected;
+      const rawTotal = sumResourceMap(regionSnapshot.resource_output || staticRegion.resource_output);
+      const retainedTotal = sumResourceMap(regionSnapshot.resource_retained_output || staticRegion.resource_retained_output);
+      const routedTotal = sumResourceMap(regionSnapshot.resource_routed_output || staticRegion.resource_routed_output);
+      const monetizedValue = Number(
+        regionSnapshot.resource_monetized_value
+        ?? staticRegion.resource_monetized_value
+        ?? regionSnapshot.taxable_value
+        ?? staticRegion.taxable_value
+        ?? 0
+      );
+      const foodWaste = Number(
+        (regionSnapshot.food_spoilage ?? staticRegion.food_spoilage ?? 0)
+        + (regionSnapshot.food_overflow ?? staticRegion.food_overflow ?? 0)
+      );
+      const developmentSummary = getDevelopmentOverlayEntries(regionSnapshot, staticRegion)
+        .slice(0, 6)
+        .map(([label, value]) => `${{label}} ${{value.toFixed(2)}}`)
+        .join(" / ");
+      const routeAnchor = regionSnapshot.resource_route_anchor || staticRegion.resource_route_anchor;
+      const routeText = routeAnchor
+        ? `${{escapeHtml(routeAnchor)}} at depth ${{Number(regionSnapshot.resource_route_depth ?? staticRegion.resource_route_depth ?? 0)}}`
+        : "Locally anchored";
+      const portraitMarkup = buildRegionPortraitSvg(regionName, regionSnapshot, staticRegion, ownerColor);
+      const relatedEvents = snapshot.events.filter((event) => event.region === regionName);
+      const relatedEventsMarkup = relatedEvents.length
+        ? relatedEvents.map((event) => renderEventCardMarkup(event)).join("")
+        : `<article class="event-item"><strong>No Region Events</strong><div class="event-meta">Nothing directly affected this region on the current turn.</div></article>`;
+      const ethnicComposition = regionSnapshot.ethnic_composition || staticRegion.ethnic_composition || {{}};
+      const ethnicDistributionText = formatEthnicComposition(ethnicComposition, 5);
+
+      selectedRegionView.innerHTML = `
+        <section class="region-focus-hero">
+          <article class="region-portrait-card">
+            <div class="region-portrait-frame">
+              ${{portraitMarkup}}
+            </div>
+            <p class="region-portrait-caption">
+              ${{escapeHtml(regionSnapshot.terrain_label || staticRegion.terrain_label || "Plains")}}
+              in a ${{escapeHtml(regionSnapshot.climate_label || staticRegion.climate_label || "Temperate")}} climate.
+              This vignette is meant to keep the territory in view while the numbers get room to breathe.
+            </p>
+          </article>
+          <div class="region-focus-main-column">
+            <div class="region-focus-headline">
+              <div class="card-header">
+                <div>
+                  <p class="settings-label" style="margin:0;">Selected Region</p>
+                  <h3 class="region-focus-title">${{escapeHtml(regionSnapshot.display_name || staticRegion.display_name || regionName)}}</h3>
+                </div>
+                <span class="pill" style="background:${{ownerColor}}22; color:${{ownerColor}};">${{escapeHtml(ownerText)}}</span>
+              </div>
+              <p class="region-focus-subtitle">
+                ${{foundingText}} | ${{escapeHtml(regionSnapshot.settlement_level || staticRegion.settlement_level || "wild")}} settlement |
+                dominant ethnicity ${{escapeHtml(regionSnapshot.dominant_ethnicity || staticRegion.dominant_ethnicity || "None")}}.
+              </p>
+              <div class="region-focus-kpis">
+                <div class="stat-chip">
+                  <div class="stat-label">Taxable Value</div>
+                  <div class="stat-value">${{Number(regionSnapshot.taxable_value ?? staticRegion.taxable_value ?? 0).toFixed(2)}}</div>
+                </div>
+                <div class="stat-chip">
+                  <div class="stat-label">Population</div>
+                  <div class="stat-value">${{Number(regionSnapshot.population || staticRegion.population || 0).toLocaleString()}}</div>
+                </div>
+                <div class="stat-chip">
+                  <div class="stat-label">Food Balance</div>
+                  <div class="stat-value">${{Number(regionSnapshot.food_balance ?? staticRegion.food_balance ?? 0).toFixed(1)}}</div>
+                </div>
+                <div class="stat-chip">
+                  <div class="stat-label">Unrest</div>
+                  <div class="stat-value">${{escapeHtml(getUnrestLabel(regionSnapshot))}}</div>
+                </div>
+              </div>
+              <div class="region-focus-actions">
+                <button type="button" class="secondary" id="region-focus-back">Back To Map</button>
+                <button type="button" class="secondary" id="region-focus-owner" ${{regionSnapshot.owner ? "" : "disabled"}}>View Owner Faction</button>
+              </div>
+            </div>
+            <article class="inspector-card region-focus-event-card">
+              <h4 class="inspector-title">Current Turn Region Events</h4>
+              <div class="metric-line"><strong>Turn ${{snapshot.turn}}:</strong> only events directly recorded against this region are shown here.</div>
+              <div class="region-event-list">${{relatedEventsMarkup}}</div>
+            </article>
+          </div>
+        </section>
+        <section class="region-focus-grid">
+          <article class="inspector-card prominent">
+            <h4 class="inspector-title">Economic Pipeline</h4>
+            <div class="metric-strip">
+              <div class="metric-block">
+                <div class="metric-caption">Raw Output</div>
+                <div class="metric-number">${{rawTotal.toFixed(2)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Retained Output</div>
+                <div class="metric-number">${{retainedTotal.toFixed(2)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Routed Output</div>
+                <div class="metric-number">${{routedTotal.toFixed(2)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Monetized Value</div>
+                <div class="metric-number">${{monetizedValue.toFixed(2)}}</div>
+              </div>
+            </div>
+            <div class="metric-line"><strong>Resource Base:</strong> ${{escapeHtml(regionSnapshot.resource_profile || staticRegion.resource_profile || "None")}}</div>
+            <div class="metric-line"><strong>Raw Flow:</strong> ${{escapeHtml(regionSnapshot.resource_output_summary || staticRegion.resource_output_summary || "None")}}</div>
+            <div class="metric-line"><strong>Retained Flow:</strong> ${{escapeHtml(regionSnapshot.resource_retained_output_summary || staticRegion.resource_retained_output_summary || "None")}}</div>
+            <div class="metric-line"><strong>Routed Flow:</strong> ${{escapeHtml(regionSnapshot.resource_routed_output_summary || staticRegion.resource_routed_output_summary || regionSnapshot.resource_output_summary || staticRegion.resource_output_summary || "None")}}</div>
+          </article>
+          <article class="inspector-card">
+            <h4 class="inspector-title">Food And Population</h4>
+            <div class="metric-strip">
+              <div class="metric-block">
+                <div class="metric-caption">Food Stored</div>
+                <div class="metric-number">${{Number(regionSnapshot.food_stored ?? staticRegion.food_stored ?? 0).toFixed(1)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Storage Capacity</div>
+                <div class="metric-number">${{Number(regionSnapshot.food_storage_capacity ?? staticRegion.food_storage_capacity ?? 0).toFixed(1)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Surplus</div>
+                <div class="metric-number">${{Number(regionSnapshot.surplus ?? staticRegion.surplus ?? 0).toFixed(2)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Pressure</div>
+                <div class="metric-number">${{Number(regionSnapshot.population_pressure ?? staticRegion.population_pressure ?? 0).toFixed(2)}}</div>
+              </div>
+            </div>
+            <div class="metric-line"><strong>Turn Flow:</strong> +${{Number(regionSnapshot.food_produced ?? staticRegion.food_produced ?? 0).toFixed(1)}} produced / -${{Number(regionSnapshot.food_consumption ?? staticRegion.food_consumption ?? 0).toFixed(1)}} consumed</div>
+            <div class="metric-line"><strong>Outcome:</strong> Balance ${{Number(regionSnapshot.food_balance ?? staticRegion.food_balance ?? 0).toFixed(1)}} / Deficit ${{Number(regionSnapshot.food_deficit ?? staticRegion.food_deficit ?? 0).toFixed(1)}} / Waste ${{foodWaste.toFixed(1)}}</div>
+            <div class="metric-line"><strong>Productive Capacity:</strong> ${{Number(regionSnapshot.productive_capacity ?? staticRegion.productive_capacity ?? 0).toFixed(2)}} (${{escapeHtml(regionSnapshot.surplus_label || staticRegion.surplus_label || "stable")}})</div>
+          </article>
+          <article class="inspector-card">
+            <h4 class="inspector-title">Ethnic Distribution</h4>
+            <div class="metric-strip">
+              <div class="metric-block">
+                <div class="metric-caption">Dominant</div>
+                <div class="metric-number">${{escapeHtml(regionSnapshot.dominant_ethnicity || staticRegion.dominant_ethnicity || "None")}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Ruling Affinity</div>
+                <div class="metric-number">${{Number((regionSnapshot.ruling_ethnic_affinity ?? staticRegion.ruling_ethnic_affinity ?? 0) * 100).toFixed(0)}}%</div>
+              </div>
+            </div>
+            <div class="metric-line"><strong>Population Mix:</strong> ${{ethnicDistributionText}}</div>
+            <div class="metric-line"><strong>Owner Ethnicity:</strong> ${{escapeHtml(regionSnapshot.owner_primary_ethnicity || staticRegion.owner_primary_ethnicity || "None")}}</div>
+            <div class="metric-line"><strong>Claimant Peoples:</strong> ${{claimsText}}</div>
+          </article>
+          <article class="inspector-card">
+            <h4 class="inspector-title">Logistics And Stability</h4>
+            <div class="metric-strip">
+              <div class="metric-block">
+                <div class="metric-caption">Route Cost</div>
+                <div class="metric-number">${{Number(regionSnapshot.resource_route_cost ?? staticRegion.resource_route_cost ?? 0).toFixed(2)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Bottleneck</div>
+                <div class="metric-number">${{Number((regionSnapshot.resource_route_bottleneck ?? staticRegion.resource_route_bottleneck ?? 0) * 100).toFixed(0)}}%</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Isolation</div>
+                <div class="metric-number">${{Number((regionSnapshot.resource_isolation_factor ?? staticRegion.resource_isolation_factor ?? 0) * 100).toFixed(0)}}%</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Integration</div>
+                <div class="metric-number">${{Number(regionSnapshot.integration_score || 0).toFixed(1)}}</div>
+              </div>
+            </div>
+            <div class="metric-line"><strong>Route Anchor:</strong> ${{routeText}}</div>
+            <div class="metric-line"><strong>Route Damage:</strong> ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_damage || staticRegion.resource_damage || {{}}))}}</div>
+            <div class="metric-line"><strong>Regime Agitation:</strong> ${{agitationText}}</div>
+          </article>
+          <article class="inspector-card">
+            <h4 class="inspector-title">Development</h4>
+            <div class="metric-strip">
+              <div class="metric-block">
+                <div class="metric-caption">Granary</div>
+                <div class="metric-number">${{Number(regionSnapshot.granary_level ?? staticRegion.granary_level ?? 0).toFixed(2)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Storehouse</div>
+                <div class="metric-number">${{Number(regionSnapshot.storehouse_level ?? staticRegion.storehouse_level ?? 0).toFixed(2)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Market</div>
+                <div class="metric-number">${{Number(regionSnapshot.market_level ?? staticRegion.market_level ?? 0).toFixed(2)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Roads</div>
+                <div class="metric-number">${{Number(regionSnapshot.road_level ?? staticRegion.road_level ?? 0).toFixed(2)}}</div>
+              </div>
+            </div>
+            <div class="metric-line"><strong>Development Spine:</strong> ${{developmentSummary || "No major developments yet."}}</div>
+            <div class="metric-line"><strong>Production Sites:</strong> Logging ${{Number(regionSnapshot.logging_camp_level ?? staticRegion.logging_camp_level ?? 0).toFixed(2)}} / Mine ${{Number(regionSnapshot.copper_mine_level ?? staticRegion.copper_mine_level ?? 0).toFixed(2)}} / Quarry ${{Number(regionSnapshot.stone_quarry_level ?? staticRegion.stone_quarry_level ?? 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Support Works:</strong> Infra ${{Number(regionSnapshot.infrastructure_level ?? staticRegion.infrastructure_level ?? 0).toFixed(2)}} / Irrigation ${{Number(regionSnapshot.irrigation_level ?? staticRegion.irrigation_level ?? 0).toFixed(2)}} / Pasture ${{Number(regionSnapshot.pasture_level ?? staticRegion.pasture_level ?? 0).toFixed(2)}} / Agriculture ${{Number(regionSnapshot.agriculture_level ?? staticRegion.agriculture_level ?? 0).toFixed(2)}}</div>
+          </article>
+        </section>
+      `;
+
+      document.getElementById("region-focus-back")?.addEventListener("click", () => {{
+        state.playbackTab = "map";
+        syncPlaybackPanels();
+        renderPlaybackTabs();
+      }});
+      document.getElementById("region-focus-owner")?.addEventListener("click", () => {{
+        if (!regionSnapshot.owner) {{
+          return;
+        }}
+        selectFaction(regionSnapshot.owner, true);
+      }});
+    }}
+
+    function renderSelectedFactionView(snapshot) {{
+      const selected = getSelectedFactionContext(snapshot);
+      if (!selected) {{
+        selectedFactionView.innerHTML = `
+          <article class="summary-card">
+            <strong>No Faction Selected</strong>
+            <p class="summary-copy">Choose a faction from the standings or from a selected region owner to inspect it here.</p>
+          </article>
+        `;
+        return;
+      }}
+
+      const {{
+        factionName,
+        faction,
+        metrics,
+        standingsEntry,
+        history,
+        hasRecordedMetrics,
+      }} = selected;
+      const doctrineShifts = history.filter((entry, index) => index > 0 && history[index - 1].doctrine_label !== entry.doctrine_label);
+      const factionEvents = snapshot.events.filter((event) => isEventRelatedToFaction(event, factionName));
+      const factionEventsMarkup = factionEvents.length
+        ? factionEvents.map((event) => renderEventCardMarkup(event)).join("")
+        : `<article class="event-item"><strong>No Faction Events</strong><div class="event-meta">Nothing directly touched this faction on the current turn.</div></article>`;
+      const realmMiniMapMarkup = buildFactionRealmMiniMapSvg(factionName, snapshot);
+      const factionEthnicComposition = buildFactionEthnicComposition(snapshot, factionName);
+      const factionEthnicDistributionText = formatEthnicComposition(factionEthnicComposition, 6);
+      const doctrineHistoryMarkup = history.length
+        ? history.map((entry, index) => {{
+            const prior = index > 0 ? history[index - 1] : null;
+            const shifted = prior && prior.doctrine_label !== entry.doctrine_label;
+            return `
+              <article class="event-item">
+                <strong>Turn ${{entry.turn}}</strong>
+                <div>${{formatDoctrineLabel(entry.doctrine_label)}}${{shifted ? " | doctrine shift" : ""}}</div>
+                <div class="event-meta">
+                  Expansion ${{entry.expansion_posture.toFixed(2)}} / War ${{entry.war_posture.toFixed(2)}} / Development ${{entry.development_posture.toFixed(2)}} / Insularity ${{entry.insularity.toFixed(2)}}
+                </div>
+              </article>
+            `;
+          }}).join("")
+        : `<article class="event-item"><strong>No Doctrine History</strong><div class="event-meta">This faction has no recorded posture metrics yet.</div></article>`;
+      const polityStatus = faction.is_rebel
+        ? (
+            faction.proto_state
+              ? (faction.rebel_conflict_type === "civil_war" ? "Proto-state civil-war claimant" : "Proto-state rebellion")
+              : (faction.rebel_conflict_type === "civil_war" ? "Civil-war claimant" : "Rebel successor")
+          )
+        : "Established faction";
+
+      selectedFactionView.innerHTML = `
+        <section class="region-focus-hero">
+          <article class="region-portrait-card">
+            <div class="region-portrait-frame">
+              ${{realmMiniMapMarkup}}
+            </div>
+            <p class="region-portrait-caption">
+              Territorial footprint for ${{escapeHtml(faction.display_name || faction.name)}} on turn ${{snapshot.turn}}.
+              Filled regions are currently inside the faction's realm.
+            </p>
+            <div class="summary-card" style="background:${{faction.color}}14; border-color:${{faction.color}}44;">
+              <p class="summary-copy">${{escapeHtml(polityStatus)}} rooted in ${{escapeHtml(metrics.homeland_identity || faction.homeland_identity || "Unknown homeland")}}.</p>
+              ${{hasRecordedMetrics ? "" : `<div class="panel-note">Opening turn snapshot: posture and diplomacy metrics begin after the first turn resolves.</div>`}}
+            </div>
+          </article>
+          <div class="region-focus-main-column">
+            <div class="region-focus-headline">
+              <div class="card-header">
+                <div>
+                  <p class="settings-label" style="margin:0;">Selected Faction</p>
+                  <h3 class="region-focus-title">${{escapeHtml(faction.display_name || faction.name)}}</h3>
+                </div>
+                <span class="pill" style="background:${{faction.color}}22; color:${{faction.color}};">${{formatDoctrineLabel(metrics.doctrine_label)}}</span>
+              </div>
+              <p class="region-focus-subtitle">
+                ${{escapeHtml(faction.government_form || "Unknown government")}} polity | homeland ${{escapeHtml(metrics.homeland_identity || faction.homeland_identity || "Unknown")}} |
+                terrain identity ${{escapeHtml(metrics.terrain_identity || "Unknown")}}.
+              </p>
+              <div class="region-focus-kpis">
+                <div class="stat-chip">
+                  <div class="stat-label">Expansion</div>
+                  <div class="stat-value">${{formatPosture(metrics.expansion_posture)}} (${{metrics.expansion_posture.toFixed(2)}})</div>
+                </div>
+                <div class="stat-chip">
+                  <div class="stat-label">War</div>
+                  <div class="stat-value">${{formatPosture(metrics.war_posture)}} (${{metrics.war_posture.toFixed(2)}})</div>
+                </div>
+                <div class="stat-chip">
+                  <div class="stat-label">Development</div>
+                  <div class="stat-value">${{formatPosture(metrics.development_posture)}} (${{metrics.development_posture.toFixed(2)}})</div>
+                </div>
+                <div class="stat-chip">
+                  <div class="stat-label">Insularity</div>
+                  <div class="stat-value">${{formatPosture(metrics.insularity)}} (${{metrics.insularity.toFixed(2)}})</div>
+                </div>
+              </div>
+              <div class="region-focus-actions">
+                <button type="button" class="secondary" id="faction-focus-back">Back To Map</button>
+              </div>
+            </div>
+            <article class="inspector-card region-focus-event-card">
+              <h4 class="inspector-title">Current Turn Faction Events</h4>
+              <div class="metric-line"><strong>Turn ${{snapshot.turn}}:</strong> events involving this faction directly are shown here.</div>
+              <div class="region-event-list">${{factionEventsMarkup}}</div>
+            </article>
+          </div>
+        </section>
+        <section class="region-focus-grid">
+          <article class="inspector-card prominent">
+            <h4 class="inspector-title">Realm Snapshot</h4>
+            <div class="metric-strip">
+              <div class="metric-block">
+                <div class="metric-caption">Base Income</div>
+                <div class="metric-number">${{Number(metrics.base_income || 0).toFixed(0)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Nominal Income</div>
+                <div class="metric-number">${{Number(metrics.nominal_income || 0).toFixed(2)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Maintenance</div>
+                <div class="metric-number">${{Number(metrics.maintenance || 0).toFixed(0)}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Total Surplus</div>
+                <div class="metric-number">${{Number(metrics.total_surplus || 0).toFixed(2)}}</div>
+              </div>
+            </div>
+            <div class="metric-line"><strong>Realm Structure:</strong> Homeland ${{metrics.homeland_regions}} / Core ${{metrics.core_regions}} / Frontier ${{metrics.frontier_regions}}</div>
+            <div class="metric-line"><strong>Food Stores:</strong> ${{Number(metrics.food_stored || 0).toFixed(1)}} / ${{Number(metrics.food_storage_capacity || 0).toFixed(1)}} | +${{Number(metrics.food_produced || 0).toFixed(1)}} / -${{Number(metrics.food_consumption || 0).toFixed(1)}}</div>
+            <div class="metric-line"><strong>Food Pressure:</strong> Balance ${{Number(metrics.food_balance || 0).toFixed(1)}} / Deficit ${{Number(metrics.food_deficit || 0).toFixed(1)}} / Waste ${{Number((metrics.food_spoilage || 0) + (metrics.food_overflow || 0)).toFixed(1)}}</div>
+          </article>
+          <article class="inspector-card">
+            <h4 class="inspector-title">Ethnic Distribution</h4>
+            <div class="metric-strip">
+              <div class="metric-block">
+                <div class="metric-caption">Primary</div>
+                <div class="metric-number">${{escapeHtml(faction.primary_ethnicity || "Unknown")}}</div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-caption">Claim Peoples</div>
+                <div class="metric-number">${{Number((faction.ethnic_claims || []).length)}}</div>
+              </div>
+            </div>
+            <div class="metric-line"><strong>Realm Population Mix:</strong> ${{factionEthnicDistributionText}}</div>
+            <div class="metric-line"><strong>Ethnic Claims:</strong> ${{(faction.ethnic_claims || []).length ? faction.ethnic_claims.map((ethnicity) => escapeHtml(ethnicity)).join(", ") : "None"}}</div>
+          </article>
+          <article class="inspector-card">
+            <h4 class="inspector-title">Resource Position</h4>
+            <div class="metric-line"><strong>Access:</strong> Grain ${{Number(metrics.grain_access || 0).toFixed(2)}} / Timber ${{Number(metrics.timber_access || 0).toFixed(2)}} / Horses ${{Number(metrics.horse_access || 0).toFixed(2)}} / Copper ${{Number(metrics.copper_access || 0).toFixed(2)}} / Stone ${{Number(metrics.stone_access || 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Gross Output:</strong> Grain ${{Number(metrics.gross_grain_output || 0).toFixed(2)}} / Horses ${{Number(metrics.gross_horse_output || 0).toFixed(2)}} / Copper ${{Number(metrics.gross_copper_output || 0).toFixed(2)}} / Stone ${{Number(metrics.gross_stone_output || 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Isolated Output:</strong> Grain ${{Number(metrics.isolated_grain_output || 0).toFixed(2)}} / Horses ${{Number(metrics.isolated_horse_output || 0).toFixed(2)}} / Copper ${{Number(metrics.isolated_copper_output || 0).toFixed(2)}} / Stone ${{Number(metrics.isolated_stone_output || 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Shortages:</strong> Food ${{Number(metrics.food_shortage || 0).toFixed(2)}} / Mobility ${{Number(metrics.mobility_shortage || 0).toFixed(2)}} / Metal ${{Number(metrics.metal_shortage || 0).toFixed(2)}} / Construction ${{Number(metrics.construction_shortage || 0).toFixed(2)}}</div>
+          </article>
+          <article class="inspector-card">
+            <h4 class="inspector-title">Diplomacy And Pressure</h4>
+            <div class="metric-line"><strong>Top Ally:</strong> ${{escapeHtml(metrics.top_ally || "None")}}</div>
+            <div class="metric-line"><strong>Top Rival:</strong> ${{escapeHtml(metrics.top_rival || "None")}}</div>
+            <div class="metric-line"><strong>Claim Dispute:</strong> ${{metrics.top_claim_dispute ? `${{escapeHtml(metrics.top_claim_dispute)}} (${{Number(metrics.top_claim_dispute_regions || 0)}} regions)` : "None"}}</div>
+            <div class="metric-line"><strong>Diplomacy Counts:</strong> A${{metrics.alliance_count || 0}} / T${{metrics.truce_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}} / C${{metrics.claim_dispute_count || 0}}</div>
+          </article>
+          <article class="inspector-card">
+            <h4 class="inspector-title">Doctrine Evolution</h4>
+            <div class="metric-line"><strong>Opening Doctrine:</strong> ${{formatDoctrineLabel(history[0]?.doctrine_label)}}</div>
+            <div class="metric-line"><strong>Current Doctrine:</strong> ${{formatDoctrineLabel(metrics.doctrine_label)}}</div>
+            <div class="metric-line"><strong>Shifts So Far:</strong> ${{doctrineShifts.length}}</div>
+            <div class="region-event-list">${{doctrineHistoryMarkup}}</div>
+          </article>
+        </section>
+      `;
+
+      document.getElementById("faction-focus-back")?.addEventListener("click", () => {{
+        state.playbackTab = "map";
+        syncPlaybackPanels();
+        renderPlaybackTabs();
+      }});
     }}
 
     function renderDoctrinePanel(snapshot) {{
@@ -3590,10 +4617,10 @@ def render_simulation_html(world):
 
     function renderStandings(snapshot) {{
       standings.innerHTML = snapshot.standings.map((entry, index) => `
-        <article class="standing-item bar">
+        <article class="standing-item bar selectable" data-faction="${{escapeHtml(entry.faction)}}" role="button" tabindex="0" aria-label="Inspect ${{escapeHtml(getFactionDisplayName(entry.faction))}}">
           <div class="card-header">
             <strong>#${{index + 1}} ${{escapeHtml(getFactionDisplayName(entry.faction))}}</strong>
-            <span class="pill" style="background:${{colorByFaction[entry.faction]}}22; color:${{colorByFaction[entry.faction]}};">${{escapeHtml(data.factions.find((faction) => faction.name === entry.faction).doctrine_label)}}</span>
+            <span class="pill" style="background:${{colorByFaction[entry.faction]}}22; color:${{colorByFaction[entry.faction]}};">${{escapeHtml(snapshot.metrics?.factions?.[entry.faction]?.doctrine_label || getFactionDataByName(entry.faction)?.doctrine_label || "Forming")}}</span>
           </div>
           <div class="stat-grid compact">
             <div class="stat-chip">
@@ -3609,8 +4636,20 @@ def render_simulation_html(world):
               <div class="stat-value">${{Number((snapshot.metrics && snapshot.metrics.factions[entry.faction] && snapshot.metrics.factions[entry.faction].population) || 0).toLocaleString()}}</div>
             </div>
           </div>
+          <div class="standing-cta">Open Faction View</div>
         </article>
       `).join("");
+      for (const item of standings.querySelectorAll("[data-faction]")) {{
+        item.addEventListener("click", () => {{
+          selectFaction(item.dataset.faction, true);
+        }});
+        item.addEventListener("keydown", (event) => {{
+          if (event.key === "Enter" || event.key === " ") {{
+            event.preventDefault();
+            selectFaction(item.dataset.faction, true);
+          }}
+        }});
+      }}
     }}
 
     function renderTurnEvents(snapshot) {{
@@ -3619,43 +4658,7 @@ def render_simulation_html(world):
         return;
       }}
 
-      turnEvents.innerHTML = snapshot.events.map((event) => {{
-        const icon = getEventIconData(event.type);
-        if (event.type === "unrest_disturbance" || event.type === "unrest_crisis") {{
-          icon.symbol = "!";
-          icon.className = "event-icon-unrest";
-          icon.label = "Unrest";
-        }} else if (event.type === "unrest_secession") {{
-          icon.symbol = "x";
-          icon.className = "event-icon-secession";
-          icon.label = "Secession";
-        }} else if (event.type === "rebel_independence") {{
-          icon.symbol = "*";
-          icon.className = "event-icon-success";
-          icon.label = "Independence";
-          }} else if (
-            event.type === "diplomacy_rivalry"
-            || event.type === "diplomacy_pact"
-            || event.type === "diplomacy_alliance"
-            || event.type === "diplomacy_truce"
-            || event.type === "diplomacy_truce_end"
-            || event.type === "diplomacy_break"
-          ) {{
-            icon.symbol = "=";
-          icon.className = "event-icon-develop";
-          icon.label = "Diplomacy";
-        }}
-        return `
-        <article class="event-item">
-          <div class="event-header">
-            <span class="event-icon ${{icon.className}}" title="${{escapeHtml(icon.label)}}">${{icon.symbol}}</span>
-            <strong>${{colorizeFactionNames(event.title)}}</strong>
-          </div>
-          <div>${{colorizeFactionNames(event.summary)}}</div>
-          <div class="event-meta">Type: ${{escapeHtml(event.type)}}${{event.region_reference ? ` - Region ${{escapeHtml(event.region_reference)}}` : ""}}${{event.terrain_label ? ` - Terrain ${{escapeHtml(event.terrain_label)}}` : ""}}</div>
-        </article>
-      `;
-      }}).join("");
+      turnEvents.innerHTML = snapshot.events.map((event) => renderEventCardMarkup(event)).join("");
     }}
 
     function applyUnrestStyling(element, regionSnapshot, isGraphView) {{
@@ -3741,6 +4744,7 @@ def render_simulation_html(world):
     function renderTurn(turn) {{
       state.currentTurn = turn;
       const snapshot = data.snapshots[turn];
+      syncSelectedFactionToRegionOwner(snapshot);
       slider.value = String(turn);
       readout.textContent = `Turn ${{turn}} of ${{data.turns}}`;
       syncRunSummaryVisibility(turn);
@@ -3749,8 +4753,10 @@ def render_simulation_html(world):
       renderStandings(snapshot);
       renderTurnContext(turn, snapshot);
       renderTurnEvents(snapshot);
-      renderDoctrinePanel(snapshot);
-      renderRegionDetail(snapshot);
+      renderPlaybackTabs();
+      renderSelectedRegionView(snapshot);
+      renderSelectedFactionView(snapshot);
+      syncPlaybackPanels();
     }}
 
     function stopPlayback() {{
@@ -3803,9 +4809,9 @@ def render_simulation_html(world):
     renderLegend();
     renderTerrainLegend();
     renderViewToggle();
+    renderPlaybackTabs();
+    syncPlaybackPanels();
     renderRunSummary();
-    buildDoctrineTimelineControls();
-    renderDoctrineTimeline();
     renderTurn(0);
   </script>
 </body>

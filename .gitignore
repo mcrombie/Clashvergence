@@ -23,3 +23,7 @@ Thumbs.db
 # Local secrets / environment files
 .env
 .env.local
+
+# Reports getting too big
+reports/simulation_view.html
+/reports

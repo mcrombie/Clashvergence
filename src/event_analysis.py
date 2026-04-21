@@ -716,13 +716,16 @@ def build_initial_opening_state(world):
         faction.internal_id: faction_name
         for faction_name, faction in world.factions.items()
     }
+    opening_region_history = world.region_history[0] if world.region_history else {}
     region_state = {}
 
     for region_name, region in world.regions.items():
+        opening_region = opening_region_history.get(region_name, {})
+        opening_owner = opening_region.get("owner", region.owner)
         region_state[region_name] = {
-            "owner": owner_name_map.get(region.owner, region.owner),
-            "resources": region.resources,
-            "taxable_value": get_region_taxable_value(region, world),
+            "owner": owner_name_map.get(opening_owner, opening_owner),
+            "resources": opening_region.get("resources", region.resources),
+            "taxable_value": opening_region.get("taxable_value", get_region_taxable_value(region, world)),
         }
 
     return region_state
