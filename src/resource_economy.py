@@ -96,6 +96,9 @@ RESOURCE_ROUTE_BOTTLENECK_UNREST_FACTOR = 0.03
 RESOURCE_ROUTE_BOTTLENECK_DAMAGE_FACTOR = 0.45
 RESOURCE_ROUTE_BOTTLENECK_INFRASTRUCTURE_BONUS = 0.09
 RESOURCE_ROUTE_BOTTLENECK_INTEGRATION_BONUS = 0.015
+RESOURCE_EXTRACTIVE_UNDEVELOPED_FACTOR = 0.18
+RESOURCE_EXTRACTIVE_SITE_LEVEL_FACTOR = 0.95
+RESOURCE_EXTRACTIVE_SUPPORT_LEVEL_FACTOR = 0.16
 
 RouteState = dict[str, float | int | str | None]
 
@@ -131,6 +134,8 @@ def ensure_region_resource_state(region: Region) -> None:
     region.resource_route_cost = round(float(region.resource_route_cost or 0.0), 3)
     region.resource_route_anchor = region.resource_route_anchor or None
     region.resource_route_bottleneck = round(float(region.resource_route_bottleneck or 0.0), 3)
+    region.copper_mine_level = round(max(0.0, float(region.copper_mine_level or 0.0)), 2)
+    region.stone_quarry_level = round(max(0.0, float(region.stone_quarry_level or 0.0)), 2)
 
 
 def ensure_region_food_state(region: Region) -> None:
@@ -209,8 +214,22 @@ def get_region_resource_development_factor(region: Region, resource_name: str) -
     if resource_name == RESOURCE_HORSES:
         return 1.0 + (region.pastoral_level * 0.35) + (region.infrastructure_level * 0.08)
     if resource_name in EXTRACTIVE_RESOURCES:
-        return 0.9 + (region.extractive_level * 0.4) + (region.infrastructure_level * 0.12)
+        site_level = get_region_extractive_site_level(region, resource_name)
+        return (
+            RESOURCE_EXTRACTIVE_UNDEVELOPED_FACTOR
+            + (site_level * RESOURCE_EXTRACTIVE_SITE_LEVEL_FACTOR)
+            + (region.extractive_level * RESOURCE_EXTRACTIVE_SUPPORT_LEVEL_FACTOR)
+            + (region.infrastructure_level * 0.12)
+        )
     return 0.95 + (region.infrastructure_level * 0.1)
+
+
+def get_region_extractive_site_level(region: Region, resource_name: str) -> float:
+    if resource_name == RESOURCE_COPPER:
+        return float(region.copper_mine_level or 0.0)
+    if resource_name == RESOURCE_STONE:
+        return float(region.stone_quarry_level or 0.0)
+    return 0.0
 
 
 def _get_domestic_resource_decay(region: Region, resource_name: str) -> float:

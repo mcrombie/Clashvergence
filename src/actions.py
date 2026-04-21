@@ -45,6 +45,7 @@ from src.heartland import (
 )
 from src.models import Event
 from src.resources import (
+    CAPACITY_CONSTRUCTION,
     CAPACITY_FOOD_SECURITY,
     CAPACITY_METAL,
     CAPACITY_MOBILITY,
@@ -296,20 +297,42 @@ def _get_investment_project_options(faction_name: str, region, world) -> list[di
             "resource_focus": RESOURCE_HORSES,
         })
 
-    extractive_potential = (
-        region.resource_fixed_endowments.get(RESOURCE_COPPER, 0.0)
-        + region.resource_fixed_endowments.get(RESOURCE_STONE, 0.0)
-    )
-    if extractive_potential > 0 and region.extractive_level < 1.8:
+    copper_endowment = region.resource_fixed_endowments.get(RESOURCE_COPPER, 0.0)
+    if copper_endowment > 0 and region.copper_mine_level < 1.8:
         options.append({
-            "project_type": "improve_extraction",
-            "score": 3.6 + (extractive_potential * 3.0) + (shortages.get(CAPACITY_METAL, 0.0) * 2.0),
-            "resource_focus": (
-                RESOURCE_COPPER
-                if region.resource_fixed_endowments.get(RESOURCE_COPPER, 0.0)
-                >= region.resource_fixed_endowments.get(RESOURCE_STONE, 0.0)
-                else RESOURCE_STONE
+            "project_type": (
+                "build_copper_mine"
+                if region.copper_mine_level <= 0
+                else "expand_copper_mine"
             ),
+            "score": (
+                4.1
+                + (copper_endowment * 4.4)
+                + (shortages.get(CAPACITY_METAL, 0.0) * 2.3)
+                + (region.infrastructure_level * 0.35)
+                + (0.8 if region.copper_mine_level <= 0 else region.copper_mine_level * 0.45)
+            ),
+            "resource_focus": RESOURCE_COPPER,
+        })
+
+    stone_endowment = region.resource_fixed_endowments.get(RESOURCE_STONE, 0.0)
+    if stone_endowment > 0 and region.stone_quarry_level < 1.8:
+        construction_pressure = shortages.get(CAPACITY_CONSTRUCTION, 0.0)
+        options.append({
+            "project_type": (
+                "build_stone_quarry"
+                if region.stone_quarry_level <= 0
+                else "expand_stone_quarry"
+            ),
+            "score": (
+                3.5
+                + (stone_endowment * 3.6)
+                + (construction_pressure * 2.1)
+                + (shortages.get(CAPACITY_METAL, 0.0) * 0.5)
+                + (region.infrastructure_level * 0.28)
+                + (0.6 if region.stone_quarry_level <= 0 else region.stone_quarry_level * 0.35)
+            ),
+            "resource_focus": RESOURCE_STONE,
         })
 
     if region.infrastructure_level < 1.8:
@@ -1121,11 +1144,27 @@ def invest(faction_name, target_region_name, world):
     elif project_type == "build_granary":
         region.granary_level = round(min(1.8, region.granary_level + 0.32), 2)
         project_amount = 0.32
+    elif project_type == "build_copper_mine":
+        region.copper_mine_level = round(min(1.8, region.copper_mine_level + 0.42), 2)
+        project_amount = 0.42
+    elif project_type == "expand_copper_mine":
+        region.copper_mine_level = round(min(1.8, region.copper_mine_level + 0.28), 2)
+        project_amount = 0.28
+    elif project_type == "build_stone_quarry":
+        region.stone_quarry_level = round(min(1.8, region.stone_quarry_level + 0.4), 2)
+        project_amount = 0.4
+    elif project_type == "expand_stone_quarry":
+        region.stone_quarry_level = round(min(1.8, region.stone_quarry_level + 0.26), 2)
+        project_amount = 0.26
     elif project_type == "improve_pastoralism":
         region.pastoral_level = round(min(1.8, region.pastoral_level + 0.24), 2)
         project_amount = 0.24
     elif project_type == "improve_extraction":
-        region.extractive_level = round(min(1.8, region.extractive_level + 0.28), 2)
+        if score_components["resource_focus"] == RESOURCE_COPPER:
+            region.copper_mine_level = round(min(1.8, region.copper_mine_level + 0.28), 2)
+        elif score_components["resource_focus"] == RESOURCE_STONE:
+            region.stone_quarry_level = round(min(1.8, region.stone_quarry_level + 0.28), 2)
+        region.extractive_level = round(min(1.8, region.extractive_level + 0.18), 2)
         project_amount = 0.28
     else:
         region.infrastructure_level = round(min(1.8, region.infrastructure_level + 0.22), 2)

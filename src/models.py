@@ -154,6 +154,8 @@ class Region:
     last_resource_project_turn: int | None = None
     infrastructure_level: float = 0.0
     granary_level: float = 0.0
+    copper_mine_level: float = 0.0
+    stone_quarry_level: float = 0.0
     agriculture_level: float = 0.0
     pastoral_level: float = 0.0
     extractive_level: float = 0.0

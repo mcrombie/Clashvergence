@@ -2183,6 +2183,8 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "taxable_value": get_region_taxable_value(region, world),
             "infrastructure_level": round(region.infrastructure_level, 2),
             "granary_level": round(region.granary_level, 2),
+            "copper_mine_level": round(region.copper_mine_level, 2),
+            "stone_quarry_level": round(region.stone_quarry_level, 2),
             "agriculture_level": round(region.agriculture_level, 2),
             "pastoral_level": round(region.pastoral_level, 2),
             "extractive_level": round(region.extractive_level, 2),

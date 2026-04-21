@@ -96,6 +96,8 @@ def _build_region_resource_payload(region):
         "taxable_value": round(get_region_taxable_value(region), 3),
         "infrastructure_level": round(region.infrastructure_level, 2),
         "granary_level": round(region.granary_level, 2),
+        "copper_mine_level": round(region.copper_mine_level, 2),
+        "stone_quarry_level": round(region.stone_quarry_level, 2),
         "agriculture_level": round(region.agriculture_level, 2),
         "pastoral_level": round(region.pastoral_level, 2),
         "extractive_level": round(region.extractive_level, 2),
@@ -481,6 +483,8 @@ def build_simulation_snapshots(world):
             "taxable_value": initial_region_history.get(region_name, {}).get("taxable_value", _build_region_resource_payload(region)["taxable_value"]),
             "infrastructure_level": initial_region_history.get(region_name, {}).get("infrastructure_level", region.infrastructure_level),
             "granary_level": initial_region_history.get(region_name, {}).get("granary_level", region.granary_level),
+            "copper_mine_level": initial_region_history.get(region_name, {}).get("copper_mine_level", region.copper_mine_level),
+            "stone_quarry_level": initial_region_history.get(region_name, {}).get("stone_quarry_level", region.stone_quarry_level),
             "agriculture_level": initial_region_history.get(region_name, {}).get("agriculture_level", region.agriculture_level),
             "pastoral_level": initial_region_history.get(region_name, {}).get("pastoral_level", region.pastoral_level),
             "extractive_level": initial_region_history.get(region_name, {}).get("extractive_level", region.extractive_level),
@@ -549,6 +553,8 @@ def build_simulation_snapshots(world):
                 "taxable_value": region["taxable_value"],
                 "infrastructure_level": region["infrastructure_level"],
                 "granary_level": region["granary_level"],
+                "copper_mine_level": region["copper_mine_level"],
+                "stone_quarry_level": region["stone_quarry_level"],
                 "agriculture_level": region["agriculture_level"],
                 "pastoral_level": region["pastoral_level"],
                 "extractive_level": region["extractive_level"],
@@ -645,6 +651,8 @@ def build_simulation_snapshots(world):
             region_state[region_name]["taxable_value"] = history_region.get("taxable_value", region_state[region_name]["taxable_value"])
             region_state[region_name]["infrastructure_level"] = history_region.get("infrastructure_level", region_state[region_name]["infrastructure_level"])
             region_state[region_name]["granary_level"] = history_region.get("granary_level", region_state[region_name]["granary_level"])
+            region_state[region_name]["copper_mine_level"] = history_region.get("copper_mine_level", region_state[region_name]["copper_mine_level"])
+            region_state[region_name]["stone_quarry_level"] = history_region.get("stone_quarry_level", region_state[region_name]["stone_quarry_level"])
             region_state[region_name]["agriculture_level"] = history_region.get("agriculture_level", region_state[region_name]["agriculture_level"])
             region_state[region_name]["pastoral_level"] = history_region.get("pastoral_level", region_state[region_name]["pastoral_level"])
             region_state[region_name]["extractive_level"] = history_region.get("extractive_level", region_state[region_name]["extractive_level"])
@@ -716,6 +724,8 @@ def build_simulation_snapshots(world):
                     "taxable_value": region["taxable_value"],
                     "infrastructure_level": region["infrastructure_level"],
                     "granary_level": region["granary_level"],
+                    "copper_mine_level": region["copper_mine_level"],
+                    "stone_quarry_level": region["stone_quarry_level"],
                     "agriculture_level": region["agriculture_level"],
                     "pastoral_level": region["pastoral_level"],
                     "extractive_level": region["extractive_level"],
@@ -3068,6 +3078,8 @@ def render_simulation_html(world):
                 Infra ${{Number(regionSnapshot.infrastructure_level ?? staticRegion.infrastructure_level ?? 0).toFixed(2)}}
                 / Granary ${{Number(regionSnapshot.granary_level ?? staticRegion.granary_level ?? 0).toFixed(2)}}
                 / Agri ${{Number(regionSnapshot.agriculture_level ?? staticRegion.agriculture_level ?? 0).toFixed(2)}}
+                / Mine ${{Number(regionSnapshot.copper_mine_level ?? staticRegion.copper_mine_level ?? 0).toFixed(2)}}
+                / Quarry ${{Number(regionSnapshot.stone_quarry_level ?? staticRegion.stone_quarry_level ?? 0).toFixed(2)}}
               </div>
             </div>
             <div class="detail-row">

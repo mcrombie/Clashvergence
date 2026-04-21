@@ -273,6 +273,59 @@ class ResourceSystemTests(unittest.TestCase):
         )
         self.assertTrue(develop("FactionA", "B", world))
 
+    def test_develop_can_build_copper_mine_on_copper_deposit(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=140,
+            terrain_tags=["highland"],
+            climate="temperate",
+        )
+        seed_region_resource_profile(region)
+        region.resource_fixed_endowments[RESOURCE_COPPER] = 1.2
+        region.resource_fixed_endowments[RESOURCE_STONE] = 0.2
+
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        update_faction_resource_economy(world)
+
+        components = get_development_target_score_components("A", "FactionA", world)
+
+        self.assertEqual(components["project_type"], "build_copper_mine")
+        self.assertTrue(develop("FactionA", "A", world))
+        self.assertGreater(world.regions["A"].copper_mine_level, 0.0)
+        self.assertEqual(world.events[-1].details["project_type"], "build_copper_mine")
+
+    def test_copper_mine_significantly_improves_copper_output(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=160,
+            terrain_tags=["highland"],
+            climate="temperate",
+        )
+        seed_region_resource_profile(region)
+        region.resource_fixed_endowments[RESOURCE_COPPER] = 1.3
+
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        update_faction_resource_economy(world)
+        baseline_output = world.regions["A"].resource_output[RESOURCE_COPPER]
+
+        world.regions["A"].copper_mine_level = 1.0
+        update_faction_resource_economy(world)
+        mined_output = world.regions["A"].resource_output[RESOURCE_COPPER]
+
+        self.assertGreater(mined_output, baseline_output * 2)
+
     def test_isolated_frontier_output_is_lower_than_gross_output(self):
         world = WorldState(
             regions={
