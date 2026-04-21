@@ -1,5 +1,5 @@
 from src.agents import choose_action
-from src.actions import attack, develop, expand, invest
+from src.actions import attack, develop, expand
 from src.config import (
     EMPIRE_FREE_REGIONS,
     EMPIRE_SCALE_COST,

@@ -146,11 +146,11 @@ def get_phase_dominant_action(event_counts):
     if best_count == 0:
         return "activity was limited"
     if best_count == second_count:
-        return "activity was mixed across expansion, investment, and attacks"
+        return "activity was mixed across expansion, development, and attacks"
     if best_action == "expand":
         return "expansion set the pace"
-    if best_action == "invest":
-        return "investment led the phase"
+    if best_action == "develop":
+        return "development led the phase"
     return "attacks shaped the phase"
 
 
@@ -177,7 +177,7 @@ def analyze_phase(world, phase_name, start_turn, end_turn):
     ]
 
     start_metrics, end_metrics = get_phase_boundary_metrics(world, start_turn, end_turn)
-    event_counts = {"expand": 0, "invest": 0, "attack": 0}
+    event_counts = {"expand": 0, "develop": 0, "attack": 0}
     successful_attacks = 0
     attack_shifted_regions = set()
     expansion_regions = set()
@@ -186,6 +186,8 @@ def analyze_phase(world, phase_name, start_turn, end_turn):
     for event in phase_events:
         if event.type in event_counts:
             event_counts[event.type] += 1
+        elif event.type in {"develop", "invest"}:
+            event_counts["develop"] += 1
         if event.type == "attack" and event.get("success", False):
             successful_attacks += 1
             if event.region is not None:
@@ -311,9 +313,9 @@ def summarize_phase_turns(phase_analysis):
             details.append(
                 f"{format_count_noun(phase_analysis['event_counts']['expand'], 'expansion')} added {format_count_noun(len(phase_analysis['expansion_regions']), 'new region')}"
             )
-        if phase_analysis["event_counts"]["invest"] > 0:
+        if phase_analysis["event_counts"]["develop"] > 0:
             details.append(
-                f"{format_count_noun(phase_analysis['event_counts']['invest'], 'investment')} improved existing holdings"
+                f"{format_count_noun(phase_analysis['event_counts']['develop'], 'development')} improved existing holdings"
             )
 
     shifts = []
@@ -356,7 +358,7 @@ def describe_early_posture(early_history):
     """Returns a concrete description of early faction behavior."""
     total_expansions = sum(entry["expansions"] for entry in early_history)
     total_attacks = sum(entry["attacks"] for entry in early_history)
-    total_investments = sum(entry["investments"] for entry in early_history)
+    total_developments = sum(entry["developments"] for entry in early_history)
     final_regions = early_history[-1]["regions"]
     start_regions = early_history[0]["regions"] if early_history else 0
     region_gain = final_regions - start_regions
@@ -366,10 +368,10 @@ def describe_early_posture(early_history):
             f"opened with {format_count_noun(total_expansions, 'claim')} and grew to "
             f"{format_count_noun(final_regions, 'region')} by the end of the opening phase"
         )
-    if total_attacks > max(total_expansions, total_investments) and total_attacks > 0:
+    if total_attacks > max(total_expansions, total_developments) and total_attacks > 0:
         return f"opened with {total_attacks} attack attempts and contested neighboring borders immediately"
-    if total_investments > 0 and region_gain <= 0:
-        return f"spent the opening consolidating its start with {format_count_noun(total_investments, 'investment')}"
+    if total_developments > 0 and region_gain <= 0:
+        return f"spent the opening consolidating its start with {format_count_noun(total_developments, 'development')}"
     if final_regions <= 1:
         return "struggled to add territory in the opening turns"
     return f"opened quietly and held at {format_count_noun(final_regions, 'region')} through the first phase"
@@ -598,12 +600,12 @@ def summarize_opening_phase(world):
             f"{expansion_leaders['count']} claim(s)."
         )
 
-    investment_leaders = opening["investment_leaders"]
-    if investment_leaders["count"] > 0:
+    development_leaders = opening["development_leaders"]
+    if development_leaders["count"] > 0:
         lines.append(
-            f"Across the first {investment_leaders['turns']} turns, "
-            f"{format_faction_list([get_faction_display_name(world, name) for name in investment_leaders['leaders']])} invested most often with "
-            f"{investment_leaders['count']} investment(s)."
+            f"Across the first {development_leaders['turns']} turns, "
+            f"{format_faction_list([get_faction_display_name(world, name) for name in development_leaders['leaders']])} developed most often with "
+            f"{development_leaders['count']} development(s)."
         )
 
     treasury_leaders = opening["treasury_leaders"]
@@ -624,17 +626,17 @@ def summarize_faction_behavior(world):
 
     for faction_name, counts in faction_event_counts.items():
         expand_count = counts["expand"]
-        invest_count = counts["invest"]
+        develop_count = counts["develop"]
 
-        if expand_count > invest_count:
+        if expand_count > develop_count:
             style = "favored expansion over development"
-        elif invest_count > expand_count:
+        elif develop_count > expand_count:
             style = "favored development over expansion"
         else:
             style = "balanced expansion and development evenly"
 
         lines.append(
-            f"{get_faction_display_name(world, faction_name)} expanded {expand_count} times and invested {invest_count} times, "
+            f"{get_faction_display_name(world, faction_name)} expanded {expand_count} times and developed {develop_count} times, "
             f"and generally {style}."
         )
 
@@ -1015,7 +1017,7 @@ def get_event_candidate(world, event, event_summary, before_state, after_state, 
                 after_treasury_leader == actor
                 and after_treasury_margin > before_treasury_margin
                 and (
-                    event_summary["type"] == "invest"
+                    event_summary["type"] in {"develop", "invest"}
                     or "strengthened economic lead" in event_summary.get("importance_reasons", [])
                     or after_treasury_margin >= 3
                 )
@@ -1279,7 +1281,7 @@ def get_selected_turning_point_entries(world, phase_analyses):
     for event in world.events:
         before_state = clone_replay_state(replay_state)
         after_state = apply_event_to_replay_state(event, replay_state)
-        if event.type in {"expand", "attack", "invest"}:
+        if event.type in {"expand", "attack", "develop", "invest"}:
             event_summary = summarize_major_event(event, world=world)
             candidate = get_event_candidate(
                 world=world,

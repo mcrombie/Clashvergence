@@ -316,7 +316,7 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
                 f"population={faction_metrics.get('population', 0)}, "
                 f"attacks={faction_metrics['attacks']}, "
                 f"expansions={faction_metrics['expansions']}, "
-                f"investments={faction_metrics['investments']}, "
+                f"developments={faction_metrics.get('developments', faction_metrics['investments'])}, "
                 f"base_income={faction_metrics['income']}, "
                 f"nominal_income={faction_metrics.get('nominal_income', faction_metrics['income'])}, "
                 f"scale_penalty={faction_metrics.get('empire_penalty', 0)}, "

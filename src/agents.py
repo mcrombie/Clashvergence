@@ -1,5 +1,4 @@
 from src.actions import (
-    develop,
     get_attack_target_score_components,
     get_attackable_regions,
     get_developable_regions,
@@ -7,9 +6,6 @@ from src.actions import (
     expand,
     get_expand_target_score_components,
     get_expandable_regions,
-    get_investable_regions,
-    get_invest_target_score_components,
-    invest,
 )
 from src.config import (
     ATTACK_COST,
@@ -59,14 +55,14 @@ def choose_expand_target(faction_name, world):
 
     return best_region
 
-def choose_invest_target(faction_name, world):
-    investable_regions = get_developable_regions(faction_name, world)
+def choose_develop_target(faction_name, world):
+    developable_regions = get_developable_regions(faction_name, world)
 
-    if not investable_regions:
+    if not developable_regions:
         return None
 
     best_region = max(
-        investable_regions,
+        developable_regions,
         key=lambda name: (
             get_development_target_score_components(name, faction_name, world)["score"],
             name,
@@ -103,17 +99,17 @@ def choose_action(faction_name, world):
 
     attackable_regions = get_attackable_regions(faction_name, world)
     expandable_regions = get_expandable_regions(faction_name, world)
-    investable_regions = get_developable_regions(faction_name, world)
+    developable_regions = get_developable_regions(faction_name, world)
 
     can_attack = bool(attackable_regions) and faction.treasury >= ATTACK_COST
     can_expand = bool(expandable_regions) and faction.treasury >= EXPANSION_COST
-    can_invest = bool(investable_regions)
+    can_develop = bool(developable_regions)
 
     best_attack_target = None
     best_attack_score = 0
     best_expand_target = None
     best_expand_score = 0
-    best_invest_target = None
+    best_develop_target = None
     action_utilities = {}
 
     if can_attack:
@@ -135,15 +131,15 @@ def choose_action(faction_name, world):
             world,
         )
 
-    if can_invest:
-        best_invest_target = choose_invest_target(faction_name, world)
-        best_invest_components = get_development_target_score_components(
-            best_invest_target,
+    if can_develop:
+        best_develop_target = choose_develop_target(faction_name, world)
+        best_develop_components = get_development_target_score_components(
+            best_develop_target,
             faction_name,
             world,
-        ) if best_invest_target is not None else None
+        ) if best_develop_target is not None else None
     else:
-        best_invest_components = None
+        best_develop_components = None
 
     if can_attack:
         attack_utility = (
@@ -173,25 +169,25 @@ def choose_action(faction_name, world):
             expand_utility += 0.05
         action_utilities["expand"] = expand_utility
 
-    if can_invest and best_invest_target is not None:
+    if can_develop and best_develop_target is not None:
         shortages = faction.resource_shortages
-        invest_need = (
+        develop_need = (
             shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 0.45
             + shortages.get(CAPACITY_MOBILITY, 0.0) * 0.3
             + shortages.get(CAPACITY_METAL, 0.0) * 0.3
         )
-        if best_invest_components is not None:
-            invest_need += max(0.0, best_invest_components["score"] / 12.0)
-        invest_utility = (
-            invest_need * (0.4 + (doctrine.development_posture * 0.32))
+        if best_develop_components is not None:
+            develop_need += max(0.0, best_develop_components["score"] / 12.0)
+        develop_utility = (
+            develop_need * (0.4 + (doctrine.development_posture * 0.32))
             + (doctrine.insularity * 0.14)
             - (doctrine.expansion_posture * 0.06)
         )
         if faction.treasury < EXPANSION_COST:
-            invest_utility += 0.03
+            develop_utility += 0.03
         if is_proto_state:
-            invest_utility += REBEL_PROTO_INVEST_UTILITY_BONUS
-        action_utilities["develop"] = invest_utility
+            develop_utility += REBEL_PROTO_INVEST_UTILITY_BONUS
+        action_utilities["develop"] = develop_utility
 
     if action_utilities:
         best_action = max(
@@ -203,13 +199,18 @@ def choose_action(faction_name, world):
         if best_action == "expand":
             return ("expand", best_expand_target)
         if best_action == "develop":
-            return ("develop", best_invest_target)
+            return ("develop", best_develop_target)
 
     if can_expand:
         return ("expand", best_expand_target)
-    if can_invest:
-        return ("develop", best_invest_target)
+    if can_develop:
+        return ("develop", best_develop_target)
     if can_attack:
         return ("attack", best_attack_target)
 
     return (None, None)
+
+
+def choose_invest_target(faction_name, world):
+    """Backward-compatible alias for development target selection."""
+    return choose_develop_target(faction_name, world)

@@ -89,14 +89,14 @@ class FactionDoctrineTests(unittest.TestCase):
         world.regions["M"].owner = faction_name
         world.regions["M"].terrain_tags = ["riverland", "plains"]
         world.events.append(Event(turn=0, type="expand", faction=faction_name, region="M"))
-        world.events.append(Event(turn=0, type="invest", faction=faction_name, region=homeland_region))
+        world.events.append(Event(turn=0, type="develop", faction=faction_name, region=homeland_region))
         update_faction_doctrines(world)
 
         self.assertEqual(faction.doctrine_state.turns_observed, 1)
         self.assertEqual(faction.doctrine_state.expansions, 1)
-        self.assertEqual(faction.doctrine_state.investments, 1)
+        self.assertEqual(faction.doctrine_state.developments, 1)
         self.assertEqual(faction.doctrine_state.turns_with_growth, 1)
-        self.assertEqual(faction.doctrine_state.turns_with_investment, 1)
+        self.assertEqual(faction.doctrine_state.turns_with_development, 1)
         self.assertGreater(faction.doctrine_state.terrain_experience["riverland"], 0.0)
         self.assertGreaterEqual(faction.doctrine_profile.expansion_posture, 0.3)
         self.assertGreaterEqual(faction.doctrine_profile.development_posture, 0.3)

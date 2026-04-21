@@ -5,7 +5,7 @@ from src.resource_economy import get_region_taxable_value
 # EVENT IMPORTANCE WEIGHTS
 IMPORTANCE_BASE_ATTACK = 3.0
 IMPORTANCE_BASE_EXPANSION = 2.2
-IMPORTANCE_BASE_INVESTMENT = 0.9
+IMPORTANCE_BASE_DEVELOPMENT = 0.9
 
 IMPORTANCE_OWNERSHIP_TRANSFER = 2.0
 IMPORTANCE_TERRITORY_GAIN = 0.8
@@ -22,11 +22,12 @@ IMPORTANCE_PHASE_EARLY = 0.35
 IMPORTANCE_PHASE_MID = 0.7
 IMPORTANCE_PHASE_LATE = 0.85
 
-IMPORTANCE_LOW_IMPACT_INVESTMENT_PENALTY = -0.5
+IMPORTANCE_LOW_IMPACT_DEVELOPMENT_PENALTY = -0.5
 IMPORTANCE_REDUNDANT_EVENT_PENALTY = -0.3
 IMPORTANCE_ALREADY_DECIDED_PENALTY = -0.6
 
-MAJOR_EVENT_TYPES = {"expand", "attack", "invest"}
+DEVELOPMENT_EVENT_TYPES = {"develop", "invest"}
+MAJOR_EVENT_TYPES = {"expand", "attack", "develop", "invest"}
 
 IMPORTANCE_TIER_LOW = "LOW"
 IMPORTANCE_TIER_MEDIUM = "MEDIUM"
@@ -59,6 +60,10 @@ def get_phase_ranges(total_turns):
         ranges.append(("late", mid_end + 1, total_turns))
 
     return ranges
+
+
+def _is_development_event(event) -> bool:
+    return event.type in DEVELOPMENT_EVENT_TYPES
 
 
 def get_event_phase_name(event, total_turns):
@@ -173,7 +178,7 @@ def apply_event_to_replay_state(event, state):
                 new_state["region_counts"][owner_after] += 1
             new_state["owners"][event.region] = owner_after
 
-    if event.type == "invest" and event.region is not None:
+    if _is_development_event(event) and event.region is not None:
         new_state["resources"][event.region] = event.get(
             "new_resources",
             new_state["resources"].get(event.region, 0) + event.get("resource_change", 0),
@@ -266,8 +271,8 @@ def score_event_importance(event, simulation_context):
         components["base_attack"] = IMPORTANCE_BASE_ATTACK
     elif event.type == "expand":
         components["base_expansion"] = IMPORTANCE_BASE_EXPANSION
-    elif event.type == "invest":
-        components["base_investment"] = IMPORTANCE_BASE_INVESTMENT
+    elif _is_development_event(event):
+        components["base_development"] = IMPORTANCE_BASE_DEVELOPMENT
     else:
         return {
             "importance_score": 0.0,
@@ -349,10 +354,10 @@ def score_event_importance(event, simulation_context):
         components["late_decisive_swing"] = IMPORTANCE_LATE_DECISIVE_SWING
         reasons.append("broke a close late game")
 
-    if event.type == "invest":
+    if _is_development_event(event):
         taxable_change = event.get("taxable_change", event.get("resource_change", 0))
         if taxable_change <= 0.6 and actor_region_delta <= 0 and rank_delta <= 0:
-            components["routine_investment_penalty"] = IMPORTANCE_LOW_IMPACT_INVESTMENT_PENALTY
+            components["routine_development_penalty"] = IMPORTANCE_LOW_IMPACT_DEVELOPMENT_PENALTY
         elif rank_delta > 0 or leader_after == faction_name:
             reasons.append("strengthened economic lead")
 
@@ -362,7 +367,7 @@ def score_event_importance(event, simulation_context):
 
     if not is_close_contest(before_counts) and get_region_margin(before_counts) >= 5:
         leader = get_unique_leader(before_state["treasuries"], before_counts)
-        if leader == faction_name and event.type == "invest":
+        if leader == faction_name and _is_development_event(event):
             components["already_decided_penalty"] = IMPORTANCE_ALREADY_DECIDED_PENALTY
 
     score = round(max(0.0, sum(components.values())), 2)
@@ -397,7 +402,7 @@ def get_event_importance_tier(event, importance_score, reasons):
             return IMPORTANCE_TIER_MEDIUM
         return IMPORTANCE_TIER_LOW
 
-    if event.type == "invest":
+    if _is_development_event(event):
         if "strengthened economic lead" in reason_set or importance_score >= 4.0:
             return IMPORTANCE_TIER_MEDIUM
         return IMPORTANCE_TIER_LOW
@@ -570,7 +575,7 @@ def summarize_major_event(event, world=None):
             "attack_strength": event.get("attack_strength"),
             "defense_strength": event.get("defense_strength"),
         })
-    elif event.type == "invest":
+    elif _is_development_event(event):
         summary.update({
             "resource_change": event.get("resource_change", 0),
             "new_resources": event.get("new_resources"),
@@ -683,12 +688,12 @@ def get_opening_expansion_leaders(world, opening_turns=3):
     }
 
 
-def get_opening_investment_leaders(world, opening_turns=5):
-    """Returns the factions with the most investments in the opening turns."""
+def get_opening_development_leaders(world, opening_turns=5):
+    """Returns the factions with the most development actions in the opening turns."""
     counts = {faction_name: 0 for faction_name in world.factions}
 
     for event in get_events_for_turn_range(world, end_turn=opening_turns - 1):
-        if event.type == "invest":
+        if _is_development_event(event):
             counts[event.faction] += 1
 
     best_count = max(counts.values(), default=0)
@@ -741,10 +746,10 @@ def replay_opening_treasury_snapshots(world, opening_turns=5):
             if event.type == "expand":
                 treasuries[faction_name] -= event.details.get("cost", event.get("cost", 0))
                 region_state[event.region]["owner"] = faction_name
-            elif event.type == "invest":
+            elif _is_development_event(event):
                 region_state[event.region]["resources"] = event.get(
                     "new_resources",
-                    region_state[event.region]["resources"] + event.get("invest_amount", 0),
+                    region_state[event.region]["resources"] + event.get("development_amount", event.get("invest_amount", 0)),
                 )
                 region_state[event.region]["taxable_value"] = event.get(
                     "new_taxable_value",
@@ -820,18 +825,25 @@ def get_opening_phase_summary(world):
     return {
         "highest_scoring_claim": get_top_scoring_opening_claim(world, opening_turns=3),
         "expansion_leaders": get_opening_expansion_leaders(world, opening_turns=3),
-        "investment_leaders": get_opening_investment_leaders(world, opening_turns=5),
+        "development_leaders": get_opening_development_leaders(world, opening_turns=5),
+        "investment_leaders": get_opening_development_leaders(world, opening_turns=5),
         "treasury_leaders": get_opening_treasury_leaders(world, opening_turns=5),
     }
 
 
+def get_opening_investment_leaders(world, opening_turns=5):
+    """Backward-compatible alias for opening development leaders."""
+    return get_opening_development_leaders(world, opening_turns=opening_turns)
+
+
 def get_faction_event_counts(world):
-    """Returns counts of expand and invest actions by faction."""
+    """Returns counts of expand and develop actions by faction."""
     faction_event_counts = {}
 
     for faction_name in world.factions:
         faction_event_counts[faction_name] = {
             "expand": 0,
+            "develop": 0,
             "invest": 0,
         }
 
@@ -839,8 +851,12 @@ def get_faction_event_counts(world):
         faction_name = event.faction
         event_type = event.type
 
-        if faction_name in faction_event_counts and event_type in faction_event_counts[faction_name]:
+        if faction_name not in faction_event_counts:
+            continue
+        if event_type in faction_event_counts[faction_name]:
             faction_event_counts[faction_name][event_type] += 1
+        if event_type == "invest":
+            faction_event_counts[faction_name]["develop"] += 1
 
     return faction_event_counts
 

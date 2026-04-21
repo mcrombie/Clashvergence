@@ -24,6 +24,7 @@ from src.resources import (
     RESOURCE_GRAIN,
     RESOURCE_HORSES,
     RESOURCE_STONE,
+    RESOURCE_TIMBER,
     seed_region_resource_profile,
 )
 from src.world import create_world
@@ -93,7 +94,7 @@ class ResourceSystemTests(unittest.TestCase):
         self.assertAlmostEqual(region.resource_established[RESOURCE_GRAIN], 0.8)
         self.assertAlmostEqual(region.resource_established[RESOURCE_HORSES], 0.45)
 
-    def test_invest_can_introduce_grain_into_suitable_owned_neighbor(self):
+    def test_develop_can_introduce_grain_into_suitable_owned_neighbor(self):
         source = Region(
             name="A",
             neighbors=["B"],
@@ -123,10 +124,10 @@ class ResourceSystemTests(unittest.TestCase):
         )
         update_faction_resource_economy(world)
 
-        components = get_invest_target_score_components("B", "FactionA", world)
+        components = get_development_target_score_components("B", "FactionA", world)
 
         self.assertEqual(components["project_type"], "introduce_grain")
-        self.assertTrue(invest("FactionA", "B", world))
+        self.assertTrue(develop("FactionA", "B", world))
         self.assertGreater(world.regions["B"].resource_established[RESOURCE_GRAIN], 0.0)
         self.assertEqual(world.events[-1].details["project_type"], "introduce_grain")
 
@@ -167,7 +168,7 @@ class ResourceSystemTests(unittest.TestCase):
         self.assertGreater(expanded_capacity, base_capacity)
         self.assertGreater(get_region_food_storage_capacity(region), 0.0)
 
-    def test_invest_can_build_granary_when_food_storage_is_tight(self):
+    def test_develop_can_build_granary_when_food_storage_is_tight(self):
         region = Region(
             name="A",
             neighbors=[],
@@ -191,10 +192,10 @@ class ResourceSystemTests(unittest.TestCase):
         world.factions["FactionA"].food_storage_capacity = 0.0
         world.factions["FactionA"].food_overflow = 0.4
 
-        components = get_invest_target_score_components("A", "FactionA", world)
+        components = get_development_target_score_components("A", "FactionA", world)
 
         self.assertEqual(components["project_type"], "build_granary")
-        self.assertTrue(invest("FactionA", "A", world))
+        self.assertTrue(develop("FactionA", "A", world))
         self.assertGreater(world.regions["A"].granary_level, 0.0)
         self.assertEqual(world.events[-1].details["project_type"], "build_granary")
 
@@ -326,6 +327,135 @@ class ResourceSystemTests(unittest.TestCase):
 
         self.assertGreater(mined_output, baseline_output * 2)
 
+    def test_develop_can_build_logging_camp_on_timber_region(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=150,
+            terrain_tags=["forest"],
+            climate="temperate",
+        )
+        seed_region_resource_profile(region)
+        region.resource_wild_endowments[RESOURCE_TIMBER] = 1.1
+
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        update_faction_resource_economy(world)
+
+        components = get_development_target_score_components("A", "FactionA", world)
+
+        self.assertEqual(components["project_type"], "build_logging_camp")
+        self.assertTrue(develop("FactionA", "A", world))
+        self.assertGreater(world.regions["A"].logging_camp_level, 0.0)
+
+    def test_irrigation_significantly_improves_grain_output(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=160,
+            terrain_tags=["riverland"],
+            climate="temperate",
+        )
+        seed_region_resource_profile(region)
+        region.resource_established[RESOURCE_GRAIN] = 0.8
+
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        update_faction_resource_economy(world)
+        baseline_output = world.regions["A"].resource_output[RESOURCE_GRAIN]
+
+        world.regions["A"].irrigation_level = 1.0
+        update_faction_resource_economy(world)
+        irrigated_output = world.regions["A"].resource_output[RESOURCE_GRAIN]
+
+        self.assertGreater(irrigated_output, baseline_output * 1.4)
+
+    def test_pasture_significantly_improves_horse_output(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=160,
+            terrain_tags=["steppe"],
+            climate="temperate",
+        )
+        seed_region_resource_profile(region)
+        region.resource_established[RESOURCE_HORSES] = 0.7
+
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        update_faction_resource_economy(world)
+        baseline_output = world.regions["A"].resource_output[RESOURCE_HORSES]
+
+        world.regions["A"].pasture_level = 1.0
+        update_faction_resource_economy(world)
+        pastured_output = world.regions["A"].resource_output[RESOURCE_HORSES]
+
+        self.assertGreater(pastured_output, baseline_output * 1.4)
+
+    def test_road_level_improves_frontier_distribution(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=2,
+                    population=180,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    homeland_faction_id="FactionA",
+                    integration_score=10.0,
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A", "C"],
+                    owner="FactionA",
+                    resources=2,
+                    population=110,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    integration_score=1.2,
+                ),
+                "C": Region(
+                    name="C",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=2,
+                    population=110,
+                    terrain_tags=["forest"],
+                    climate="temperate",
+                    integration_score=1.0,
+                ),
+            },
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        world.regions["C"].resource_wild_endowments[RESOURCE_TIMBER] = 1.1
+
+        update_faction_resource_economy(world)
+        baseline_effective = world.regions["C"].resource_effective_output[RESOURCE_TIMBER]
+        baseline_cost = world.regions["C"].resource_route_cost
+
+        world.regions["B"].road_level = 1.0
+        world.regions["C"].road_level = 1.0
+        update_faction_resource_economy(world)
+
+        self.assertGreater(world.regions["C"].resource_effective_output[RESOURCE_TIMBER], baseline_effective)
+        self.assertLess(world.regions["C"].resource_route_cost, baseline_cost)
+
     def test_isolated_frontier_output_is_lower_than_gross_output(self):
         world = WorldState(
             regions={
@@ -442,7 +572,7 @@ class ResourceSystemTests(unittest.TestCase):
         )
         update_faction_resource_economy(world)
 
-        components = get_invest_target_score_components("C", "FactionA", world)
+        components = get_development_target_score_components("C", "FactionA", world)
 
         self.assertNotEqual(components["project_type"], "introduce_grain")
 
@@ -530,7 +660,7 @@ class ResourceSystemTests(unittest.TestCase):
             degraded_region.resource_effective_output[RESOURCE_COPPER],
         )
 
-    def test_bottlenecked_corridor_prefers_infrastructure_investment(self):
+    def test_bottlenecked_corridor_prefers_road_development(self):
         world = WorldState(
             regions={
                 "A": Region(
@@ -581,9 +711,9 @@ class ResourceSystemTests(unittest.TestCase):
         world.regions["C"].resource_established[RESOURCE_HORSES] = 0.0
 
         update_faction_resource_economy(world)
-        components = get_invest_target_score_components("B", "FactionA", world)
+        components = get_development_target_score_components("B", "FactionA", world)
 
-        self.assertEqual(components["project_type"], "improve_infrastructure")
+        self.assertEqual(components["project_type"], "build_road_station")
         self.assertLess(world.regions["B"].resource_route_bottleneck, 0.7)
 
 

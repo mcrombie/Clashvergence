@@ -25,6 +25,10 @@ def _clamp(value: float, minimum: float, maximum: float) -> float:
 def _round_posture(value: float) -> float:
     return round(_clamp(value, 0.05, 0.95), 3)
 
+
+def _is_development_event(event) -> bool:
+    return event.type in {"develop", "invest"}
+
 def get_owned_region_counts(world: WorldState) -> dict[str, int]:
     counts = {faction_name: 0 for faction_name in world.factions}
     for region in world.regions.values():
@@ -165,7 +169,7 @@ def compute_faction_doctrine_profile(
     turns = max(1, state.turns_observed)
     growth_ratio = state.turns_with_growth / turns
     conflict_ratio = state.turns_with_conflict / turns
-    investment_ratio = state.turns_with_investment / turns
+    development_ratio = state.turns_with_development / turns
     conquest_ratio = state.successful_attacks / max(1, state.attacks)
     territorial_reach = state.peak_regions / max(1, total_regions)
     average_regions = state.cumulative_regions_held / turns
@@ -187,7 +191,7 @@ def compute_faction_doctrine_profile(
     )
     development_posture = _round_posture(
         0.18
-        + (investment_ratio * 0.36)
+        + (development_ratio * 0.36)
         + (rough_ratio * 0.16)
         + (consolidation_ratio * 0.18)
         + (max(0.0, 1.0 - conflict_ratio) * 0.07)
@@ -195,7 +199,7 @@ def compute_faction_doctrine_profile(
     insularity = _round_posture(
         0.16
         + (rough_ratio * 0.28)
-        + (investment_ratio * 0.12)
+        + (development_ratio * 0.12)
         + (max(0.0, 0.55 - growth_ratio) * 0.28)
         + (max(0.0, 0.45 - open_ratio) * 0.08)
     )
@@ -309,10 +313,10 @@ def initialize_rebel_faction_doctrine(
     inherited_state.expansions = 0
     inherited_state.attacks = 0
     inherited_state.successful_attacks = 0
-    inherited_state.investments = 0
+    inherited_state.developments = 0
     inherited_state.turns_with_growth = 0
     inherited_state.turns_with_conflict = 0
-    inherited_state.turns_with_investment = 0
+    inherited_state.turns_with_development = 0
     inherited_state.regions_gained_by_expansion = 0
     inherited_state.regions_gained_by_conquest = 0
     inherited_state.cumulative_regions_held = 1
@@ -363,8 +367,8 @@ def update_faction_doctrines(world: WorldState) -> None:
         faction_events = events_by_faction[faction_name]
         if any(event.type in {"expand", "attack"} for event in faction_events):
             state.turns_with_conflict += 1
-        if any(event.type == "invest" for event in faction_events):
-            state.turns_with_investment += 1
+        if any(_is_development_event(event) for event in faction_events):
+            state.turns_with_development += 1
         if current_regions > state.last_region_count:
             state.turns_with_growth += 1
 
@@ -377,8 +381,8 @@ def update_faction_doctrines(world: WorldState) -> None:
                 if event.get("success", False):
                     state.successful_attacks += 1
                     state.regions_gained_by_conquest += 1
-            elif event.type == "invest":
-                state.investments += 1
+            elif _is_development_event(event):
+                state.developments += 1
 
         state.last_region_count = current_regions
         faction.doctrine_profile = compute_faction_doctrine_profile(

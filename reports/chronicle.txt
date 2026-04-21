@@ -1,33 +1,27 @@
 Simulation Chronicle
 
 On turn 2, Aruangos Tribe made its first expansion into M3.
-On turn 2, Veneunar Tribe made its first expansion into I8.
 On turn 2, Saklian Tribe made its first expansion into M12.
-On turn 2, Aruangos Tribe seized M3, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I4.
-On turn 2, Saklian Tribe seized M12, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
-On turn 7, Arangoun Tribe made its first expansion into I6.
-On turn 12, Veneunar Grove Rebels made its first expansion into I1.
-On turn 18, Saklian Reach Rebels made its first expansion into I3.
-On turn 18, Saklian Tribe seized O2, a frontier foothold that mattered because it opened new directions for future expansion.
-On turn 23, Aruangos Reach Rebels made its first expansion into O5.
+On turn 2, Ananiasha Tribe made its first expansion into I8.
+On turn 7, Rnutuan Tribe made its first expansion into I6.
 
 Opening Phase
 
-The strongest early land grab was Aruangos State's claim of M3 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Saklian Chiefdom and Aruangos State led expansion with 2 claim(s).
-Across the first 5 turns, Arangoun State invested most often with 5 investment(s).
-By the end of turn 5, Arangoun State held the opening treasury lead at 30.
+The strongest early land grab was Aruangos Chiefdom's claim of M3 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Saklian Chiefdom and Aruangos Chiefdom led expansion with 2 claim(s).
+Across the first 5 turns, Rnutuan Chiefdom developed most often with 5 development(s).
+By the end of turn 5, Rnutuan Chiefdom held the opening treasury lead at 24.
 
 Phase Summaries
 
-Early phase: Veneunar Ford Rebels was strongest by the end of turns 1-33, with Veneunar Ford Rebels on 30 treasury and 2 regions. 12 successful attacks shifted control of 8 regions. 29 expansions added 29 new regions. 179 investments improved existing holdings. Veneunar Grove Rebels gained 6 regions while Veneunar Ford Rebels lost 7 regions.
-Mid phase: Arangoun Tribe was strongest by the end of turns 34-66, with Arangoun Tribe on 203 treasury and 5 regions. 38 successful attacks shifted control of 20 regions. 2 expansions added 2 new regions. 289 investments improved existing holdings. Aruangos Pass Rebels gained 4 regions while Veneunar Grove Rebels lost 6 regions. Arangoun Tribe improved its standing most during the phase.
-Late phase: Aruangos Pass Rebels was strongest by the end of turns 67-100, with Aruangos Pass Rebels on 971 treasury and 6 regions. 20 successful attacks shifted control of 9 regions. 225 investments improved existing holdings. Veneunar Ford Rebels gained 6 regions while Veneunar Wood Rebels lost 3 regions.
+Early phase: Rnutuan Tribe was strongest by the end of turns 1-2, with Rnutuan Tribe on 9 treasury and 1 region. No faction pulled clear; 4 factions remained within a 1-region spread. 3 expansions added 3 new regions. 5 developments improved existing holdings. Rnutuan Tribe improved its standing most during the phase.
+Mid phase: Rnutuan Tribe was strongest by the end of turns 3-5, with Rnutuan Tribe on 24 treasury and 1 region. 3 expansions added 3 new regions. 9 developments improved existing holdings. Aruangos Tribe gained 2 regions. Saklian Tribe improved its standing most during the phase.
+Late phase: Rnutuan Tribe was strongest by the end of turns 6-8, with Rnutuan Tribe on 27 treasury and 3 regions. No faction pulled clear; 4 factions remained within a 2-region spread. 3 expansions added 3 new regions. 9 developments improved existing holdings. Rnutuan Tribe gained 2 regions. Aruangos Tribe improved its standing most during the phase.
 
 Turning Points
 
-Mid economic shift: Aruangos Pass Rebels created a treasury edge that became central to the finish.
-Mid economic shift: Arangoun Bay Rebels created a treasury edge that became central to the finish.
+Late economic shift: Rnutuan Tribe created a treasury edge that became central to the finish.
+Early leader change: Aruangos Tribe took the treasury lead.
 
 Outcome Type
 
@@ -35,51 +29,24 @@ Outcome type: economic_win.
 
 Faction Trajectories
 
-Saklian Chiefdom opened with 5 claims and grew to 2 regions by the end of the opening phase, peaked at 5 regions on turn 18 before slipping to 0 regions, and closed on 0 treasury without territory after 8 attacks.
-Aruangos State opened with 7 claims and grew to 4 regions by the end of the opening phase, peaked at 5 regions on turn 24 before slipping to 0 regions, and closed on 0 treasury without territory after 0 attacks.
-Arangoun State opened with 6 claims and grew to 7 regions by the end of the opening phase, peaked at 7 regions on turn 35 before slipping to 5 regions, and finished rank 2 on 887 treasury with 5 regions after gaining 881 treasury overall.
-Veneunar Tribe opened with 3 claims and grew to 2 regions by the end of the opening phase, peaked at 3 regions on turn 78 before slipping to 1 region, and finished rank 6 on 74 treasury with 1 region after gaining 71 treasury overall.
-Caaneor opened with 3 claims and grew to 6 regions by the end of the opening phase, peaked at 7 regions on turn 24 before slipping to 1 region, and finished rank 14 on -1 treasury with 1 region.
-Saklian Reach Rebels spent the opening consolidating its start with 7 investments, peaked at 2 regions on turn 18 before slipping to 0 regions, and closed on 1 treasury without territory after 0 attacks.
-Aruangos Monarchy opened quietly and held at 7 regions through the first phase, used the middle turns to scale economically, adding 281 treasury, and finished first with 6 regions, 971 treasury, and 13 total attacks.
-Aruangos Monarchy opened with 2 claims and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 6 regions by turn 100, and finished rank 4 on 399 treasury with 6 regions after gaining 398 treasury overall.
-Arangoun Monarchy opened with 3 claims and grew to 4 regions by the end of the opening phase, peaked at 4 regions on turn 88 before slipping to 2 regions, and finished rank 5 on 201 treasury with 2 regions after gaining 200 treasury overall.
-Yanonev opened quietly and held at 4 regions through the first phase, built steadily past the opening, reaching 9 regions by turn 100, and finished rank 3 on 434 treasury with 9 regions after gaining 433 treasury overall.
-Saklian Monarchy opened quietly and held at 3 regions through the first phase, peaked at 4 regions on turn 53 before slipping to 0 regions, and closed on -3 treasury without territory after 6 attacks.
-Veneunar Vale Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 3 treasury without territory after 0 attacks.
-Saklian Monarchy opened quietly and held at 2 regions through the first phase, built steadily past the opening, reaching 5 regions by turn 100, and finished rank 7 on 47 treasury with 5 regions after gaining 46 treasury overall.
-Arangounian Cape Rebels spent the opening consolidating its start with 3 investments, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
-Anenakhta opened quietly and held at 2 regions through the first phase, peaked at 3 regions on turn 63 before slipping to 0 regions, and closed on -4 treasury without territory after 5 attacks.
-Veneunar Grove Rebels 2 opened with 3 attack attempts and contested neighboring borders immediately, held steady at 0 regions through the middle turns, and closed on 0 treasury without territory after 3 attacks.
+Saklian Chiefdom opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 8, and finished rank 3 on 0 treasury with 4 regions.
+Aruangos Chiefdom opened with 1 claim and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 4 regions by turn 8, and finished rank 2 on 1 treasury with 4 regions.
+Rnutuan Chiefdom spent the opening consolidating its start with 2 developments, built steadily past the opening, reaching 3 regions by turn 8, and finished first with 3 regions, 27 treasury, and 0 total attacks.
+Ananiasha Tribe opened with 1 claim and grew to 2 regions by the end of the opening phase, held steady at 2 regions through the middle turns, and finished rank 4 on -2 treasury with 2 regions.
 
 Strategic Interpretation
 
-Aruangos Monarchy’s developmental forest approach won because the result was decided by treasury rather than territory, and its 971 total beat Arangoun State’s 887 even though the region gap was only one. After a contested opening and a midgame where Arangoun State was strongest, the decisive shift was economic because the treasury edge created by the mid-phase rebels became central to the finish, which meant larger regional swings did not translate into a decisive lead. Yanonev’s early and late surges, and Aruangos Monarchy’s own late regional gain, mattered only insofar as they kept the board fluid, because the final separation came from resource accumulation that the runner-up could not convert into enough income.
-The closest challenger was Arangoun State (Developmental Riverland Plains) at 887 treasury and 5 regions.
-Aruangos Monarchy remained locked in a claim dispute with Aruangos Monarchy over 4 regions dominated by Aruangos communities.
-Aruangos Monarchy treated Caaneor as a peer-state rival, with both polities reading each other as serious strategic threats.
-Aruangos Monarchy remained locked in a legitimacy struggle with Aruangos State, with both regimes claiming to speak for the same people.
-Even amid a legitimacy struggle, Aruangos Monarchy and Aruangos State still left some room for negotiation through calmer political channels.
+Because the board stayed contested through most of the game, Rnutuan Chiefdom’s Adaptive Riverland Plains approach mattered more for treasury growth than for territory, and that resource edge became the deciding mechanism. Aruangos Chiefdom briefly led the treasury and held one more region at the finish, but it could not convert that map position into income, which left Rnutuan ahead by 26 in treasury despite trailing by one region. The late economic shift was decisive because it created separation only after the midgame remained balanced, so the final result was set by efficiency rather than expansion.
+The closest challenger was Aruangos Chiefdom (Adaptive Hill Forest) at 1 treasury and 4 regions.
+Rnutuan Chiefdom's dealings with Ananiasha Tribe were sharpened by a widening gap in political sophistication.
 
 Final Standings
 
-Aruangos Monarchy finished first with a treasury of 971 and control of 6 regions.
-Arangoun State ended with a treasury of 887 and 5 regions.
-Yanonev ended with a treasury of 434 and 9 regions.
-Aruangos Monarchy ended with a treasury of 399 and 6 regions.
-Arangoun Monarchy ended with a treasury of 201 and 2 regions.
-Veneunar Tribe ended with a treasury of 74 and 1 region.
-Saklian Monarchy ended with a treasury of 47 and 5 regions.
-Veneunar Vale Rebels ended with a treasury of 3 and 0 regions.
-Saklian Reach Rebels ended with a treasury of 1 and 0 regions.
-Arangounian Cape Rebels ended with a treasury of 1 and 0 regions.
-Saklian Chiefdom ended with a treasury of 0 and 0 regions.
-Aruangos State ended with a treasury of 0 and 0 regions.
-Veneunar Grove Rebels 2 ended with a treasury of 0 and 0 regions.
-Caaneor ended with a treasury of -1 and 1 region.
-Saklian Monarchy ended with a treasury of -3 and 0 regions.
-Anenakhta ended with a treasury of -4 and 0 regions.
+Rnutuan Chiefdom finished first with a treasury of 27 and control of 3 regions.
+Aruangos Chiefdom ended with a treasury of 1 and 4 regions.
+Saklian Chiefdom ended with a treasury of 0 and 4 regions.
+Ananiasha Tribe ended with a treasury of -2 and 2 regions.
 
 Victor's History
 
-Aruangos Monarchy won not by spectacle but by disciplined conversion, opening quietly, holding 7 regions through the first phase, and then using the middle turns to build a treasury lead that proved decisive. Its Developmental Forest approach was well matched to the map and produced the strongest economic finish: 971 treasury, first place, and a stable 6 regions at the end. Arangoun State had a credible run and even led in the middle, but it could not sustain that position against a rival that managed its growth more efficiently and finished with greater reserve. On a thirty-seven-region ring, the result reads as a clear judgment in favor of steadier economic stewardship.
+Rnutuan Chiefdom’s victory was a study in disciplined stewardship rather than mere territorial appetite: it finished first on treasury with 27, even while conceding map share and ending with 3 regions. The opening consolidation and steady build past the opening gave it a coherent base, and the late economic shift that created a treasury edge proved decisive. Aruangos Chiefdom did well to grow from an early claim to 4 regions, but its brief treasury lead did not hold against a more durable finish. On a contested thirty-seven-region ring, the result favored the faction that managed its resources with the greater consistency and judgment.

@@ -96,6 +96,16 @@ RESOURCE_ROUTE_BOTTLENECK_UNREST_FACTOR = 0.03
 RESOURCE_ROUTE_BOTTLENECK_DAMAGE_FACTOR = 0.45
 RESOURCE_ROUTE_BOTTLENECK_INFRASTRUCTURE_BONUS = 0.09
 RESOURCE_ROUTE_BOTTLENECK_INTEGRATION_BONUS = 0.015
+RESOURCE_ROUTE_ROAD_STEP_BONUS = 0.18
+RESOURCE_ROUTE_ROAD_SUPPORT_BONUS = 0.1
+RESOURCE_GRAIN_UNIRRIGATED_FACTOR = 0.78
+RESOURCE_GRAIN_IRRIGATION_LEVEL_FACTOR = 0.55
+RESOURCE_GRAIN_SUPPORT_LEVEL_FACTOR = 0.22
+RESOURCE_HORSE_UNPASTURED_FACTOR = 0.72
+RESOURCE_HORSE_PASTURE_LEVEL_FACTOR = 0.7
+RESOURCE_HORSE_SUPPORT_LEVEL_FACTOR = 0.22
+RESOURCE_TIMBER_UNDEVELOPED_FACTOR = 0.58
+RESOURCE_TIMBER_LOGGING_LEVEL_FACTOR = 0.78
 RESOURCE_EXTRACTIVE_UNDEVELOPED_FACTOR = 0.18
 RESOURCE_EXTRACTIVE_SITE_LEVEL_FACTOR = 0.95
 RESOURCE_EXTRACTIVE_SUPPORT_LEVEL_FACTOR = 0.16
@@ -134,6 +144,10 @@ def ensure_region_resource_state(region: Region) -> None:
     region.resource_route_cost = round(float(region.resource_route_cost or 0.0), 3)
     region.resource_route_anchor = region.resource_route_anchor or None
     region.resource_route_bottleneck = round(float(region.resource_route_bottleneck or 0.0), 3)
+    region.irrigation_level = round(max(0.0, float(region.irrigation_level or 0.0)), 2)
+    region.pasture_level = round(max(0.0, float(region.pasture_level or 0.0)), 2)
+    region.logging_camp_level = round(max(0.0, float(region.logging_camp_level or 0.0)), 2)
+    region.road_level = round(max(0.0, float(region.road_level or 0.0)), 2)
     region.copper_mine_level = round(max(0.0, float(region.copper_mine_level or 0.0)), 2)
     region.stone_quarry_level = round(max(0.0, float(region.stone_quarry_level or 0.0)), 2)
 
@@ -210,9 +224,25 @@ def get_region_resource_climate_factor(region: Region, world: WorldState | None)
 
 def get_region_resource_development_factor(region: Region, resource_name: str) -> float:
     if resource_name == RESOURCE_GRAIN:
-        return 1.0 + (region.agriculture_level * 0.35) + (region.infrastructure_level * 0.1)
+        return (
+            RESOURCE_GRAIN_UNIRRIGATED_FACTOR
+            + (region.irrigation_level * RESOURCE_GRAIN_IRRIGATION_LEVEL_FACTOR)
+            + (region.agriculture_level * RESOURCE_GRAIN_SUPPORT_LEVEL_FACTOR)
+            + (region.infrastructure_level * 0.08)
+        )
     if resource_name == RESOURCE_HORSES:
-        return 1.0 + (region.pastoral_level * 0.35) + (region.infrastructure_level * 0.08)
+        return (
+            RESOURCE_HORSE_UNPASTURED_FACTOR
+            + (region.pasture_level * RESOURCE_HORSE_PASTURE_LEVEL_FACTOR)
+            + (region.pastoral_level * RESOURCE_HORSE_SUPPORT_LEVEL_FACTOR)
+            + (region.infrastructure_level * 0.08)
+        )
+    if resource_name == RESOURCE_TIMBER:
+        return (
+            RESOURCE_TIMBER_UNDEVELOPED_FACTOR
+            + (region.logging_camp_level * RESOURCE_TIMBER_LOGGING_LEVEL_FACTOR)
+            + (region.infrastructure_level * 0.08)
+        )
     if resource_name in EXTRACTIVE_RESOURCES:
         site_level = get_region_extractive_site_level(region, resource_name)
         return (
@@ -332,6 +362,7 @@ def _get_region_route_step_cost(region: Region) -> float:
     average_damage = sum(region.resource_damage.values()) / max(1, len(ALL_RESOURCES))
     step_cost += min(0.3, average_damage * RESOURCE_ROUTE_DAMAGE_STEP_FACTOR)
     step_cost -= min(0.28, region.infrastructure_level * RESOURCE_ROUTE_INFRASTRUCTURE_STEP_BONUS)
+    step_cost -= min(0.35, region.road_level * RESOURCE_ROUTE_ROAD_STEP_BONUS)
     return _clamp(step_cost, 0.55, 2.4)
 
 
@@ -358,6 +389,7 @@ def _get_region_corridor_support_factor(region: Region) -> float:
         support += 0.03
 
     support += min(0.16, region.infrastructure_level * RESOURCE_ROUTE_BOTTLENECK_INFRASTRUCTURE_BONUS)
+    support += min(0.18, region.road_level * RESOURCE_ROUTE_ROAD_SUPPORT_BONUS)
     support += min(0.12, region.integration_score * RESOURCE_ROUTE_BOTTLENECK_INTEGRATION_BONUS)
     support -= min(0.18, region.unrest * RESOURCE_ROUTE_BOTTLENECK_UNREST_FACTOR)
     average_damage = sum(region.resource_damage.values()) / max(1, len(ALL_RESOURCES))

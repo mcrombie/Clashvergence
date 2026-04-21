@@ -87,16 +87,32 @@ class FactionDoctrineState:
     expansions: int = 0
     attacks: int = 0
     successful_attacks: int = 0
-    investments: int = 0
+    developments: int = 0
     turns_with_growth: int = 0
     turns_with_conflict: int = 0
-    turns_with_investment: int = 0
+    turns_with_development: int = 0
     regions_gained_by_expansion: int = 0
     regions_gained_by_conquest: int = 0
     cumulative_regions_held: int = 0
     peak_regions: int = 0
     starting_regions: int = 0
     last_region_count: int = 0
+
+    @property
+    def investments(self) -> int:
+        return self.developments
+
+    @investments.setter
+    def investments(self, value: int) -> None:
+        self.developments = value
+
+    @property
+    def turns_with_investment(self) -> int:
+        return self.turns_with_development
+
+    @turns_with_investment.setter
+    def turns_with_investment(self, value: int) -> None:
+        self.turns_with_development = value
 
 
 @dataclass
@@ -154,6 +170,10 @@ class Region:
     last_resource_project_turn: int | None = None
     infrastructure_level: float = 0.0
     granary_level: float = 0.0
+    irrigation_level: float = 0.0
+    pasture_level: float = 0.0
+    logging_camp_level: float = 0.0
+    road_level: float = 0.0
     copper_mine_level: float = 0.0
     stone_quarry_level: float = 0.0
     agriculture_level: float = 0.0
@@ -390,8 +410,12 @@ class Event:
         return self.get("score")
 
     @property
+    def development_amount(self):
+        return self.get("development_amount", self.get("invest_amount"))
+
+    @property
     def invest_amount(self):
-        return self.get("invest_amount")
+        return self.development_amount
 
     @property
     def new_resources(self):

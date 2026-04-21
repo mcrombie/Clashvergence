@@ -96,6 +96,10 @@ def _build_region_resource_payload(region):
         "taxable_value": round(get_region_taxable_value(region), 3),
         "infrastructure_level": round(region.infrastructure_level, 2),
         "granary_level": round(region.granary_level, 2),
+        "irrigation_level": round(region.irrigation_level, 2),
+        "pasture_level": round(region.pasture_level, 2),
+        "logging_camp_level": round(region.logging_camp_level, 2),
+        "road_level": round(region.road_level, 2),
         "copper_mine_level": round(region.copper_mine_level, 2),
         "stone_quarry_level": round(region.stone_quarry_level, 2),
         "agriculture_level": round(region.agriculture_level, 2),
@@ -172,8 +176,8 @@ def _get_event_title(event, world):
         if event.get("success", False):
             return f"{faction_name} captured {region_reference} from {defender}"
         return f"{faction_name} failed to take {region_reference} from {defender}"
-    if event.type == "invest":
-        return f"{faction_name} invested in {region_reference}"
+    if event.type in {"develop", "invest"}:
+        return f"{faction_name} developed {region_reference}"
     if event.type == "unrest_disturbance":
         return f"Unrest disturbed {region_reference} under {faction_name}"
     if event.type == "unrest_crisis":
@@ -280,7 +284,7 @@ def _get_event_summary(event, world):
         if event.get("success", False):
             return f"Successful attack at {chance:.0%} displayed odds.{terrain_text}"
         return f"Attack failed at {chance:.0%} displayed odds.{terrain_text}"
-    if event.type == "invest":
+    if event.type in {"develop", "invest"}:
         project_type = event.get("project_type", "development").replace("_", " ")
         resource_focus = event.get("resource_focus")
         focus_text = f" in {resource_focus}" if resource_focus else ""
@@ -483,6 +487,10 @@ def build_simulation_snapshots(world):
             "taxable_value": initial_region_history.get(region_name, {}).get("taxable_value", _build_region_resource_payload(region)["taxable_value"]),
             "infrastructure_level": initial_region_history.get(region_name, {}).get("infrastructure_level", region.infrastructure_level),
             "granary_level": initial_region_history.get(region_name, {}).get("granary_level", region.granary_level),
+            "irrigation_level": initial_region_history.get(region_name, {}).get("irrigation_level", region.irrigation_level),
+            "pasture_level": initial_region_history.get(region_name, {}).get("pasture_level", region.pasture_level),
+            "logging_camp_level": initial_region_history.get(region_name, {}).get("logging_camp_level", region.logging_camp_level),
+            "road_level": initial_region_history.get(region_name, {}).get("road_level", region.road_level),
             "copper_mine_level": initial_region_history.get(region_name, {}).get("copper_mine_level", region.copper_mine_level),
             "stone_quarry_level": initial_region_history.get(region_name, {}).get("stone_quarry_level", region.stone_quarry_level),
             "agriculture_level": initial_region_history.get(region_name, {}).get("agriculture_level", region.agriculture_level),
@@ -553,6 +561,10 @@ def build_simulation_snapshots(world):
                 "taxable_value": region["taxable_value"],
                 "infrastructure_level": region["infrastructure_level"],
                 "granary_level": region["granary_level"],
+                "irrigation_level": region["irrigation_level"],
+                "pasture_level": region["pasture_level"],
+                "logging_camp_level": region["logging_camp_level"],
+                "road_level": region["road_level"],
                 "copper_mine_level": region["copper_mine_level"],
                 "stone_quarry_level": region["stone_quarry_level"],
                 "agriculture_level": region["agriculture_level"],
@@ -611,7 +623,7 @@ def build_simulation_snapshots(world):
                 if event.get("success", False):
                     region_state[event.region]["owner"] = event.faction
                     changed_regions.append(event.region)
-            elif event.type == "invest":
+            elif event.type in {"develop", "invest"}:
                 region_state[event.region]["resources"] = event.get(
                     "new_resources",
                     region_state[event.region]["resources"],
@@ -651,6 +663,10 @@ def build_simulation_snapshots(world):
             region_state[region_name]["taxable_value"] = history_region.get("taxable_value", region_state[region_name]["taxable_value"])
             region_state[region_name]["infrastructure_level"] = history_region.get("infrastructure_level", region_state[region_name]["infrastructure_level"])
             region_state[region_name]["granary_level"] = history_region.get("granary_level", region_state[region_name]["granary_level"])
+            region_state[region_name]["irrigation_level"] = history_region.get("irrigation_level", region_state[region_name]["irrigation_level"])
+            region_state[region_name]["pasture_level"] = history_region.get("pasture_level", region_state[region_name]["pasture_level"])
+            region_state[region_name]["logging_camp_level"] = history_region.get("logging_camp_level", region_state[region_name]["logging_camp_level"])
+            region_state[region_name]["road_level"] = history_region.get("road_level", region_state[region_name]["road_level"])
             region_state[region_name]["copper_mine_level"] = history_region.get("copper_mine_level", region_state[region_name]["copper_mine_level"])
             region_state[region_name]["stone_quarry_level"] = history_region.get("stone_quarry_level", region_state[region_name]["stone_quarry_level"])
             region_state[region_name]["agriculture_level"] = history_region.get("agriculture_level", region_state[region_name]["agriculture_level"])
@@ -724,6 +740,10 @@ def build_simulation_snapshots(world):
                     "taxable_value": region["taxable_value"],
                     "infrastructure_level": region["infrastructure_level"],
                     "granary_level": region["granary_level"],
+                    "irrigation_level": region["irrigation_level"],
+                    "pasture_level": region["pasture_level"],
+                    "logging_camp_level": region["logging_camp_level"],
+                    "road_level": region["road_level"],
                     "copper_mine_level": region["copper_mine_level"],
                     "stone_quarry_level": region["stone_quarry_level"],
                     "agriculture_level": region["agriculture_level"],
@@ -1615,7 +1635,7 @@ def render_simulation_html(world):
       background: rgba(61, 122, 72, 0.14);
       color: #2f6a39;
     }}
-    .event-icon-invest {{
+    .event-icon-develop {{
       background: rgba(189, 140, 58, 0.18);
       color: #8a5a12;
     }}
@@ -2105,8 +2125,8 @@ def render_simulation_html(world):
       if (type === "expand") {{
         return {{ symbol: "◌", className: "event-icon-expand", label: "Expansion" }};
       }}
-      if (type === "invest") {{
-        return {{ symbol: "▲", className: "event-icon-invest", label: "Investment" }};
+      if (type === "develop" || type === "invest") {{
+        return {{ symbol: "▲", className: "event-icon-develop", label: "Development" }};
       }}
       if (type === "attack") {{
         return {{ symbol: "⚔", className: "event-icon-attack", label: "Attack" }};
@@ -3076,7 +3096,16 @@ def render_simulation_html(world):
               <div class="detail-label">Development</div>
               <div class="detail-value">
                 Infra ${{Number(regionSnapshot.infrastructure_level ?? staticRegion.infrastructure_level ?? 0).toFixed(2)}}
+                / Road ${{Number(regionSnapshot.road_level ?? staticRegion.road_level ?? 0).toFixed(2)}}
                 / Granary ${{Number(regionSnapshot.granary_level ?? staticRegion.granary_level ?? 0).toFixed(2)}}
+                / Irrig. ${{Number(regionSnapshot.irrigation_level ?? staticRegion.irrigation_level ?? 0).toFixed(2)}}
+                / Pasture ${{Number(regionSnapshot.pasture_level ?? staticRegion.pasture_level ?? 0).toFixed(2)}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Sites</div>
+              <div class="detail-value">
+                Logging ${{Number(regionSnapshot.logging_camp_level ?? staticRegion.logging_camp_level ?? 0).toFixed(2)}}
                 / Agri ${{Number(regionSnapshot.agriculture_level ?? staticRegion.agriculture_level ?? 0).toFixed(2)}}
                 / Mine ${{Number(regionSnapshot.copper_mine_level ?? staticRegion.copper_mine_level ?? 0).toFixed(2)}}
                 / Quarry ${{Number(regionSnapshot.stone_quarry_level ?? staticRegion.stone_quarry_level ?? 0).toFixed(2)}}
@@ -3416,7 +3445,7 @@ def render_simulation_html(world):
             || event.type === "diplomacy_break"
           ) {{
             icon.symbol = "=";
-          icon.className = "event-icon-invest";
+          icon.className = "event-icon-develop";
           icon.label = "Diplomacy";
         }}
         return `
@@ -3589,3 +3618,6 @@ def write_simulation_html(world, output_path=SIMULATION_VIEWER_OUTPUT):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(render_simulation_html(world), encoding="utf-8")
     return output_path
+
+
+

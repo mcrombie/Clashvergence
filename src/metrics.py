@@ -27,7 +27,7 @@ def build_turn_metrics(world, economy_snapshot=None):
     for faction_name, faction in world.factions.items():
         attacks = 0
         expansions = 0
-        investments = 0
+        developments = 0
         homeland_regions = 0
         core_regions = 0
         frontier_regions = 0
@@ -57,8 +57,8 @@ def build_turn_metrics(world, economy_snapshot=None):
                 attacks += 1
             elif event.type == "expand":
                 expansions += 1
-            elif event.type == "invest":
-                investments += 1
+            elif event.type in {"develop", "invest"}:
+                developments += 1
 
         for region in world.regions.values():
             if region.owner != faction_name:
@@ -89,7 +89,8 @@ def build_turn_metrics(world, economy_snapshot=None):
             "total_surplus": round(total_surplus, 2),
             "attacks": attacks,
             "expansions": expansions,
-            "investments": investments,
+            "developments": developments,
+            "investments": developments,
             "income": income,
             "nominal_income": nominal_income,
             "empire_penalty": empire_penalty,

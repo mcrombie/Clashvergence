@@ -210,12 +210,15 @@ def _get_best_resource_source_region(
     return None if best is None else best[1]
 
 
-def _get_investment_project_options(faction_name: str, region, world) -> list[dict[str, float | str]]:
+def _get_development_project_options(faction_name: str, region, world) -> list[dict[str, float | str]]:
     faction = world.factions[faction_name]
     shortages = faction.resource_shortages
     options: list[dict[str, float | str]] = []
     corridor_pressure = _get_region_corridor_pressure(region)
     route_bottleneck = float(region.resource_route_bottleneck or 0.0)
+    local_storage_gap = max(0.0, region.food_produced - region.food_storage_capacity)
+    local_food_waste = region.food_overflow + region.food_spoilage
+    local_deficit_pressure = region.food_deficit
 
     grain_suitability = region.resource_suitability.get(RESOURCE_GRAIN, 0.0)
     grain_established = region.resource_established.get(RESOURCE_GRAIN, 0.0)
@@ -237,15 +240,29 @@ def _get_investment_project_options(faction_name: str, region, world) -> list[di
             "resource_focus": RESOURCE_GRAIN,
             "source_region": grain_source.name,
         })
-    if grain_established > 0 and region.agriculture_level < 1.6:
+    if grain_established > 0 and region.irrigation_level < 1.8:
         options.append({
-            "project_type": "improve_agriculture",
-            "score": 3.5 + (grain_established * 3.0) + (shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 1.8),
+            "project_type": (
+                "build_irrigation"
+                if region.irrigation_level <= 0
+                else "expand_irrigation"
+            ),
+            "score": (
+                3.8
+                + (grain_established * 3.0)
+                + (region.food_deficit * 1.2)
+                + (local_storage_gap * 0.8)
+                + (shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 2.0)
+                + (0.5 if region.irrigation_level <= 0 else region.irrigation_level * 0.35)
+            ),
             "resource_focus": RESOURCE_GRAIN,
         })
-    local_storage_gap = max(0.0, region.food_produced - region.food_storage_capacity)
-    local_food_waste = region.food_overflow + region.food_spoilage
-    local_deficit_pressure = region.food_deficit
+    if region.irrigation_level > 0.4 and region.agriculture_level < 1.4:
+        options.append({
+            "project_type": "improve_agriculture",
+            "score": 2.7 + (grain_established * 2.4) + (region.irrigation_level * 1.3),
+            "resource_focus": RESOURCE_GRAIN,
+        })
     if (
         region.granary_level < 1.8
         and (
@@ -290,11 +307,46 @@ def _get_investment_project_options(faction_name: str, region, world) -> list[di
             "resource_focus": RESOURCE_HORSES,
             "source_region": horse_source.name,
         })
-    if horse_established > 0 and region.pastoral_level < 1.6:
+    if horse_established > 0 and region.pasture_level < 1.8:
+        options.append({
+            "project_type": (
+                "establish_pasture"
+                if region.pasture_level <= 0
+                else "expand_pasture"
+            ),
+            "score": (
+                3.2
+                + (horse_established * 2.6)
+                + (shortages.get(CAPACITY_MOBILITY, 0.0) * 2.0)
+                + (region.infrastructure_level * 0.25)
+                + (0.45 if region.pasture_level <= 0 else region.pasture_level * 0.3)
+            ),
+            "resource_focus": RESOURCE_HORSES,
+        })
+    if region.pasture_level > 0.4 and region.pastoral_level < 1.4:
         options.append({
             "project_type": "improve_pastoralism",
-            "score": 3.0 + (horse_established * 2.5) + (shortages.get(CAPACITY_MOBILITY, 0.0) * 1.8),
+            "score": 2.4 + (horse_established * 2.1) + (region.pasture_level * 1.1),
             "resource_focus": RESOURCE_HORSES,
+        })
+
+    timber_endowment = region.resource_wild_endowments.get(RESOURCE_TIMBER, 0.0)
+    if timber_endowment > 0.25 and region.logging_camp_level < 1.8:
+        construction_pressure = shortages.get(CAPACITY_CONSTRUCTION, 0.0)
+        options.append({
+            "project_type": (
+                "build_logging_camp"
+                if region.logging_camp_level <= 0
+                else "expand_logging_camp"
+            ),
+            "score": (
+                3.0
+                + (timber_endowment * 3.8)
+                + (construction_pressure * 2.0)
+                + (corridor_pressure * 0.8)
+                + (0.45 if region.logging_camp_level <= 0 else region.logging_camp_level * 0.28)
+            ),
+            "resource_focus": RESOURCE_TIMBER,
         })
 
     copper_endowment = region.resource_fixed_endowments.get(RESOURCE_COPPER, 0.0)
@@ -335,7 +387,34 @@ def _get_investment_project_options(faction_name: str, region, world) -> list[di
             "resource_focus": RESOURCE_STONE,
         })
 
-    if region.infrastructure_level < 1.8:
+    if region.road_level < 1.8 and (
+        corridor_pressure >= 0.12
+        or route_bottleneck < 0.84
+        or get_region_core_status(region) == "frontier"
+    ):
+        logistics_pressure = (
+            shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 0.25
+            + shortages.get(CAPACITY_METAL, 0.0) * 0.25
+            + shortages.get(CAPACITY_MOBILITY, 0.0) * 0.35
+            + shortages.get(CAPACITY_CONSTRUCTION, 0.0) * 0.2
+        )
+        options.append({
+            "project_type": (
+                "build_road_station"
+                if region.road_level <= 0
+                else "improve_road"
+            ),
+            "score": (
+                2.8
+                + (corridor_pressure * 5.0)
+                + (max(0.0, 0.86 - route_bottleneck) * 3.2)
+                + logistics_pressure
+                + (0.4 if region.road_level <= 0 else region.road_level * 0.3)
+            ),
+            "resource_focus": "mixed",
+        })
+
+    if region.infrastructure_level < 1.6:
         infrastructure_shortage_bonus = (
             shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 0.25
             + shortages.get(CAPACITY_METAL, 0.0) * 0.45
@@ -344,11 +423,12 @@ def _get_investment_project_options(faction_name: str, region, world) -> list[di
         options.append({
             "project_type": "improve_infrastructure",
             "score": (
-                1.9
+                1.5
                 + (get_region_taxable_value(region, world) * 0.48)
                 + (corridor_pressure * 4.4)
                 + (max(0.0, 0.78 - route_bottleneck) * 3.0)
                 + infrastructure_shortage_bonus
+                - (region.road_level * 0.35)
             ),
             "resource_focus": "mixed",
         })
@@ -356,9 +436,9 @@ def _get_investment_project_options(faction_name: str, region, world) -> list[di
     return options
 
 
-def get_invest_target_score_components(region_name: str, faction_name: str, world) -> dict[str, float | str]:
+def get_development_target_score_components(region_name: str, faction_name: str, world) -> dict[str, float | str]:
     region = world.regions[region_name]
-    options = _get_investment_project_options(faction_name, region, world)
+    options = _get_development_project_options(faction_name, region, world)
     if not options:
         return {
             "score": 0.0,
@@ -379,9 +459,9 @@ def get_invest_target_score_components(region_name: str, faction_name: str, worl
     }
 
 
-def get_development_target_score_components(region_name: str, faction_name: str, world) -> dict[str, float | str]:
-    """Compatibility-forward name for region project scoring."""
-    return get_invest_target_score_components(region_name, faction_name, world)
+def get_invest_target_score_components(region_name: str, faction_name: str, world) -> dict[str, float | str]:
+    """Backward-compatible alias for development project scoring."""
+    return get_development_target_score_components(region_name, faction_name, world)
 
 
 def get_owned_region_count(faction_name, world):
@@ -1082,40 +1162,40 @@ def attack(faction_name, target_region_name, world):
     return succeeded
 
 
-def get_investable_regions(faction_name, world):
-    """Returns a list of Regions the Faction owns and is capable of investing in."""
+def get_developable_regions(faction_name, world):
+    """Returns a list of Regions the Faction owns and can currently develop."""
 
-    investable_regions: set[str] = set()
+    developable_regions: set[str] = set()
 
     for region in world.regions.values():
         if (
             region.owner == faction_name
             and faction_knows_region(world, faction_name, region.name)
-            and _get_investment_project_options(faction_name, region, world)
+            and _get_development_project_options(faction_name, region, world)
         ):
-            investable_regions.add(region.name)
+            developable_regions.add(region.name)
 
-    return sorted(investable_regions)
-
-
-def get_developable_regions(faction_name, world):
-    """Compatibility-forward name for owned regions with development projects."""
-    return get_investable_regions(faction_name, world)
+    return sorted(developable_regions)
 
 
-def invest(faction_name, target_region_name, world):
-    """Returns whether the Faction successfully invested in the target Region."""
+def get_investable_regions(faction_name, world):
+    """Backward-compatible alias for owned regions with development projects."""
+    return get_developable_regions(faction_name, world)
+
+
+def develop(faction_name, target_region_name, world):
+    """Returns whether the Faction successfully developed the target Region."""
 
     if target_region_name not in world.regions:
         return False
 
-    if target_region_name not in get_investable_regions(faction_name, world):
+    if target_region_name not in get_developable_regions(faction_name, world):
         return False
 
     region = world.regions[target_region_name]
     taxable_before = get_region_taxable_value(region, world)
     resources_before = region.resources
-    score_components = get_invest_target_score_components(
+    score_components = get_development_target_score_components(
         target_region_name,
         faction_name,
         world,
@@ -1138,12 +1218,45 @@ def invest(faction_name, target_region_name, world):
             region.resource_established.get(RESOURCE_HORSES, 0.0) + 0.16,
         )
         project_amount = 0.16
+    elif project_type == "build_irrigation":
+        region.irrigation_level = round(min(1.8, region.irrigation_level + 0.36), 2)
+        region.agriculture_level = round(min(1.8, region.agriculture_level + 0.08), 2)
+        project_amount = 0.36
+    elif project_type == "expand_irrigation":
+        region.irrigation_level = round(min(1.8, region.irrigation_level + 0.24), 2)
+        region.agriculture_level = round(min(1.8, region.agriculture_level + 0.05), 2)
+        project_amount = 0.24
     elif project_type == "improve_agriculture":
-        region.agriculture_level = round(min(1.8, region.agriculture_level + 0.28), 2)
+        region.agriculture_level = round(min(1.8, region.agriculture_level + 0.2), 2)
+        if region.irrigation_level > 0:
+            region.irrigation_level = round(min(1.8, region.irrigation_level + 0.08), 2)
         project_amount = 0.28
     elif project_type == "build_granary":
         region.granary_level = round(min(1.8, region.granary_level + 0.32), 2)
         project_amount = 0.32
+    elif project_type == "establish_pasture":
+        region.pasture_level = round(min(1.8, region.pasture_level + 0.34), 2)
+        region.pastoral_level = round(min(1.8, region.pastoral_level + 0.06), 2)
+        project_amount = 0.34
+    elif project_type == "expand_pasture":
+        region.pasture_level = round(min(1.8, region.pasture_level + 0.24), 2)
+        region.pastoral_level = round(min(1.8, region.pastoral_level + 0.04), 2)
+        project_amount = 0.24
+    elif project_type == "build_logging_camp":
+        region.logging_camp_level = round(min(1.8, region.logging_camp_level + 0.34), 2)
+        region.infrastructure_level = round(min(1.8, region.infrastructure_level + 0.04), 2)
+        project_amount = 0.34
+    elif project_type == "expand_logging_camp":
+        region.logging_camp_level = round(min(1.8, region.logging_camp_level + 0.24), 2)
+        project_amount = 0.24
+    elif project_type == "build_road_station":
+        region.road_level = round(min(1.8, region.road_level + 0.34), 2)
+        region.infrastructure_level = round(min(1.8, region.infrastructure_level + 0.08), 2)
+        project_amount = 0.34
+    elif project_type == "improve_road":
+        region.road_level = round(min(1.8, region.road_level + 0.24), 2)
+        region.infrastructure_level = round(min(1.8, region.infrastructure_level + 0.04), 2)
+        project_amount = 0.24
     elif project_type == "build_copper_mine":
         region.copper_mine_level = round(min(1.8, region.copper_mine_level + 0.42), 2)
         project_amount = 0.42
@@ -1157,7 +1270,9 @@ def invest(faction_name, target_region_name, world):
         region.stone_quarry_level = round(min(1.8, region.stone_quarry_level + 0.26), 2)
         project_amount = 0.26
     elif project_type == "improve_pastoralism":
-        region.pastoral_level = round(min(1.8, region.pastoral_level + 0.24), 2)
+        region.pastoral_level = round(min(1.8, region.pastoral_level + 0.18), 2)
+        if region.pasture_level > 0:
+            region.pasture_level = round(min(1.8, region.pasture_level + 0.06), 2)
         project_amount = 0.24
     elif project_type == "improve_extraction":
         if score_components["resource_focus"] == RESOURCE_COPPER:
@@ -1167,7 +1282,9 @@ def invest(faction_name, target_region_name, world):
         region.extractive_level = round(min(1.8, region.extractive_level + 0.18), 2)
         project_amount = 0.28
     else:
-        region.infrastructure_level = round(min(1.8, region.infrastructure_level + 0.22), 2)
+        region.infrastructure_level = round(min(1.8, region.infrastructure_level + 0.18), 2)
+        if region.road_level > 0:
+            region.road_level = round(min(1.8, region.road_level + 0.05), 2)
         project_amount = 0.22
 
     region.last_resource_project_turn = world.turn
@@ -1188,10 +1305,11 @@ def invest(faction_name, target_region_name, world):
 
     world.events.append(Event(
         turn=world.turn,
-        type="invest",
+        type="develop",
         faction=faction_name,
         region=target_region_name,
         details={
+            "development_amount": project_amount,
             "invest_amount": project_amount,
             "project_type": project_type,
             "resource_focus": score_components["resource_focus"],
@@ -1209,13 +1327,13 @@ def invest(faction_name, target_region_name, world):
             "new_taxable_value": taxable_after,
             "taxable_change": round(taxable_after - taxable_before, 2),
         },
-        tags=["investment", "development", str(project_type)],
+        tags=["development", "investment", str(project_type)],
         significance=max(0.1, float(round(taxable_after - taxable_before, 2))),
     ))
 
     return True
 
 
-def develop(faction_name, target_region_name, world):
-    """Forward-facing alias for regional development projects."""
-    return invest(faction_name, target_region_name, world)
+def invest(faction_name, target_region_name, world):
+    """Backward-compatible alias for regional development projects."""
+    return develop(faction_name, target_region_name, world)
