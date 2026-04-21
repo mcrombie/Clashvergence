@@ -26,4 +26,4 @@ Thumbs.db
 
 # Reports getting too big
 reports/simulation_view.html
-/reports
+/reports/
