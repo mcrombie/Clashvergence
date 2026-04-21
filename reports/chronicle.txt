@@ -1,24 +1,33 @@
 Simulation Chronicle
 
-On turn 2, Dahahmion Tribe made its first expansion into M.
-On turn 2, Pararvean Tribe made its first expansion into D.
+On turn 2, Aruangos Tribe made its first expansion into M3.
+On turn 2, Veneunar Tribe made its first expansion into I8.
+On turn 2, Saklian Tribe made its first expansion into M12.
+On turn 2, Arangoun Tribe made its first expansion into I6.
+On turn 2, Aruangos Tribe seized M3, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I4.
+On turn 2, Saklian Tribe seized M12, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into I2.
+On turn 2, Arangoun Tribe seized I6, a commanding junction that mattered because it offered strong connectivity and multiple follow-up routes and later supported its expansion into C.
+On turn 12, Veneunar Grove Rebels made its first expansion into I1.
+On turn 13, Veneunar Tribe seized O14, a frontier foothold that mattered because it opened new directions for future expansion.
+On turn 17, Aruangos Pass Rebels made its first expansion into I5.
 
 Opening Phase
 
-The strongest early land grab was Dahahmion Tribe's claim of M on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
-In the first 3 turns, Dahahmion Tribe and Pararvean Tribe led expansion with 1 claim(s).
-Across the first 5 turns, Yanadand Tribe invested most often with 2 investment(s).
-By the end of turn 5, Pararvean Tribe held the opening treasury lead at 37.
+The strongest early land grab was Aruangos Chiefdom's claim of M3 on turn 2, a commanding junction that stood out because it offered strong connectivity and multiple follow-up routes.
+In the first 3 turns, Saklian Chiefdom, Aruangos Chiefdom, and Arangoun State led expansion with 2 claim(s).
+Across the first 5 turns, Veneunar Chiefdom invested most often with 4 investment(s).
+By the end of turn 5, Saklian Chiefdom, Arangoun State, and Veneunar Chiefdom held the opening treasury lead at -1.
 
 Phase Summaries
 
-Early phase: Dahahmion Tribe and Pararvean Tribe were strongest by the end of turns 1-1, with Dahahmion Tribe on 7 treasury and 1 region. The board stabilized after turn 1 with little territorial change.
-Mid phase: Pararvean Tribe was strongest by the end of turns 2-2, with Pararvean Tribe on 10 treasury and 1 region. No faction pulled clear; 3 factions remained within a 1-region spread. 1 successful attacks shifted control of 1 region. 2 expansions added 2 new regions. Yanadand Tribe gained 1 region.
-Late phase: Pararvean Tribe was strongest by the end of turns 3-3, with Pararvean Tribe on 13 treasury and 1 region. No faction pulled clear; 3 factions remained within a 1-region spread. 2 successful attacks shifted control of 1 region. 1 investment improved existing holdings.
+Early phase: Aruangosian Wood Rebels and Saklian Reach Rebels were strongest by the end of turns 1-33, with Aruangosian Wood Rebels on 3 treasury and 1 region. 23 successful attacks shifted control of 12 regions. 25 expansions added 25 new regions. 155 investments improved existing holdings. Arangoun Tribe gained 7 regions while Arangoun Height Rebels lost 6 regions. Aruangosian Wood Rebels improved its standing most during the phase.
+Mid phase: Aruangos Pass Rebels was strongest by the end of turns 34-66, with Aruangos Pass Rebels on 65 treasury and 4 regions. 48 successful attacks shifted control of 19 regions. 7 expansions added 7 new regions. 281 investments improved existing holdings. Aruangos Reach Rebels gained 5 regions while Arangoun Tribe lost 6 regions. Aruangos Pass Rebels improved its standing most during the phase.
+Late phase: Veneunar Tribe was strongest by the end of turns 67-100, with Veneunar Tribe on 326 treasury and 4 regions. 46 successful attacks shifted control of 20 regions. 1 expansion added 1 new region. 202 investments improved existing holdings. Veneunar Grove Rebels gained 4 regions while Veneunar Wood Rebels lost 2 regions. Arangoun Bay Rebels improved its standing most during the phase.
 
 Turning Points
 
-Late leader change: Pararvean Tribe took the treasury lead.
+Mid leader change: Veneunar Tribe took the treasury lead.
+Late leader change: Veneunar Tribe took the treasury lead.
 
 Outcome Type
 
@@ -26,25 +35,56 @@ Outcome type: economic_win.
 
 Faction Trajectories
 
-Dahahmion Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 3, and finished rank 2 on 9 treasury with 2 regions after gaining 2 treasury overall.
-Yanadand Tribe spent the opening consolidating its start with 1 investment, built steadily past the opening, reaching 2 regions by turn 3, and finished rank 3 on 6 treasury with 2 regions after gaining 1 treasury overall.
-Pararvean Tribe spent the opening consolidating its start with 1 investment, held steady at 1 region through the middle turns, and finished first with 1 region, 13 treasury, and 1 total attacks.
+Saklian Chiefdom opened with 4 claims and grew to 4 regions by the end of the opening phase, peaked at 5 regions on turn 17 before slipping to 1 region, and finished rank 8 on 2 treasury with 1 region.
+Aruangos Chiefdom opened with 7 claims and grew to 2 regions by the end of the opening phase, peaked at 5 regions on turn 29 before slipping to 0 regions, and closed on 1 treasury without territory after 5 attacks.
+Arangoun State opened with 6 claims and grew to 7 regions by the end of the opening phase, peaked at 7 regions on turn 33 before slipping to 0 regions, and closed on 0 treasury without territory after 18 attacks.
+Veneunar Chiefdom opened with 3 claims and grew to 3 regions by the end of the opening phase, peaked at 7 regions on turn 77 before slipping to 4 regions, and finished first with 4 regions, 326 treasury, and 7 total attacks.
+Helaaneni opened with 3 claims and grew to 2 regions by the end of the opening phase, peaked at 6 regions on turn 25 before slipping to 4 regions, and finished rank 19 on -8 treasury with 4 regions.
+Arangoun Monarchy spent the opening consolidating its start with 14 investments, built steadily past the opening, reaching 6 regions by turn 100, and finished rank 6 on 13 treasury with 6 regions after gaining 12 treasury overall.
+Saklian Reach Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 3 treasury without territory after 0 attacks.
+Aruangos Monarchy opened with 2 claims and grew to 4 regions by the end of the opening phase, built steadily past the opening, reaching 5 regions by turn 100, and finished rank 16 on -2 treasury with 5 regions.
+Aruangos Monarchy opened with 1 claim and grew to 6 regions by the end of the opening phase, peaked at 10 regions on turn 57 before slipping to 6 regions, and finished rank 3 on 76 treasury with 6 regions after gaining 75 treasury overall.
+Saklian Field Rebels spent the opening consolidating its start with 1 investment, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
+Arangoun Pass Rebels spent the opening consolidating its start with 2 investments, held steady at 0 regions through the middle turns, and closed on 2 treasury without territory after 0 attacks.
+Aruangos Monarchy opened with 2 claims and grew to 2 regions by the end of the opening phase, built steadily past the opening, reaching 3 regions by turn 100, and finished rank 4 on 76 treasury with 3 regions after gaining 75 treasury overall.
+Hakiiaad opened with 13 attack attempts and contested neighboring borders immediately, peaked at 7 regions on turn 70 before slipping to 2 regions, and finished rank 17 on -5 treasury with 2 regions.
+Saklian Monarchy spent the opening consolidating its start with 14 investments, peaked at 2 regions on turn 42 before slipping to 0 regions, and closed on -5 treasury without territory after 3 attacks.
+Arailuaniri spent the opening consolidating its start with 16 investments, built steadily past the opening, reaching 4 regions by turn 100, and finished rank 2 on 78 treasury with 4 regions after gaining 77 treasury overall.
+Baiaern opened quietly and held at 3 regions through the first phase, used the middle turns to scale economically, adding 23 treasury, and finished rank 5 on 30 treasury with 2 regions after gaining 29 treasury overall.
+Ianiin opened with 1 claim and grew to 2 regions by the end of the opening phase, peaked at 2 regions on turn 52 before slipping to 0 regions, and closed on 0 treasury without territory after 3 attacks.
+Veneunar Grove Rebels 2 struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
+Veneunar Grove Rebels 3 struggled to add territory in the opening turns, held steady at 0 regions through the middle turns, and closed on 1 treasury without territory after 0 attacks.
 
 Strategic Interpretation
 
-On this compact 7-region map, early contact came quickly.
-Territory alone did not decide this run; Pararvean Tribe finished first on treasury without holding the largest empire at the end.
-Pararvean Tribe did not win on map share. It finished first on treasury while Dahahmion Tribe and Yanadand Tribe held more territory but failed to turn that size into enough net income.
-Pararvean Tribe finished first on 13 treasury with 1 region, while the largest empire finished on 2 regions.
-The closest challenger was Dahahmion Tribe (Adaptive Coastal Forest) at 9 treasury and 2 regions.
-Pararvean Tribe remained locked in a claim dispute with Yanadand Tribe over 1 region dominated by Pararvean communities.
+Veneunar Chiefdom’s developmental coastal forest approach won because treasury, not territory, decided a map that ended level at 4 regions apiece, so its 326 treasury beat Arailuaniri’s 78 by a wide margin. The decisive shift came in the midgame and held into the late phase because Veneunar took the treasury lead twice, which meant larger or stronger regional positions elsewhere never translated into comparable income. Aruangos and Arangoun each had periods of regional strength, but those swings did not break the board open, which allowed the economic advantage to compound until the final margin.
+The closest challenger was Arailuaniri (Adaptive Riverland Plains) at 78 treasury and 4 regions.
+Veneunar Chiefdom remained locked in a claim dispute with Arailuaniri over 1 region dominated by Veneunar communities.
+Veneunar Chiefdom's dealings with Hakiiaad were sharpened by a widening gap in political sophistication.
+Veneunar Chiefdom and Veneunar Grove Rebels 3 kept a same-people accord alive, using calmer shared institutions to stop rivalry from hardening too quickly.
 
 Final Standings
 
-Pararvean Tribe finished first with a treasury of 13 and control of 1 region.
-Dahahmion Tribe ended with a treasury of 9 and 2 regions.
-Yanadand Tribe ended with a treasury of 6 and 2 regions.
+Veneunar Chiefdom finished first with a treasury of 326 and control of 4 regions.
+Arailuaniri ended with a treasury of 78 and 4 regions.
+Aruangos Monarchy ended with a treasury of 76 and 6 regions.
+Aruangos Monarchy ended with a treasury of 76 and 3 regions.
+Baiaern ended with a treasury of 30 and 2 regions.
+Arangoun Monarchy ended with a treasury of 13 and 6 regions.
+Saklian Reach Rebels ended with a treasury of 3 and 0 regions.
+Saklian Chiefdom ended with a treasury of 2 and 1 region.
+Arangoun Pass Rebels ended with a treasury of 2 and 0 regions.
+Aruangos Chiefdom ended with a treasury of 1 and 0 regions.
+Saklian Field Rebels ended with a treasury of 1 and 0 regions.
+Veneunar Grove Rebels 2 ended with a treasury of 1 and 0 regions.
+Veneunar Grove Rebels 3 ended with a treasury of 1 and 0 regions.
+Arangoun State ended with a treasury of 0 and 0 regions.
+Ianiin ended with a treasury of 0 and 0 regions.
+Aruangos Monarchy ended with a treasury of -2 and 5 regions.
+Hakiiaad ended with a treasury of -5 and 2 regions.
+Saklian Monarchy ended with a treasury of -5 and 0 regions.
+Helaaneni ended with a treasury of -8 and 4 regions.
 
 Victor's History
 
-Pararvean Tribe's historians would treat this run as evidence that their adaptive coastal forest habits, forged by geography, proved stronger than the field's scattered efforts. They would point first to the decisive shift: late leader change: Pararvean Tribe took the treasury lead. In their telling, rivals mistook sheer map share for strength, while Pararvean Tribe finished ahead on treasury with 13 against Dahahmion Tribe's 9. From that partisan view, Dahahmion Tribe's resistance was real but never as durable as Pararvean Tribe's final position.
+From the record, the Veneunar Chiefdom prevailed not by reckless expansion but by converting its coastal forest position into superior economic strength, and that discipline proved decisive over 100 turns. It opened with 3 claims, reached 3 regions by the end of the opening phase, and later seized the treasury lead in both the mid and late game, finishing first with 326 treasury despite ending on 4 regions. The runner-up, Arailuaniri, was steady enough to reach 4 regions and 78 treasury, but it never matched the winner’s conversion of position into lasting advantage. In a contest where several powers surged and then faded, Veneunar’s method was the more coherent and sustainable one.

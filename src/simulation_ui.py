@@ -818,9 +818,21 @@ def build_simulation_view_model(world):
                 key: round(float(value), 3)
                 for key, value in (world.factions[faction_name].derived_capacity or {}).items()
             },
+            "food_stored": round(world.factions[faction_name].food_stored, 3),
+            "food_storage_capacity": round(world.factions[faction_name].food_storage_capacity, 3),
+            "food_produced": round(world.factions[faction_name].food_produced, 3),
+            "food_consumption": round(world.factions[faction_name].food_consumption, 3),
+            "food_balance": round(world.factions[faction_name].food_balance, 3),
+            "food_deficit": round(world.factions[faction_name].food_deficit, 3),
+            "food_spoilage": round(world.factions[faction_name].food_spoilage, 3),
+            "food_overflow": round(world.factions[faction_name].food_overflow, 3),
             "resource_access_summary": format_resource_map(world.factions[faction_name].resource_access, limit=4),
             "resource_gross_summary": format_resource_map(world.factions[faction_name].resource_gross_output, limit=4),
             "resource_isolated_summary": format_resource_map(world.factions[faction_name].resource_isolated_output, limit=4),
+            "food_store_summary": (
+                f"{world.factions[faction_name].food_stored:.1f} / "
+                f"{world.factions[faction_name].food_storage_capacity:.1f}"
+            ),
             "resource_shortage_summary": ", ".join(
                 [
                     f"{label} {value:.1f}"
@@ -3215,6 +3227,14 @@ def render_simulation_html(world):
                 <div class="detail-row">
                   <div class="detail-label">Total Surplus</div>
                   <div class="detail-value">${{Number(metrics.total_surplus || 0).toFixed(2)}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Food Stores</div>
+                  <div class="detail-value">${{Number(metrics.food_stored || 0).toFixed(1)}} / ${{Number(metrics.food_storage_capacity || 0).toFixed(1)}} | +${{Number(metrics.food_produced || 0).toFixed(1)}} / -${{Number(metrics.food_consumption || 0).toFixed(1)}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Food Pressure</div>
+                  <div class="detail-value">Balance ${{Number(metrics.food_balance || 0).toFixed(1)}} / Deficit ${{Number(metrics.food_deficit || 0).toFixed(1)}} / Waste ${{Number((metrics.food_spoilage || 0) + (metrics.food_overflow || 0)).toFixed(1)}}</div>
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">Resource Access</div>

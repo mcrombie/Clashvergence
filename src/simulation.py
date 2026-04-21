@@ -8,6 +8,7 @@ from src.diplomacy import update_relationships
 from src.doctrine import update_faction_doctrines
 from src.region_state import get_region_core_status
 from src.resource_economy import (
+    apply_turn_food_economy,
     get_region_effective_income,
     get_region_maintenance_cost,
     get_region_taxable_value,
@@ -146,6 +147,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     resolve_unrest_events(world)
     update_faction_resource_economy(world, advance_resources=False)
     economy_snapshot = apply_turn_economy(world)
+    apply_turn_food_economy(world)
     update_region_integration(world)
     update_region_populations(world)
     update_region_settlement_levels(world)

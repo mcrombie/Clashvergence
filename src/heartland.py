@@ -38,6 +38,10 @@ from src.config import (
     REGIME_AGITATION_UNREST_PER_SPONSOR,
     REGIME_AGITATION_WAR_POSTURE_FACTOR,
     POPULATION_BASE,
+    POPULATION_FOOD_DEFICIT_MAX_PENALTY,
+    POPULATION_FOOD_DEFICIT_PENALTY_FACTOR,
+    POPULATION_FOOD_SURPLUS_BONUS_FACTOR,
+    POPULATION_FOOD_SURPLUS_MAX_BONUS,
     POPULATION_GROWTH_PER_TURN,
     POPULATION_MINIMUM,
     POPULATION_PER_CONNECTION,
@@ -1083,12 +1087,26 @@ def update_region_populations(world: WorldState) -> None:
         growth_factor += surplus_growth_modifier
 
         if region.owner in world.factions:
-            food_shortage = world.factions[region.owner].resource_shortages.get(
-                CAPACITY_FOOD_SECURITY,
-                0.0,
+            faction = world.factions[region.owner]
+            food_consumption = max(0.8, faction.food_consumption)
+            food_deficit_ratio = min(
+                1.0,
+                faction.food_deficit / food_consumption,
             )
-            if food_shortage > 0:
-                growth_factor -= min(0.02, food_shortage * 0.01)
+            if food_deficit_ratio > 0:
+                growth_factor -= min(
+                    POPULATION_FOOD_DEFICIT_MAX_PENALTY,
+                    food_deficit_ratio * POPULATION_FOOD_DEFICIT_PENALTY_FACTOR,
+                )
+            else:
+                food_surplus_ratio = min(
+                    1.0,
+                    max(0.0, faction.food_balance) / food_consumption,
+                )
+                growth_factor += min(
+                    POPULATION_FOOD_SURPLUS_MAX_BONUS,
+                    food_surplus_ratio * POPULATION_FOOD_SURPLUS_BONUS_FACTOR,
+                )
 
         change = int(round(region.population * growth_factor))
         if change == 0 and growth_factor > 0:

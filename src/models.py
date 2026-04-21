@@ -268,6 +268,14 @@ class Faction:
     resource_access: dict[str, float] = field(default_factory=dict)
     resource_shortages: dict[str, float] = field(default_factory=dict)
     derived_capacity: dict[str, float] = field(default_factory=dict)
+    food_stored: float = 0.0
+    food_storage_capacity: float = 0.0
+    food_produced: float = 0.0
+    food_consumption: float = 0.0
+    food_balance: float = 0.0
+    food_deficit: float = 0.0
+    food_spoilage: float = 0.0
+    food_overflow: float = 0.0
     known_regions: list[str] = field(default_factory=list)
     visible_regions: list[str] = field(default_factory=list)
     known_factions: list[str] = field(default_factory=list)
