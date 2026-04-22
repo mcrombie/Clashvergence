@@ -6,6 +6,7 @@ from src.heartland import (
     estimate_region_population_from_resource_profile,
     initialize_dynastic_politics,
     initialize_heartlands,
+    initialize_religious_legitimacy,
     initialize_region_history,
     register_ethnicity,
     seed_region_ethnicity,
@@ -106,6 +107,7 @@ def create_world(
         primary_ethnicity = world.factions[region.owner].primary_ethnicity
         if primary_ethnicity is not None:
             seed_region_ethnicity(region, primary_ethnicity)
+    initialize_religious_legitimacy(world)
     update_region_settlement_levels(world)
     update_faction_resource_economy(world)
     initialize_faction_visibility(world)

@@ -100,6 +100,30 @@ from src.config import (
     POPULATION_UNREST_CRISIS_LOSS,
     POPULATION_UNREST_GROWTH_PENALTY,
     POLITY_ADVANCEMENT_UNREST_REDUCTION,
+    RELIGION_CLERGY_LEGITIMACY_FACTOR,
+    RELIGION_CONVERSION_BASE,
+    RELIGION_CONVERSION_INTEGRATION_FACTOR,
+    RELIGION_CONVERSION_SHRINE_FACTOR,
+    RELIGION_DISSENT_UNREST_FACTOR,
+    RELIGION_INITIAL_CLERGY_SUPPORT_MAX,
+    RELIGION_INITIAL_CLERGY_SUPPORT_MIN,
+    RELIGION_INITIAL_LEGITIMACY_MAX,
+    RELIGION_INITIAL_LEGITIMACY_MIN,
+    RELIGION_INITIAL_STATE_CULT_MAX,
+    RELIGION_INITIAL_STATE_CULT_MIN,
+    RELIGION_INITIAL_TOLERANCE_MAX,
+    RELIGION_INITIAL_TOLERANCE_MIN,
+    RELIGION_INITIAL_ZEAL_MAX,
+    RELIGION_INITIAL_ZEAL_MIN,
+    RELIGION_PILGRIMAGE_PER_SHRINE,
+    RELIGION_REFORM_MIN_INTERVAL,
+    RELIGION_REFORM_PRESSURE_FACTOR,
+    RELIGION_REFORM_STATE_MIN_TIER,
+    RELIGION_REFORM_THRESHOLD,
+    RELIGION_SACRED_SITE_BONUS,
+    RELIGION_SACRED_SITE_HOME_SHRINE,
+    RELIGION_TOLERANCE_UNREST_REDUCTION,
+    RELIGION_UNITY_LEGITIMACY_FACTOR,
     UNREST_CLIMATE_PRESSURE_FACTOR,
     UNREST_CONQUEST_START,
     UNREST_CRISIS_DURATION,
@@ -143,9 +167,11 @@ from src.models import (
     Event,
     Faction,
     FactionIdentity,
+    FactionReligionState,
     FactionSuccessionState,
     GOVERNMENT_FORMS_BY_TIER,
     LanguageProfile,
+    Religion,
     Region,
     WorldState,
     get_default_government_form,
@@ -341,6 +367,31 @@ SUCCESSION_FORM_PROFILE = {
         "dynasty_rotation": 0.36,
     },
 }
+RELIGION_POLITY_PROFILE = {
+    "band": {"tolerance": -0.08, "zeal": 0.06, "state_cult": 0.05, "legitimacy": -0.04},
+    "tribe": {"tolerance": -0.03, "zeal": 0.03, "state_cult": 0.03, "legitimacy": 0.0},
+    "chiefdom": {"tolerance": 0.0, "zeal": 0.02, "state_cult": 0.08, "legitimacy": 0.03},
+    "state": {"tolerance": 0.04, "zeal": 0.0, "state_cult": 0.1, "legitimacy": 0.06},
+}
+RELIGION_FORM_PROFILE = {
+    "leader": {"tolerance": -0.08, "zeal": 0.08, "state_cult": 0.08, "legitimacy": 0.02},
+    "council": {"tolerance": 0.04, "zeal": -0.02, "state_cult": -0.02, "legitimacy": 0.03},
+    "assembly": {"tolerance": 0.08, "zeal": -0.04, "state_cult": -0.04, "legitimacy": 0.04},
+    "monarchy": {"tolerance": -0.04, "zeal": 0.05, "state_cult": 0.12, "legitimacy": 0.08},
+    "republic": {"tolerance": 0.12, "zeal": -0.05, "state_cult": -0.08, "legitimacy": 0.04},
+    "oligarchy": {"tolerance": 0.02, "zeal": 0.0, "state_cult": 0.02, "legitimacy": 0.03},
+}
+RELIGION_DOCTRINE_BY_TERRAIN = {
+    "riverland": "River Rite",
+    "coast": "Sea Cult",
+    "forest": "Grove Worship",
+    "highland": "Sky Rite",
+    "hills": "Ancestor Stones",
+    "marsh": "Fen Mysteries",
+    "steppe": "Horse Heaven",
+    "plains": "Sun Rite",
+}
+POLITY_TIER_RANK = {tier: index for index, tier in enumerate(POLITY_TIER_ORDER)}
 
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
@@ -374,6 +425,446 @@ def _generate_dynasty_name(faction: Faction, *, cadet: bool = False) -> str:
     if cadet:
         return f"{prefix} {dynasty_root}cad"
     return f"{prefix} {dynasty_root}"
+
+
+def _normalize_region_religious_composition(region: Region) -> None:
+    if region.population <= 0:
+        region.religious_composition = {}
+        return
+    composition = {
+        religion_name: count
+        for religion_name, count in region.religious_composition.items()
+        if count > 0
+    }
+    if not composition:
+        region.religious_composition = {}
+        return
+    total = sum(composition.values())
+    scaled: dict[str, int] = {}
+    remainders: list[tuple[float, str]] = []
+    assigned = 0
+    for religion_name, count in composition.items():
+        scaled_value = (count / total) * region.population
+        whole = int(scaled_value)
+        scaled[religion_name] = whole
+        assigned += whole
+        remainders.append((scaled_value - whole, religion_name))
+    for _fraction, religion_name in sorted(remainders, reverse=True)[: max(0, region.population - assigned)]:
+        scaled[religion_name] += 1
+    region.religious_composition = {
+        religion_name: count
+        for religion_name, count in scaled.items()
+        if count > 0
+    }
+
+
+def seed_region_religion(region: Region, religion_name: str) -> None:
+    if region.population <= 0:
+        region.religious_composition = {}
+        return
+    region.religious_composition = {religion_name: region.population}
+
+
+def get_region_dominant_religion(region: Region) -> str | None:
+    if not region.religious_composition:
+        return None
+    return max(
+        region.religious_composition.items(),
+        key=lambda item: (item[1], item[0]),
+    )[0]
+
+
+def _pick_religion_doctrine(region: Region) -> str:
+    terrain_tags = list(region.terrain_tags or ["plains"])
+    for terrain_tag in terrain_tags:
+        if terrain_tag in RELIGION_DOCTRINE_BY_TERRAIN:
+            return RELIGION_DOCTRINE_BY_TERRAIN[terrain_tag]
+    return "Ancestor Rite"
+
+
+def _generate_religion_name(faction: Faction, *, suffix: str = "rite") -> str:
+    culture_name = (faction.culture_name or faction.name or "Faith").strip()
+    root = _generate_personal_name(faction, seed=culture_name)
+    label = f"{root}{suffix}"
+    label = re.sub(r"[^A-Za-z]", "", label) or root or "Faith"
+    return _to_title_case_root(label)
+
+
+def register_religion(
+    world: WorldState,
+    religion_name: str,
+    *,
+    founding_faction: str | None = None,
+    parent_religion: str | None = None,
+    doctrine: str = "",
+    sacred_terrain_tags: list[str] | None = None,
+    sacred_climate: str = "temperate",
+    reform_origin_turn: int | None = None,
+) -> None:
+    world.religions.setdefault(
+        religion_name,
+        Religion(
+            name=religion_name,
+            founding_faction=founding_faction,
+            parent_religion=parent_religion,
+            doctrine=doctrine,
+            sacred_terrain_tags=list(sacred_terrain_tags or []),
+            sacred_climate=sacred_climate,
+            reform_origin_turn=reform_origin_turn,
+        ),
+    )
+
+
+def _build_initial_religion_state(faction: Faction) -> FactionReligionState:
+    polity_profile = RELIGION_POLITY_PROFILE.get(faction.polity_tier, RELIGION_POLITY_PROFILE["tribe"])
+    form_profile = RELIGION_FORM_PROFILE.get(faction.government_form, RELIGION_FORM_PROFILE["council"])
+    return FactionReligionState(
+        official_religion="",
+        religious_legitimacy=round(
+            _clamp(
+                random.uniform(RELIGION_INITIAL_LEGITIMACY_MIN, RELIGION_INITIAL_LEGITIMACY_MAX)
+                + polity_profile["legitimacy"]
+                + form_profile["legitimacy"],
+                0.2,
+                0.95,
+            ),
+            3,
+        ),
+        clergy_support=round(
+            _clamp(
+                random.uniform(RELIGION_INITIAL_CLERGY_SUPPORT_MIN, RELIGION_INITIAL_CLERGY_SUPPORT_MAX)
+                + (form_profile["state_cult"] * 0.35),
+                0.2,
+                0.95,
+            ),
+            3,
+        ),
+        religious_tolerance=round(
+            _clamp(
+                random.uniform(RELIGION_INITIAL_TOLERANCE_MIN, RELIGION_INITIAL_TOLERANCE_MAX)
+                + polity_profile["tolerance"]
+                + form_profile["tolerance"],
+                0.05,
+                0.95,
+            ),
+            3,
+        ),
+        religious_zeal=round(
+            _clamp(
+                random.uniform(RELIGION_INITIAL_ZEAL_MIN, RELIGION_INITIAL_ZEAL_MAX)
+                + polity_profile["zeal"]
+                + form_profile["zeal"],
+                0.05,
+                0.95,
+            ),
+            3,
+        ),
+        state_cult_strength=round(
+            _clamp(
+                random.uniform(RELIGION_INITIAL_STATE_CULT_MIN, RELIGION_INITIAL_STATE_CULT_MAX)
+                + polity_profile["state_cult"]
+                + form_profile["state_cult"],
+                0.05,
+                0.95,
+            ),
+            3,
+        ),
+        reform_pressure=0.0,
+        sacred_sites_controlled=0,
+        total_sacred_sites=0,
+        last_reform_turn=None,
+    )
+
+
+def initialize_faction_religion_state(
+    world: WorldState,
+    faction: Faction,
+    *,
+    parent_faction: Faction | None = None,
+    region: Region | None = None,
+    claimant: bool = False,
+) -> None:
+    existing_official = faction.religion.official_religion
+    faction.religion = _build_initial_religion_state(faction)
+    if existing_official and existing_official in world.religions:
+        official_religion = existing_official
+    elif parent_faction is not None and parent_faction.religion.official_religion:
+        official_religion = parent_faction.religion.official_religion
+    else:
+        official_religion = _generate_religion_name(faction)
+        while official_religion in world.religions:
+            official_religion = f"{official_religion}a"
+        register_religion(
+            world,
+            official_religion,
+            founding_faction=faction.name,
+            doctrine=_pick_religion_doctrine(region) if region is not None else "Ancestor Rite",
+            sacred_terrain_tags=list(region.terrain_tags or []) if region is not None else [],
+            sacred_climate=region.climate if region is not None else "temperate",
+        )
+    faction.religion.official_religion = official_religion
+    if claimant:
+        faction.religion.religious_legitimacy = round(
+            _clamp(faction.religion.religious_legitimacy - 0.06, 0.2, 0.95),
+            3,
+        )
+        faction.religion.reform_pressure = 0.08
+
+
+def initialize_religious_legitimacy(world: WorldState) -> None:
+    for faction_name, faction in world.factions.items():
+        homeland_region_name = faction.doctrine_state.homeland_region
+        homeland_region = world.regions.get(homeland_region_name) if homeland_region_name else None
+        initialize_faction_religion_state(world, faction, region=homeland_region)
+        if homeland_region is not None:
+            seed_region_religion(homeland_region, faction.religion.official_religion)
+            homeland_region.sacred_religion = faction.religion.official_religion
+            homeland_region.shrine_level = max(homeland_region.shrine_level, RELIGION_SACRED_SITE_HOME_SHRINE)
+        for region in world.regions.values():
+            if region.owner != faction_name:
+                continue
+            if not region.religious_composition:
+                seed_region_religion(region, faction.religion.official_religion)
+
+
+def evolve_faction_religion_politics(
+    faction: Faction,
+    *,
+    previous_tier: str | None = None,
+    previous_form: str | None = None,
+) -> None:
+    previous_tier = previous_tier or faction.polity_tier
+    previous_form = previous_form or faction.government_form
+    tier_rank = POLITY_TIER_RANK.get(faction.polity_tier, POLITY_TIER_RANK["tribe"])
+    previous_rank = POLITY_TIER_RANK.get(previous_tier, POLITY_TIER_RANK["tribe"])
+    tier_gain = max(0, tier_rank - previous_rank)
+    polity_profile = RELIGION_POLITY_PROFILE.get(faction.polity_tier, RELIGION_POLITY_PROFILE["tribe"])
+    form_profile = RELIGION_FORM_PROFILE.get(faction.government_form, RELIGION_FORM_PROFILE["council"])
+    religion_state = faction.religion
+    religion_state.religious_tolerance = round(
+        _clamp(
+            max(religion_state.religious_tolerance, 0.18 + (tier_rank * 0.09))
+            + (polity_profile["tolerance"] * 0.25)
+            + (form_profile["tolerance"] * 0.35),
+            0.05,
+            0.95,
+        ),
+        3,
+    )
+    religion_state.state_cult_strength = round(
+        _clamp(
+            religion_state.state_cult_strength
+            + (0.03 * tier_gain)
+            + (polity_profile["state_cult"] * 0.22)
+            + (form_profile["state_cult"] * 0.26),
+            0.05,
+            0.95,
+        ),
+        3,
+    )
+    religion_state.religious_zeal = round(
+        _clamp(
+            religion_state.religious_zeal
+            + (polity_profile["zeal"] * 0.2)
+            + (form_profile["zeal"] * 0.25),
+            0.05,
+            0.95,
+        ),
+        3,
+    )
+    religion_state.clergy_support = round(
+        _clamp(
+            religion_state.clergy_support
+            + (0.02 * tier_gain)
+            + (religion_state.state_cult_strength * 0.05),
+            0.05,
+            0.95,
+        ),
+        3,
+    )
+    if previous_form != faction.government_form and faction.government_form == "republic":
+        religion_state.religious_tolerance = round(_clamp(religion_state.religious_tolerance + 0.08, 0.05, 0.95), 3)
+        religion_state.state_cult_strength = round(_clamp(religion_state.state_cult_strength - 0.08, 0.05, 0.95), 3)
+
+
+def _get_region_religious_alignment(region: Region, official_religion: str) -> float:
+    if region.population <= 0 or not official_religion:
+        return 0.0
+    return _clamp(
+        region.religious_composition.get(official_religion, 0) / max(1, region.population),
+        0.0,
+        1.0,
+    )
+
+
+def _iter_regions_sacred_to_religion(world: WorldState, religion_name: str) -> list[Region]:
+    return [
+        region
+        for region in world.regions.values()
+        if region.sacred_religion == religion_name
+    ]
+
+
+def _maybe_reform_state_religion(world: WorldState, faction_name: str) -> None:
+    faction = world.factions[faction_name]
+    religion_state = faction.religion
+    if POLITY_TIER_RANK.get(faction.polity_tier, 0) < POLITY_TIER_RANK.get(RELIGION_REFORM_STATE_MIN_TIER, 3):
+        return
+    if religion_state.reform_pressure < RELIGION_REFORM_THRESHOLD:
+        return
+    if religion_state.last_reform_turn is not None and (world.turn - religion_state.last_reform_turn) < RELIGION_REFORM_MIN_INTERVAL:
+        return
+    old_religion = religion_state.official_religion
+    if not old_religion:
+        return
+    new_religion = _generate_religion_name(faction, suffix="an")
+    while new_religion in world.religions:
+        new_religion = f"{new_religion}a"
+    homeland_region_name = faction.doctrine_state.homeland_region
+    homeland_region = world.regions.get(homeland_region_name) if homeland_region_name else None
+    register_religion(
+        world,
+        new_religion,
+        founding_faction=faction_name,
+        parent_religion=old_religion,
+        doctrine=f"Reformed {_pick_religion_doctrine(homeland_region) if homeland_region is not None else 'Rite'}",
+        sacred_terrain_tags=list(homeland_region.terrain_tags or []) if homeland_region is not None else [],
+        sacred_climate=homeland_region.climate if homeland_region is not None else "temperate",
+        reform_origin_turn=world.turn,
+    )
+    religion_state.official_religion = new_religion
+    religion_state.last_reform_turn = world.turn
+    religion_state.reform_pressure = round(_clamp(religion_state.reform_pressure * 0.45, 0.0, 1.0), 3)
+    religion_state.religious_legitimacy = round(_clamp(religion_state.religious_legitimacy - 0.08, 0.15, 0.95), 3)
+    religion_state.clergy_support = round(_clamp(religion_state.clergy_support - 0.05, 0.1, 0.95), 3)
+    owned_regions = _get_faction_owned_regions(world, faction_name)
+    for region in owned_regions:
+        old_count = region.religious_composition.get(old_religion, 0)
+        if old_count <= 0:
+            continue
+        convert_count = max(1, int(round(old_count * (0.24 + (region.shrine_level * 0.08)))))
+        convert_count = min(convert_count, old_count)
+        region.religious_composition[old_religion] = max(0, old_count - convert_count)
+        if region.religious_composition[old_religion] <= 0:
+            region.religious_composition.pop(old_religion, None)
+        region.religious_composition[new_religion] = region.religious_composition.get(new_religion, 0) + convert_count
+        if region.name == homeland_region_name:
+            region.sacred_religion = new_religion
+        _normalize_region_religious_composition(region)
+    world.events.append(Event(
+        turn=world.turn,
+        type="religious_reform",
+        faction=faction_name,
+        region=homeland_region_name,
+        details={
+            "old_religion": old_religion,
+            "new_religion": new_religion,
+            "parent_religion": old_religion,
+        },
+        tags=["religion", "reform", "legitimacy"],
+        significance=float(religion_state.religious_legitimacy or 0.0),
+    ))
+
+
+def update_religious_legitimacy(world: WorldState) -> None:
+    for faction_name, faction in world.factions.items():
+        official_religion = faction.religion.official_religion
+        if not official_religion:
+            homeland_region_name = faction.doctrine_state.homeland_region
+            homeland_region = world.regions.get(homeland_region_name) if homeland_region_name else None
+            initialize_faction_religion_state(world, faction, region=homeland_region)
+            official_religion = faction.religion.official_religion
+        owned_regions = _get_faction_owned_regions(world, faction_name)
+        if not owned_regions:
+            continue
+        controlled_population = sum(region.population for region in owned_regions)
+        aligned_population = sum(
+            region.religious_composition.get(official_religion, 0)
+            for region in owned_regions
+        )
+        unity = aligned_population / max(1, controlled_population)
+        sacred_sites = _iter_regions_sacred_to_religion(world, official_religion)
+        sacred_controlled = sum(1 for region in sacred_sites if region.owner == faction_name)
+        faction.religion.sacred_sites_controlled = sacred_controlled
+        faction.religion.total_sacred_sites = len(sacred_sites)
+        sacred_ratio = sacred_controlled / max(1, len(sacred_sites))
+        pilgrimage_income = 0.0
+        for region in owned_regions:
+            alignment = _get_region_religious_alignment(region, official_religion)
+            mismatch = max(0.0, 1.0 - alignment - faction.religion.religious_tolerance)
+            region.religious_unrest = round(mismatch * RELIGION_DISSENT_UNREST_FACTOR, 3)
+            region.pilgrimage_value = 0.0
+            if region.population > 0 and alignment < 0.96 and official_religion:
+                convert_ratio = (
+                    RELIGION_CONVERSION_BASE
+                    + (region.shrine_level * RELIGION_CONVERSION_SHRINE_FACTOR)
+                    + (max(0.0, region.integration_score) * RELIGION_CONVERSION_INTEGRATION_FACTOR / 10.0)
+                    + (faction.religion.state_cult_strength * 0.03)
+                )
+                if faction.government_form == "republic":
+                    convert_ratio *= 0.7
+                convert_count = min(
+                    max(0, region.population - region.religious_composition.get(official_religion, 0)),
+                    int(round(region.population * max(0.0, convert_ratio))),
+                )
+                if convert_count > 0:
+                    dominant_religion = get_region_dominant_religion(region)
+                    if dominant_religion is not None and dominant_religion != official_religion:
+                        region.religious_composition[dominant_religion] = max(
+                            0,
+                            region.religious_composition.get(dominant_religion, 0) - convert_count,
+                        )
+                        if region.religious_composition.get(dominant_religion, 0) <= 0:
+                            region.religious_composition.pop(dominant_religion, None)
+                    region.religious_composition[official_religion] = (
+                        region.religious_composition.get(official_religion, 0) + convert_count
+                    )
+                    _normalize_region_religious_composition(region)
+            if region.sacred_religion == official_religion:
+                region.pilgrimage_value = round(region.shrine_level * RELIGION_PILGRIMAGE_PER_SHRINE, 3)
+                pilgrimage_income += region.pilgrimage_value
+        faction.religion.religious_legitimacy = round(
+            _clamp(
+                (unity * RELIGION_UNITY_LEGITIMACY_FACTOR)
+                + (faction.religion.clergy_support * RELIGION_CLERGY_LEGITIMACY_FACTOR)
+                + (sacred_ratio * RELIGION_SACRED_SITE_BONUS)
+                + (faction.religion.state_cult_strength * 0.06)
+                + (faction.religion.religious_zeal * 0.04)
+                + 0.34,
+                0.15,
+                0.95,
+            ),
+            3,
+        )
+        faction.religion.clergy_support = round(
+            _clamp(
+                faction.religion.clergy_support
+                + ((sacred_ratio - 0.5) * 0.05)
+                - (max(0.0, 0.6 - unity) * 0.04),
+                0.1,
+                0.95,
+            ),
+            3,
+        )
+        faction.religion.reform_pressure = round(
+            _clamp(
+                faction.religion.reform_pressure
+                + (max(0.0, 0.72 - unity) * RELIGION_REFORM_PRESSURE_FACTOR)
+                + (max(0.0, 0.52 - faction.succession.legitimacy) * 0.12)
+                - (faction.religion.religious_tolerance * 0.04),
+                0.0,
+                1.0,
+            ),
+            3,
+        )
+        faction.trade_income = round(faction.trade_income + pilgrimage_income, 3)
+        _maybe_reform_state_religion(world, faction_name)
+def _get_faction_regions(world: WorldState, faction_name: str) -> list[Region]:
+    return [
+        region
+        for region in world.regions.values()
+        if region.owner == faction_name
+    ]
 
 
 def _get_succession_polity_profile(faction: Faction) -> dict[str, object]:
@@ -1193,6 +1684,7 @@ def change_region_population(region: Region, amount: int) -> int:
         return 0
     region.population = max(0, region.population + amount)
     _normalize_region_ethnic_composition(region)
+    _normalize_region_religious_composition(region)
     return region.population - previous_population
 
 
@@ -1250,6 +1742,39 @@ def transfer_region_population(source: Region, target: Region, amount: int) -> i
 
     _normalize_region_ethnic_composition(source)
     _normalize_region_ethnic_composition(target)
+    source_religious_total = max(1, source_total)
+    source_religious_composition = {
+        religion_name: count
+        for religion_name, count in source.religious_composition.items()
+        if count > 0
+    }
+    moved_religions: dict[str, int] = {}
+    if source_religious_composition:
+        assigned_religions = 0
+        religion_remainders: list[tuple[float, str]] = []
+        for religion_name, count in source_religious_composition.items():
+            moved_value = (count / source_religious_total) * moved_total
+            whole = min(count, int(moved_value))
+            moved_religions[religion_name] = whole
+            assigned_religions += whole
+            religion_remainders.append((moved_value - whole, religion_name))
+        for _fraction, religion_name in sorted(religion_remainders, reverse=True):
+            if assigned_religions >= moved_total:
+                break
+            available = source_religious_composition[religion_name] - moved_religions[religion_name]
+            if available <= 0:
+                continue
+            moved_religions[religion_name] += 1
+            assigned_religions += 1
+        for religion_name, count in moved_religions.items():
+            remaining = source.religious_composition.get(religion_name, 0) - count
+            if remaining > 0:
+                source.religious_composition[religion_name] = remaining
+            elif religion_name in source.religious_composition:
+                del source.religious_composition[religion_name]
+            target.religious_composition[religion_name] = target.religious_composition.get(religion_name, 0) + count
+        _normalize_region_religious_composition(source)
+        _normalize_region_religious_composition(target)
     return moved_total
 
 
@@ -1479,6 +2004,11 @@ def update_faction_polity_tiers(world: WorldState) -> None:
             update_display_name=refresh_display_name,
         )
         evolve_faction_succession_politics(
+            faction,
+            previous_tier=current_tier,
+            previous_form=previous_form,
+        )
+        evolve_faction_religion_politics(
             faction,
             previous_tier=current_tier,
             previous_form=previous_form,
@@ -2171,6 +2701,13 @@ def _restore_extinct_faction(
         parent_faction=world.factions.get(former_owner),
         claimant=faction.rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR,
     )
+    initialize_faction_religion_state(
+        world,
+        faction,
+        parent_faction=world.factions.get(former_owner),
+        region=world.regions.get(region_name),
+        claimant=faction.rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR,
+    )
     inherit_parent_visibility(
         world,
         faction_name,
@@ -2323,6 +2860,13 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
     initialize_faction_succession_state(
         world.factions[rebel_name],
         parent_faction=former_faction,
+        claimant=conflict_type == REBEL_CONFLICT_CIVIL_WAR,
+    )
+    initialize_faction_religion_state(
+        world,
+        world.factions[rebel_name],
+        parent_faction=former_faction,
+        region=region,
         claimant=conflict_type == REBEL_CONFLICT_CIVIL_WAR,
     )
     initialize_rebel_faction_doctrine(
@@ -2581,6 +3125,8 @@ def _update_faction_legitimacy(world: WorldState, faction_name: str) -> None:
         realm_penalty *= 0.75
     if faction.government_form == "republic":
         legitimacy += 0.015
+    legitimacy += float(faction.religion.religious_legitimacy or 0.0) * 0.12
+    legitimacy += float(faction.religion.clergy_support or 0.0) * 0.04
     legitimacy -= max(0, len(owned_regions) - 2) * realm_penalty
     if succession.regency_turns > 0:
         legitimacy -= 0.05 if faction.government_form == "monarchy" else 0.02
@@ -2840,6 +3386,10 @@ def resolve_dynastic_succession(world: WorldState) -> None:
             continue
         if not faction.succession.dynasty_name or not faction.succession.ruler_name:
             initialize_faction_succession_state(faction)
+        if not faction.religion.official_religion:
+            homeland_region_name = faction.doctrine_state.homeland_region
+            homeland_region = world.regions.get(homeland_region_name) if homeland_region_name else None
+            initialize_faction_religion_state(world, faction, region=homeland_region)
         _resolve_faction_succession(world, faction_name)
 
 
@@ -3014,6 +3564,11 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         + (owner_faction.succession.regency_turns * SUCCESSION_REGENCY_UNREST_PRESSURE)
         + (float(owner_faction.succession.claimant_pressure or 0.0) * 0.08)
     )
+    religion_pressure = max(
+        0.0,
+        float(region.religious_unrest or 0.0)
+        - (float(owner_faction.religion.religious_tolerance or 0.0) * RELIGION_TOLERANCE_UNREST_REDUCTION),
+    )
     stability_divisor = max(0.5, get_faction_stability_modifier(owner_faction))
     return (
         climate_pressure
@@ -3025,6 +3580,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         + external_regime_pressure
         + salt_shortage_pressure
         + succession_pressure
+        + religion_pressure
     ) / stability_divisor - UNREST_DECAY_PER_TURN
 
 
@@ -3368,6 +3924,12 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "surplus_label": get_region_surplus_label(region, world),
             "ethnic_composition": dict(region.ethnic_composition),
             "dominant_ethnicity": get_region_dominant_ethnicity(region),
+            "religious_composition": dict(region.religious_composition),
+            "dominant_religion": get_region_dominant_religion(region),
+            "sacred_religion": region.sacred_religion,
+            "shrine_level": round(float(region.shrine_level or 0.0), 2),
+            "pilgrimage_value": round(float(region.pilgrimage_value or 0.0), 3),
+            "religious_unrest": round(float(region.religious_unrest or 0.0), 3),
             "ethnic_claimants": get_region_ethnic_claimants(region, world),
             "owner_primary_ethnicity": get_region_owner_primary_ethnicity(region, world),
             "owner_has_ethnic_claim": faction_has_ethnic_claim(world, region, region.owner),

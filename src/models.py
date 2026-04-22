@@ -149,6 +149,20 @@ class FactionSuccessionState:
 
 
 @dataclass
+class FactionReligionState:
+    official_religion: str = ""
+    religious_legitimacy: float = 0.5
+    clergy_support: float = 0.5
+    religious_tolerance: float = 0.45
+    religious_zeal: float = 0.5
+    state_cult_strength: float = 0.45
+    reform_pressure: float = 0.0
+    sacred_sites_controlled: int = 0
+    total_sacred_sites: int = 0
+    last_reform_turn: int | None = None
+
+
+@dataclass
 class LanguageProfile:
     family_name: str = ""
     onsets: list[str] = field(default_factory=list)
@@ -165,6 +179,17 @@ class Ethnicity:
     parent_ethnicity: str | None = None
     origin_faction: str | None = None
     language_profile: LanguageProfile = field(default_factory=LanguageProfile)
+
+
+@dataclass
+class Religion:
+    name: str
+    founding_faction: str | None = None
+    parent_religion: str | None = None
+    doctrine: str = ""
+    sacred_terrain_tags: list[str] = field(default_factory=list)
+    sacred_climate: str = "temperate"
+    reform_origin_turn: int | None = None
 
 
 @dataclass
@@ -242,6 +267,11 @@ class Region:
     migration_attraction: float = 0.0
     population: int = 0
     ethnic_composition: dict[str, int] = field(default_factory=dict)
+    religious_composition: dict[str, int] = field(default_factory=dict)
+    sacred_religion: str | None = None
+    shrine_level: float = 0.0
+    pilgrimage_value: float = 0.0
+    religious_unrest: float = 0.0
     display_name: str = ""
     founding_name: str = ""
     original_namer_faction_id: str | None = None
@@ -340,6 +370,7 @@ class Faction:
     doctrine_state: FactionDoctrineState = field(default_factory=FactionDoctrineState)
     doctrine_profile: FactionDoctrineProfile = field(default_factory=FactionDoctrineProfile)
     succession: FactionSuccessionState = field(default_factory=FactionSuccessionState)
+    religion: FactionReligionState = field(default_factory=FactionReligionState)
     primary_ethnicity: str | None = None
     is_rebel: bool = False
     origin_faction: str | None = None
@@ -507,6 +538,7 @@ class WorldState:
     regions: dict[str, Region]
     factions: dict[str, Faction]
     ethnicities: dict[str, Ethnicity] = field(default_factory=dict)
+    religions: dict[str, Religion] = field(default_factory=dict)
     map_name: str = ""
     sea_links: list[tuple[str, str]] = field(default_factory=list)
     turn: int = 0

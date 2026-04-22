@@ -28,6 +28,7 @@ from src.heartland import (
     get_region_external_regime_agitators,
     get_faction_ethnic_claims,
     get_region_dominant_ethnicity,
+    get_region_dominant_religion,
     get_region_ethnic_claimants,
     get_region_owner_primary_ethnicity,
     get_region_ruling_ethnic_affinity,
@@ -282,6 +283,8 @@ def _get_event_title(event, world):
         if event.get("claimant_faction"):
             return f"{faction_name}'s succession crisis produced a claimant in {event.get('claimant_region') or 'the realm'}"
         return f"{faction_name} struggled through a succession crisis"
+    if event.type == "religious_reform":
+        return f"{faction_name} proclaimed a religious reform"
     if event.type == "diplomacy_rivalry":
         return f"{faction_name} and {counterpart_name} became rivals"
     if event.type == "diplomacy_pact":
@@ -383,6 +386,11 @@ def _get_event_summary(event, world):
                 f"{claimant_region_text}."
             )
         return "Rival elites turned a disputed succession into a broader legitimacy crisis."
+    if event.type == "religious_reform":
+        return (
+            f"The ruling cult shifted from {event.get('old_religion', 'an older rite')} to "
+            f"{event.get('new_religion', 'a reformed creed')}, reshaping legitimacy at the center."
+        )
     if event.type in {"develop", "invest"}:
         project_type = event.get("project_type", "development").replace("_", " ")
         resource_focus = event.get("resource_focus")
@@ -1149,6 +1157,16 @@ def build_simulation_view_model(world):
             "claimant_pressure": round(float(world.factions[faction_name].succession.claimant_pressure or 0.0), 3),
             "last_succession_turn": world.factions[faction_name].succession.last_succession_turn,
             "last_succession_type": world.factions[faction_name].succession.last_succession_type,
+            "official_religion": world.factions[faction_name].religion.official_religion,
+            "religious_legitimacy": round(float(world.factions[faction_name].religion.religious_legitimacy or 0.0), 3),
+            "clergy_support": round(float(world.factions[faction_name].religion.clergy_support or 0.0), 3),
+            "religious_tolerance": round(float(world.factions[faction_name].religion.religious_tolerance or 0.0), 3),
+            "religious_zeal": round(float(world.factions[faction_name].religion.religious_zeal or 0.0), 3),
+            "state_cult_strength": round(float(world.factions[faction_name].religion.state_cult_strength or 0.0), 3),
+            "reform_pressure": round(float(world.factions[faction_name].religion.reform_pressure or 0.0), 3),
+            "sacred_sites_controlled": int(world.factions[faction_name].religion.sacred_sites_controlled or 0),
+            "total_sacred_sites": int(world.factions[faction_name].religion.total_sacred_sites or 0),
+            "last_reform_turn": world.factions[faction_name].religion.last_reform_turn,
             "primary_ethnicity": world.factions[faction_name].primary_ethnicity,
             "ethnic_claims": get_faction_ethnic_claims(world, faction_name),
             "rebel_age": world.factions[faction_name].rebel_age,
@@ -1233,6 +1251,10 @@ def build_simulation_view_model(world):
                 "surplus": get_region_surplus(world.regions[region_name], world),
                 "surplus_label": get_region_surplus_label(world.regions[region_name], world),
                 "dominant_ethnicity": get_region_dominant_ethnicity(world.regions[region_name]),
+                "dominant_religion": get_region_dominant_religion(world.regions[region_name]),
+                "sacred_religion": world.regions[region_name].sacred_religion,
+                "shrine_level": round(float(world.regions[region_name].shrine_level or 0.0), 2),
+                "religious_unrest": round(float(world.regions[region_name].religious_unrest or 0.0), 3),
                 "ethnic_claimants": get_region_ethnic_claimants(world.regions[region_name], world),
                 "owner_primary_ethnicity": get_region_owner_primary_ethnicity(world.regions[region_name], world),
                 "owner_has_ethnic_claim": faction_has_ethnic_claim(world, world.regions[region_name], world.regions[region_name].owner),
@@ -1264,6 +1286,10 @@ def build_simulation_view_model(world):
                 "surplus": get_region_surplus(world.regions[region_name], world),
                 "surplus_label": get_region_surplus_label(world.regions[region_name], world),
                 "dominant_ethnicity": get_region_dominant_ethnicity(world.regions[region_name]),
+                "dominant_religion": get_region_dominant_religion(world.regions[region_name]),
+                "sacred_religion": world.regions[region_name].sacred_religion,
+                "shrine_level": round(float(world.regions[region_name].shrine_level or 0.0), 2),
+                "religious_unrest": round(float(world.regions[region_name].religious_unrest or 0.0), 3),
                 "ethnic_claimants": get_region_ethnic_claimants(world.regions[region_name], world),
                 "owner_primary_ethnicity": get_region_owner_primary_ethnicity(world.regions[region_name], world),
                 "owner_has_ethnic_claim": faction_has_ethnic_claim(world, world.regions[region_name], world.regions[region_name].owner),
@@ -2976,6 +3002,16 @@ def render_simulation_html(world):
         claimant_pressure: Number(faction.claimant_pressure || 0),
         last_succession_turn: faction.last_succession_turn,
         last_succession_type: faction.last_succession_type || "founding",
+        official_religion: faction.official_religion || "No state cult",
+        religious_legitimacy: Number(faction.religious_legitimacy || 0),
+        clergy_support: Number(faction.clergy_support || 0),
+        religious_tolerance: Number(faction.religious_tolerance || 0),
+        religious_zeal: Number(faction.religious_zeal || 0),
+        state_cult_strength: Number(faction.state_cult_strength || 0),
+        reform_pressure: Number(faction.reform_pressure || 0),
+        sacred_sites_controlled: Number(faction.sacred_sites_controlled || 0),
+        total_sacred_sites: Number(faction.total_sacred_sites || 0),
+        last_reform_turn: faction.last_reform_turn,
         population: ownedRegions.reduce((total, region) => total + Number(region.population || 0), 0),
         net_income: 0,
         base_income: 0,
@@ -4913,6 +4949,15 @@ def render_simulation_html(world):
       const regencyTurns = Number(metrics.regency_turns ?? faction.regency_turns ?? 0);
       const successionCrisisTurns = Number(metrics.succession_crisis_turns ?? faction.succession_crisis_turns ?? 0);
       const claimantPressure = Number(metrics.claimant_pressure ?? faction.claimant_pressure ?? 0);
+      const officialReligion = metrics.official_religion || faction.official_religion || "No state cult";
+      const religiousLegitimacy = Number(metrics.religious_legitimacy ?? faction.religious_legitimacy ?? 0);
+      const clergySupport = Number(metrics.clergy_support ?? faction.clergy_support ?? 0);
+      const religiousTolerance = Number(metrics.religious_tolerance ?? faction.religious_tolerance ?? 0);
+      const religiousZeal = Number(metrics.religious_zeal ?? faction.religious_zeal ?? 0);
+      const stateCultStrength = Number(metrics.state_cult_strength ?? faction.state_cult_strength ?? 0);
+      const reformPressure = Number(metrics.reform_pressure ?? faction.reform_pressure ?? 0);
+      const sacredSitesControlled = Number(metrics.sacred_sites_controlled ?? faction.sacred_sites_controlled ?? 0);
+      const totalSacredSites = Number(metrics.total_sacred_sites ?? faction.total_sacred_sites ?? 0);
       const doctrineHistoryMarkup = history.length
         ? history.map((entry, index) => {{
             const prior = index > 0 ? history[index - 1] : null;
@@ -5017,6 +5062,8 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Realm Structure:</strong> Homeland ${{metrics.homeland_regions}} / Core ${{metrics.core_regions}} / Frontier ${{metrics.frontier_regions}}</div>
             <div class="metric-line"><strong>Dynasty:</strong> ${{escapeHtml(dynastyName)}} | ruler ${{escapeHtml(rulerName)}} | heir ${{escapeHtml(heirName)}}</div>
             <div class="metric-line"><strong>Succession:</strong> legitimacy ${{(legitimacy * 100).toFixed(0)}}% | prestige ${{(prestige * 100).toFixed(0)}}% | regency ${{regencyTurns}} | crisis ${{successionCrisisTurns}} | claimant pressure ${{(claimantPressure * 100).toFixed(0)}}%</div>
+            <div class="metric-line"><strong>Religion:</strong> ${{escapeHtml(officialReligion)}} | sacred sites ${{sacredSitesControlled}} / ${{totalSacredSites}} | religious legitimacy ${{(religiousLegitimacy * 100).toFixed(0)}}%</div>
+            <div class="metric-line"><strong>Cult Politics:</strong> clergy ${{(clergySupport * 100).toFixed(0)}}% | tolerance ${{(religiousTolerance * 100).toFixed(0)}}% | zeal ${{(religiousZeal * 100).toFixed(0)}}% | state cult ${{(stateCultStrength * 100).toFixed(0)}}% | reform pressure ${{(reformPressure * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Food Stores:</strong> ${{Number(metrics.food_stored || 0).toFixed(1)}} / ${{Number(metrics.food_storage_capacity || 0).toFixed(1)}} | +${{Number(metrics.food_produced || 0).toFixed(1)}} / -${{Number(metrics.food_consumption || 0).toFixed(1)}}</div>
             <div class="metric-line"><strong>Food Pressure:</strong> Balance ${{Number(metrics.food_balance || 0).toFixed(1)}} / Deficit ${{Number(metrics.food_deficit || 0).toFixed(1)}} / Waste ${{Number((metrics.food_spoilage || 0) + (metrics.food_overflow || 0)).toFixed(1)}}</div>
             <div class="metric-line"><strong>Migration:</strong> In ${{Number(metrics.migration_inflow || 0).toFixed(0)}} / Out ${{Number(metrics.migration_outflow || 0).toFixed(0)}} | Refugees ${{Number(metrics.refugee_inflow || 0).toFixed(0)}} in / ${{Number(metrics.refugee_outflow || 0).toFixed(0)}} out | Frontier settlers ${{Number(metrics.frontier_settlers || 0).toFixed(0)}}</div>

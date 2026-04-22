@@ -22,6 +22,7 @@ from src.heartland import (
     resolve_dynastic_succession,
     resolve_population_migration,
     resolve_unrest_events,
+    update_religious_legitimacy,
     update_faction_polity_tiers,
     update_region_settlement_levels,
     update_region_populations,
@@ -153,6 +154,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     economy_snapshot = apply_turn_economy(world)
     apply_turn_food_economy(world)
     update_region_integration(world)
+    update_religious_legitimacy(world)
     resolve_dynastic_succession(world)
     update_region_populations(world)
     resolve_population_migration(world)

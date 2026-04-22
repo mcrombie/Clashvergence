@@ -34,10 +34,12 @@ from src.heartland import (
     faction_has_ethnic_claim,
     get_regime_agitation_sponsor_factor,
     get_regime_agitation_sponsor_mode,
+    get_region_dominant_religion,
     get_region_external_regime_agitation_modifier,
     get_region_external_regime_agitators,
     initialize_dynastic_politics,
     initialize_faction_succession_state,
+    initialize_religious_legitimacy,
     get_faction_ethnic_claims,
     get_region_dominant_ethnicity,
     get_region_ethnic_claimants,
@@ -48,7 +50,11 @@ from src.heartland import (
     resolve_dynastic_succession,
     resolve_population_migration,
     resolve_unrest_events,
+    register_religion,
     seed_region_ethnicity,
+    seed_region_religion,
+    transfer_region_population,
+    update_religious_legitimacy,
     update_region_populations,
     update_rebel_faction_status,
     update_region_integration,
@@ -243,6 +249,39 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertIn("ruler_name", faction_payload)
         self.assertIn("legitimacy", faction_payload)
 
+    def test_world_initializes_religion_and_sacred_sites(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+
+        for faction_name, faction in world.factions.items():
+            self.assertTrue(faction.religion.official_religion)
+            homeland_region = next(
+                region
+                for region in world.regions.values()
+                if region.owner == faction_name and region.core_status == "homeland"
+            )
+            self.assertEqual(homeland_region.sacred_religion, faction.religion.official_religion)
+            self.assertGreater(homeland_region.shrine_level, 0.0)
+            self.assertEqual(get_region_dominant_religion(homeland_region), faction.religion.official_religion)
+
+    def test_metrics_and_view_model_expose_religion_fields(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+
+        metrics = build_turn_metrics(world)
+        faction_metrics = metrics["factions"][faction_name]
+        self.assertIn("official_religion", faction_metrics)
+        self.assertIn("religious_legitimacy", faction_metrics)
+        self.assertIn("reform_pressure", faction_metrics)
+
+        view_model = build_simulation_view_model(world)
+        faction_payload = next(
+            faction
+            for faction in view_model["factions"]
+            if faction["name"] == faction_name
+        )
+        self.assertIn("official_religion", faction_payload)
+        self.assertIn("religious_legitimacy", faction_payload)
+
     def test_resolve_dynastic_succession_can_produce_orderly_transition(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
@@ -299,6 +338,55 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertGreater(faction.succession.succession_crisis_turns, 0)
         self.assertGreater(faction.succession.regency_turns, 0)
         self.assertTrue(any(event.type == "succession_crisis" for event in world.events))
+
+    def test_transfer_region_population_moves_religion_composition(self):
+        source = Region(
+            name="A",
+            neighbors=["B"],
+            owner="FactionA",
+            resources=3,
+            population=100,
+            ethnic_composition={"Alpha": 100},
+            religious_composition={"OldFaith": 70, "RiverFaith": 30},
+        )
+        target = Region(
+            name="B",
+            neighbors=["A"],
+            owner="FactionA",
+            resources=2,
+            population=50,
+            ethnic_composition={"Alpha": 50},
+            religious_composition={"OldFaith": 50},
+        )
+
+        moved = transfer_region_population(source, target, 20)
+
+        self.assertEqual(moved, 20)
+        self.assertEqual(target.population, 70)
+        self.assertGreater(target.religious_composition.get("RiverFaith", 0), 0)
+        self.assertLess(source.religious_composition.get("RiverFaith", 0), 30)
+
+    def test_religious_dissent_and_reform_pressure_can_trigger_reform(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        faction = world.factions[faction_name]
+        faction.identity.set_government_structure("state", "republic")
+        initialize_religious_legitimacy(world)
+        old_religion = faction.religion.official_religion
+        reform_religion = "ForeignRite"
+        register_religion(world, reform_religion, doctrine="Foreign Rite")
+        faction.religion.reform_pressure = 0.9
+
+        for region in world.regions.values():
+            if region.owner != faction_name:
+                continue
+            seed_region_religion(region, reform_religion)
+            region.population = max(region.population, 120)
+
+        update_religious_legitimacy(world)
+
+        self.assertNotEqual(faction.religion.official_religion, old_religion)
+        self.assertTrue(any(event.type == "religious_reform" for event in world.events))
 
     def test_initial_succession_profiles_scale_by_tier_and_form(self):
         band_faction = Faction(
