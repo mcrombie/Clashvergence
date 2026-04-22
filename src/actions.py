@@ -241,6 +241,12 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
     raw_total_output = sum((region.resource_output or {}).values())
     retained_total_output = sum((region.resource_retained_output or {}).values())
     routed_total_output = sum((region.resource_routed_output or region.resource_effective_output or {}).values())
+    trade_throughput = float(region.trade_throughput or 0.0)
+    trade_value_bonus = float(region.trade_value_bonus or 0.0)
+    trade_import_reliance = float(region.trade_import_reliance or 0.0)
+    trade_disruption = float(region.trade_disruption_risk or 0.0)
+    trade_children = int(region.trade_route_children or 0)
+    trade_role = region.trade_route_role or "local"
     retained_loss = max(0.0, raw_total_output - retained_total_output)
     routed_loss = max(0.0, retained_total_output - routed_total_output)
     monetization_gap = max(0.0, routed_total_output - float(region.resource_monetized_value or 0.0))
@@ -452,6 +458,7 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
                 + (routed_loss * 2.3)
                 + (local_food_waste * 0.9)
                 + (corridor_pressure * 1.2)
+                + (trade_throughput * 0.18)
                 + (0.35 if region.storehouse_level <= 0 else region.storehouse_level * 0.28)
             ),
             "resource_focus": "storage",
@@ -516,6 +523,10 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
                 2.8
                 + (corridor_pressure * 5.0)
                 + (max(0.0, 0.86 - route_bottleneck) * 3.2)
+                + (trade_throughput * 0.34)
+                + (trade_disruption * 2.4)
+                + (trade_children * 0.45)
+                + (0.65 if trade_role == "corridor" else 0.0)
                 + logistics_pressure
                 + (0.4 if region.road_level <= 0 else region.road_level * 0.3)
             ),
@@ -540,6 +551,10 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
                 + (routed_total_output * 1.4)
                 + (commercial_pressure * 1.1)
                 + (monetization_gap * 2.2)
+                + (trade_value_bonus * 0.85)
+                + (trade_import_reliance * 2.2)
+                + (trade_throughput * 0.2)
+                + (0.5 if trade_role == "hub" else 0.3 if trade_role == "corridor" else 0.0)
                 + (get_region_taxable_value(region, world) * 0.42)
                 + (max(0.0, 0.8 - route_bottleneck) * 1.6)
                 + market_pressure
@@ -561,6 +576,8 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
                 + (get_region_taxable_value(region, world) * 0.48)
                 + (corridor_pressure * 4.4)
                 + (max(0.0, 0.78 - route_bottleneck) * 3.0)
+                + (trade_throughput * 0.24)
+                + (trade_disruption * 2.0)
                 + infrastructure_shortage_bonus
                 - (region.road_level * 0.35)
             ),

@@ -94,6 +94,18 @@ def _build_region_resource_payload(region):
         "resource_route_cost": round(float(region.resource_route_cost or 0.0), 3),
         "resource_route_anchor": region.resource_route_anchor,
         "resource_route_bottleneck": round(float(region.resource_route_bottleneck or 0.0), 3),
+        "trade_route_role": region.trade_route_role,
+        "trade_route_parent": region.trade_route_parent,
+        "trade_route_children": int(region.trade_route_children or 0),
+        "trade_served_regions": int(region.trade_served_regions or 0),
+        "trade_throughput": round(float(region.trade_throughput or 0.0), 3),
+        "trade_transit_flow": round(float(region.trade_transit_flow or 0.0), 3),
+        "trade_import_value": round(float(region.trade_import_value or 0.0), 3),
+        "trade_transit_value": round(float(region.trade_transit_value or 0.0), 3),
+        "trade_hub_value": round(float(region.trade_hub_value or 0.0), 3),
+        "trade_value_bonus": round(float(region.trade_value_bonus or 0.0), 3),
+        "trade_import_reliance": round(float(region.trade_import_reliance or 0.0), 3),
+        "trade_disruption_risk": round(float(region.trade_disruption_risk or 0.0), 3),
         "resource_profile": " | ".join(profile_parts) if profile_parts else "None",
         "resource_output_summary": format_resource_map(region.resource_effective_output or region.resource_output, limit=3),
         "resource_retained_output_summary": format_resource_map(region.resource_retained_output or region.resource_output, limit=3),
@@ -497,6 +509,18 @@ def build_simulation_snapshots(world):
             "resource_route_cost": initial_region_history.get(region_name, {}).get("resource_route_cost", region.resource_route_cost),
             "resource_route_anchor": initial_region_history.get(region_name, {}).get("resource_route_anchor", region.resource_route_anchor),
             "resource_route_bottleneck": initial_region_history.get(region_name, {}).get("resource_route_bottleneck", region.resource_route_bottleneck),
+            "trade_route_role": initial_region_history.get(region_name, {}).get("trade_route_role", region.trade_route_role),
+            "trade_route_parent": initial_region_history.get(region_name, {}).get("trade_route_parent", region.trade_route_parent),
+            "trade_route_children": initial_region_history.get(region_name, {}).get("trade_route_children", region.trade_route_children),
+            "trade_served_regions": initial_region_history.get(region_name, {}).get("trade_served_regions", region.trade_served_regions),
+            "trade_throughput": initial_region_history.get(region_name, {}).get("trade_throughput", region.trade_throughput),
+            "trade_transit_flow": initial_region_history.get(region_name, {}).get("trade_transit_flow", region.trade_transit_flow),
+            "trade_import_value": initial_region_history.get(region_name, {}).get("trade_import_value", region.trade_import_value),
+            "trade_transit_value": initial_region_history.get(region_name, {}).get("trade_transit_value", region.trade_transit_value),
+            "trade_hub_value": initial_region_history.get(region_name, {}).get("trade_hub_value", region.trade_hub_value),
+            "trade_value_bonus": initial_region_history.get(region_name, {}).get("trade_value_bonus", region.trade_value_bonus),
+            "trade_import_reliance": initial_region_history.get(region_name, {}).get("trade_import_reliance", region.trade_import_reliance),
+            "trade_disruption_risk": initial_region_history.get(region_name, {}).get("trade_disruption_risk", region.trade_disruption_risk),
             "resource_profile": initial_region_history.get(region_name, {}).get("resource_profile", _build_region_resource_payload(region)["resource_profile"]),
             "resource_output_summary": initial_region_history.get(region_name, {}).get("resource_output_summary", _build_region_resource_payload(region)["resource_output_summary"]),
             "resource_retained_output_summary": initial_region_history.get(region_name, {}).get("resource_retained_output_summary", _build_region_resource_payload(region)["resource_retained_output_summary"]),
@@ -578,6 +602,18 @@ def build_simulation_snapshots(world):
                 "resource_route_cost": region["resource_route_cost"],
                 "resource_route_anchor": region["resource_route_anchor"],
                 "resource_route_bottleneck": region["resource_route_bottleneck"],
+                "trade_route_role": region["trade_route_role"],
+                "trade_route_parent": region["trade_route_parent"],
+                "trade_route_children": region["trade_route_children"],
+                "trade_served_regions": region["trade_served_regions"],
+                "trade_throughput": region["trade_throughput"],
+                "trade_transit_flow": region["trade_transit_flow"],
+                "trade_import_value": region["trade_import_value"],
+                "trade_transit_value": region["trade_transit_value"],
+                "trade_hub_value": region["trade_hub_value"],
+                "trade_value_bonus": region["trade_value_bonus"],
+                "trade_import_reliance": region["trade_import_reliance"],
+                "trade_disruption_risk": region["trade_disruption_risk"],
                 "resource_profile": region["resource_profile"],
                 "resource_output_summary": region["resource_output_summary"],
                 "resource_retained_output_summary": region["resource_retained_output_summary"],
@@ -687,6 +723,18 @@ def build_simulation_snapshots(world):
             region_state[region_name]["resource_route_cost"] = history_region.get("resource_route_cost", region_state[region_name]["resource_route_cost"])
             region_state[region_name]["resource_route_anchor"] = history_region.get("resource_route_anchor", region_state[region_name]["resource_route_anchor"])
             region_state[region_name]["resource_route_bottleneck"] = history_region.get("resource_route_bottleneck", region_state[region_name]["resource_route_bottleneck"])
+            region_state[region_name]["trade_route_role"] = history_region.get("trade_route_role", region_state[region_name]["trade_route_role"])
+            region_state[region_name]["trade_route_parent"] = history_region.get("trade_route_parent", region_state[region_name]["trade_route_parent"])
+            region_state[region_name]["trade_route_children"] = history_region.get("trade_route_children", region_state[region_name]["trade_route_children"])
+            region_state[region_name]["trade_served_regions"] = history_region.get("trade_served_regions", region_state[region_name]["trade_served_regions"])
+            region_state[region_name]["trade_throughput"] = history_region.get("trade_throughput", region_state[region_name]["trade_throughput"])
+            region_state[region_name]["trade_transit_flow"] = history_region.get("trade_transit_flow", region_state[region_name]["trade_transit_flow"])
+            region_state[region_name]["trade_import_value"] = history_region.get("trade_import_value", region_state[region_name]["trade_import_value"])
+            region_state[region_name]["trade_transit_value"] = history_region.get("trade_transit_value", region_state[region_name]["trade_transit_value"])
+            region_state[region_name]["trade_hub_value"] = history_region.get("trade_hub_value", region_state[region_name]["trade_hub_value"])
+            region_state[region_name]["trade_value_bonus"] = history_region.get("trade_value_bonus", region_state[region_name]["trade_value_bonus"])
+            region_state[region_name]["trade_import_reliance"] = history_region.get("trade_import_reliance", region_state[region_name]["trade_import_reliance"])
+            region_state[region_name]["trade_disruption_risk"] = history_region.get("trade_disruption_risk", region_state[region_name]["trade_disruption_risk"])
             region_state[region_name]["resource_profile"] = history_region.get("resource_profile", region_state[region_name]["resource_profile"])
             region_state[region_name]["resource_output_summary"] = history_region.get("resource_output_summary", region_state[region_name]["resource_output_summary"])
             region_state[region_name]["resource_retained_output_summary"] = history_region.get("resource_retained_output_summary", region_state[region_name]["resource_retained_output_summary"])
@@ -771,6 +819,18 @@ def build_simulation_snapshots(world):
                     "resource_route_cost": region["resource_route_cost"],
                     "resource_route_anchor": region["resource_route_anchor"],
                     "resource_route_bottleneck": region["resource_route_bottleneck"],
+                    "trade_route_role": region["trade_route_role"],
+                    "trade_route_parent": region["trade_route_parent"],
+                    "trade_route_children": region["trade_route_children"],
+                    "trade_served_regions": region["trade_served_regions"],
+                    "trade_throughput": region["trade_throughput"],
+                    "trade_transit_flow": region["trade_transit_flow"],
+                    "trade_import_value": region["trade_import_value"],
+                    "trade_transit_value": region["trade_transit_value"],
+                    "trade_hub_value": region["trade_hub_value"],
+                    "trade_value_bonus": region["trade_value_bonus"],
+                    "trade_import_reliance": region["trade_import_reliance"],
+                    "trade_disruption_risk": region["trade_disruption_risk"],
                     "resource_profile": region["resource_profile"],
                     "resource_output_summary": region["resource_output_summary"],
                     "resource_retained_output_summary": region["resource_retained_output_summary"],
@@ -941,6 +1001,10 @@ def build_simulation_view_model(world):
             "food_deficit": round(world.factions[faction_name].food_deficit, 3),
             "food_spoilage": round(world.factions[faction_name].food_spoilage, 3),
             "food_overflow": round(world.factions[faction_name].food_overflow, 3),
+            "trade_income": round(world.factions[faction_name].trade_income, 3),
+            "trade_transit_value": round(world.factions[faction_name].trade_transit_value, 3),
+            "trade_import_dependency": round(world.factions[faction_name].trade_import_dependency, 3),
+            "trade_corridor_exposure": round(world.factions[faction_name].trade_corridor_exposure, 3),
             "resource_access_summary": format_resource_map(world.factions[faction_name].resource_access, limit=5),
             "resource_gross_summary": format_resource_map(world.factions[faction_name].resource_gross_output, limit=5),
             "resource_isolated_summary": format_resource_map(world.factions[faction_name].resource_isolated_output, limit=5),
@@ -3839,6 +3903,14 @@ def render_simulation_html(world):
               </div>
             </div>
             <div class="detail-row">
+              <div class="detail-label">Trade Role</div>
+              <div class="detail-value">
+                ${{escapeHtml(regionSnapshot.trade_route_role || staticRegion.trade_route_role || "local")}}
+                / Bonus ${{Number(regionSnapshot.trade_value_bonus ?? staticRegion.trade_value_bonus ?? 0).toFixed(2)}}
+                / Throughput ${{Number(regionSnapshot.trade_throughput ?? staticRegion.trade_throughput ?? 0).toFixed(2)}}
+              </div>
+            </div>
+            <div class="detail-row">
               <div class="detail-label">Development</div>
               <div class="detail-value">
                 Infra ${{Number(regionSnapshot.infrastructure_level ?? staticRegion.infrastructure_level ?? 0).toFixed(2)}}
@@ -4127,6 +4199,8 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Raw Flow:</strong> ${{escapeHtml(regionSnapshot.resource_output_summary || staticRegion.resource_output_summary || "None")}}</div>
             <div class="metric-line"><strong>Retained Flow:</strong> ${{escapeHtml(regionSnapshot.resource_retained_output_summary || staticRegion.resource_retained_output_summary || "None")}}</div>
             <div class="metric-line"><strong>Routed Flow:</strong> ${{escapeHtml(regionSnapshot.resource_routed_output_summary || staticRegion.resource_routed_output_summary || regionSnapshot.resource_output_summary || staticRegion.resource_output_summary || "None")}}</div>
+            <div class="metric-line"><strong>Trade Layer:</strong> ${{escapeHtml(regionSnapshot.trade_route_role || staticRegion.trade_route_role || "local")}} | throughput ${{Number(regionSnapshot.trade_throughput ?? staticRegion.trade_throughput ?? 0).toFixed(2)}} | trade bonus ${{Number(regionSnapshot.trade_value_bonus ?? staticRegion.trade_value_bonus ?? 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Import / Transit:</strong> ${{Number(regionSnapshot.trade_import_value ?? staticRegion.trade_import_value ?? 0).toFixed(2)}} / ${{Number(regionSnapshot.trade_transit_value ?? staticRegion.trade_transit_value ?? 0).toFixed(2)}} | disruption ${{Number((regionSnapshot.trade_disruption_risk ?? staticRegion.trade_disruption_risk ?? 0) * 100).toFixed(0)}}%</div>
           </article>
           <article class="inspector-card">
             <h4 class="inspector-title">Food And Population</h4>
@@ -4594,6 +4668,14 @@ def render_simulation_html(world):
                 <div class="detail-row">
                   <div class="detail-label">Shortages</div>
                   <div class="detail-value">${{escapeHtml(faction.resource_shortage_summary || "None")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Trade Income</div>
+                  <div class="detail-value">${{Number(faction.trade_income || 0).toFixed(2)}} / Transit ${{Number(faction.trade_transit_value || 0).toFixed(2)}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Trade Risk</div>
+                  <div class="detail-value">Imports ${{Number((faction.trade_import_dependency || 0) * 100).toFixed(0)}}% / Exposure ${{Number((faction.trade_corridor_exposure || 0) * 100).toFixed(0)}}%</div>
                 </div>
               </div>
             </div>

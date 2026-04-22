@@ -170,6 +170,18 @@ class Region:
     resource_route_cost: float = 0.0
     resource_route_anchor: str | None = None
     resource_route_bottleneck: float = 1.0
+    trade_route_role: str = "local"
+    trade_route_parent: str | None = None
+    trade_route_children: int = 0
+    trade_served_regions: int = 0
+    trade_throughput: float = 0.0
+    trade_transit_flow: float = 0.0
+    trade_import_value: float = 0.0
+    trade_transit_value: float = 0.0
+    trade_hub_value: float = 0.0
+    trade_value_bonus: float = 0.0
+    trade_import_reliance: float = 0.0
+    trade_disruption_risk: float = 0.0
     last_resource_project_turn: int | None = None
     infrastructure_level: float = 0.0
     granary_level: float = 0.0
@@ -312,6 +324,10 @@ class Faction:
     food_deficit: float = 0.0
     food_spoilage: float = 0.0
     food_overflow: float = 0.0
+    trade_income: float = 0.0
+    trade_transit_value: float = 0.0
+    trade_import_dependency: float = 0.0
+    trade_corridor_exposure: float = 0.0
     known_regions: list[str] = field(default_factory=list)
     visible_regions: list[str] = field(default_factory=list)
     known_factions: list[str] = field(default_factory=list)

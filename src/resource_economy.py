@@ -155,12 +155,44 @@ RESOURCE_MONETIZATION_ROUTE_FACTOR = 0.12
 RESOURCE_MONETIZATION_BOTTLENECK_FACTOR = 0.08
 RESOURCE_MONETIZATION_HOMELAND_BONUS = 0.05
 RESOURCE_MONETIZATION_CORE_BONUS = 0.03
+TRADE_IMPORT_POPULATION_FACTOR = 0.003
+TRADE_IMPORT_MARKET_FACTOR = 0.12
+TRADE_IMPORT_STOREHOUSE_FACTOR = 0.05
+TRADE_IMPORT_SETTLEMENT_BONUSES = {
+    "wild": 0.0,
+    "rural": 0.05,
+    "town": 0.12,
+    "city": 0.2,
+}
+TRADE_IMPORT_DEPTH_FACTOR = 0.018
+TRADE_TRANSIT_BASE_FACTOR = 0.045
+TRADE_TRANSIT_ROAD_FACTOR = 0.03
+TRADE_TRANSIT_INFRASTRUCTURE_FACTOR = 0.022
+TRADE_TRANSIT_MARKET_FACTOR = 0.014
+TRADE_HUB_BASE_FACTOR = 0.038
+TRADE_HUB_MARKET_FACTOR = 0.03
+TRADE_HUB_INFRASTRUCTURE_FACTOR = 0.022
+TRADE_HUB_SETTLEMENT_BONUSES = {
+    "wild": 0.0,
+    "rural": 0.01,
+    "town": 0.04,
+    "city": 0.08,
+}
+TRADE_DISRUPTION_ISOLATION_FACTOR = 0.62
+TRADE_DISRUPTION_BOTTLENECK_FACTOR = 0.78
+TRADE_DISRUPTION_UNREST_FACTOR = 0.024
+TRADE_DISRUPTION_DAMAGE_FACTOR = 0.34
+TRADE_DISRUPTION_DEPTH_FACTOR = 0.018
 
 RouteState = dict[str, float | int | str | None]
 
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
     return max(minimum, min(maximum, value))
+
+
+def _sum_resource_map(resource_map: dict[str, float] | None) -> float:
+    return round(sum((resource_map or {}).values()), 3)
 
 
 def ensure_region_resource_state(region: Region) -> None:
@@ -195,6 +227,24 @@ def ensure_region_resource_state(region: Region) -> None:
     region.resource_route_cost = round(float(region.resource_route_cost or 0.0), 3)
     region.resource_route_anchor = region.resource_route_anchor or None
     region.resource_route_bottleneck = round(float(region.resource_route_bottleneck or 0.0), 3)
+    region.trade_route_role = (region.trade_route_role or "local").strip().lower()
+    region.trade_route_parent = region.trade_route_parent or None
+    region.trade_route_children = int(region.trade_route_children or 0)
+    region.trade_served_regions = int(region.trade_served_regions or 0)
+    region.trade_throughput = round(max(0.0, float(region.trade_throughput or 0.0)), 3)
+    region.trade_transit_flow = round(max(0.0, float(region.trade_transit_flow or 0.0)), 3)
+    region.trade_import_value = round(max(0.0, float(region.trade_import_value or 0.0)), 3)
+    region.trade_transit_value = round(max(0.0, float(region.trade_transit_value or 0.0)), 3)
+    region.trade_hub_value = round(max(0.0, float(region.trade_hub_value or 0.0)), 3)
+    region.trade_value_bonus = round(max(0.0, float(region.trade_value_bonus or 0.0)), 3)
+    region.trade_import_reliance = round(
+        _clamp(float(region.trade_import_reliance or 0.0), 0.0, 1.0),
+        3,
+    )
+    region.trade_disruption_risk = round(
+        _clamp(float(region.trade_disruption_risk or 0.0), 0.0, 1.0),
+        3,
+    )
     region.storehouse_level = round(max(0.0, float(region.storehouse_level or 0.0)), 2)
     region.market_level = round(max(0.0, float(region.market_level or 0.0)), 2)
     region.irrigation_level = round(max(0.0, float(region.irrigation_level or 0.0)), 2)
@@ -238,6 +288,16 @@ def _ensure_faction_resource_state(faction: Faction) -> None:
     faction.food_deficit = round(max(0.0, float(faction.food_deficit or 0.0)), 3)
     faction.food_spoilage = round(max(0.0, float(faction.food_spoilage or 0.0)), 3)
     faction.food_overflow = round(max(0.0, float(faction.food_overflow or 0.0)), 3)
+    faction.trade_income = round(max(0.0, float(faction.trade_income or 0.0)), 3)
+    faction.trade_transit_value = round(max(0.0, float(faction.trade_transit_value or 0.0)), 3)
+    faction.trade_import_dependency = round(
+        _clamp(float(faction.trade_import_dependency or 0.0), 0.0, 1.0),
+        3,
+    )
+    faction.trade_corridor_exposure = round(
+        _clamp(float(faction.trade_corridor_exposure or 0.0), 0.0, 1.0),
+        3,
+    )
 
 
 def get_region_resource_workforce_factor(region: Region) -> float:
@@ -506,6 +566,7 @@ def build_faction_resource_route_map(
     for anchor_name in sorted(anchor_names):
         route_map[anchor_name] = {
             "anchor": anchor_name,
+            "parent": None,
             "depth": 0,
             "cost": 0.0,
             "bottleneck": 1.0,
@@ -550,6 +611,7 @@ def build_faction_resource_route_map(
                 continue
             route_map[neighbor_name] = {
                 "anchor": anchor_name,
+                "parent": region_name,
                 "depth": route_depth + 1,
                 "cost": round(next_cost, 3),
                 "bottleneck": round(next_bottleneck, 3),
@@ -564,6 +626,221 @@ def _build_world_resource_route_maps(world: WorldState) -> dict[str, dict[str, R
         faction_name: build_faction_resource_route_map(world, faction_name)
         for faction_name in world.factions
     }
+
+
+def _get_region_trade_demand(region: Region) -> float:
+    settlement_bonus = TRADE_IMPORT_SETTLEMENT_BONUSES.get(region.settlement_level, 0.0)
+    return round(
+        max(0.08, region.population * TRADE_IMPORT_POPULATION_FACTOR)
+        + settlement_bonus
+        + (region.market_level * TRADE_IMPORT_MARKET_FACTOR)
+        + (region.storehouse_level * TRADE_IMPORT_STOREHOUSE_FACTOR),
+        3,
+    )
+
+
+def _get_region_average_resource_damage(region: Region) -> float:
+    return sum(region.resource_damage.values()) / max(1, len(ALL_RESOURCES))
+
+
+def _get_trade_route_role(
+    region: Region,
+    *,
+    depth: int,
+    children_count: int,
+    route_factor: float,
+    bottleneck: float,
+) -> str:
+    if depth <= 0:
+        return "hub"
+    if route_factor < 0.38 or (route_factor < 0.5 and bottleneck < 0.55):
+        return "isolated"
+    if children_count > 0:
+        return "corridor"
+    return "terminal"
+
+
+def _apply_faction_trade_state(
+    world: WorldState,
+    faction_name: str,
+    faction_route_map: dict[str, RouteState],
+) -> None:
+    faction = world.factions[faction_name]
+    owned_regions = [
+        region
+        for region in world.regions.values()
+        if region.owner == faction_name
+    ]
+    if not owned_regions:
+        faction.trade_income = 0.0
+        faction.trade_transit_value = 0.0
+        faction.trade_import_dependency = 0.0
+        faction.trade_corridor_exposure = 0.0
+        return
+
+    children_by_region = {
+        region.name: []
+        for region in owned_regions
+    }
+    for region_name, route_state in faction_route_map.items():
+        parent_name = route_state.get("parent")
+        if (
+            isinstance(parent_name, str)
+            and parent_name in children_by_region
+            and region_name in children_by_region
+        ):
+            children_by_region[parent_name].append(region_name)
+
+    local_flow = {
+        region.name: _sum_resource_map(region.resource_routed_output)
+        for region in owned_regions
+    }
+    throughput_by_region: dict[str, float] = {}
+    served_by_region: dict[str, int] = {}
+
+    def measure_trade_tree(region_name: str) -> tuple[float, int]:
+        total_flow = local_flow.get(region_name, 0.0)
+        served_regions = 0
+        for child_name in children_by_region.get(region_name, []):
+            child_flow, child_served = measure_trade_tree(child_name)
+            total_flow += child_flow
+            served_regions += child_served + 1
+        throughput_by_region[region_name] = round(total_flow, 3)
+        served_by_region[region_name] = served_regions
+        return total_flow, served_regions
+
+    root_names = sorted(
+        region.name
+        for region in owned_regions
+        if faction_route_map.get(region.name, {}).get("parent") is None
+    )
+    for root_name in root_names:
+        measure_trade_tree(root_name)
+    for region in owned_regions:
+        throughput_by_region.setdefault(region.name, local_flow.get(region.name, 0.0))
+        served_by_region.setdefault(region.name, 0)
+
+    total_trade_income = 0.0
+    total_transit_value = 0.0
+    total_import_value = 0.0
+    total_base_value = 0.0
+    exposure_weight = 0.0
+    weighted_exposure = 0.0
+
+    for region in owned_regions:
+        route_state = faction_route_map.get(region.name, {})
+        depth = int(route_state.get("depth", region.resource_route_depth or 0) or 0)
+        parent_name = route_state.get("parent")
+        throughput = float(throughput_by_region.get(region.name, local_flow.get(region.name, 0.0)))
+        transit_flow = max(0.0, throughput - local_flow.get(region.name, 0.0))
+        route_factor = max(0.0, 1.0 - float(region.resource_isolation_factor or 0.0))
+        bottleneck = max(0.35, float(region.resource_route_bottleneck or 0.35))
+        average_damage = _get_region_average_resource_damage(region)
+        disruption_risk = _clamp(
+            (float(region.resource_isolation_factor or 0.0) * TRADE_DISRUPTION_ISOLATION_FACTOR)
+            + (max(0.0, 0.85 - bottleneck) * TRADE_DISRUPTION_BOTTLENECK_FACTOR)
+            + (region.unrest * TRADE_DISRUPTION_UNREST_FACTOR)
+            + (average_damage * TRADE_DISRUPTION_DAMAGE_FACTOR)
+            + (depth * TRADE_DISRUPTION_DEPTH_FACTOR),
+            0.0,
+            0.95,
+        )
+        children_count = len(children_by_region.get(region.name, []))
+        route_role = _get_trade_route_role(
+            region,
+            depth=depth,
+            children_count=children_count,
+            route_factor=route_factor,
+            bottleneck=bottleneck,
+        )
+
+        import_value = 0.0
+        if depth > 0:
+            import_value = (
+                _get_region_trade_demand(region)
+                * route_factor
+                * bottleneck
+                * (
+                    0.18
+                    + TRADE_IMPORT_SETTLEMENT_BONUSES.get(region.settlement_level, 0.0)
+                    + (region.market_level * 0.06)
+                    + (region.storehouse_level * 0.02)
+                    + min(0.12, depth * TRADE_IMPORT_DEPTH_FACTOR)
+                )
+                * (1.0 - (disruption_risk * 0.55))
+            )
+
+        transit_value = 0.0
+        if transit_flow > 0:
+            transit_value = (
+                transit_flow
+                * route_factor
+                * bottleneck
+                * (
+                    TRADE_TRANSIT_BASE_FACTOR
+                    + (region.road_level * TRADE_TRANSIT_ROAD_FACTOR)
+                    + (region.infrastructure_level * TRADE_TRANSIT_INFRASTRUCTURE_FACTOR)
+                    + (region.market_level * TRADE_TRANSIT_MARKET_FACTOR)
+                )
+                * (1.0 - (disruption_risk * 0.45))
+            )
+
+        hub_value = 0.0
+        if depth == 0 or route_role == "corridor":
+            hub_value = (
+                throughput
+                * route_factor
+                * bottleneck
+                * (
+                    TRADE_HUB_BASE_FACTOR
+                    + TRADE_HUB_SETTLEMENT_BONUSES.get(region.settlement_level, 0.0)
+                    + (region.market_level * TRADE_HUB_MARKET_FACTOR)
+                    + (region.infrastructure_level * TRADE_HUB_INFRASTRUCTURE_FACTOR)
+                )
+                * (1.0 - (disruption_risk * 0.35))
+            )
+
+        trade_bonus = max(0.0, import_value + transit_value + hub_value)
+        base_value = max(0.0, float(region.resource_monetized_value or 0.0))
+        total_value = base_value + trade_bonus
+
+        region.trade_route_role = route_role
+        region.trade_route_parent = str(parent_name) if isinstance(parent_name, str) else None
+        region.trade_route_children = children_count
+        region.trade_served_regions = int(served_by_region.get(region.name, 0))
+        region.trade_throughput = round(throughput, 3)
+        region.trade_transit_flow = round(transit_flow, 3)
+        region.trade_import_value = round(max(0.0, import_value), 3)
+        region.trade_transit_value = round(max(0.0, transit_value), 3)
+        region.trade_hub_value = round(max(0.0, hub_value), 3)
+        region.trade_value_bonus = round(trade_bonus, 3)
+        region.trade_import_reliance = round(
+            _clamp(
+                max(0.0, import_value) / max(0.1, total_value),
+                0.0,
+                0.95,
+            ),
+            3,
+        )
+        region.trade_disruption_risk = round(disruption_risk, 3)
+
+        total_trade_income += trade_bonus
+        total_transit_value += max(0.0, transit_value)
+        total_import_value += max(0.0, import_value)
+        total_base_value += base_value
+        exposure_weight += max(0.1, throughput)
+        weighted_exposure += disruption_risk * max(0.1, throughput)
+
+    faction.trade_income = round(total_trade_income, 3)
+    faction.trade_transit_value = round(total_transit_value, 3)
+    faction.trade_import_dependency = round(
+        _clamp(total_import_value / max(0.1, total_base_value + total_trade_income), 0.0, 0.95),
+        3,
+    )
+    faction.trade_corridor_exposure = round(
+        _clamp(weighted_exposure / max(0.1, exposure_weight), 0.0, 0.95),
+        3,
+    )
 
 
 def get_region_internal_distribution_state(
@@ -942,8 +1219,9 @@ def get_region_taxable_value(
     *,
     faction_route_map: dict[str, RouteState] | None = None,
 ) -> float:
+    trade_value_bonus = round(max(0.0, float(region.trade_value_bonus or 0.0)), 2)
     if region.resource_monetized_value > 0:
-        return float(region.resource_monetized_value)
+        return round(float(region.resource_monetized_value) + trade_value_bonus, 2)
 
     if region.resources > 0 and world is None:
         return float(region.resources)
@@ -964,11 +1242,15 @@ def get_region_taxable_value(
         if world is not None
         else retained_output
     )
-    return _get_monetized_value_from_output(
+    return round(
+        _get_monetized_value_from_output(
         normalize_resource_map(routed_output),
         region,
         world,
         faction_route_map=faction_route_map,
+        )
+        + trade_value_bonus,
+        2,
     )
 
 
@@ -1277,6 +1559,18 @@ def update_faction_resource_economy(
             faction_route_map=faction_route_maps.get(region.owner or "", {}),
         )
         if region.owner is None:
+            region.trade_route_role = "local"
+            region.trade_route_parent = None
+            region.trade_route_children = 0
+            region.trade_served_regions = 0
+            region.trade_throughput = 0.0
+            region.trade_transit_flow = 0.0
+            region.trade_import_value = 0.0
+            region.trade_transit_value = 0.0
+            region.trade_hub_value = 0.0
+            region.trade_value_bonus = 0.0
+            region.trade_import_reliance = 0.0
+            region.trade_disruption_risk = 0.0
             region.food_storage_capacity = 0.0
             region.food_stored = 0.0
             region.food_produced = 0.0
@@ -1306,6 +1600,11 @@ def update_faction_resource_economy(
 
     for faction_name, faction in world.factions.items():
         _ensure_faction_resource_state(faction)
+        _apply_faction_trade_state(
+            world,
+            faction_name,
+            faction_route_maps.get(faction_name, {}),
+        )
         faction.resource_gross_output = normalize_resource_map(faction_gross_totals[faction_name])
         faction.resource_effective_access = normalize_resource_map(faction_effective_totals[faction_name])
         faction.resource_isolated_output = normalize_resource_map({

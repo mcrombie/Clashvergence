@@ -176,6 +176,10 @@ def choose_action(faction_name, world):
             + shortages.get(CAPACITY_MOBILITY, 0.0) * 0.3
             + shortages.get(CAPACITY_METAL, 0.0) * 0.3
         )
+        develop_need += (
+            faction.trade_import_dependency * 0.45
+            + faction.trade_corridor_exposure * 0.4
+        )
         if best_develop_components is not None:
             develop_need += max(0.0, best_develop_components["score"] / 12.0)
         develop_utility = (

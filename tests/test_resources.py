@@ -19,6 +19,7 @@ from src.heartland import (
     estimate_region_population_from_resource_profile,
     handle_region_owner_change,
 )
+from src.metrics import build_turn_metrics
 from src.models import Faction, Region, WorldState
 from src.resources import (
     RESOURCE_COPPER,
@@ -865,6 +866,180 @@ class ResourceSystemTests(unittest.TestCase):
             connected_region.resource_effective_output[RESOURCE_COPPER],
             degraded_region.resource_effective_output[RESOURCE_COPPER],
         )
+
+    def test_internal_trade_routes_classify_hub_corridor_and_terminal_regions(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=220,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    homeland_faction_id="FactionA",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.2,
+                    market_level=1.0,
+                    road_level=0.8,
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A", "C"],
+                    owner="FactionA",
+                    resources=2,
+                    population=150,
+                    terrain_tags=["riverland", "plains"],
+                    climate="temperate",
+                    integration_score=5.5,
+                    settlement_level="town",
+                    infrastructure_level=1.0,
+                    road_level=0.9,
+                    market_level=0.4,
+                ),
+                "C": Region(
+                    name="C",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=2,
+                    population=120,
+                    terrain_tags=["highland"],
+                    climate="cold",
+                    integration_score=1.4,
+                    settlement_level="rural",
+                    copper_mine_level=1.4,
+                ),
+            },
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        world.regions["C"].resource_fixed_endowments[RESOURCE_COPPER] = 1.15
+
+        update_faction_resource_economy(world)
+
+        self.assertEqual(world.regions["A"].trade_route_role, "hub")
+        self.assertEqual(world.regions["B"].trade_route_role, "corridor")
+        self.assertEqual(world.regions["C"].trade_route_role, "terminal")
+        self.assertGreater(world.regions["B"].trade_throughput, sum(world.regions["B"].resource_routed_output.values()))
+        self.assertGreater(world.regions["B"].trade_transit_flow, 0.0)
+        self.assertGreater(world.regions["A"].trade_hub_value, 0.0)
+
+    def test_trade_bonus_and_imports_drop_when_corridor_breaks_down(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=220,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    homeland_faction_id="FactionA",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.2,
+                    market_level=1.0,
+                    road_level=0.8,
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A", "C"],
+                    owner="FactionA",
+                    resources=2,
+                    population=150,
+                    terrain_tags=["riverland", "plains"],
+                    climate="temperate",
+                    integration_score=5.0,
+                    settlement_level="town",
+                    infrastructure_level=0.9,
+                    road_level=0.8,
+                    market_level=0.5,
+                ),
+                "C": Region(
+                    name="C",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=2,
+                    population=140,
+                    terrain_tags=["highland"],
+                    climate="cold",
+                    integration_score=1.1,
+                    settlement_level="rural",
+                    copper_mine_level=1.5,
+                ),
+            },
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        world.regions["C"].resource_fixed_endowments[RESOURCE_COPPER] = 1.2
+
+        update_faction_resource_economy(world)
+        baseline_import_value = world.regions["C"].trade_import_value
+        baseline_trade_bonus = world.regions["C"].trade_value_bonus
+        baseline_income = world.factions["FactionA"].trade_income
+
+        world.regions["B"].unrest = 8.2
+        world.regions["B"].unrest_event_level = "crisis"
+        world.regions["B"].resource_damage[RESOURCE_TIMBER] = 0.65
+        world.regions["B"].resource_damage[RESOURCE_COPPER] = 0.65
+        update_faction_resource_economy(world)
+
+        self.assertLess(world.regions["C"].trade_import_value, baseline_import_value)
+        self.assertLess(world.regions["C"].trade_value_bonus, baseline_trade_bonus)
+        self.assertLess(world.factions["FactionA"].trade_income, baseline_income)
+        self.assertGreater(world.regions["C"].trade_disruption_risk, 0.0)
+
+    def test_metrics_include_trade_fields_from_internal_routes(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=220,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    homeland_faction_id="FactionA",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.2,
+                    market_level=1.0,
+                    road_level=0.8,
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionA",
+                    resources=2,
+                    population=140,
+                    terrain_tags=["highland"],
+                    climate="cold",
+                    integration_score=1.2,
+                    settlement_level="rural",
+                    copper_mine_level=1.5,
+                ),
+            },
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        world.regions["B"].resource_fixed_endowments[RESOURCE_COPPER] = 1.2
+
+        update_faction_resource_economy(world)
+        metrics = build_turn_metrics(world)
+        faction_metrics = metrics["factions"]["FactionA"]
+
+        self.assertIn("trade_income", faction_metrics)
+        self.assertIn("trade_import_dependency", faction_metrics)
+        self.assertIn("trade_corridor_exposure", faction_metrics)
+        self.assertGreater(world.factions["FactionA"].trade_income, 0.0)
+        self.assertGreaterEqual(faction_metrics["trade_import_dependency"], 0.0)
 
     def test_bottlenecked_corridor_prefers_road_development(self):
         world = WorldState(
