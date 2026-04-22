@@ -183,6 +183,11 @@ class Region:
     trade_value_bonus: float = 0.0
     trade_import_reliance: float = 0.0
     trade_disruption_risk: float = 0.0
+    trade_foreign_partner: str | None = None
+    trade_foreign_partner_region: str | None = None
+    trade_foreign_flow: float = 0.0
+    trade_foreign_value: float = 0.0
+    trade_gateway_role: str = "none"
     last_resource_project_turn: int | None = None
     infrastructure_level: float = 0.0
     granary_level: float = 0.0
@@ -329,6 +334,8 @@ class Faction:
     trade_transit_value: float = 0.0
     trade_import_dependency: float = 0.0
     trade_corridor_exposure: float = 0.0
+    trade_foreign_income: float = 0.0
+    trade_foreign_imported_flow: float = 0.0
     known_regions: list[str] = field(default_factory=list)
     visible_regions: list[str] = field(default_factory=list)
     known_factions: list[str] = field(default_factory=list)

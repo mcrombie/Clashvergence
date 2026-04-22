@@ -136,6 +136,47 @@ RESOURCE_ROUTE_CONTESTED_SEA_SUPPORT_FACTOR = 0.22
 RESOURCE_ROUTE_PORT_BLOCKADE_THRESHOLD = 0.52
 RESOURCE_ROUTE_PORT_BLOCKADE_UNREST = 7.5
 RESOURCE_ROUTE_PORT_BLOCKADE_DAMAGE = 0.5
+FOREIGN_TRADE_RELATIONSHIP_FACTORS = {
+    "alliance": 1.0,
+    "non_aggression_pact": 0.78,
+}
+FOREIGN_TRADE_BORDER_GATEWAY_FACTOR = 0.72
+FOREIGN_TRADE_SEA_GATEWAY_FACTOR = 0.9
+FOREIGN_TRADE_BASE_CAPACITY = 0.26
+FOREIGN_TRADE_GATEWAY_CAPACITY_FACTOR = 1.15
+FOREIGN_TRADE_TRUST_FACTOR = 0.006
+FOREIGN_TRADE_BORDER_FRICTION_FACTOR = 0.015
+FOREIGN_TRADE_GRIEVANCE_FACTOR = 0.01
+FOREIGN_TRADE_RECENT_CONFLICT_PENALTY = 0.22
+FOREIGN_TRADE_RECENT_CONFLICT_TURNS = 6
+FOREIGN_TRADE_SURPLUS_RESERVE_FACTOR = 0.92
+FOREIGN_TRADE_IMPORT_INCOME_FACTOR = 0.08
+FOREIGN_TRADE_EXPORT_INCOME_FACTOR = 0.11
+FOREIGN_TRADE_RESOURCE_PRIORITY = [
+    RESOURCE_GRAIN,
+    RESOURCE_LIVESTOCK,
+    RESOURCE_SALT,
+    RESOURCE_COPPER,
+    RESOURCE_TIMBER,
+    RESOURCE_STONE,
+    RESOURCE_TEXTILES,
+    RESOURCE_HORSES,
+    RESOURCE_WILD_FOOD,
+]
+FOREIGN_TRADE_RESOURCE_WEIGHTS = {
+    RESOURCE_GRAIN: 0.95,
+    RESOURCE_LIVESTOCK: 0.82,
+    RESOURCE_SALT: 1.0,
+    RESOURCE_COPPER: 0.92,
+    RESOURCE_TIMBER: 0.82,
+    RESOURCE_STONE: 0.72,
+    RESOURCE_TEXTILES: 0.95,
+    RESOURCE_HORSES: 0.8,
+    RESOURCE_WILD_FOOD: 0.55,
+}
+FOREIGN_TRADE_CORRIDOR_FLOW_DECAY = 0.9
+FOREIGN_TRADE_CORRIDOR_TRANSIT_FACTOR = 0.02
+FOREIGN_TRADE_CORRIDOR_HUB_FACTOR = 0.015
 RESOURCE_GRAIN_UNIRRIGATED_FACTOR = 0.78
 RESOURCE_GRAIN_IRRIGATION_LEVEL_FACTOR = 0.55
 RESOURCE_GRAIN_SUPPORT_LEVEL_FACTOR = 0.22
@@ -273,6 +314,11 @@ def ensure_region_resource_state(region: Region) -> None:
         _clamp(float(region.trade_disruption_risk or 0.0), 0.0, 1.0),
         3,
     )
+    region.trade_foreign_partner = region.trade_foreign_partner or None
+    region.trade_foreign_partner_region = region.trade_foreign_partner_region or None
+    region.trade_foreign_flow = round(max(0.0, float(region.trade_foreign_flow or 0.0)), 3)
+    region.trade_foreign_value = round(max(0.0, float(region.trade_foreign_value or 0.0)), 3)
+    region.trade_gateway_role = (region.trade_gateway_role or "none").strip().lower()
     region.storehouse_level = round(max(0.0, float(region.storehouse_level or 0.0)), 2)
     region.market_level = round(max(0.0, float(region.market_level or 0.0)), 2)
     region.irrigation_level = round(max(0.0, float(region.irrigation_level or 0.0)), 2)
@@ -326,6 +372,8 @@ def _ensure_faction_resource_state(faction: Faction) -> None:
         _clamp(float(faction.trade_corridor_exposure or 0.0), 0.0, 1.0),
         3,
     )
+    faction.trade_foreign_income = round(max(0.0, float(faction.trade_foreign_income or 0.0)), 3)
+    faction.trade_foreign_imported_flow = round(max(0.0, float(faction.trade_foreign_imported_flow or 0.0)), 3)
 
 
 def get_region_resource_workforce_factor(region: Region) -> float:
@@ -611,6 +659,643 @@ def _is_port_trade_blockaded(
             or average_damage >= RESOURCE_ROUTE_PORT_BLOCKADE_DAMAGE
         )
     )
+
+
+def _get_region_foreign_trade_gateway_quality(region: Region) -> float:
+    if region.owner is None:
+        return 0.0
+
+    quality = 0.28
+    if region.settlement_level == "town":
+        quality += 0.08
+    elif region.settlement_level == "city":
+        quality += 0.14
+    quality += min(0.16, region.market_level * 0.14)
+    quality += min(0.12, region.storehouse_level * 0.1)
+    quality += min(0.12, region.infrastructure_level * 0.08)
+    quality += min(0.08, region.road_level * 0.06)
+    if region.population >= 180:
+        quality += 0.04
+    quality *= _clamp(1.0 - (float(region.resource_isolation_factor or 0.0) * 0.55), 0.35, 1.0)
+    quality *= _clamp(0.55 + (float(region.resource_route_bottleneck or 0.0) * 0.45), 0.4, 1.0)
+    quality *= _clamp(1.0 - (float(region.trade_disruption_risk or 0.0) * 0.45), 0.35, 1.0)
+    return round(_clamp(quality, 0.0, 1.0), 3)
+
+
+def _get_foreign_trade_diplomacy_factor(
+    world: WorldState,
+    faction_a: str,
+    faction_b: str,
+) -> float:
+    status = get_relationship_status(world, faction_a, faction_b)
+    status_factor = FOREIGN_TRADE_RELATIONSHIP_FACTORS.get(status, 0.0)
+    if status_factor <= 0.0:
+        return 0.0
+
+    relationship = get_relationship_state(world, faction_a, faction_b)
+    diplomacy_factor = (
+        status_factor
+        + min(0.14, max(0.0, relationship.trust) * FOREIGN_TRADE_TRUST_FACTOR)
+        - min(0.16, relationship.border_friction * FOREIGN_TRADE_BORDER_FRICTION_FACTOR)
+        - min(0.12, relationship.grievance * FOREIGN_TRADE_GRIEVANCE_FACTOR)
+    )
+    if relationship.last_conflict_turn is not None:
+        turns_since_conflict = max(0, world.turn - relationship.last_conflict_turn)
+        if turns_since_conflict < FOREIGN_TRADE_RECENT_CONFLICT_TURNS:
+            diplomacy_factor -= (
+                1.0 - (turns_since_conflict / FOREIGN_TRADE_RECENT_CONFLICT_TURNS)
+            ) * FOREIGN_TRADE_RECENT_CONFLICT_PENALTY
+    return _clamp(diplomacy_factor, 0.0, 1.15)
+
+
+def _get_foreign_trade_gateway_candidates(
+    world: WorldState,
+    faction_a: str,
+    faction_b: str,
+) -> list[dict[str, str | float]]:
+    candidates: list[dict[str, str | float]] = []
+    seen_land_edges: set[tuple[str, str]] = set()
+
+    for region_name, region in world.regions.items():
+        if region.owner != faction_a:
+            continue
+        region_quality = _get_region_foreign_trade_gateway_quality(region)
+        if region_quality <= 0.0:
+            continue
+        for neighbor_name in region.neighbors:
+            neighbor = world.regions[neighbor_name]
+            if neighbor.owner != faction_b:
+                continue
+            edge = tuple(sorted((region_name, neighbor_name)))
+            if edge in seen_land_edges:
+                continue
+            seen_land_edges.add(edge)
+            neighbor_quality = _get_region_foreign_trade_gateway_quality(neighbor)
+            if neighbor_quality <= 0.0:
+                continue
+            candidates.append({
+                "mode": "border_gateway",
+                "score": round(
+                    min(region_quality, neighbor_quality) * FOREIGN_TRADE_BORDER_GATEWAY_FACTOR,
+                    3,
+                ),
+                "a_region": region_name,
+                "b_region": neighbor_name,
+            })
+
+    for source_name, destination_name in world.sea_links:
+        source_region = world.regions.get(source_name)
+        destination_region = world.regions.get(destination_name)
+        if source_region is None or destination_region is None:
+            continue
+        owners = {source_region.owner, destination_region.owner}
+        if owners != {faction_a, faction_b}:
+            continue
+        if not _is_region_maritime_port(source_region) or not _is_region_maritime_port(destination_region):
+            continue
+        if _is_port_trade_blockaded(world, source_region, source_region.owner):
+            continue
+        if _is_port_trade_blockaded(world, destination_region, destination_region.owner):
+            continue
+        if source_region.owner == faction_a:
+            a_region_name = source_name
+            b_region_name = destination_name
+            a_region = source_region
+            b_region = destination_region
+        else:
+            a_region_name = destination_name
+            b_region_name = source_name
+            a_region = destination_region
+            b_region = source_region
+        candidates.append({
+            "mode": "sea_gateway",
+            "score": round(
+                min(
+                    _get_region_foreign_trade_gateway_quality(a_region),
+                    _get_region_foreign_trade_gateway_quality(b_region),
+                ) * FOREIGN_TRADE_SEA_GATEWAY_FACTOR,
+                3,
+            ),
+            "a_region": a_region_name,
+            "b_region": b_region_name,
+        })
+
+    return sorted(
+        candidates,
+        key=lambda item: (
+            float(item["score"]),
+            str(item["mode"]),
+            str(item["a_region"]),
+            str(item["b_region"]),
+        ),
+        reverse=True,
+    )
+
+
+def _get_foreign_trade_gateway_score(
+    world: WorldState,
+    faction_a: str,
+    faction_b: str,
+) -> float:
+    return round(
+        _clamp(
+            sum(
+                float(candidate["score"])
+                for candidate in _get_foreign_trade_gateway_candidates(world, faction_a, faction_b)
+            ),
+            0.0,
+            3.0,
+        ),
+        3,
+    )
+
+
+def _build_route_children_map(
+    faction_route_map: dict[str, RouteState],
+    owned_region_names: set[str],
+) -> dict[str, list[str]]:
+    children_by_region = {
+        region_name: []
+        for region_name in owned_region_names
+    }
+    for region_name, route_state in faction_route_map.items():
+        parent_name = route_state.get("parent")
+        if (
+            isinstance(parent_name, str)
+            and parent_name in children_by_region
+            and region_name in children_by_region
+        ):
+            children_by_region[parent_name].append(region_name)
+    return children_by_region
+
+
+def _apply_foreign_trade_access(
+    world: WorldState,
+    faction_effective_totals: dict[str, dict[str, float]],
+    demand_by_faction: dict[str, dict[str, float]],
+    faction_route_maps: dict[str, dict[str, RouteState]],
+) -> dict[str, dict[str, float]]:
+    effective_totals = {
+        faction_name: normalize_resource_map(resource_map)
+        for faction_name, resource_map in faction_effective_totals.items()
+    }
+    import_bonuses = {
+        faction_name: build_empty_resource_map()
+        for faction_name in world.factions
+    }
+    remaining_exportable = {
+        faction_name: build_empty_resource_map()
+        for faction_name in world.factions
+    }
+    gateway_flow_by_region = {
+        region_name: 0.0
+        for region_name in world.regions
+    }
+    gateway_value_by_region = {
+        region_name: 0.0
+        for region_name in world.regions
+    }
+    gateway_partner_by_region = {
+        region_name: {}
+        for region_name in world.regions
+    }
+    gateway_partner_region_by_region = {
+        region_name: {}
+        for region_name in world.regions
+    }
+    gateway_role_by_region = {
+        region_name: "none"
+        for region_name in world.regions
+    }
+
+    def attribute_trade_to_gateway(
+        owning_faction: str,
+        counterpart_faction: str,
+        region_name: str,
+        gateway_role: str,
+        trade_amount: float,
+        trade_value: float,
+        counterpart_region_name: str,
+        *,
+        imported_flow: bool,
+    ) -> None:
+        region = world.regions[region_name]
+        if region.owner != owning_faction:
+            return
+        gateway_flow_by_region[region_name] += trade_amount
+        gateway_value_by_region[region_name] += trade_value
+        partner_map = gateway_partner_by_region[region_name]
+        partner_map[counterpart_faction] = partner_map.get(counterpart_faction, 0.0) + trade_amount
+        partner_region_map = gateway_partner_region_by_region[region_name]
+        partner_region_map[counterpart_region_name] = partner_region_map.get(counterpart_region_name, 0.0) + trade_amount
+        gateway_role_by_region[region_name] = gateway_role
+        if imported_flow:
+            world.factions[owning_faction].trade_foreign_imported_flow = round(
+                world.factions[owning_faction].trade_foreign_imported_flow + trade_amount,
+                3,
+            )
+        world.factions[owning_faction].trade_foreign_income = round(
+            world.factions[owning_faction].trade_foreign_income + trade_value,
+            3,
+        )
+
+    owned_region_names_by_faction = {
+        faction_name: {
+            region.name
+            for region in world.regions.values()
+            if region.owner == faction_name
+        }
+        for faction_name in world.factions
+    }
+    route_children_by_faction = {
+        faction_name: _build_route_children_map(
+            faction_route_maps.get(faction_name, {}),
+            owned_region_names_by_faction[faction_name],
+        )
+        for faction_name in world.factions
+    }
+    gateway_scope_regions_cache: dict[tuple[str, str], set[str]] = {}
+    gateway_scope_exportable_cache: dict[tuple[str, str], dict[str, float]] = {}
+
+    def get_gateway_scope_region_names(faction_name: str, gateway_region_name: str) -> set[str]:
+        cache_key = (faction_name, gateway_region_name)
+        if cache_key in gateway_scope_regions_cache:
+            return gateway_scope_regions_cache[cache_key]
+
+        scope_regions = {gateway_region_name}
+        route_state = faction_route_maps.get(faction_name, {}).get(gateway_region_name, {})
+        parent_name = route_state.get("parent")
+        if (
+            isinstance(parent_name, str)
+            and parent_name in owned_region_names_by_faction[faction_name]
+        ):
+            scope_regions.add(parent_name)
+        for child_name in route_children_by_faction.get(faction_name, {}).get(gateway_region_name, []):
+            scope_regions.add(child_name)
+
+        gateway_scope_regions_cache[cache_key] = scope_regions
+        return scope_regions
+
+    def get_gateway_scope_exportable_map(
+        faction_name: str,
+        gateway_region_name: str,
+    ) -> dict[str, float]:
+        cache_key = (faction_name, gateway_region_name)
+        if cache_key in gateway_scope_exportable_cache:
+            return gateway_scope_exportable_cache[cache_key]
+
+        scope_output = build_empty_resource_map()
+        for region_name in get_gateway_scope_region_names(faction_name, gateway_region_name):
+            region = world.regions[region_name]
+            for resource_name, amount in region.resource_effective_output.items():
+                scope_output[resource_name] += amount
+
+        faction_total = effective_totals[faction_name]
+        scope_exportable = build_empty_resource_map()
+        for resource_name in ALL_RESOURCES:
+            scope_amount = round(scope_output.get(resource_name, 0.0), 3)
+            if scope_amount <= 0.0:
+                continue
+            faction_amount = max(0.1, faction_total.get(resource_name, 0.0))
+            reserve_share = min(
+                scope_amount,
+                demand_by_faction[faction_name].get(resource_name, 0.0)
+                * FOREIGN_TRADE_SURPLUS_RESERVE_FACTOR
+                * (scope_amount / faction_amount),
+            )
+            scope_exportable[resource_name] = round(
+                max(0.0, scope_amount - reserve_share),
+                3,
+            )
+
+        gateway_scope_exportable_cache[cache_key] = scope_exportable
+        return scope_exportable
+
+    def get_gateway_supply_region_name(
+        faction_name: str,
+        gateway_region_name: str,
+        resource_name: str,
+    ) -> str:
+        scope_regions = get_gateway_scope_region_names(faction_name, gateway_region_name)
+        best_region_name = gateway_region_name
+        best_amount = -1.0
+        for region_name in sorted(scope_regions):
+            amount = world.regions[region_name].resource_effective_output.get(resource_name, 0.0)
+            if amount > best_amount + 1e-9:
+                best_amount = amount
+                best_region_name = region_name
+        return best_region_name
+
+    for faction_name in world.factions:
+        base_access = effective_totals[faction_name]
+        demand = demand_by_faction.get(faction_name, {})
+        for resource_name in ALL_RESOURCES:
+            reserve_floor = max(0.12, demand.get(resource_name, 0.0) * FOREIGN_TRADE_SURPLUS_RESERVE_FACTOR)
+            remaining_exportable[faction_name][resource_name] = round(
+                max(0.0, base_access.get(resource_name, 0.0) - reserve_floor),
+                3,
+            )
+
+    faction_names = sorted(world.factions)
+    for index, faction_a in enumerate(faction_names):
+        for faction_b in faction_names[index + 1:]:
+            diplomacy_factor = _get_foreign_trade_diplomacy_factor(world, faction_a, faction_b)
+            if diplomacy_factor <= 0.0:
+                continue
+            gateway_candidates = _get_foreign_trade_gateway_candidates(world, faction_a, faction_b)
+            gateway_score = round(
+                _clamp(
+                    sum(float(candidate["score"]) for candidate in gateway_candidates),
+                    0.0,
+                    3.0,
+                ),
+                3,
+            )
+            if gateway_score <= 0.0:
+                continue
+            total_capacity = (
+                FOREIGN_TRADE_BASE_CAPACITY
+                + (gateway_score * FOREIGN_TRADE_GATEWAY_CAPACITY_FACTOR)
+            ) * diplomacy_factor
+            if total_capacity <= 0.03:
+                continue
+
+            for gateway_candidate in gateway_candidates:
+                candidate_score = float(gateway_candidate["score"])
+                if candidate_score <= 0.0:
+                    continue
+                remaining_capacity = total_capacity * (candidate_score / gateway_score)
+                if remaining_capacity <= 0.03:
+                    continue
+
+                a_gateway_region = str(gateway_candidate["a_region"])
+                b_gateway_region = str(gateway_candidate["b_region"])
+                a_scope_exportable = get_gateway_scope_exportable_map(faction_a, a_gateway_region)
+                b_scope_exportable = get_gateway_scope_exportable_map(faction_b, b_gateway_region)
+
+                for resource_name in FOREIGN_TRADE_RESOURCE_PRIORITY:
+                    resource_weight = FOREIGN_TRADE_RESOURCE_WEIGHTS.get(resource_name, 0.8)
+                    if remaining_capacity <= 0.03:
+                        break
+
+                    shortage_a = max(
+                        0.0,
+                        demand_by_faction[faction_a].get(resource_name, 0.0)
+                        - (
+                            effective_totals[faction_a].get(resource_name, 0.0)
+                            + import_bonuses[faction_a].get(resource_name, 0.0)
+                        ),
+                    )
+                    shortage_b = max(
+                        0.0,
+                        demand_by_faction[faction_b].get(resource_name, 0.0)
+                        - (
+                            effective_totals[faction_b].get(resource_name, 0.0)
+                            + import_bonuses[faction_b].get(resource_name, 0.0)
+                        ),
+                    )
+
+                    if (
+                        shortage_a > 0
+                        and b_scope_exportable[resource_name] > 0
+                        and remaining_exportable[faction_b][resource_name] > 0
+                    ):
+                        trade_amount = min(
+                            shortage_a,
+                            b_scope_exportable[resource_name],
+                            remaining_exportable[faction_b][resource_name],
+                            remaining_capacity * resource_weight,
+                        )
+                        if trade_amount > 0.01:
+                            provider_region_b = get_gateway_supply_region_name(
+                                faction_b,
+                                b_gateway_region,
+                                resource_name,
+                            )
+                            import_bonuses[faction_a][resource_name] += trade_amount
+                            b_scope_exportable[resource_name] = round(
+                                max(0.0, b_scope_exportable[resource_name] - trade_amount),
+                                3,
+                            )
+                            remaining_exportable[faction_b][resource_name] = round(
+                                max(0.0, remaining_exportable[faction_b][resource_name] - trade_amount),
+                                3,
+                            )
+                            remaining_capacity = max(
+                                0.0,
+                                remaining_capacity - (trade_amount / max(0.2, resource_weight)),
+                            )
+                            import_income = trade_amount * FOREIGN_TRADE_IMPORT_INCOME_FACTOR * diplomacy_factor
+                            export_income = trade_amount * FOREIGN_TRADE_EXPORT_INCOME_FACTOR * diplomacy_factor
+                            world.factions[faction_a].trade_income = round(
+                                world.factions[faction_a].trade_income + import_income,
+                                3,
+                            )
+                            world.factions[faction_b].trade_income = round(
+                                world.factions[faction_b].trade_income + export_income,
+                                3,
+                            )
+                            attribute_trade_to_gateway(
+                                faction_a,
+                                faction_b,
+                                a_gateway_region,
+                                str(gateway_candidate["mode"]),
+                                trade_amount,
+                                import_income,
+                                provider_region_b,
+                                imported_flow=True,
+                            )
+                            attribute_trade_to_gateway(
+                                faction_b,
+                                faction_a,
+                                b_gateway_region,
+                                str(gateway_candidate["mode"]),
+                                trade_amount,
+                                export_income,
+                                a_gateway_region,
+                                imported_flow=False,
+                            )
+
+                    if remaining_capacity <= 0.03:
+                        break
+
+                    if (
+                        shortage_b > 0
+                        and a_scope_exportable[resource_name] > 0
+                        and remaining_exportable[faction_a][resource_name] > 0
+                    ):
+                        trade_amount = min(
+                            shortage_b,
+                            a_scope_exportable[resource_name],
+                            remaining_exportable[faction_a][resource_name],
+                            remaining_capacity * resource_weight,
+                        )
+                        if trade_amount > 0.01:
+                            provider_region_a = get_gateway_supply_region_name(
+                                faction_a,
+                                a_gateway_region,
+                                resource_name,
+                            )
+                            import_bonuses[faction_b][resource_name] += trade_amount
+                            a_scope_exportable[resource_name] = round(
+                                max(0.0, a_scope_exportable[resource_name] - trade_amount),
+                                3,
+                            )
+                            remaining_exportable[faction_a][resource_name] = round(
+                                max(0.0, remaining_exportable[faction_a][resource_name] - trade_amount),
+                                3,
+                            )
+                            remaining_capacity = max(
+                                0.0,
+                                remaining_capacity - (trade_amount / max(0.2, resource_weight)),
+                            )
+                            import_income = trade_amount * FOREIGN_TRADE_IMPORT_INCOME_FACTOR * diplomacy_factor
+                            export_income = trade_amount * FOREIGN_TRADE_EXPORT_INCOME_FACTOR * diplomacy_factor
+                            world.factions[faction_b].trade_income = round(
+                                world.factions[faction_b].trade_income + import_income,
+                                3,
+                            )
+                            world.factions[faction_a].trade_income = round(
+                                world.factions[faction_a].trade_income + export_income,
+                                3,
+                            )
+                            attribute_trade_to_gateway(
+                                faction_b,
+                                faction_a,
+                                b_gateway_region,
+                                str(gateway_candidate["mode"]),
+                                trade_amount,
+                                import_income,
+                                provider_region_a,
+                                imported_flow=True,
+                            )
+                            attribute_trade_to_gateway(
+                                faction_a,
+                                faction_b,
+                                a_gateway_region,
+                                str(gateway_candidate["mode"]),
+                                trade_amount,
+                                export_income,
+                                b_gateway_region,
+                                imported_flow=False,
+                            )
+
+    for faction_name, bonus_map in import_bonuses.items():
+        effective_totals[faction_name] = normalize_resource_map({
+            resource_name: round(
+                effective_totals[faction_name].get(resource_name, 0.0)
+                + bonus_map.get(resource_name, 0.0),
+                3,
+            )
+            for resource_name in ALL_RESOURCES
+        })
+
+    for region_name, region in world.regions.items():
+        foreign_flow = round(max(0.0, gateway_flow_by_region.get(region_name, 0.0)), 3)
+        foreign_value = round(max(0.0, gateway_value_by_region.get(region_name, 0.0)), 3)
+        partner_map = gateway_partner_by_region.get(region_name, {})
+        region.trade_foreign_flow = foreign_flow
+        region.trade_foreign_value = foreign_value
+        region.trade_gateway_role = gateway_role_by_region.get(region_name, "none")
+        region.trade_foreign_partner = (
+            max(
+                partner_map.items(),
+                key=lambda item: (item[1], item[0]),
+            )[0]
+            if partner_map
+            else None
+        )
+        partner_region_map = gateway_partner_region_by_region.get(region_name, {})
+        region.trade_foreign_partner_region = (
+            max(
+                partner_region_map.items(),
+                key=lambda item: (item[1], item[0]),
+            )[0]
+            if partner_region_map
+            else None
+        )
+        region.trade_throughput = round(region.trade_throughput + foreign_flow, 3)
+        region.trade_value_bonus = round(region.trade_value_bonus + foreign_value, 3)
+
+    return effective_totals
+
+
+def _apply_foreign_trade_corridor_effects(
+    world: WorldState,
+    faction_route_maps: dict[str, dict[str, RouteState]],
+) -> None:
+    for faction_name, faction_route_map in faction_route_maps.items():
+        faction = world.factions[faction_name]
+        owned_regions = [
+            region
+            for region in world.regions.values()
+            if region.owner == faction_name
+        ]
+        if not owned_regions:
+            continue
+
+        added_trade_income = 0.0
+        added_transit_value = 0.0
+        for gateway_region in owned_regions:
+            foreign_flow = float(gateway_region.trade_foreign_flow or 0.0)
+            if foreign_flow <= 0.0:
+                continue
+
+            propagated_flow = foreign_flow
+            current_name = gateway_region.name
+            depth = 0
+            seen_regions: set[str] = set()
+            while propagated_flow > 0.03 and current_name not in seen_regions:
+                seen_regions.add(current_name)
+                route_state = faction_route_map.get(current_name, {})
+                parent_name = route_state.get("parent")
+                if not isinstance(parent_name, str):
+                    break
+                if parent_name not in world.regions:
+                    break
+
+                parent_region = world.regions[parent_name]
+                bottleneck = max(0.4, float(parent_region.resource_route_bottleneck or 0.4))
+                route_factor = max(0.3, 1.0 - float(parent_region.resource_isolation_factor or 0.0))
+                path_flow = propagated_flow * (FOREIGN_TRADE_CORRIDOR_FLOW_DECAY ** depth) * bottleneck
+                if path_flow <= 0.03:
+                    break
+
+                parent_region.trade_throughput = round(parent_region.trade_throughput + path_flow, 3)
+                if parent_region.trade_route_role == "hub":
+                    bonus = (
+                        path_flow
+                        * route_factor
+                        * (
+                            FOREIGN_TRADE_CORRIDOR_HUB_FACTOR
+                            + (parent_region.market_level * 0.012)
+                            + (parent_region.infrastructure_level * 0.009)
+                        )
+                    )
+                    parent_region.trade_hub_value = round(parent_region.trade_hub_value + bonus, 3)
+                else:
+                    bonus = (
+                        path_flow
+                        * route_factor
+                        * (
+                            FOREIGN_TRADE_CORRIDOR_TRANSIT_FACTOR
+                            + (parent_region.road_level * 0.014)
+                            + (parent_region.infrastructure_level * 0.011)
+                            + (parent_region.market_level * 0.006)
+                        )
+                    )
+                    parent_region.trade_transit_flow = round(parent_region.trade_transit_flow + path_flow, 3)
+                    parent_region.trade_transit_value = round(parent_region.trade_transit_value + bonus, 3)
+                    added_transit_value += bonus
+
+                parent_region.trade_value_bonus = round(parent_region.trade_value_bonus + bonus, 3)
+                added_trade_income += bonus
+                propagated_flow = path_flow
+                current_name = parent_name
+                depth += 1
+
+        faction.trade_income = round(faction.trade_income + added_trade_income, 3)
+        faction.trade_transit_value = round(faction.trade_transit_value + added_transit_value, 3)
 
 
 def _get_region_route_step_cost(
@@ -1880,6 +2565,11 @@ def update_faction_resource_economy(
             world,
             faction_route_map=faction_route_maps.get(region.owner or "", {}),
         )
+        region.trade_foreign_partner = None
+        region.trade_foreign_partner_region = None
+        region.trade_foreign_flow = 0.0
+        region.trade_foreign_value = 0.0
+        region.trade_gateway_role = "none"
         if region.owner is None:
             region.resource_route_mode = "land"
             region.trade_route_role = "local"
@@ -1894,6 +2584,11 @@ def update_faction_resource_economy(
             region.trade_value_bonus = 0.0
             region.trade_import_reliance = 0.0
             region.trade_disruption_risk = 0.0
+            region.trade_foreign_partner = None
+            region.trade_foreign_partner_region = None
+            region.trade_foreign_flow = 0.0
+            region.trade_foreign_value = 0.0
+            region.trade_gateway_role = "none"
             region.food_storage_capacity = 0.0
             region.food_stored = 0.0
             region.food_produced = 0.0
@@ -1921,19 +2616,39 @@ def update_faction_resource_economy(
             for resource_name, amount in region.resource_effective_output.items():
                 faction_effective_totals[region.owner][resource_name] += amount
 
+    demand_by_faction = {
+        faction_name: get_faction_resource_demand(world, faction_name)
+        for faction_name in world.factions
+    }
+
     for faction_name, faction in world.factions.items():
         _ensure_faction_resource_state(faction)
+        faction.trade_foreign_income = 0.0
+        faction.trade_foreign_imported_flow = 0.0
         _apply_faction_trade_state(
             world,
             faction_name,
             faction_route_maps.get(faction_name, {}),
         )
+
+    faction_effective_totals = _apply_foreign_trade_access(
+        world,
+        faction_effective_totals,
+        demand_by_faction,
+        faction_route_maps,
+    )
+    _apply_foreign_trade_corridor_effects(world, faction_route_maps)
+
+    for faction_name, faction in world.factions.items():
         faction.resource_gross_output = normalize_resource_map(faction_gross_totals[faction_name])
         faction.resource_effective_access = normalize_resource_map(faction_effective_totals[faction_name])
         faction.resource_isolated_output = normalize_resource_map({
             resource_name: round(
-                faction.resource_gross_output.get(resource_name, 0.0)
-                - faction.resource_effective_access.get(resource_name, 0.0),
+                max(
+                    0.0,
+                    faction.resource_gross_output.get(resource_name, 0.0)
+                    - faction.resource_effective_access.get(resource_name, 0.0),
+                ),
                 3,
             )
             for resource_name in ALL_RESOURCES
@@ -1945,8 +2660,10 @@ def update_faction_resource_economy(
             faction_name,
             faction_route_maps,
         )
-        demand = get_faction_resource_demand(world, faction_name)
-        faction.resource_shortages = _build_faction_resource_shortages(faction, demand)
+        faction.resource_shortages = _build_faction_resource_shortages(
+            faction,
+            demand_by_faction[faction_name],
+        )
 
 
 def apply_turn_food_economy(world: WorldState) -> None:

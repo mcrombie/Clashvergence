@@ -130,6 +130,8 @@ def build_turn_metrics(world, economy_snapshot=None):
             "trade_transit_value": round(faction.trade_transit_value, 3),
             "trade_import_dependency": round(faction.trade_import_dependency, 3),
             "trade_corridor_exposure": round(faction.trade_corridor_exposure, 3),
+            "trade_foreign_income": round(faction.trade_foreign_income, 3),
+            "trade_foreign_imported_flow": round(faction.trade_foreign_imported_flow, 3),
             "grain_access": round(resource_access.get("grain", 0.0), 3),
             "livestock_access": round(resource_access.get("livestock", 0.0), 3),
             "wild_food_access": round(resource_access.get("wild_food", 0.0), 3),

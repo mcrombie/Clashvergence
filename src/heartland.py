@@ -2195,6 +2195,11 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "trade_value_bonus": round(region.trade_value_bonus, 3),
             "trade_import_reliance": round(region.trade_import_reliance, 3),
             "trade_disruption_risk": round(region.trade_disruption_risk, 3),
+            "trade_foreign_partner": region.trade_foreign_partner,
+            "trade_foreign_partner_region": region.trade_foreign_partner_region,
+            "trade_foreign_flow": round(region.trade_foreign_flow, 3),
+            "trade_foreign_value": round(region.trade_foreign_value, 3),
+            "trade_gateway_role": region.trade_gateway_role,
             "resource_profile": get_region_resource_summary(
                 fixed_endowments=region.resource_fixed_endowments,
                 wild_endowments=region.resource_wild_endowments,

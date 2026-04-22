@@ -107,6 +107,11 @@ def _build_region_resource_payload(region):
         "trade_value_bonus": round(float(region.trade_value_bonus or 0.0), 3),
         "trade_import_reliance": round(float(region.trade_import_reliance or 0.0), 3),
         "trade_disruption_risk": round(float(region.trade_disruption_risk or 0.0), 3),
+        "trade_foreign_partner": region.trade_foreign_partner,
+        "trade_foreign_partner_region": region.trade_foreign_partner_region,
+        "trade_foreign_flow": round(float(region.trade_foreign_flow or 0.0), 3),
+        "trade_foreign_value": round(float(region.trade_foreign_value or 0.0), 3),
+        "trade_gateway_role": region.trade_gateway_role,
         "resource_profile": " | ".join(profile_parts) if profile_parts else "None",
         "resource_output_summary": format_resource_map(region.resource_effective_output or region.resource_output, limit=3),
         "resource_retained_output_summary": format_resource_map(region.resource_retained_output or region.resource_output, limit=3),
@@ -1010,6 +1015,8 @@ def build_simulation_view_model(world):
             "trade_transit_value": round(world.factions[faction_name].trade_transit_value, 3),
             "trade_import_dependency": round(world.factions[faction_name].trade_import_dependency, 3),
             "trade_corridor_exposure": round(world.factions[faction_name].trade_corridor_exposure, 3),
+            "trade_foreign_income": round(world.factions[faction_name].trade_foreign_income, 3),
+            "trade_foreign_imported_flow": round(world.factions[faction_name].trade_foreign_imported_flow, 3),
             "resource_access_summary": format_resource_map(world.factions[faction_name].resource_access, limit=5),
             "resource_gross_summary": format_resource_map(world.factions[faction_name].resource_gross_output, limit=5),
             "resource_isolated_summary": format_resource_map(world.factions[faction_name].resource_isolated_output, limit=5),
@@ -4206,6 +4213,7 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Routed Flow:</strong> ${{escapeHtml(regionSnapshot.resource_routed_output_summary || staticRegion.resource_routed_output_summary || regionSnapshot.resource_output_summary || staticRegion.resource_output_summary || "None")}}</div>
             <div class="metric-line"><strong>Trade Layer:</strong> ${{escapeHtml(regionSnapshot.trade_route_role || staticRegion.trade_route_role || "local")}} | throughput ${{Number(regionSnapshot.trade_throughput ?? staticRegion.trade_throughput ?? 0).toFixed(2)}} | trade bonus ${{Number(regionSnapshot.trade_value_bonus ?? staticRegion.trade_value_bonus ?? 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Import / Transit:</strong> ${{Number(regionSnapshot.trade_import_value ?? staticRegion.trade_import_value ?? 0).toFixed(2)}} / ${{Number(regionSnapshot.trade_transit_value ?? staticRegion.trade_transit_value ?? 0).toFixed(2)}} | disruption ${{Number((regionSnapshot.trade_disruption_risk ?? staticRegion.trade_disruption_risk ?? 0) * 100).toFixed(0)}}%</div>
+            <div class="metric-line"><strong>Foreign Gateway:</strong> ${{escapeHtml(regionSnapshot.trade_gateway_role || staticRegion.trade_gateway_role || "none")}}${{(regionSnapshot.trade_foreign_partner || staticRegion.trade_foreign_partner) ? ` with ${{escapeHtml(regionSnapshot.trade_foreign_partner || staticRegion.trade_foreign_partner)}}` : ""}}${{(regionSnapshot.trade_foreign_partner_region || staticRegion.trade_foreign_partner_region) ? ` via ${{escapeHtml(regionSnapshot.trade_foreign_partner_region || staticRegion.trade_foreign_partner_region)}}` : ""}} | flow ${{Number(regionSnapshot.trade_foreign_flow ?? staticRegion.trade_foreign_flow ?? 0).toFixed(2)}} | value ${{Number(regionSnapshot.trade_foreign_value ?? staticRegion.trade_foreign_value ?? 0).toFixed(2)}}</div>
           </article>
           <article class="inspector-card">
             <h4 class="inspector-title">Food And Population</h4>
@@ -4676,11 +4684,11 @@ def render_simulation_html(world):
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">Trade Income</div>
-                  <div class="detail-value">${{Number(faction.trade_income || 0).toFixed(2)}} / Transit ${{Number(faction.trade_transit_value || 0).toFixed(2)}}</div>
+                  <div class="detail-value">${{Number(faction.trade_income || 0).toFixed(2)}} / Transit ${{Number(faction.trade_transit_value || 0).toFixed(2)}} / Foreign ${{Number(faction.trade_foreign_income || 0).toFixed(2)}}</div>
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">Trade Risk</div>
-                  <div class="detail-value">Imports ${{Number((faction.trade_import_dependency || 0) * 100).toFixed(0)}}% / Exposure ${{Number((faction.trade_corridor_exposure || 0) * 100).toFixed(0)}}%</div>
+                  <div class="detail-value">Imports ${{Number((faction.trade_import_dependency || 0) * 100).toFixed(0)}}% / Exposure ${{Number((faction.trade_corridor_exposure || 0) * 100).toFixed(0)}}% / Foreign flow ${{Number(faction.trade_foreign_imported_flow || 0).toFixed(2)}}</div>
                 </div>
               </div>
             </div>

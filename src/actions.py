@@ -245,6 +245,9 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
     trade_value_bonus = float(region.trade_value_bonus or 0.0)
     trade_import_reliance = float(region.trade_import_reliance or 0.0)
     trade_disruption = float(region.trade_disruption_risk or 0.0)
+    trade_foreign_flow = float(region.trade_foreign_flow or 0.0)
+    trade_foreign_value = float(region.trade_foreign_value or 0.0)
+    trade_gateway_role = region.trade_gateway_role or "none"
     trade_children = int(region.trade_route_children or 0)
     trade_role = region.trade_route_role or "local"
     retained_loss = max(0.0, raw_total_output - retained_total_output)
@@ -459,6 +462,7 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
                 + (local_food_waste * 0.9)
                 + (corridor_pressure * 1.2)
                 + (trade_throughput * 0.18)
+                + (trade_foreign_flow * 0.25)
                 + (0.35 if region.storehouse_level <= 0 else region.storehouse_level * 0.28)
             ),
             "resource_focus": "storage",
@@ -525,8 +529,10 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
                 + (max(0.0, 0.86 - route_bottleneck) * 3.2)
                 + (trade_throughput * 0.34)
                 + (trade_disruption * 2.4)
+                + (trade_foreign_flow * 0.3)
                 + (trade_children * 0.45)
                 + (0.65 if trade_role == "corridor" else 0.0)
+                + (0.6 if trade_gateway_role != "none" else 0.0)
                 + logistics_pressure
                 + (0.4 if region.road_level <= 0 else region.road_level * 0.3)
             ),
@@ -552,9 +558,11 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
                 + (commercial_pressure * 1.1)
                 + (monetization_gap * 2.2)
                 + (trade_value_bonus * 0.85)
+                + (trade_foreign_value * 1.15)
                 + (trade_import_reliance * 2.2)
                 + (trade_throughput * 0.2)
                 + (0.5 if trade_role == "hub" else 0.3 if trade_role == "corridor" else 0.0)
+                + (0.7 if trade_gateway_role == "sea_gateway" else 0.45 if trade_gateway_role != "none" else 0.0)
                 + (get_region_taxable_value(region, world) * 0.42)
                 + (max(0.0, 0.8 - route_bottleneck) * 1.6)
                 + market_pressure
@@ -578,6 +586,8 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
                 + (max(0.0, 0.78 - route_bottleneck) * 3.0)
                 + (trade_throughput * 0.24)
                 + (trade_disruption * 2.0)
+                + (trade_foreign_flow * 0.18)
+                + (trade_foreign_value * 0.45)
                 + infrastructure_shortage_bonus
                 - (region.road_level * 0.35)
             ),
@@ -747,6 +757,11 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + (4 if region.trade_route_role == "corridor" else 2 if region.trade_route_role == "hub" else 0)
         + min(4, int(region.trade_served_regions or 0))
     )
+    foreign_gateway_bonus = (
+        min(8, int(round(float(region.trade_foreign_flow or 0.0) * 0.45)))
+        + min(6, int(round(float(region.trade_foreign_value or 0.0) * 1.2)))
+        + (5 if region.trade_gateway_role == "sea_gateway" else 3 if region.trade_gateway_role == "border_gateway" else 0)
+    )
     defender_strength = (
         defender_deployable_treasury
         + target_value
@@ -766,6 +781,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + regime_target_score_bonus
         + resource_need_bonus
         + trade_chokepoint_bonus
+        + foreign_gateway_bonus
     )
 
     return {
@@ -798,6 +814,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "diplomacy_attack_modifier": diplomacy_attack_modifier,
         "resource_need_bonus": resource_need_bonus,
         "trade_chokepoint_bonus": trade_chokepoint_bonus,
+        "foreign_gateway_bonus": foreign_gateway_bonus,
         "terrain_affinity": doctrine_alignment["average_affinity"],
         "core_status": region_core_status,
         "core_defense_bonus": core_defense_bonus,
