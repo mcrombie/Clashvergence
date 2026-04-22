@@ -118,6 +118,16 @@ RESOURCE_ROUTE_SEA_INFRASTRUCTURE_BONUS = 0.03
 RESOURCE_ROUTE_SEA_ROAD_BONUS = 0.02
 RESOURCE_ROUTE_SEA_UNREST_FACTOR = 0.015
 RESOURCE_ROUTE_SEA_DAMAGE_FACTOR = 0.2
+RESOURCE_ROUTE_RIVER_STEP_COST = 0.76
+RESOURCE_ROUTE_RIVER_PORT_SUPPORT = 0.84
+RESOURCE_ROUTE_RIVER_MARKET_BONUS = 0.045
+RESOURCE_ROUTE_RIVER_STOREHOUSE_BONUS = 0.032
+RESOURCE_ROUTE_RIVER_INFRASTRUCTURE_BONUS = 0.022
+RESOURCE_ROUTE_RIVER_ROAD_BONUS = 0.015
+RESOURCE_ROUTE_RIVER_UNREST_FACTOR = 0.022
+RESOURCE_ROUTE_RIVER_DAMAGE_FACTOR = 0.28
+RESOURCE_ROUTE_CONTESTED_RIVER_STEP_FACTOR = 0.52
+RESOURCE_ROUTE_CONTESTED_RIVER_SUPPORT_FACTOR = 0.26
 RESOURCE_ROUTE_TRADE_WARFARE_STEP_FACTOR = 0.55
 RESOURCE_ROUTE_TRADE_WARFARE_SUPPORT_FACTOR = 0.3
 RESOURCE_ROUTE_TRADE_BLOCKADE_THRESHOLD = 0.42
@@ -154,6 +164,7 @@ FOREIGN_TRADE_RELATIONSHIP_FACTORS = {
 }
 FOREIGN_TRADE_BORDER_GATEWAY_FACTOR = 0.72
 FOREIGN_TRADE_SEA_GATEWAY_FACTOR = 0.9
+FOREIGN_TRADE_RIVER_GATEWAY_FACTOR = 0.8
 FOREIGN_TRADE_BASE_CAPACITY = 0.26
 FOREIGN_TRADE_GATEWAY_CAPACITY_FACTOR = 1.15
 FOREIGN_TRADE_TRUST_FACTOR = 0.006
@@ -858,6 +869,39 @@ def _get_foreign_trade_gateway_candidates(
             "b_region": b_region_name,
         })
 
+    for source_name, destination_name in world.river_links:
+        source_region = world.regions.get(source_name)
+        destination_region = world.regions.get(destination_name)
+        if source_region is None or destination_region is None:
+            continue
+        owners = {source_region.owner, destination_region.owner}
+        if owners != {faction_a, faction_b}:
+            continue
+        if not _is_region_river_port(world, source_region) or not _is_region_river_port(world, destination_region):
+            continue
+        if source_region.owner == faction_a:
+            a_region_name = source_name
+            b_region_name = destination_name
+            a_region = source_region
+            b_region = destination_region
+        else:
+            a_region_name = destination_name
+            b_region_name = source_name
+            a_region = destination_region
+            b_region = source_region
+        candidates.append({
+            "mode": "river_gateway",
+            "score": round(
+                min(
+                    _get_region_foreign_trade_gateway_quality(a_region),
+                    _get_region_foreign_trade_gateway_quality(b_region),
+                ) * FOREIGN_TRADE_RIVER_GATEWAY_FACTOR,
+                3,
+            ),
+            "a_region": a_region_name,
+            "b_region": b_region_name,
+        })
+
     return sorted(
         candidates,
         key=lambda item: (
@@ -1469,6 +1513,25 @@ def _is_region_maritime_port(region: Region) -> bool:
     ])
 
 
+def _is_region_river_port(
+    world: WorldState,
+    region: Region,
+) -> bool:
+    if region.owner is None:
+        return False
+    if not any(region.name in edge for edge in world.river_links):
+        return False
+    if "riverland" in region.terrain_tags:
+        return True
+    return any([
+        region.market_level >= 0.18,
+        region.storehouse_level >= 0.2,
+        region.infrastructure_level >= 0.35,
+        region.settlement_level in {"town", "city"},
+        region.population >= 95 and get_region_core_status(region) in {"homeland", "core"},
+    ])
+
+
 def _get_maritime_step_cost(
     source_region: Region,
     destination_region: Region,
@@ -1538,6 +1601,75 @@ def _get_maritime_step_cost(
     return _clamp(step_cost, 0.32, 1.25)
 
 
+def _get_river_step_cost(
+    source_region: Region,
+    destination_region: Region,
+    world: WorldState | None = None,
+    faction_name: str | None = None,
+) -> float:
+    average_damage = (
+        _get_region_average_resource_damage(source_region)
+        + _get_region_average_resource_damage(destination_region)
+    ) / 2.0
+    contested_pressure = max(
+        _get_region_trade_contestation_pressure(world, source_region, faction_name),
+        _get_region_trade_contestation_pressure(world, destination_region, faction_name),
+    )
+    trade_warfare_pressure = max(
+        _get_region_trade_warfare_pressure(source_region),
+        _get_region_trade_warfare_pressure(destination_region),
+    )
+    step_cost = (
+        RESOURCE_ROUTE_RIVER_STEP_COST
+        - min(
+            0.14,
+            (
+                source_region.market_level
+                + destination_region.market_level
+            ) * RESOURCE_ROUTE_RIVER_MARKET_BONUS,
+        )
+        - min(
+            0.1,
+            (
+                source_region.storehouse_level
+                + destination_region.storehouse_level
+            ) * RESOURCE_ROUTE_RIVER_STOREHOUSE_BONUS,
+        )
+        - min(
+            0.08,
+            (
+                source_region.infrastructure_level
+                + destination_region.infrastructure_level
+            ) * RESOURCE_ROUTE_RIVER_INFRASTRUCTURE_BONUS,
+        )
+        - min(
+            0.06,
+            (
+                source_region.road_level
+                + destination_region.road_level
+            ) * RESOURCE_ROUTE_RIVER_ROAD_BONUS,
+        )
+        + min(
+            0.18,
+            (
+                source_region.unrest
+                + destination_region.unrest
+            ) * RESOURCE_ROUTE_RIVER_UNREST_FACTOR,
+        )
+        + min(0.16, average_damage * RESOURCE_ROUTE_RIVER_DAMAGE_FACTOR)
+        + min(0.32, contested_pressure * RESOURCE_ROUTE_CONTESTED_RIVER_STEP_FACTOR)
+        + min(0.28, trade_warfare_pressure * 0.3)
+    )
+    if source_region.unrest_event_level == "crisis" or destination_region.unrest_event_level == "crisis":
+        step_cost += 0.12
+    elif (
+        source_region.unrest_event_level == "disturbance"
+        or destination_region.unrest_event_level == "disturbance"
+    ):
+        step_cost += 0.05
+    return _clamp(step_cost, 0.4, 1.55)
+
+
 def _get_maritime_support_factor(
     source_region: Region,
     destination_region: Region,
@@ -1600,6 +1732,68 @@ def _get_maritime_support_factor(
     return _clamp(support, 0.52, 1.0)
 
 
+def _get_river_support_factor(
+    source_region: Region,
+    destination_region: Region,
+    world: WorldState | None = None,
+    faction_name: str | None = None,
+) -> float:
+    average_damage = (
+        _get_region_average_resource_damage(source_region)
+        + _get_region_average_resource_damage(destination_region)
+    ) / 2.0
+    contested_pressure = max(
+        _get_region_trade_contestation_pressure(world, source_region, faction_name),
+        _get_region_trade_contestation_pressure(world, destination_region, faction_name),
+    )
+    trade_warfare_pressure = max(
+        _get_region_trade_warfare_pressure(source_region),
+        _get_region_trade_warfare_pressure(destination_region),
+    )
+    support = (
+        RESOURCE_ROUTE_RIVER_PORT_SUPPORT
+        + min(
+            0.08,
+            (
+                source_region.market_level
+                + destination_region.market_level
+            ) * 0.04,
+        )
+        + min(
+            0.07,
+            (
+                source_region.storehouse_level
+                + destination_region.storehouse_level
+            ) * 0.03,
+        )
+        + min(
+            0.06,
+            (
+                source_region.infrastructure_level
+                + destination_region.infrastructure_level
+            ) * 0.022,
+        )
+        - min(
+            0.18,
+            (
+                source_region.unrest
+                + destination_region.unrest
+            ) * 0.014,
+        )
+        - min(0.14, average_damage * 0.22)
+        - min(0.2, contested_pressure * RESOURCE_ROUTE_CONTESTED_RIVER_SUPPORT_FACTOR)
+        - min(0.18, trade_warfare_pressure * 0.16)
+    )
+    if source_region.unrest_event_level == "crisis" or destination_region.unrest_event_level == "crisis":
+        support -= 0.06
+    elif (
+        source_region.unrest_event_level == "disturbance"
+        or destination_region.unrest_event_level == "disturbance"
+    ):
+        support -= 0.03
+    return _clamp(support, 0.46, 1.0)
+
+
 def _iter_owned_trade_connections(
     world: WorldState,
     faction_name: str,
@@ -1618,6 +1812,26 @@ def _iter_owned_trade_connections(
             _get_region_corridor_support_factor(neighbor, world, faction_name),
             "land",
         ))
+
+    if _is_region_river_port(world, current_region):
+        for source_name, destination_name in world.river_links:
+            if region_name == source_name:
+                neighbor_name = destination_name
+            elif region_name == destination_name:
+                neighbor_name = source_name
+            else:
+                continue
+            if neighbor_name not in world.regions:
+                continue
+            neighbor = world.regions[neighbor_name]
+            if neighbor.owner != faction_name or not _is_region_river_port(world, neighbor):
+                continue
+            connections.append((
+                neighbor_name,
+                _get_river_step_cost(current_region, neighbor, world, faction_name),
+                _get_river_support_factor(current_region, neighbor, world, faction_name),
+                "river",
+            ))
 
     if _is_region_maritime_port(current_region) and not _is_port_trade_blockaded(world, current_region, faction_name):
         for source_name, destination_name in world.sea_links:

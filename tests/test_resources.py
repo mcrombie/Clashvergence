@@ -1961,12 +1961,131 @@ class ResourceSystemTests(unittest.TestCase):
         self.assertGreater(world.regions["A"].trade_hub_value, 0.0)
         self.assertGreater(world.factions["FactionA"].trade_income, 0.0)
 
+    def test_river_ports_can_use_river_links_for_internal_trade_routes(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=170,
+                    terrain_tags=["riverland", "plains"],
+                    climate="temperate",
+                    homeland_faction_id="FactionA",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=0.9,
+                    market_level=0.5,
+                    road_level=0.5,
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A", "C"],
+                    owner="FactionA",
+                    resources=2,
+                    population=130,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    integration_score=4.2,
+                    settlement_level="town",
+                    infrastructure_level=0.4,
+                    market_level=0.25,
+                ),
+                "C": Region(
+                    name="C",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=2,
+                    population=160,
+                    terrain_tags=["riverland", "forest"],
+                    climate="temperate",
+                    integration_score=3.4,
+                    settlement_level="town",
+                    infrastructure_level=0.8,
+                    market_level=0.45,
+                    copper_mine_level=1.3,
+                ),
+            },
+            factions={"FactionA": Faction(name="FactionA")},
+            river_links=[("A", "B"), ("B", "C")],
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        world.regions["C"].resource_fixed_endowments[RESOURCE_COPPER] = 1.1
+
+        update_faction_resource_economy(world)
+
+        self.assertEqual(world.regions["C"].resource_route_mode, "river")
+        self.assertLess(world.regions["C"].resource_route_cost, 1.8)
+        self.assertGreater(world.regions["A"].trade_hub_value, 0.0)
+        self.assertGreater(world.factions["FactionA"].trade_income, 0.0)
+
     def test_world_creation_populates_coastal_sea_links_from_map_definition(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
 
         self.assertTrue(world.sea_links)
         self.assertIn(("A", "E"), world.sea_links)
         self.assertIn(("E", "I"), world.sea_links)
+
+    def test_world_creation_populates_river_links_from_map_definition(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+
+        self.assertTrue(world.river_links)
+        self.assertIn(("A", "M"), world.river_links)
+        self.assertIn(("L", "M"), world.river_links)
+
+    def test_pact_based_river_foreign_trade_uses_river_gateway(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=200,
+                    terrain_tags=["riverland", "plains"],
+                    climate="temperate",
+                    settlement_level="town",
+                    infrastructure_level=0.9,
+                    market_level=0.6,
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionB",
+                    resources=2,
+                    population=180,
+                    terrain_tags=["riverland", "forest"],
+                    climate="temperate",
+                    settlement_level="town",
+                    infrastructure_level=0.8,
+                    market_level=0.55,
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA"),
+                "FactionB": Faction(name="FactionB"),
+            },
+            river_links=[("A", "B")],
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        world.regions["A"].resource_fixed_endowments[RESOURCE_COPPER] = 1.3
+        world.regions["B"].resource_fixed_endowments[RESOURCE_COPPER] = 0.0
+        world.relationships[("FactionA", "FactionB")] = RelationshipState(
+            score=22.0,
+            status="non_aggression_pact",
+            years_at_peace=3,
+            trust=18.0,
+        )
+
+        update_faction_resource_economy(world)
+
+        self.assertEqual(world.regions["A"].trade_gateway_role, "river_gateway")
+        self.assertEqual(world.regions["B"].trade_gateway_role, "river_gateway")
+        self.assertGreater(world.factions["FactionB"].trade_foreign_imported_flow, 0.0)
+        self.assertGreater(world.factions["FactionB"].trade_foreign_income, 0.0)
 
     def test_bottlenecked_corridor_prefers_road_development(self):
         world = WorldState(

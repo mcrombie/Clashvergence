@@ -1647,6 +1647,9 @@ def render_simulation_html(world):
     .trade-link.domestic {{
       stroke-dasharray: none;
     }}
+    .trade-link.river {{
+      stroke-dasharray: 14 6 3 6;
+    }}
     .trade-link.sea {{
       stroke-dasharray: 10 8;
     }}
@@ -1674,6 +1677,9 @@ def render_simulation_html(world):
     }}
     .trade-marker.foreign {{
       stroke: rgba(60, 110, 170, 0.9);
+    }}
+    .trade-marker.river {{
+      stroke: rgba(68, 122, 160, 0.92);
     }}
     .atlas-water {{
       fill: rgba(24, 73, 122, 0.34);
@@ -3381,7 +3387,7 @@ def render_simulation_html(world):
         y2: endpoints.toY.toFixed(1),
         stroke: "rgba(255, 250, 240, 0.9)",
         "stroke-width": (strokeWidth + 2.4).toFixed(2),
-        class: `trade-link halo ${{link.kind}} ${{link.mode === "sea" || link.mode === "sea_gateway" ? "sea" : ""}} ${{link.disrupted ? "disrupted" : ""}}`.trim(),
+        class: `trade-link halo ${{link.kind}} ${{link.mode === "sea" || link.mode === "sea_gateway" ? "sea" : link.mode === "river" || link.mode === "river_gateway" ? "river" : ""}} ${{link.disrupted ? "disrupted" : ""}}`.trim(),
       }});
       const path = svgElement("line", {{
         x1: endpoints.fromX.toFixed(1),
@@ -3390,7 +3396,7 @@ def render_simulation_html(world):
         y2: endpoints.toY.toFixed(1),
         stroke: color,
         "stroke-width": strokeWidth.toFixed(2),
-        class: `trade-link core ${{link.kind}} ${{link.mode === "sea" || link.mode === "sea_gateway" ? "sea" : ""}} ${{link.disrupted ? "disrupted" : ""}}`.trim(),
+        class: `trade-link core ${{link.kind}} ${{link.mode === "sea" || link.mode === "sea_gateway" ? "sea" : link.mode === "river" || link.mode === "river_gateway" ? "river" : ""}} ${{link.disrupted ? "disrupted" : ""}}`.trim(),
       }});
       const endcapRadius = Math.max(2.2, Math.min(4.4, strokeWidth * 0.55));
       const fromCap = svgElement("circle", {{
@@ -3476,6 +3482,8 @@ def render_simulation_html(world):
               ? "rgba(182, 67, 46, 0.9)"
               : routeMode === "sea"
                 ? "rgba(54, 105, 150, 0.82)"
+                : routeMode === "river"
+                  ? "rgba(67, 118, 162, 0.84)"
                 : hexToRgba(ownerColor, Math.max(0.42, 0.86 - (disruptionRisk * 0.35))),
           }});
         }}
@@ -3497,6 +3505,8 @@ def render_simulation_html(world):
                 ? "rgba(182, 67, 46, 0.92)"
                 : gatewayRole === "sea_gateway"
                   ? "rgba(46, 128, 182, 0.88)"
+                  : gatewayRole === "river_gateway"
+                    ? "rgba(72, 122, 168, 0.9)"
                   : "rgba(191, 138, 55, 0.92)",
             }});
           }}
@@ -3505,10 +3515,16 @@ def render_simulation_html(world):
         if ((shouldShowDomesticTrade() && (routeRole === "hub" || routeRole === "corridor"))
             || (shouldShowForeignTrade() && gatewayRole !== "none")) {{
           const className = gatewayRole !== "none"
-            ? (gatewayRole === "sea_gateway" ? "foreign" : "gateway")
+            ? (gatewayRole === "sea_gateway" ? "foreign" : gatewayRole === "river_gateway" ? "river" : "gateway")
             : "hub";
           const markerColor = gatewayRole !== "none"
-            ? (gatewayRole === "sea_gateway" ? "rgba(46, 128, 182, 0.94)" : "rgba(191, 138, 55, 0.94)")
+            ? (
+                gatewayRole === "sea_gateway"
+                  ? "rgba(46, 128, 182, 0.94)"
+                  : gatewayRole === "river_gateway"
+                    ? "rgba(72, 122, 168, 0.94)"
+                    : "rgba(191, 138, 55, 0.94)"
+              )
             : hexToRgba(ownerColor, 0.88);
           const titleBits = [
             `${{regionSnapshot.display_name || region.display_name || region.name}}`,

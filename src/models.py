@@ -547,6 +547,7 @@ class WorldState:
     religions: dict[str, Religion] = field(default_factory=dict)
     map_name: str = ""
     sea_links: list[tuple[str, str]] = field(default_factory=list)
+    river_links: list[tuple[str, str]] = field(default_factory=list)
     turn: int = 0
     events: list[Event] = field(default_factory=list)
     metrics: list = field(default_factory=list)

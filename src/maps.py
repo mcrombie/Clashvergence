@@ -102,6 +102,18 @@ def _build_coastal_cycle_links(ordered_names, terrain_lookup):
     return sorted(link_pairs)
 
 
+def _build_river_links(regions, terrain_lookup):
+    link_pairs = set()
+    for region_name, region_data in regions.items():
+        region_has_river = "riverland" in terrain_lookup.get(region_name, [])
+        for neighbor_name in region_data["neighbors"]:
+            neighbor_has_river = "riverland" in terrain_lookup.get(neighbor_name, [])
+            if not region_has_river and not neighbor_has_river:
+                continue
+            link_pairs.add(tuple(sorted((region_name, neighbor_name))))
+    return sorted(link_pairs)
+
+
 def _build_asymmetric_frontier_terrain():
     return {
         "A": ["plains"],
@@ -251,6 +263,10 @@ MAPS = {
             ["A", "B", "C", "D", "E", "F"],
             _build_single_ring_terrain(["A", "B", "C", "D", "E", "F"], "M"),
         ),
+        "river_links": _build_river_links(
+            SEVEN_REGION_RING_REGIONS,
+            _build_single_ring_terrain(["A", "B", "C", "D", "E", "F"], "M"),
+        ),
         "regions": _copy_regions_with_terrain(
             SEVEN_REGION_RING_REGIONS,
             _build_single_ring_terrain(["A", "B", "C", "D", "E", "F"], "M"),
@@ -261,6 +277,10 @@ MAPS = {
         "description": "Ten regions with a nine-region outer ring and one center region.",
         "sea_links": _build_coastal_cycle_links(
             ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+            _build_single_ring_terrain(["A", "B", "C", "D", "E", "F", "G", "H", "I"], "M"),
+        ),
+        "river_links": _build_river_links(
+            TEN_REGION_RING_REGIONS,
             _build_single_ring_terrain(["A", "B", "C", "D", "E", "F", "G", "H", "I"], "M"),
         ),
         "regions": _copy_regions_with_terrain(
@@ -275,6 +295,10 @@ MAPS = {
             ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"],
             _build_single_ring_terrain(["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"], "M"),
         ),
+        "river_links": _build_river_links(
+            THIRTEEN_REGION_RING_REGIONS,
+            _build_single_ring_terrain(["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"], "M"),
+        ),
         "regions": _copy_regions_with_terrain(
             THIRTEEN_REGION_RING_REGIONS,
             _build_single_ring_terrain(["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"], "M"),
@@ -285,6 +309,13 @@ MAPS = {
         "description": "Seventeen regions with a sixteen-region outer ring and one center region, designed for four factions.",
         "sea_links": _build_coastal_cycle_links(
             ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"],
+            _build_single_ring_terrain(
+                ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"],
+                "Q",
+            ),
+        ),
+        "river_links": _build_river_links(
+            SEVENTEEN_REGION_RING_REGIONS,
             _build_single_ring_terrain(
                 ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"],
                 "Q",
@@ -303,6 +334,15 @@ MAPS = {
         "description": "Thirty-seven regions arranged as a sixteen-region outer ring, a twelve-region middle ring, an eight-region inner ring, and one center region.",
         "sea_links": _build_coastal_cycle_links(
             [f"O{i}" for i in range(1, 17)],
+            _build_three_ring_terrain(
+                [f"O{i}" for i in range(1, 17)],
+                [f"M{i}" for i in range(1, 13)],
+                [f"I{i}" for i in range(1, 9)],
+                "C",
+            ),
+        ),
+        "river_links": _build_river_links(
+            THIRTY_SEVEN_REGION_RING_REGIONS,
             _build_three_ring_terrain(
                 [f"O{i}" for i in range(1, 17)],
                 [f"M{i}" for i in range(1, 13)],
@@ -329,6 +369,10 @@ MAPS = {
 
     "asymmetric_frontier": {
         "description": "A non-ring asymmetric map with chokepoints, uneven connectivity, and uneven four-faction starting positions.",
+        "river_links": _build_river_links(
+            ASYMMETRIC_FRONTIER_REGIONS,
+            _build_asymmetric_frontier_terrain(),
+        ),
         "regions": _copy_regions_with_terrain(
             ASYMMETRIC_FRONTIER_REGIONS,
             _build_asymmetric_frontier_terrain(),
@@ -342,6 +386,15 @@ MAPS = {
         ),
         "sea_links": _build_coastal_cycle_links(
             [f"O{i}" for i in range(1, 17)],
+            _build_three_ring_terrain(
+                [f"O{i}" for i in range(1, 17)],
+                [f"M{i}" for i in range(1, 13)],
+                [f"I{i}" for i in range(1, 9)],
+                "C",
+            ),
+        ),
+        "river_links": _build_river_links(
+            MULTI_RING_SYMMETRY_REGIONS,
             _build_three_ring_terrain(
                 [f"O{i}" for i in range(1, 17)],
                 [f"M{i}" for i in range(1, 13)],

@@ -60,6 +60,11 @@ def create_world(
             for link in map_definition.get("sea_links", [])
             if len(link) == 2
         ],
+        river_links=[
+            tuple(link)
+            for link in map_definition.get("river_links", [])
+            if len(link) == 2
+        ],
     )
     for faction_name, faction in factions.items():
         register_ethnicity(
