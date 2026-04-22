@@ -41,6 +41,7 @@ from src.heartland import (
     get_rebel_reclaim_bonus,
     get_region_ruling_ethnic_affinity,
     get_region_unrest_pressure,
+    resolve_population_migration,
     resolve_unrest_events,
     seed_region_ethnicity,
     update_region_populations,
@@ -48,6 +49,7 @@ from src.heartland import (
     update_region_integration,
 )
 from src.metrics import build_turn_metrics
+from src.models import Faction, Region, RelationshipState, WorldState
 from src.simulation_ui import build_simulation_snapshots, build_simulation_view_model
 from src.simulation import get_faction_economy_snapshot
 from src.world import create_world
@@ -241,6 +243,173 @@ class HeartlandSystemTests(unittest.TestCase):
 
         self.assertGreater(calm_region.population, calm_before)
         self.assertLess(crisis_region.population, crisis_before)
+
+    def test_internal_migration_can_feed_frontier_settlement(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=220,
+                    ethnic_composition={"Alpha": 220},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    core_status="core",
+                    settlement_level="town",
+                    food_consumption=2.0,
+                    food_deficit=1.7,
+                    unrest=8.4,
+                    trade_route_role="corridor",
+                    resource_route_anchor="A",
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionA",
+                    resources=3,
+                    population=110,
+                    ethnic_composition={"Alpha": 110},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    core_status="frontier",
+                    settlement_level="rural",
+                    food_consumption=1.4,
+                    food_balance=2.4,
+                    unrest=1.2,
+                    road_level=0.9,
+                    infrastructure_level=0.8,
+                    trade_route_role="local",
+                    resource_route_anchor="A",
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", primary_ethnicity="Alpha"),
+            },
+        )
+
+        source = world.regions["A"]
+        target = world.regions["B"]
+        target_unrest_before = target.unrest
+        target_integration_before = target.integration_score
+
+        resolve_population_migration(world)
+
+        self.assertLess(source.population, 220)
+        self.assertGreater(target.population, 110)
+        self.assertGreater(target.frontier_settler_inflow, 0)
+        self.assertGreater(world.factions["FactionA"].frontier_settlers, 0)
+        self.assertGreater(target.integration_score, target_integration_before)
+        self.assertLess(target.unrest, target_unrest_before)
+
+    def test_refugees_can_spill_into_friendly_neighbor(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=2,
+                    population=180,
+                    ethnic_composition={"Alpha": 180},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    core_status="frontier",
+                    settlement_level="rural",
+                    food_consumption=1.8,
+                    food_deficit=1.8,
+                    unrest=9.1,
+                    unrest_event_level="crisis",
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionB",
+                    resources=3,
+                    population=140,
+                    ethnic_composition={"Beta": 140},
+                    terrain_tags=["riverland", "plains"],
+                    climate="temperate",
+                    core_status="core",
+                    settlement_level="town",
+                    food_consumption=1.5,
+                    food_balance=2.6,
+                    unrest=1.0,
+                    road_level=0.8,
+                    market_level=0.7,
+                    trade_route_role="hub",
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", primary_ethnicity="Alpha"),
+                "FactionB": Faction(name="FactionB", primary_ethnicity="Beta"),
+            },
+            relationships={
+                ("FactionA", "FactionB"): RelationshipState(score=30.0, status="alliance"),
+            },
+        )
+
+        resolve_population_migration(world)
+
+        self.assertGreater(world.regions["A"].refugee_outflow, 0)
+        self.assertGreater(world.regions["B"].refugee_inflow, 0)
+        self.assertGreater(world.factions["FactionB"].refugee_inflow, 0)
+        self.assertIn("Alpha", world.regions["B"].ethnic_composition)
+
+    def test_metrics_and_snapshots_expose_migration_state(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=210,
+                    ethnic_composition={"Alpha": 210},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    core_status="core",
+                    settlement_level="town",
+                    food_consumption=2.0,
+                    food_deficit=1.6,
+                    unrest=8.2,
+                    trade_route_role="corridor",
+                    resource_route_anchor="A",
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionA",
+                    resources=3,
+                    population=120,
+                    ethnic_composition={"Alpha": 120},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    core_status="frontier",
+                    settlement_level="rural",
+                    food_consumption=1.3,
+                    food_balance=2.4,
+                    unrest=1.1,
+                    road_level=0.9,
+                    infrastructure_level=0.7,
+                    trade_route_role="local",
+                    resource_route_anchor="A",
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", primary_ethnicity="Alpha"),
+            },
+        )
+
+        resolve_population_migration(world)
+        metrics = build_turn_metrics(world)
+        snapshots = build_simulation_snapshots(world)
+
+        self.assertIn("migration_inflow", metrics["factions"]["FactionA"])
+        self.assertIn("frontier_settlers", metrics["factions"]["FactionA"])
+        self.assertIn("migration_inflow", snapshots[0]["regions"]["A"])
+        self.assertIn("migration_pressure", snapshots[0]["regions"]["A"])
 
     def test_ruling_ethnic_affinity_tracks_owner_population_share(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)

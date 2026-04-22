@@ -5,6 +5,29 @@ import random
 import re
 
 from src.config import (
+    MIGRATION_ATTRACTION_CITY_BONUS,
+    MIGRATION_ATTRACTION_CORE_BONUS,
+    MIGRATION_ATTRACTION_DEVELOPMENT_FACTOR,
+    MIGRATION_ATTRACTION_FOOD_FACTOR,
+    MIGRATION_ATTRACTION_FRONTIER_BONUS,
+    MIGRATION_ATTRACTION_LOW_UNREST_FACTOR,
+    MIGRATION_ATTRACTION_SURPLUS_FACTOR,
+    MIGRATION_ATTRACTION_TRADE_FACTOR,
+    MIGRATION_EVENT_MINIMUM,
+    MIGRATION_FRIENDLY_BORDER_FACTOR,
+    MIGRATION_FRONTIER_INTEGRATION_PER_100,
+    MIGRATION_FRONTIER_UNREST_REDUCTION,
+    MIGRATION_MAX_SHARE_PER_TURN,
+    MIGRATION_MIN_SOURCE_POPULATION,
+    MIGRATION_NEIGHBOR_FACTOR,
+    MIGRATION_PARENT_CHILD_FACTOR,
+    MIGRATION_PRESSURE_FOOD_FACTOR,
+    MIGRATION_PRESSURE_FRONTIER_FACTOR,
+    MIGRATION_PRESSURE_SURPLUS_FACTOR,
+    MIGRATION_PRESSURE_UNREST_FACTOR,
+    MIGRATION_REFUGEE_CRISIS_BONUS,
+    MIGRATION_REFUGEE_SEVERE_UNREST,
+    MIGRATION_ROUTE_ANCHOR_FACTOR,
     DIPLOMACY_RIVAL_THRESHOLD,
     ETHNIC_CLAIM_INTEGRATION_BONUS,
     ETHNIC_CLAIM_UNREST_REDUCTION,
@@ -80,7 +103,7 @@ from src.config import (
     UNREST_SECESSION_RESOURCE_LOSS,
     UNREST_SECESSION_THRESHOLD,
 )
-from src.diplomacy import seed_rebel_origin_relationship
+from src.diplomacy import get_relationship_status, seed_rebel_origin_relationship
 from src.governance import (
     REGIME_AGITATION_DIPLOMATIC_FORMS,
     REGIME_AGITATION_GOVERNMENT_FORM_BIAS,
@@ -1115,6 +1138,368 @@ def update_region_populations(world: WorldState) -> None:
             change = 1
         if change != 0:
             change_region_population(region, change)
+
+
+def _reset_migration_state(world: WorldState) -> None:
+    for region in world.regions.values():
+        region.migration_inflow = 0
+        region.migration_outflow = 0
+        region.refugee_inflow = 0
+        region.refugee_outflow = 0
+        region.frontier_settler_inflow = 0
+        region.migration_pressure = 0.0
+        region.migration_attraction = 0.0
+    for faction in world.factions.values():
+        faction.migration_inflow = 0
+        faction.migration_outflow = 0
+        faction.refugee_inflow = 0
+        faction.refugee_outflow = 0
+        faction.frontier_settlers = 0
+
+
+def _get_food_deficit_ratio(region: Region) -> float:
+    food_consumption = max(0.2, float(region.food_consumption or 0.0))
+    return _clamp(float(region.food_deficit or 0.0) / food_consumption, 0.0, 1.0)
+
+
+def _get_food_surplus_ratio(region: Region) -> float:
+    food_consumption = max(0.2, float(region.food_consumption or 0.0))
+    return _clamp(max(0.0, float(region.food_balance or 0.0)) / food_consumption, 0.0, 1.0)
+
+
+def _get_region_migration_pressure(region: Region, world: WorldState) -> float:
+    if region.owner is None or region.population < MIGRATION_MIN_SOURCE_POPULATION:
+        return 0.0
+    unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
+    surplus_pressure = _clamp(max(0.0, -get_region_surplus(region, world)) / 3.0, 0.0, 1.0)
+    frontier_pressure = 1.0 if get_region_core_status(region) == "frontier" else 0.0
+    pressure = (
+        _get_food_deficit_ratio(region) * MIGRATION_PRESSURE_FOOD_FACTOR
+        + unrest_ratio * MIGRATION_PRESSURE_UNREST_FACTOR
+        + surplus_pressure * MIGRATION_PRESSURE_SURPLUS_FACTOR
+        + frontier_pressure * MIGRATION_PRESSURE_FRONTIER_FACTOR
+    )
+    if region.unrest_event_level == "crisis":
+        pressure += MIGRATION_REFUGEE_CRISIS_BONUS
+    elif region.unrest_event_level == "disturbance":
+        pressure += MIGRATION_REFUGEE_CRISIS_BONUS * 0.45
+    return round(_clamp(pressure, 0.0, 1.0), 3)
+
+
+def _get_region_migration_attraction(region: Region, world: WorldState) -> float:
+    if region.owner is None or region.population <= 0:
+        return 0.0
+    low_unrest = 1.0 - _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
+    surplus_bonus = _clamp(max(0.0, get_region_surplus(region, world)) / 3.5, 0.0, 1.0)
+    food_bonus = _get_food_surplus_ratio(region)
+    trade_bonus = _clamp(
+        (
+            float(region.trade_throughput or 0.0)
+            + float(region.trade_foreign_flow or 0.0)
+            + float(region.trade_import_value or 0.0)
+        ) / 10.0,
+        0.0,
+        1.0,
+    )
+    development_bonus = _clamp(
+        (
+            float(region.infrastructure_level or 0.0)
+            + float(region.road_level or 0.0)
+            + float(region.market_level or 0.0)
+            + float(region.storehouse_level or 0.0)
+        ) / 3.5,
+        0.0,
+        1.0,
+    )
+    attraction = (
+        surplus_bonus * MIGRATION_ATTRACTION_SURPLUS_FACTOR
+        + food_bonus * MIGRATION_ATTRACTION_FOOD_FACTOR
+        + trade_bonus * MIGRATION_ATTRACTION_TRADE_FACTOR
+        + development_bonus * MIGRATION_ATTRACTION_DEVELOPMENT_FACTOR
+        + low_unrest * MIGRATION_ATTRACTION_LOW_UNREST_FACTOR
+    )
+    core_status = get_region_core_status(region)
+    if core_status == "frontier":
+        attraction += MIGRATION_ATTRACTION_FRONTIER_BONUS
+    elif core_status == "core":
+        attraction += MIGRATION_ATTRACTION_CORE_BONUS
+    if region.settlement_level == "city":
+        attraction += MIGRATION_ATTRACTION_CITY_BONUS
+    elif region.settlement_level == "town":
+        attraction += MIGRATION_ATTRACTION_CITY_BONUS * 0.6
+    return round(_clamp(attraction, 0.0, 1.5), 3)
+
+
+def _get_region_migration_capacity(region: Region, world: WorldState) -> int:
+    if region.owner is None or region.population <= 0:
+        return 0
+    food_headroom = max(0.0, float(region.food_storage_capacity or 0.0) - float(region.food_stored or 0.0))
+    capacity = (
+        max(14, int(round(region.population * 0.11)))
+        + int(round(max(0.0, get_region_surplus(region, world)) * 14))
+        + int(round(food_headroom * 10))
+    )
+    if get_region_core_status(region) == "frontier":
+        capacity = int(round(capacity * 1.2))
+    return max(8, capacity)
+
+
+def _get_internal_connection_score(source: Region, target: Region) -> float:
+    score = 0.2
+    if target.name in source.neighbors:
+        score += MIGRATION_NEIGHBOR_FACTOR
+    if source.trade_route_parent == target.name or target.trade_route_parent == source.name:
+        score += MIGRATION_PARENT_CHILD_FACTOR
+    if (
+        source.resource_route_anchor
+        and source.resource_route_anchor == target.resource_route_anchor
+    ):
+        score += MIGRATION_ROUTE_ANCHOR_FACTOR
+    if source.resource_route_anchor == target.name or target.resource_route_anchor == source.name:
+        score += MIGRATION_PARENT_CHILD_FACTOR * 0.45
+    return score
+
+
+def _iter_internal_migration_destinations(source: Region, world: WorldState) -> list[tuple[Region, float]]:
+    candidates: list[tuple[Region, float]] = []
+    if source.owner is None:
+        return candidates
+    for target in world.regions.values():
+        if target.name == source.name or target.owner != source.owner:
+            continue
+        if target.migration_attraction <= 0.12:
+            continue
+        connection_score = _get_internal_connection_score(source, target)
+        if connection_score <= 0.2 and get_region_core_status(target) != "frontier":
+            continue
+        score = target.migration_attraction * (1.0 + connection_score)
+        if get_region_core_status(target) == "frontier":
+            score *= 1.15
+        candidates.append((target, round(score, 3)))
+    return sorted(candidates, key=lambda item: (item[1], item[0].name), reverse=True)
+
+
+def _iter_foreign_refugee_destinations(source: Region, world: WorldState) -> list[tuple[Region, float]]:
+    if source.owner is None:
+        return []
+    candidates: dict[str, tuple[Region, float]] = {}
+
+    def maybe_add_target(target_name: str, *, route_bonus: float = 0.0) -> None:
+        target = world.regions.get(target_name)
+        if target is None or target.owner is None or target.owner == source.owner:
+            return
+        status = get_relationship_status(world, source.owner, target.owner)
+        if status not in {"alliance", "non_aggression_pact"}:
+            return
+        if target.migration_attraction <= 0.18:
+            return
+        score = target.migration_attraction * MIGRATION_FRIENDLY_BORDER_FACTOR * (1.0 + route_bonus)
+        existing = candidates.get(target.name)
+        if existing is None or score > existing[1]:
+            candidates[target.name] = (target, round(score, 3))
+
+    for neighbor_name in source.neighbors:
+        maybe_add_target(neighbor_name, route_bonus=MIGRATION_NEIGHBOR_FACTOR)
+
+    for first, second in world.sea_links:
+        if first == source.name:
+            maybe_add_target(second, route_bonus=MIGRATION_ROUTE_ANCHOR_FACTOR + 0.18)
+        elif second == source.name:
+            maybe_add_target(first, route_bonus=MIGRATION_ROUTE_ANCHOR_FACTOR + 0.18)
+
+    if source.trade_foreign_partner_region:
+        maybe_add_target(source.trade_foreign_partner_region, route_bonus=MIGRATION_PARENT_CHILD_FACTOR * 0.7)
+
+    return sorted(candidates.values(), key=lambda item: (item[1], item[0].name), reverse=True)
+
+
+def _record_migration_move(
+    world: WorldState,
+    source: Region,
+    target: Region,
+    moved: int,
+    *,
+    refugee: bool,
+) -> None:
+    if moved <= 0 or source.owner is None or target.owner is None:
+        return
+    source.migration_outflow += moved
+    target.migration_inflow += moved
+    world.factions[source.owner].migration_outflow += moved
+    world.factions[target.owner].migration_inflow += moved
+
+    if refugee:
+        source.refugee_outflow += moved
+        target.refugee_inflow += moved
+        world.factions[source.owner].refugee_outflow += moved
+        world.factions[target.owner].refugee_inflow += moved
+
+    if source.owner == target.owner and get_region_core_status(target) == "frontier":
+        target.frontier_settler_inflow += moved
+        world.factions[target.owner].frontier_settlers += moved
+        target.integration_score = round(
+            target.integration_score + ((moved / 100.0) * MIGRATION_FRONTIER_INTEGRATION_PER_100),
+            2,
+        )
+        set_region_unrest(
+            target,
+            max(0.0, target.unrest - (MIGRATION_FRONTIER_UNREST_REDUCTION * (moved / 40.0))),
+        )
+
+
+def _emit_migration_event(
+    world: WorldState,
+    source: Region,
+    *,
+    total_moved: int,
+    refugee_moved: int,
+    destination_breakdown: dict[str, int],
+) -> None:
+    if total_moved < MIGRATION_EVENT_MINIMUM or source.owner is None:
+        return
+    top_destinations = sorted(
+        destination_breakdown.items(),
+        key=lambda item: (item[1], item[0]),
+        reverse=True,
+    )[:3]
+    top_destination_name = top_destinations[0][0] if top_destinations else None
+    event_type = "refugee_wave" if refugee_moved >= max(10, int(round(total_moved * 0.45))) else "migration_wave"
+    world.events.append(Event(
+        turn=world.turn,
+        type=event_type,
+        faction=source.owner,
+        region=source.name,
+        details={
+            "population_moved": total_moved,
+            "refugees": refugee_moved,
+            "top_destination": top_destination_name,
+            "destinations": [
+                {"region": region_name, "population": amount}
+                for region_name, amount in top_destinations
+            ],
+            "source_unrest": round(source.unrest, 2),
+            "source_food_deficit": round(source.food_deficit, 3),
+            "source_trade_role": source.trade_route_role,
+        },
+        tags=["population", "migration", *(["refugees"] if refugee_moved > 0 else ["settlement"])],
+        significance=round(total_moved / max(1, source.population + total_moved), 3),
+    ))
+
+
+def resolve_population_migration(world: WorldState) -> None:
+    _reset_migration_state(world)
+    if not world.regions:
+        return
+
+    source_regions: list[tuple[Region, int, int]] = []
+    for region in world.regions.values():
+        region.migration_pressure = _get_region_migration_pressure(region, world)
+        region.migration_attraction = _get_region_migration_attraction(region, world)
+    for region in world.regions.values():
+        if region.owner is None or region.population < MIGRATION_MIN_SOURCE_POPULATION:
+            continue
+        migration_share = min(
+            MIGRATION_MAX_SHARE_PER_TURN,
+            float(region.migration_pressure or 0.0) * MIGRATION_MAX_SHARE_PER_TURN,
+        )
+        movable_population = int(round(region.population * migration_share))
+        if movable_population <= 0:
+            continue
+        refugee_ratio = 0.0
+        if (
+            region.unrest_event_level == "crisis"
+            or region.unrest >= MIGRATION_REFUGEE_SEVERE_UNREST
+            or _get_food_deficit_ratio(region) >= 0.75
+        ):
+            refugee_ratio = _clamp(0.25 + (float(region.migration_pressure or 0.0) * 0.45), 0.25, 0.85)
+        refugee_population = int(round(movable_population * refugee_ratio))
+        source_regions.append((region, movable_population, refugee_population))
+
+    source_regions.sort(
+        key=lambda item: (float(item[0].migration_pressure or 0.0), item[0].population),
+        reverse=True,
+    )
+
+    destination_capacity_used: dict[str, int] = {region_name: 0 for region_name in world.regions}
+
+    for source, movable_population, refugee_population in source_regions:
+        remaining = min(movable_population, source.population)
+        if remaining <= 0:
+            continue
+        refugee_remaining = min(refugee_population, remaining)
+        destination_breakdown: dict[str, int] = {}
+        total_moved = 0
+        total_refugees = 0
+
+        for target, score in _iter_internal_migration_destinations(source, world):
+            if remaining <= refugee_remaining and refugee_remaining > 0:
+                break
+            target_capacity = _get_region_migration_capacity(target, world) - destination_capacity_used[target.name]
+            if target_capacity <= 0:
+                continue
+            move_cap = max(6, int(round(score * 10)))
+            move_amount = min(remaining - refugee_remaining, target_capacity, move_cap, source.population)
+            if move_amount <= 0:
+                continue
+            moved = transfer_region_population(source, target, move_amount)
+            if moved <= 0:
+                continue
+            remaining -= moved
+            total_moved += moved
+            destination_capacity_used[target.name] += moved
+            destination_breakdown[target.name] = destination_breakdown.get(target.name, 0) + moved
+            _record_migration_move(world, source, target, moved, refugee=False)
+
+        for target, score in _iter_foreign_refugee_destinations(source, world):
+            if refugee_remaining <= 0:
+                break
+            target_capacity = _get_region_migration_capacity(target, world) - destination_capacity_used[target.name]
+            if target_capacity <= 0:
+                continue
+            move_cap = max(5, int(round(score * 9)))
+            move_amount = min(refugee_remaining, target_capacity, move_cap, source.population)
+            if move_amount <= 0:
+                continue
+            moved = transfer_region_population(source, target, move_amount)
+            if moved <= 0:
+                continue
+            refugee_remaining -= moved
+            remaining -= moved
+            total_moved += moved
+            total_refugees += moved
+            destination_capacity_used[target.name] += moved
+            destination_breakdown[target.name] = destination_breakdown.get(target.name, 0) + moved
+            _record_migration_move(world, source, target, moved, refugee=True)
+
+        if remaining > 0 and get_region_core_status(source) == "frontier":
+            for target, score in _iter_internal_migration_destinations(source, world):
+                if remaining <= 0:
+                    break
+                if get_region_core_status(target) != "core":
+                    continue
+                target_capacity = _get_region_migration_capacity(target, world) - destination_capacity_used[target.name]
+                if target_capacity <= 0:
+                    continue
+                move_cap = max(4, int(round(score * 7)))
+                move_amount = min(remaining, target_capacity, move_cap, source.population)
+                if move_amount <= 0:
+                    continue
+                moved = transfer_region_population(source, target, move_amount)
+                if moved <= 0:
+                    continue
+                remaining -= moved
+                total_moved += moved
+                destination_capacity_used[target.name] += moved
+                destination_breakdown[target.name] = destination_breakdown.get(target.name, 0) + moved
+                _record_migration_move(world, source, target, moved, refugee=False)
+
+        _emit_migration_event(
+            world,
+            source,
+            total_moved=total_moved,
+            refugee_moved=total_refugees,
+            destination_breakdown=destination_breakdown,
+        )
 
 
 def set_region_integration(
@@ -2240,6 +2625,13 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "food_deficit": round(region.food_deficit, 3),
             "food_spoilage": round(region.food_spoilage, 3),
             "food_overflow": round(region.food_overflow, 3),
+            "migration_inflow": int(region.migration_inflow or 0),
+            "migration_outflow": int(region.migration_outflow or 0),
+            "refugee_inflow": int(region.refugee_inflow or 0),
+            "refugee_outflow": int(region.refugee_outflow or 0),
+            "frontier_settler_inflow": int(region.frontier_settler_inflow or 0),
+            "migration_pressure": round(float(region.migration_pressure or 0.0), 3),
+            "migration_attraction": round(float(region.migration_attraction or 0.0), 3),
             "population": region.population,
             "productive_capacity": get_region_productive_capacity(region, world),
             "population_pressure": get_region_population_pressure(region),

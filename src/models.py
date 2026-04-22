@@ -210,6 +210,13 @@ class Region:
     food_deficit: float = 0.0
     food_spoilage: float = 0.0
     food_overflow: float = 0.0
+    migration_inflow: int = 0
+    migration_outflow: int = 0
+    refugee_inflow: int = 0
+    refugee_outflow: int = 0
+    frontier_settler_inflow: int = 0
+    migration_pressure: float = 0.0
+    migration_attraction: float = 0.0
     population: int = 0
     ethnic_composition: dict[str, int] = field(default_factory=dict)
     display_name: str = ""
@@ -336,6 +343,11 @@ class Faction:
     trade_corridor_exposure: float = 0.0
     trade_foreign_income: float = 0.0
     trade_foreign_imported_flow: float = 0.0
+    migration_inflow: int = 0
+    migration_outflow: int = 0
+    refugee_inflow: int = 0
+    refugee_outflow: int = 0
+    frontier_settlers: int = 0
     known_regions: list[str] = field(default_factory=list)
     visible_regions: list[str] = field(default_factory=list)
     known_factions: list[str] = field(default_factory=list)

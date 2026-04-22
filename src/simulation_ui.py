@@ -138,6 +138,13 @@ def _build_region_resource_payload(region):
         "food_deficit": round(region.food_deficit, 3),
         "food_spoilage": round(region.food_spoilage, 3),
         "food_overflow": round(region.food_overflow, 3),
+        "migration_inflow": int(region.migration_inflow or 0),
+        "migration_outflow": int(region.migration_outflow or 0),
+        "refugee_inflow": int(region.refugee_inflow or 0),
+        "refugee_outflow": int(region.refugee_outflow or 0),
+        "frontier_settler_inflow": int(region.frontier_settler_inflow or 0),
+        "migration_pressure": round(float(region.migration_pressure or 0.0), 3),
+        "migration_attraction": round(float(region.migration_attraction or 0.0), 3),
     }
 
 
@@ -268,6 +275,18 @@ def _get_event_title(event, world):
         return f"{faction_name} and {counterpart_name} saw their truce expire"
     if event.type == "diplomacy_break":
         return f"{faction_name} and {counterpart_name} broke their accord"
+    if event.type == "migration_wave":
+        destination = event.get("top_destination")
+        moved = int(event.get("population_moved", 0) or 0)
+        if destination:
+            return f"{moved} people shifted out of {region_reference} toward {destination}"
+        return f"{moved} people shifted out of {region_reference}"
+    if event.type == "refugee_wave":
+        destination = event.get("top_destination")
+        moved = int(event.get("population_moved", 0) or 0)
+        if destination:
+            return f"{moved} refugees fled {region_reference} toward {destination}"
+        return f"{moved} refugees fled {region_reference}"
     return f"{faction_name} acted"
 
 
@@ -460,6 +479,32 @@ def _get_event_summary(event, world):
             f"A previous diplomatic bond collapsed as trust fell or strategic pressure mounted."
             + terrain_text
         )
+    if event.type == "migration_wave":
+        destination = event.get("top_destination")
+        moved = int(event.get("population_moved", 0) or 0)
+        refugees = int(event.get("refugees", 0) or 0)
+        if destination:
+            return (
+                f"Pressure from food shortage, unrest, or weak surplus pushed {moved} people out, with the largest stream heading toward {destination}"
+                f"{f' and {refugees} moving in refugee conditions' if refugees > 0 else ''}."
+                + terrain_text
+            )
+        return (
+            f"Pressure from food shortage, unrest, or weak surplus pushed {moved} people out of the region."
+            + terrain_text
+        )
+    if event.type == "refugee_wave":
+        destination = event.get("top_destination")
+        moved = int(event.get("population_moved", 0) or 0)
+        if destination:
+            return (
+                f"Crisis conditions forced {moved} refugees out, with the strongest flow seeking safety in {destination}."
+                + terrain_text
+            )
+        return (
+            f"Crisis conditions forced {moved} refugees out of the region."
+            + terrain_text
+        )
     return "No summary available."
 
 
@@ -554,6 +599,13 @@ def build_simulation_snapshots(world):
             "food_deficit": initial_region_history.get(region_name, {}).get("food_deficit", region.food_deficit),
             "food_spoilage": initial_region_history.get(region_name, {}).get("food_spoilage", region.food_spoilage),
             "food_overflow": initial_region_history.get(region_name, {}).get("food_overflow", region.food_overflow),
+            "migration_inflow": initial_region_history.get(region_name, {}).get("migration_inflow", region.migration_inflow),
+            "migration_outflow": initial_region_history.get(region_name, {}).get("migration_outflow", region.migration_outflow),
+            "refugee_inflow": initial_region_history.get(region_name, {}).get("refugee_inflow", region.refugee_inflow),
+            "refugee_outflow": initial_region_history.get(region_name, {}).get("refugee_outflow", region.refugee_outflow),
+            "frontier_settler_inflow": initial_region_history.get(region_name, {}).get("frontier_settler_inflow", region.frontier_settler_inflow),
+            "migration_pressure": initial_region_history.get(region_name, {}).get("migration_pressure", region.migration_pressure),
+            "migration_attraction": initial_region_history.get(region_name, {}).get("migration_attraction", region.migration_attraction),
             "homeland_faction_id": initial_region_history.get(region_name, {}).get("homeland_faction_id"),
             "integrated_owner": initial_region_history.get(region_name, {}).get("integrated_owner"),
             "integration_score": initial_region_history.get(region_name, {}).get("integration_score", 0.0),
@@ -648,6 +700,13 @@ def build_simulation_snapshots(world):
                 "food_deficit": region["food_deficit"],
                 "food_spoilage": region["food_spoilage"],
                 "food_overflow": region["food_overflow"],
+                "migration_inflow": region["migration_inflow"],
+                "migration_outflow": region["migration_outflow"],
+                "refugee_inflow": region["refugee_inflow"],
+                "refugee_outflow": region["refugee_outflow"],
+                "frontier_settler_inflow": region["frontier_settler_inflow"],
+                "migration_pressure": region["migration_pressure"],
+                "migration_attraction": region["migration_attraction"],
                 "homeland_faction_id": region["homeland_faction_id"],
                 "integrated_owner": region["integrated_owner"],
                 "integration_score": region["integration_score"],
@@ -770,6 +829,13 @@ def build_simulation_snapshots(world):
             region_state[region_name]["food_deficit"] = history_region.get("food_deficit", region_state[region_name]["food_deficit"])
             region_state[region_name]["food_spoilage"] = history_region.get("food_spoilage", region_state[region_name]["food_spoilage"])
             region_state[region_name]["food_overflow"] = history_region.get("food_overflow", region_state[region_name]["food_overflow"])
+            region_state[region_name]["migration_inflow"] = history_region.get("migration_inflow", region_state[region_name]["migration_inflow"])
+            region_state[region_name]["migration_outflow"] = history_region.get("migration_outflow", region_state[region_name]["migration_outflow"])
+            region_state[region_name]["refugee_inflow"] = history_region.get("refugee_inflow", region_state[region_name]["refugee_inflow"])
+            region_state[region_name]["refugee_outflow"] = history_region.get("refugee_outflow", region_state[region_name]["refugee_outflow"])
+            region_state[region_name]["frontier_settler_inflow"] = history_region.get("frontier_settler_inflow", region_state[region_name]["frontier_settler_inflow"])
+            region_state[region_name]["migration_pressure"] = history_region.get("migration_pressure", region_state[region_name]["migration_pressure"])
+            region_state[region_name]["migration_attraction"] = history_region.get("migration_attraction", region_state[region_name]["migration_attraction"])
             region_state[region_name]["display_name"] = history_region["display_name"] or region_state[region_name]["display_name"]
             region_state[region_name]["founding_name"] = history_region["founding_name"]
             region_state[region_name]["original_namer_faction_id"] = history_region["original_namer_faction_id"]
@@ -867,6 +933,13 @@ def build_simulation_snapshots(world):
                     "food_deficit": region["food_deficit"],
                     "food_spoilage": region["food_spoilage"],
                     "food_overflow": region["food_overflow"],
+                    "migration_inflow": region["migration_inflow"],
+                    "migration_outflow": region["migration_outflow"],
+                    "refugee_inflow": region["refugee_inflow"],
+                    "refugee_outflow": region["refugee_outflow"],
+                    "frontier_settler_inflow": region["frontier_settler_inflow"],
+                    "migration_pressure": region["migration_pressure"],
+                    "migration_attraction": region["migration_attraction"],
                     "homeland_faction_id": region["homeland_faction_id"],
                     "integrated_owner": region["integrated_owner"],
                     "integration_score": region["integration_score"],
@@ -1017,6 +1090,11 @@ def build_simulation_view_model(world):
             "trade_corridor_exposure": round(world.factions[faction_name].trade_corridor_exposure, 3),
             "trade_foreign_income": round(world.factions[faction_name].trade_foreign_income, 3),
             "trade_foreign_imported_flow": round(world.factions[faction_name].trade_foreign_imported_flow, 3),
+            "migration_inflow": int(world.factions[faction_name].migration_inflow or 0),
+            "migration_outflow": int(world.factions[faction_name].migration_outflow or 0),
+            "refugee_inflow": int(world.factions[faction_name].refugee_inflow or 0),
+            "refugee_outflow": int(world.factions[faction_name].refugee_outflow or 0),
+            "frontier_settlers": int(world.factions[faction_name].frontier_settlers or 0),
             "resource_access_summary": format_resource_map(world.factions[faction_name].resource_access, limit=5),
             "resource_gross_summary": format_resource_map(world.factions[faction_name].resource_gross_output, limit=5),
             "resource_isolated_summary": format_resource_map(world.factions[faction_name].resource_isolated_output, limit=5),
@@ -4390,6 +4468,14 @@ def render_simulation_html(world):
         icon.symbol = "*";
         icon.className = "event-icon-success";
         icon.label = "Independence";
+      }} else if (event.type === "migration_wave") {{
+        icon.symbol = ">";
+        icon.className = "event-icon-develop";
+        icon.label = "Migration";
+      }} else if (event.type === "refugee_wave") {{
+        icon.symbol = ">>";
+        icon.className = "event-icon-unrest";
+        icon.label = "Refugees";
       }} else if (
         event.type === "diplomacy_rivalry"
         || event.type === "diplomacy_pact"
@@ -4591,6 +4677,8 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Turn Flow:</strong> +${{Number(regionSnapshot.food_produced ?? staticRegion.food_produced ?? 0).toFixed(1)}} produced / -${{Number(regionSnapshot.food_consumption ?? staticRegion.food_consumption ?? 0).toFixed(1)}} consumed</div>
             <div class="metric-line"><strong>Outcome:</strong> Balance ${{Number(regionSnapshot.food_balance ?? staticRegion.food_balance ?? 0).toFixed(1)}} / Deficit ${{Number(regionSnapshot.food_deficit ?? staticRegion.food_deficit ?? 0).toFixed(1)}} / Waste ${{foodWaste.toFixed(1)}}</div>
             <div class="metric-line"><strong>Productive Capacity:</strong> ${{Number(regionSnapshot.productive_capacity ?? staticRegion.productive_capacity ?? 0).toFixed(2)}} (${{escapeHtml(regionSnapshot.surplus_label || staticRegion.surplus_label || "stable")}})</div>
+            <div class="metric-line"><strong>Migration:</strong> In ${{Number(regionSnapshot.migration_inflow ?? staticRegion.migration_inflow ?? 0).toFixed(0)}} / Out ${{Number(regionSnapshot.migration_outflow ?? staticRegion.migration_outflow ?? 0).toFixed(0)}} | Refugees ${{Number(regionSnapshot.refugee_inflow ?? staticRegion.refugee_inflow ?? 0).toFixed(0)}} in / ${{Number(regionSnapshot.refugee_outflow ?? staticRegion.refugee_outflow ?? 0).toFixed(0)}} out | Frontier settlers ${{Number(regionSnapshot.frontier_settler_inflow ?? staticRegion.frontier_settler_inflow ?? 0).toFixed(0)}}</div>
+            <div class="metric-line"><strong>Migration Push / Pull:</strong> pressure ${{Number(regionSnapshot.migration_pressure ?? staticRegion.migration_pressure ?? 0).toFixed(2)}} / attraction ${{Number(regionSnapshot.migration_attraction ?? staticRegion.migration_attraction ?? 0).toFixed(2)}}</div>
           </article>
           <article class="inspector-card">
             <h4 class="inspector-title">Ethnic Distribution</h4>
@@ -4804,6 +4892,7 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Realm Structure:</strong> Homeland ${{metrics.homeland_regions}} / Core ${{metrics.core_regions}} / Frontier ${{metrics.frontier_regions}}</div>
             <div class="metric-line"><strong>Food Stores:</strong> ${{Number(metrics.food_stored || 0).toFixed(1)}} / ${{Number(metrics.food_storage_capacity || 0).toFixed(1)}} | +${{Number(metrics.food_produced || 0).toFixed(1)}} / -${{Number(metrics.food_consumption || 0).toFixed(1)}}</div>
             <div class="metric-line"><strong>Food Pressure:</strong> Balance ${{Number(metrics.food_balance || 0).toFixed(1)}} / Deficit ${{Number(metrics.food_deficit || 0).toFixed(1)}} / Waste ${{Number((metrics.food_spoilage || 0) + (metrics.food_overflow || 0)).toFixed(1)}}</div>
+            <div class="metric-line"><strong>Migration:</strong> In ${{Number(metrics.migration_inflow || 0).toFixed(0)}} / Out ${{Number(metrics.migration_outflow || 0).toFixed(0)}} | Refugees ${{Number(metrics.refugee_inflow || 0).toFixed(0)}} in / ${{Number(metrics.refugee_outflow || 0).toFixed(0)}} out | Frontier settlers ${{Number(metrics.frontier_settlers || 0).toFixed(0)}}</div>
           </article>
           <article class="inspector-card">
             <h4 class="inspector-title">Ethnic Distribution</h4>

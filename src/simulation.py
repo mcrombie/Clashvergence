@@ -18,6 +18,7 @@ from src.visibility import refresh_all_faction_visibility, refresh_faction_visib
 from src.heartland import (
     get_region_surplus,
     record_region_history,
+    resolve_population_migration,
     resolve_unrest_events,
     update_faction_polity_tiers,
     update_region_settlement_levels,
@@ -150,6 +151,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     apply_turn_food_economy(world)
     update_region_integration(world)
     update_region_populations(world)
+    resolve_population_migration(world)
     update_region_settlement_levels(world)
     update_faction_resource_economy(world, advance_resources=False)
     update_rebel_faction_status(world)
