@@ -8,6 +8,7 @@ from src.heartland import (
     initialize_heartlands,
     initialize_religious_legitimacy,
     initialize_region_history,
+    refresh_administrative_state,
     register_ethnicity,
     seed_region_ethnicity,
     update_region_settlement_levels,
@@ -115,6 +116,7 @@ def create_world(
     initialize_religious_legitimacy(world)
     update_region_settlement_levels(world)
     update_faction_resource_economy(world)
+    refresh_administrative_state(world)
     initialize_faction_visibility(world)
     initialize_relationships(world)
     initialize_region_history(world)

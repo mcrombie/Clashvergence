@@ -148,6 +148,11 @@ def _build_region_resource_payload(region):
         "migration_outflow": int(region.migration_outflow or 0),
         "refugee_inflow": int(region.refugee_inflow or 0),
         "refugee_outflow": int(region.refugee_outflow or 0),
+        "administrative_burden": round(float(region.administrative_burden or 0.0), 3),
+        "administrative_support": round(float(region.administrative_support or 0.0), 3),
+        "administrative_distance": round(float(region.administrative_distance or 0.0), 3),
+        "administrative_autonomy": round(float(region.administrative_autonomy or 0.0), 3),
+        "administrative_tax_capture": round(float(region.administrative_tax_capture or 1.0), 3),
         "frontier_settler_inflow": int(region.frontier_settler_inflow or 0),
         "migration_pressure": round(float(region.migration_pressure or 0.0), 3),
         "migration_attraction": round(float(region.migration_attraction or 0.0), 3),
@@ -741,6 +746,11 @@ def build_simulation_snapshots(world):
             "frontier_settler_inflow": initial_region_history.get(region_name, {}).get("frontier_settler_inflow", region.frontier_settler_inflow),
             "migration_pressure": initial_region_history.get(region_name, {}).get("migration_pressure", region.migration_pressure),
             "migration_attraction": initial_region_history.get(region_name, {}).get("migration_attraction", region.migration_attraction),
+            "administrative_burden": initial_region_history.get(region_name, {}).get("administrative_burden", region.administrative_burden),
+            "administrative_support": initial_region_history.get(region_name, {}).get("administrative_support", region.administrative_support),
+            "administrative_distance": initial_region_history.get(region_name, {}).get("administrative_distance", region.administrative_distance),
+            "administrative_autonomy": initial_region_history.get(region_name, {}).get("administrative_autonomy", region.administrative_autonomy),
+            "administrative_tax_capture": initial_region_history.get(region_name, {}).get("administrative_tax_capture", region.administrative_tax_capture),
             "homeland_faction_id": initial_region_history.get(region_name, {}).get("homeland_faction_id"),
             "integrated_owner": initial_region_history.get(region_name, {}).get("integrated_owner"),
             "integration_score": initial_region_history.get(region_name, {}).get("integration_score", 0.0),
@@ -847,6 +857,11 @@ def build_simulation_snapshots(world):
                 "frontier_settler_inflow": region["frontier_settler_inflow"],
                 "migration_pressure": region["migration_pressure"],
                 "migration_attraction": region["migration_attraction"],
+                "administrative_burden": region["administrative_burden"],
+                "administrative_support": region["administrative_support"],
+                "administrative_distance": region["administrative_distance"],
+                "administrative_autonomy": region["administrative_autonomy"],
+                "administrative_tax_capture": region["administrative_tax_capture"],
                 "homeland_faction_id": region["homeland_faction_id"],
                 "integrated_owner": region["integrated_owner"],
                 "integration_score": region["integration_score"],
@@ -981,6 +996,11 @@ def build_simulation_snapshots(world):
             region_state[region_name]["frontier_settler_inflow"] = history_region.get("frontier_settler_inflow", region_state[region_name]["frontier_settler_inflow"])
             region_state[region_name]["migration_pressure"] = history_region.get("migration_pressure", region_state[region_name]["migration_pressure"])
             region_state[region_name]["migration_attraction"] = history_region.get("migration_attraction", region_state[region_name]["migration_attraction"])
+            region_state[region_name]["administrative_burden"] = history_region.get("administrative_burden", region_state[region_name]["administrative_burden"])
+            region_state[region_name]["administrative_support"] = history_region.get("administrative_support", region_state[region_name]["administrative_support"])
+            region_state[region_name]["administrative_distance"] = history_region.get("administrative_distance", region_state[region_name]["administrative_distance"])
+            region_state[region_name]["administrative_autonomy"] = history_region.get("administrative_autonomy", region_state[region_name]["administrative_autonomy"])
+            region_state[region_name]["administrative_tax_capture"] = history_region.get("administrative_tax_capture", region_state[region_name]["administrative_tax_capture"])
             region_state[region_name]["display_name"] = history_region["display_name"] or region_state[region_name]["display_name"]
             region_state[region_name]["founding_name"] = history_region["founding_name"]
             region_state[region_name]["original_namer_faction_id"] = history_region["original_namer_faction_id"]
@@ -1090,6 +1110,11 @@ def build_simulation_snapshots(world):
                     "frontier_settler_inflow": region["frontier_settler_inflow"],
                     "migration_pressure": region["migration_pressure"],
                     "migration_attraction": region["migration_attraction"],
+                    "administrative_burden": region["administrative_burden"],
+                    "administrative_support": region["administrative_support"],
+                    "administrative_distance": region["administrative_distance"],
+                    "administrative_autonomy": region["administrative_autonomy"],
+                    "administrative_tax_capture": region["administrative_tax_capture"],
                     "homeland_faction_id": region["homeland_faction_id"],
                     "integrated_owner": region["integrated_owner"],
                     "integration_score": region["integration_score"],
@@ -4660,6 +4685,21 @@ def render_simulation_html(world):
               <div class="detail-value">${{escapeHtml(regionSnapshot.core_status || "frontier")}} (${{Number(regionSnapshot.integration_score || 0).toFixed(1)}})</div>
             </div>
             <div class="detail-row">
+              <div class="detail-label">Administration</div>
+              <div class="detail-value">
+                Capture ${{Number((regionSnapshot.administrative_tax_capture ?? staticRegion.administrative_tax_capture ?? 1) * 100).toFixed(0)}}%
+                / Autonomy ${{Number(regionSnapshot.administrative_autonomy ?? staticRegion.administrative_autonomy ?? 0).toFixed(2)}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Burden / Support</div>
+              <div class="detail-value">
+                ${{Number(regionSnapshot.administrative_burden ?? staticRegion.administrative_burden ?? 0).toFixed(2)}}
+                / ${{Number(regionSnapshot.administrative_support ?? staticRegion.administrative_support ?? 0).toFixed(2)}}
+                / Dist ${{Number(regionSnapshot.administrative_distance ?? staticRegion.administrative_distance ?? 0).toFixed(2)}}
+              </div>
+            </div>
+            <div class="detail-row">
               <div class="detail-label">Unrest</div>
               <div class="detail-value">
                 <span class="terrain-chip" style="background:${{getUnrestColor(regionSnapshot)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
@@ -5162,6 +5202,8 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Food Stores:</strong> ${{Number(metrics.food_stored || 0).toFixed(1)}} / ${{Number(metrics.food_storage_capacity || 0).toFixed(1)}} | +${{Number(metrics.food_produced || 0).toFixed(1)}} / -${{Number(metrics.food_consumption || 0).toFixed(1)}}</div>
             <div class="metric-line"><strong>Food Pressure:</strong> Balance ${{Number(metrics.food_balance || 0).toFixed(1)}} / Deficit ${{Number(metrics.food_deficit || 0).toFixed(1)}} / Waste ${{Number((metrics.food_spoilage || 0) + (metrics.food_overflow || 0)).toFixed(1)}}</div>
             <div class="metric-line"><strong>Migration:</strong> In ${{Number(metrics.migration_inflow || 0).toFixed(0)}} / Out ${{Number(metrics.migration_outflow || 0).toFixed(0)}} | Refugees ${{Number(metrics.refugee_inflow || 0).toFixed(0)}} in / ${{Number(metrics.refugee_outflow || 0).toFixed(0)}} out | Frontier settlers ${{Number(metrics.frontier_settlers || 0).toFixed(0)}}</div>
+            <div class="metric-line"><strong>Administration:</strong> Capacity ${{Number(metrics.administrative_capacity || 0).toFixed(2)}} / Load ${{Number(metrics.administrative_load || 0).toFixed(2)}} | Efficiency ${{Number((metrics.administrative_efficiency || 0) * 100).toFixed(0)}}% | Reach ${{Number((metrics.administrative_reach || 0) * 100).toFixed(0)}}%</div>
+            <div class="metric-line"><strong>Overextension:</strong> ${{Number(metrics.administrative_overextension || 0).toFixed(2)}} | Penalty ${{Number(metrics.administrative_overextension_penalty || 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Trade Warfare:</strong> Damage ${{Number(metrics.trade_warfare_damage || 0).toFixed(2)}} | Blockade losses ${{Number(metrics.trade_blockade_losses || 0).toFixed(2)}} | Corridor exposure ${{Number((metrics.trade_corridor_exposure || 0) * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Tribute Flow:</strong> Income ${{Number(metrics.tribute_income || 0).toFixed(2)}} | Paid ${{Number(metrics.tribute_paid || 0).toFixed(2)}}</div>
           </article>

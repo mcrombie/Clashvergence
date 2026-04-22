@@ -51,6 +51,7 @@ from src.heartland import (
     resolve_population_migration,
     resolve_unrest_events,
     register_religion,
+    refresh_administrative_state,
     seed_region_ethnicity,
     seed_region_religion,
     transfer_region_population,
@@ -217,6 +218,117 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertIn("frontier_regions", faction_metrics)
         self.assertGreaterEqual(faction_metrics["homeland_regions"], 1)
         self.assertGreaterEqual(faction_metrics["frontier_regions"], 1)
+
+    def test_frontier_region_shows_more_autonomy_and_lower_tax_capture_than_homeland(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        homeland_region = next(
+            region
+            for region in world.regions.values()
+            if region.owner == faction_name and region.core_status == "homeland"
+        )
+        frontier_region = world.regions["M"]
+        frontier_region.owner = faction_name
+        frontier_region.integrated_owner = faction_name
+        frontier_region.integration_score = 1.0
+        frontier_region.core_status = "frontier"
+        frontier_region.population = 220
+        frontier_region.infrastructure_level = 0.0
+        frontier_region.road_level = 0.0
+        frontier_region.market_level = 0.0
+        frontier_region.storehouse_level = 0.0
+        update_region_integration(world)
+
+        self.assertGreater(frontier_region.administrative_autonomy, homeland_region.administrative_autonomy)
+        self.assertLess(frontier_region.administrative_tax_capture, homeland_region.administrative_tax_capture)
+
+    def test_overextended_realm_adds_administrative_penalty_to_economy_snapshot(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        faction = world.factions[faction_name]
+        faction.identity.set_government_structure("band", "leader")
+        faction.succession.legitimacy = 0.38
+        faction.religion.religious_legitimacy = 0.3
+
+        extra_regions = [name for name, region in world.regions.items() if region.owner is None][:4]
+        for region_name in extra_regions:
+            region = world.regions[region_name]
+            region.owner = faction_name
+            region.integrated_owner = faction_name
+            region.integration_score = 1.0
+            region.core_status = "frontier"
+            region.population = 190
+            region.infrastructure_level = 0.0
+            region.road_level = 0.0
+            region.market_level = 0.0
+            region.storehouse_level = 0.0
+
+        snapshot = get_faction_economy_snapshot(world)
+
+        self.assertGreater(faction.administrative_overextension, 0.0)
+        self.assertGreater(faction.administrative_overextension_penalty, 0.0)
+        self.assertGreater(snapshot[faction_name]["empire_penalty"], 0.0)
+
+    def test_stronger_state_integrates_frontier_faster_than_overextended_polity(self):
+        strong_world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        weak_world = deepcopy(strong_world)
+        faction_name = next(iter(strong_world.factions))
+
+        strong_region = strong_world.regions["M"]
+        strong_region.owner = faction_name
+        strong_region.integrated_owner = faction_name
+        strong_region.integration_score = 1.0
+        strong_region.core_status = "frontier"
+        strong_region.population = 180
+        strong_region.infrastructure_level = 0.7
+        strong_region.road_level = 0.7
+        strong_region.market_level = 0.5
+        strong_region.storehouse_level = 0.4
+        strong_world.factions[faction_name].identity.set_government_structure("state", "republic")
+        strong_world.factions[faction_name].succession.legitimacy = 0.82
+        strong_world.factions[faction_name].religion.religious_legitimacy = 0.76
+
+        weak_region = weak_world.regions["M"]
+        weak_region.owner = faction_name
+        weak_region.integrated_owner = faction_name
+        weak_region.integration_score = 1.0
+        weak_region.core_status = "frontier"
+        weak_region.population = 180
+        weak_region.infrastructure_level = 0.0
+        weak_region.road_level = 0.0
+        weak_region.market_level = 0.0
+        weak_region.storehouse_level = 0.0
+        weak_world.factions[faction_name].identity.set_government_structure("band", "leader")
+        weak_world.factions[faction_name].succession.legitimacy = 0.36
+        weak_world.factions[faction_name].religion.religious_legitimacy = 0.28
+        for region_name in [name for name, region in weak_world.regions.items() if region.owner is None][:4]:
+            region = weak_world.regions[region_name]
+            region.owner = faction_name
+            region.integrated_owner = faction_name
+            region.integration_score = 1.0
+            region.core_status = "frontier"
+            region.population = 180
+            region.infrastructure_level = 0.0
+            region.road_level = 0.0
+
+        update_region_integration(strong_world)
+        update_region_integration(weak_world)
+
+        self.assertGreater(strong_world.regions["M"].integration_score, weak_world.regions["M"].integration_score)
+
+    def test_metrics_and_snapshots_expose_administrative_state(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        refresh_administrative_state(world)
+        faction_name = next(iter(world.factions))
+
+        metrics = build_turn_metrics(world)["factions"][faction_name]
+        snapshots = build_simulation_snapshots(world)
+        region_snapshot = snapshots[0]["regions"][next(iter(world.regions))]
+
+        self.assertIn("administrative_capacity", metrics)
+        self.assertIn("administrative_overextension_penalty", metrics)
+        self.assertIn("administrative_burden", region_snapshot)
+        self.assertIn("administrative_tax_capture", region_snapshot)
 
     def test_world_initializes_dynastic_succession_state(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)

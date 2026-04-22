@@ -1,4 +1,5 @@
 from src.diplomacy import get_faction_diplomacy_summary
+from src.heartland import refresh_administrative_state
 from src.region_state import get_region_core_status
 
 
@@ -20,6 +21,7 @@ def get_owned_region_counts(world):
 
 def build_turn_metrics(world, economy_snapshot=None):
     """Builds a per-faction metrics snapshot for the just-completed turn."""
+    refresh_administrative_state(world)
     turn_events = get_turn_events(world, world.turn)
     owned_region_counts = get_owned_region_counts(world)
     faction_metrics = {}
@@ -160,6 +162,12 @@ def build_turn_metrics(world, economy_snapshot=None):
             "trade_blockade_losses": round(faction.trade_blockade_losses, 3),
             "tribute_income": round(faction.tribute_income, 3),
             "tribute_paid": round(faction.tribute_paid, 3),
+            "administrative_capacity": round(float(faction.administrative_capacity or 0.0), 3),
+            "administrative_load": round(float(faction.administrative_load or 0.0), 3),
+            "administrative_efficiency": round(float(faction.administrative_efficiency or 1.0), 3),
+            "administrative_reach": round(float(faction.administrative_reach or 1.0), 3),
+            "administrative_overextension": round(float(faction.administrative_overextension or 0.0), 3),
+            "administrative_overextension_penalty": round(float(faction.administrative_overextension_penalty or 0.0), 3),
             "migration_inflow": int(faction.migration_inflow or 0),
             "migration_outflow": int(faction.migration_outflow or 0),
             "refugee_inflow": int(faction.refugee_inflow or 0),

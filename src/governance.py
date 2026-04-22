@@ -9,6 +9,8 @@ POLITY_TIER_MODIFIERS = {
         "maintenance_factor": 0.70,
         "integration_factor": 0.65,
         "stability_factor": 0.90,
+        "administrative_capacity_factor": 0.78,
+        "administrative_reach_factor": 0.84,
         "attack_bias": -1,
         "realm_size_unrest_factor": 1.40,
     },
@@ -17,6 +19,8 @@ POLITY_TIER_MODIFIERS = {
         "maintenance_factor": 0.90,
         "integration_factor": 1.00,
         "stability_factor": 1.00,
+        "administrative_capacity_factor": 0.96,
+        "administrative_reach_factor": 0.96,
         "attack_bias": 0,
         "realm_size_unrest_factor": 1.10,
     },
@@ -25,6 +29,8 @@ POLITY_TIER_MODIFIERS = {
         "maintenance_factor": 1.00,
         "integration_factor": 1.05,
         "stability_factor": 1.08,
+        "administrative_capacity_factor": 1.1,
+        "administrative_reach_factor": 1.04,
         "attack_bias": 1,
         "realm_size_unrest_factor": 0.95,
     },
@@ -33,6 +39,8 @@ POLITY_TIER_MODIFIERS = {
         "maintenance_factor": 1.10,
         "integration_factor": 1.15,
         "stability_factor": 1.16,
+        "administrative_capacity_factor": 1.26,
+        "administrative_reach_factor": 1.12,
         "attack_bias": 1,
         "realm_size_unrest_factor": 0.85,
     },
@@ -44,36 +52,48 @@ GOVERNMENT_FORM_MODIFIERS = {
         "stability_factor": 0.92,
         "attack_bias": 1,
         "integration_factor": 0.95,
+        "administrative_capacity_factor": 0.94,
+        "administrative_reach_factor": 0.95,
     },
     "council": {
         "income_factor": 1.00,
         "stability_factor": 1.06,
         "attack_bias": 0,
         "integration_factor": 1.00,
+        "administrative_capacity_factor": 1.0,
+        "administrative_reach_factor": 1.0,
     },
     "assembly": {
         "income_factor": 0.98,
         "stability_factor": 1.10,
         "attack_bias": -1,
         "integration_factor": 1.02,
+        "administrative_capacity_factor": 0.98,
+        "administrative_reach_factor": 0.97,
     },
     "monarchy": {
         "income_factor": 1.03,
         "stability_factor": 0.98,
         "attack_bias": 1,
         "integration_factor": 1.05,
+        "administrative_capacity_factor": 1.05,
+        "administrative_reach_factor": 1.03,
     },
     "republic": {
         "income_factor": 1.08,
         "stability_factor": 1.04,
         "attack_bias": 0,
         "integration_factor": 1.08,
+        "administrative_capacity_factor": 1.08,
+        "administrative_reach_factor": 1.07,
     },
     "oligarchy": {
         "income_factor": 1.10,
         "stability_factor": 0.94,
         "attack_bias": 0,
         "integration_factor": 0.96,
+        "administrative_capacity_factor": 1.02,
+        "administrative_reach_factor": 1.0,
     },
 }
 
@@ -128,6 +148,18 @@ def get_faction_stability_modifier(faction: Faction | None) -> float:
     polity = get_faction_polity_modifiers(faction)
     form = get_faction_government_form_modifiers(faction)
     return polity["stability_factor"] * form["stability_factor"]
+
+
+def get_faction_administrative_capacity_modifier(faction: Faction | None) -> float:
+    polity = get_faction_polity_modifiers(faction)
+    form = get_faction_government_form_modifiers(faction)
+    return polity["administrative_capacity_factor"] * form["administrative_capacity_factor"]
+
+
+def get_faction_administrative_reach_modifier(faction: Faction | None) -> float:
+    polity = get_faction_polity_modifiers(faction)
+    form = get_faction_government_form_modifiers(faction)
+    return polity["administrative_reach_factor"] * form["administrative_reach_factor"]
 
 
 def get_faction_realm_size_unrest_factor(faction: Faction | None) -> float:

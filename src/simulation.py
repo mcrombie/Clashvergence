@@ -18,6 +18,7 @@ from src.resource_economy import (
 from src.visibility import refresh_all_faction_visibility, refresh_faction_visibility
 from src.heartland import (
     get_region_surplus,
+    refresh_administrative_state,
     record_region_history,
     resolve_dynastic_succession,
     resolve_population_migration,
@@ -35,6 +36,7 @@ import random
 
 def get_faction_economy_snapshot(world):
     """Returns per-faction owned regions, income, penalties, and net change."""
+    refresh_administrative_state(world)
     snapshot = {
         faction_name: {
             "owned_regions": 0,
@@ -75,6 +77,7 @@ def get_faction_economy_snapshot(world):
             0,
             data["owned_regions"] - EMPIRE_FREE_REGIONS,
         ) * EMPIRE_SCALE_COST
+        data["empire_penalty"] += float(world.factions[faction_name].administrative_overextension_penalty or 0.0)
         data["effective_income"] = data["base_income"] - data["empire_penalty"]
         data["net"] = data["effective_income"] - data["maintenance"]
 
@@ -102,6 +105,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
 
     advance_trade_warfare_state(world)
     update_faction_resource_economy(world, advance_resources=True)
+    refresh_administrative_state(world)
     refresh_all_faction_visibility(world)
 
     # shuffle turn order
@@ -115,6 +119,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
 
     for faction_name in turn_order:
         update_faction_resource_economy(world, advance_resources=False)
+        refresh_administrative_state(world)
         refresh_faction_visibility(world, faction_name)
         action_name, target_region_name = choose_action(faction_name, world)
 
@@ -147,13 +152,17 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
                 print(f"{faction_name} skipped its turn")
 
         refresh_faction_visibility(world, faction_name)
+        refresh_administrative_state(world)
 
     update_faction_resource_economy(world, advance_resources=False)
+    refresh_administrative_state(world)
     resolve_unrest_events(world)
     update_faction_resource_economy(world, advance_resources=False)
+    refresh_administrative_state(world)
     economy_snapshot = apply_turn_economy(world)
     apply_turn_food_economy(world)
     update_region_integration(world)
+    refresh_administrative_state(world)
     update_religious_legitimacy(world)
     resolve_dynastic_succession(world)
     update_region_populations(world)
@@ -162,6 +171,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     update_faction_resource_economy(world, advance_resources=False)
     update_rebel_faction_status(world)
     update_faction_polity_tiers(world)
+    refresh_administrative_state(world)
     update_relationships(world)
     apply_tributary_flows(world, economy_snapshot=economy_snapshot)
     update_faction_doctrines(world)

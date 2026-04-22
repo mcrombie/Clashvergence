@@ -4,6 +4,8 @@ from heapq import heappop, heappush
 from math import ceil
 
 from src.config import (
+    ADMIN_MAINTENANCE_AUTONOMY_FACTOR,
+    ADMIN_MAINTENANCE_EFFICIENCY_FACTOR,
     FOOD_STORAGE_AGRICULTURE_FACTOR,
     FOOD_STORAGE_BASE_PER_REGION,
     FOOD_STORAGE_BASE_SPOILAGE,
@@ -353,6 +355,11 @@ def ensure_region_resource_state(region: Region) -> None:
     region.trade_foreign_flow = round(max(0.0, float(region.trade_foreign_flow or 0.0)), 3)
     region.trade_foreign_value = round(max(0.0, float(region.trade_foreign_value or 0.0)), 3)
     region.trade_gateway_role = (region.trade_gateway_role or "none").strip().lower()
+    region.administrative_burden = round(max(0.0, float(region.administrative_burden or 0.0)), 3)
+    region.administrative_support = round(max(0.0, float(region.administrative_support or 0.0)), 3)
+    region.administrative_distance = round(max(0.0, float(region.administrative_distance or 0.0)), 3)
+    region.administrative_autonomy = round(max(0.0, float(region.administrative_autonomy or 0.0)), 3)
+    region.administrative_tax_capture = round(_clamp(float(region.administrative_tax_capture or 1.0), 0.2, 1.1), 3)
     region.storehouse_level = round(max(0.0, float(region.storehouse_level or 0.0)), 2)
     region.market_level = round(max(0.0, float(region.market_level or 0.0)), 2)
     region.irrigation_level = round(max(0.0, float(region.irrigation_level or 0.0)), 2)
@@ -410,6 +417,12 @@ def _ensure_faction_resource_state(faction: Faction) -> None:
     faction.trade_foreign_imported_flow = round(max(0.0, float(faction.trade_foreign_imported_flow or 0.0)), 3)
     faction.trade_warfare_damage = round(max(0.0, float(faction.trade_warfare_damage or 0.0)), 3)
     faction.trade_blockade_losses = round(max(0.0, float(faction.trade_blockade_losses or 0.0)), 3)
+    faction.administrative_capacity = round(max(0.0, float(faction.administrative_capacity or 0.0)), 3)
+    faction.administrative_load = round(max(0.0, float(faction.administrative_load or 0.0)), 3)
+    faction.administrative_efficiency = round(_clamp(float(faction.administrative_efficiency or 1.0), 0.0, 2.0), 3)
+    faction.administrative_reach = round(_clamp(float(faction.administrative_reach or 1.0), 0.0, 2.0), 3)
+    faction.administrative_overextension = round(max(0.0, float(faction.administrative_overextension or 0.0)), 3)
+    faction.administrative_overextension_penalty = round(max(0.0, float(faction.administrative_overextension_penalty or 0.0)), 3)
 
 
 def get_region_resource_workforce_factor(region: Region) -> float:
@@ -2572,7 +2585,10 @@ def get_region_taxable_value(
 ) -> float:
     trade_value_bonus = round(max(0.0, float(region.trade_value_bonus or 0.0)), 2)
     if region.resource_monetized_value > 0:
-        return round(float(region.resource_monetized_value) + trade_value_bonus, 2)
+        base_value = float(region.resource_monetized_value) + trade_value_bonus
+        if world is not None and region.owner in world.factions:
+            base_value *= max(0.2, float(region.administrative_tax_capture or 1.0))
+        return round(base_value, 2)
 
     if region.resources > 0 and world is None:
         return float(region.resources)
@@ -2593,16 +2609,18 @@ def get_region_taxable_value(
         if world is not None
         else retained_output
     )
-    return round(
+    taxable_value = (
         _get_monetized_value_from_output(
-        normalize_resource_map(routed_output),
-        region,
-        world,
-        faction_route_map=faction_route_map,
+            normalize_resource_map(routed_output),
+            region,
+            world,
+            faction_route_map=faction_route_map,
         )
-        + trade_value_bonus,
-        2,
+        + trade_value_bonus
     )
+    if world is not None and region.owner in world.factions:
+        taxable_value *= max(0.2, float(region.administrative_tax_capture or 1.0))
+    return round(taxable_value, 2)
 
 
 def get_region_effective_income(region: Region, world: WorldState | None = None) -> int:
@@ -2623,9 +2641,16 @@ def get_region_maintenance_cost(region: Region, world: WorldState | None = None)
     if world is None:
         unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
         unrest_factor = 1.0 + ((UNREST_MAINTENANCE_MAX_FACTOR - 1.0) * unrest_ratio)
-        return int(ceil(base_cost * unrest_factor))
+        admin_factor = 1.0 + (float(region.administrative_autonomy or 0.0) * ADMIN_MAINTENANCE_AUTONOMY_FACTOR)
+        return int(ceil(base_cost * unrest_factor * admin_factor))
     if region.owner in world.factions:
-        base_cost *= get_faction_maintenance_modifier(world.factions[region.owner])
+        faction = world.factions[region.owner]
+        base_cost *= get_faction_maintenance_modifier(faction)
+        base_cost *= (
+            1.0
+            + (float(region.administrative_autonomy or 0.0) * ADMIN_MAINTENANCE_AUTONOMY_FACTOR)
+            + (max(0.0, 1.0 - float(faction.administrative_efficiency or 1.0)) * ADMIN_MAINTENANCE_EFFICIENCY_FACTOR)
+        )
     climate_factor = get_region_climate_maintenance_factor(region, world)
     unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
     unrest_factor = 1.0 + ((UNREST_MAINTENANCE_MAX_FACTOR - 1.0) * unrest_ratio)

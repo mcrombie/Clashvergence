@@ -265,6 +265,11 @@ class Region:
     frontier_settler_inflow: int = 0
     migration_pressure: float = 0.0
     migration_attraction: float = 0.0
+    administrative_burden: float = 0.0
+    administrative_support: float = 0.0
+    administrative_distance: float = 0.0
+    administrative_autonomy: float = 0.0
+    administrative_tax_capture: float = 1.0
     population: int = 0
     ethnic_composition: dict[str, int] = field(default_factory=dict)
     religious_composition: dict[str, int] = field(default_factory=dict)
@@ -407,6 +412,12 @@ class Faction:
     refugee_inflow: int = 0
     refugee_outflow: int = 0
     frontier_settlers: int = 0
+    administrative_capacity: float = 0.0
+    administrative_load: float = 0.0
+    administrative_efficiency: float = 1.0
+    administrative_reach: float = 1.0
+    administrative_overextension: float = 0.0
+    administrative_overextension_penalty: float = 0.0
     known_regions: list[str] = field(default_factory=list)
     visible_regions: list[str] = field(default_factory=list)
     known_factions: list[str] = field(default_factory=list)
