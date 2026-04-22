@@ -149,6 +149,8 @@ RESOURCE_ROUTE_PORT_BLOCKADE_DAMAGE = 0.5
 FOREIGN_TRADE_RELATIONSHIP_FACTORS = {
     "alliance": 1.0,
     "non_aggression_pact": 0.78,
+    "tributary": 0.9,
+    "overlord": 0.9,
 }
 FOREIGN_TRADE_BORDER_GATEWAY_FACTOR = 0.72
 FOREIGN_TRADE_SEA_GATEWAY_FACTOR = 0.9
@@ -603,6 +605,8 @@ def _get_contested_trade_edge_pressure(
         base_pressure = RESOURCE_ROUTE_CONTESTED_UNKNOWN_EDGE_PRESSURE
     elif status == "alliance":
         base_pressure = 0.0
+    elif status in {"tributary", "overlord"}:
+        base_pressure = 0.02
     elif status == "non_aggression_pact":
         base_pressure = RESOURCE_ROUTE_CONTESTED_PACT_EDGE_PRESSURE
     elif status == "truce":

@@ -400,6 +400,8 @@ class Faction:
     trade_foreign_imported_flow: float = 0.0
     trade_warfare_damage: float = 0.0
     trade_blockade_losses: float = 0.0
+    tribute_income: float = 0.0
+    tribute_paid: float = 0.0
     migration_inflow: int = 0
     migration_outflow: int = 0
     refugee_inflow: int = 0
@@ -531,6 +533,10 @@ class RelationshipState:
     border_friction: float = 0.0
     trust: float = 0.0
     grievance: float = 0.0
+    subordinate_faction: str | None = None
+    subordination_type: str = "tributary"
+    tribute_share: float = 0.0
+    subordination_turns: int = 0
 
 
 @dataclass

@@ -2,6 +2,7 @@ import unittest
 
 from src.actions import get_attack_target_score_components, get_attackable_regions
 from src.diplomacy import (
+    apply_tributary_flows,
     get_attack_diplomacy_modifier,
     get_faction_diplomacy_summary,
     get_relationship_state,
@@ -10,6 +11,7 @@ from src.diplomacy import (
     seed_rebel_origin_relationship,
     update_relationships,
 )
+from src.metrics import build_turn_metrics
 from src.models import Event, Faction, FactionIdentity, Region, RelationshipState, WorldState
 from src.simulation_ui import _serialize_event
 from src.visibility import establish_faction_contact, initialize_faction_visibility, refresh_faction_visibility
@@ -141,6 +143,150 @@ class DiplomacySystemTests(unittest.TestCase):
         self.assertEqual(pact_score["diplomacy_attack_modifier"], -45)
         self.assertLess(pact_score["score"], neutral_score["score"])
 
+    def test_directional_tributary_status_and_attack_penalties(self):
+        world = self._make_two_faction_border_world()
+        world.relationships[("FactionA", "FactionB")] = RelationshipState(
+            score=30.0,
+            status="tributary",
+            subordinate_faction="FactionB",
+            subordination_type="vassal",
+            tribute_share=0.18,
+            years_at_peace=4,
+            trust=22.0,
+        )
+
+        self.assertEqual(get_relationship_status(world, "FactionA", "FactionB"), "tributary")
+        self.assertEqual(get_relationship_status(world, "FactionB", "FactionA"), "overlord")
+        self.assertEqual(get_attack_diplomacy_modifier(world, "FactionA", "FactionB"), (-60, "tributary"))
+        self.assertEqual(get_attack_diplomacy_modifier(world, "FactionB", "FactionA"), (-45, "overlord"))
+
+    def test_update_relationships_can_form_tributary_hierarchy(self):
+        world = WorldState(
+            regions={
+                "A1": Region(
+                    name="A1",
+                    neighbors=["A2", "B1"],
+                    owner="FactionA",
+                    resources=4,
+                    population=160,
+                    ethnic_composition={"Aeth": 160},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+                "A2": Region(
+                    name="A2",
+                    neighbors=["A1"],
+                    owner="FactionA",
+                    resources=4,
+                    population=140,
+                    ethnic_composition={"Aeth": 140},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+                "B1": Region(
+                    name="B1",
+                    neighbors=["A1"],
+                    owner="FactionB",
+                    resources=3,
+                    population=85,
+                    ethnic_composition={"Beth": 85},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+            },
+            factions={
+                "FactionA": Faction(
+                    name="FactionA",
+                    treasury=20,
+                    primary_ethnicity="Aeth",
+                    identity=FactionIdentity(
+                        internal_id="FactionA",
+                        culture_name="Aeth",
+                        polity_tier="state",
+                        government_form="monarchy",
+                    ),
+                ),
+                "FactionB": Faction(
+                    name="FactionB",
+                    treasury=4,
+                    primary_ethnicity="Beth",
+                    identity=FactionIdentity(
+                        internal_id="FactionB",
+                        culture_name="Beth",
+                        polity_tier="tribe",
+                        government_form="council",
+                    ),
+                ),
+            },
+        )
+        initialize_relationships(world)
+        state = get_relationship_state(world, "FactionA", "FactionB")
+        state.years_at_peace = 3
+        state.trust = 24.0
+
+        update_relationships(world)
+        state = get_relationship_state(world, "FactionA", "FactionB")
+
+        self.assertEqual(state.status, "tributary")
+        self.assertEqual(state.subordinate_faction, "FactionB")
+        self.assertEqual(state.subordination_type, "vassal")
+        self.assertGreater(state.tribute_share, 0.15)
+        self.assertEqual(get_relationship_status(world, "FactionA", "FactionB"), "tributary")
+
+    def test_attack_breaks_tributary_hierarchy(self):
+        world = self._make_two_faction_border_world()
+        world.relationships[("FactionA", "FactionB")] = RelationshipState(
+            score=24.0,
+            status="tributary",
+            subordinate_faction="FactionB",
+            subordination_type="tributary",
+            tribute_share=0.12,
+            years_at_peace=3,
+            trust=16.0,
+        )
+        world.turn = 1
+        world.events.append(Event(
+            turn=1,
+            type="attack",
+            faction="FactionB",
+            region="A",
+            details={"defender": "FactionA", "success": False},
+        ))
+
+        update_relationships(world)
+        state = get_relationship_state(world, "FactionA", "FactionB")
+
+        self.assertNotEqual(state.status, "tributary")
+        self.assertIsNone(state.subordinate_faction)
+        self.assertEqual(get_relationship_status(world, "FactionA", "FactionB"), "truce")
+
+    def test_apply_tributary_flows_transfers_treasury(self):
+        world = self._make_two_faction_border_world()
+        world.relationships[("FactionA", "FactionB")] = RelationshipState(
+            score=28.0,
+            status="tributary",
+            subordinate_faction="FactionB",
+            subordination_type="tributary",
+            tribute_share=0.12,
+            years_at_peace=4,
+            trust=20.0,
+        )
+        world.factions["FactionA"].treasury = 10
+        world.factions["FactionB"].treasury = 9
+
+        apply_tributary_flows(
+            world,
+            economy_snapshot={
+                "FactionA": {"effective_income": 6},
+                "FactionB": {"effective_income": 10},
+            },
+        )
+
+        self.assertAlmostEqual(world.factions["FactionA"].treasury, 11.2)
+        self.assertAlmostEqual(world.factions["FactionB"].treasury, 7.8)
+        self.assertAlmostEqual(world.factions["FactionA"].tribute_income, 1.2)
+        self.assertAlmostEqual(world.factions["FactionB"].tribute_paid, 1.2)
+
     def test_ethnic_claim_pressure_worsens_relations_when_claims_are_occupied(self):
         world = self._make_two_faction_border_world()
         world.regions["B"].ethnic_composition = {"Aeth": 100}
@@ -219,6 +365,40 @@ class DiplomacySystemTests(unittest.TestCase):
         self.assertEqual(summary["truce_count"], 0)
         self.assertEqual(summary["pact_count"], 1)
         self.assertEqual(summary["rival_count"], 1)
+
+    def test_diplomacy_summary_reports_overlord_and_tributaries(self):
+        world = WorldState(
+            regions={},
+            factions={
+                "FactionA": Faction(name="FactionA"),
+                "FactionB": Faction(name="FactionB"),
+                "FactionC": Faction(name="FactionC"),
+            },
+        )
+        initialize_relationships(world)
+        world.relationships[("FactionA", "FactionB")] = RelationshipState(
+            score=28.0,
+            status="tributary",
+            subordinate_faction="FactionB",
+            subordination_type="vassal",
+            tribute_share=0.18,
+        )
+        world.relationships[("FactionA", "FactionC")] = RelationshipState(
+            score=24.0,
+            status="tributary",
+            subordinate_faction="FactionC",
+            subordination_type="tributary",
+            tribute_share=0.12,
+        )
+
+        overlord_summary = get_faction_diplomacy_summary(world, "FactionA")
+        subordinate_summary = get_faction_diplomacy_summary(world, "FactionB")
+
+        self.assertEqual(overlord_summary["tributary_count"], 2)
+        self.assertEqual(overlord_summary["vassal_count"], 1)
+        self.assertEqual(overlord_summary["top_tributary"], "FactionB")
+        self.assertEqual(subordinate_summary["overlord"], "FactionA")
+        self.assertEqual(subordinate_summary["overlord_type"], "vassal")
 
     def test_diplomacy_summary_reports_top_claim_dispute(self):
         world = self._make_two_faction_border_world()
@@ -571,6 +751,43 @@ class DiplomacySystemTests(unittest.TestCase):
 
         self.assertIn("rival regime", serialized["title"].lower())
         self.assertIn("rival republic", serialized["summary"].lower())
+
+    def test_serialized_tributary_event_mentions_hierarchy(self):
+        world = self._make_two_faction_border_world()
+        event = Event(
+            turn=0,
+            type="diplomacy_tributary",
+            faction="FactionA",
+            details={
+                "counterpart": "FactionB",
+                "subordination_type": "vassal",
+                "tribute_share": 0.18,
+            },
+        )
+
+        serialized = _serialize_event(event, world)
+
+        self.assertIn("orbit", serialized["title"].lower())
+        self.assertIn("tribute", serialized["summary"].lower())
+
+    def test_metrics_expose_tribute_fields(self):
+        world = self._make_two_faction_border_world()
+        world.relationships[("FactionA", "FactionB")] = RelationshipState(
+            score=28.0,
+            status="tributary",
+            subordinate_faction="FactionB",
+            subordination_type="tributary",
+            tribute_share=0.12,
+        )
+        world.factions["FactionA"].tribute_income = 1.2
+        world.factions["FactionB"].tribute_paid = 1.2
+
+        metrics = build_turn_metrics(world)
+
+        self.assertEqual(metrics["factions"]["FactionA"]["tribute_income"], 1.2)
+        self.assertEqual(metrics["factions"]["FactionA"]["tributary_count"], 1)
+        self.assertEqual(metrics["factions"]["FactionB"]["tribute_paid"], 1.2)
+        self.assertEqual(metrics["factions"]["FactionB"]["overlord"], "FactionA")
 
     def test_serialized_regime_agitation_event_mentions_sponsor(self):
         world = self._make_two_faction_border_world()

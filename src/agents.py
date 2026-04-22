@@ -155,6 +155,10 @@ def choose_action(faction_name, world):
         if best_attack_components is not None:
             if best_attack_components["diplomacy_status"] == "non_aggression_pact":
                 attack_utility -= 0.45
+            elif best_attack_components["diplomacy_status"] == "overlord":
+                attack_utility -= 0.48
+            elif best_attack_components["diplomacy_status"] == "tributary":
+                attack_utility -= 0.36
             elif best_attack_components["diplomacy_status"] == "rival":
                 attack_utility += 0.08
         action_utilities["attack"] = attack_utility

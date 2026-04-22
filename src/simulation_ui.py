@@ -291,10 +291,15 @@ def _get_event_title(event, world):
         return f"{faction_name} and {counterpart_name} signed a non-aggression pact"
     if event.type == "diplomacy_alliance":
         return f"{faction_name} and {counterpart_name} formed an alliance"
+    if event.type == "diplomacy_tributary":
+        relation_label = event.get("subordination_type", "tributary")
+        return f"{counterpart_name} entered {faction_name}'s {relation_label} orbit"
     if event.type == "diplomacy_truce":
         return f"{faction_name} and {counterpart_name} entered a truce"
     if event.type == "diplomacy_truce_end":
         return f"{faction_name} and {counterpart_name} saw their truce expire"
+    if event.type == "diplomacy_tributary_break":
+        return f"{faction_name} lost its tributary relationship with {counterpart_name}"
     if event.type == "diplomacy_break":
         return f"{faction_name} and {counterpart_name} broke their accord"
     if event.type == "migration_wave":
@@ -390,6 +395,23 @@ def _get_event_summary(event, world):
         return (
             f"The ruling cult shifted from {event.get('old_religion', 'an older rite')} to "
             f"{event.get('new_religion', 'a reformed creed')}, reshaping legitimacy at the center."
+        )
+    if event.type == "diplomacy_tributary":
+        faction_name = _get_faction_display_name(world, event.faction)
+        counterpart_name = _get_faction_display_name(world, event.get("counterpart"))
+        relation_label = event.get("subordination_type", "tributary")
+        tribute_share = float(event.get("tribute_share", 0.0) or 0.0)
+        return (
+            f"{faction_name} secured {counterpart_name} as a {relation_label},"
+            f" with roughly {tribute_share:.0%} of effective income expected as tribute."
+        )
+    if event.type == "diplomacy_tributary_break":
+        faction_name = _get_faction_display_name(world, event.faction)
+        counterpart_name = _get_faction_display_name(world, event.get("counterpart"))
+        relation_label = event.get("subordination_type", "tributary")
+        return (
+            f"The {relation_label} bond between {faction_name} and {counterpart_name} broke down,"
+            f" ending routine tribute and deference."
         )
     if event.type in {"develop", "invest"}:
         project_type = event.get("project_type", "development").replace("_", " ")
@@ -527,6 +549,14 @@ def _get_event_summary(event, world):
             f"Shared interests hardened into a formal alignment that blocks direct conflict."
             + terrain_text
         )
+    if event.type == "diplomacy_tributary":
+        relation_label = event.get("subordination_type", "tributary")
+        tribute_share = float(event.get("tribute_share", 0.0) or 0.0)
+        return (
+            f"A durable hierarchy emerged: {counterpart_name} accepted {faction_name} as overlord in a {relation_label} relationship,"
+            f" with tribute expected at roughly {tribute_share:.0%} of effective income."
+            + terrain_text
+        )
     if event.type == "diplomacy_truce":
         return (
             f"Recent violence or a secession settlement forced a temporary pause in fighting."
@@ -535,6 +565,12 @@ def _get_event_summary(event, world):
     if event.type == "diplomacy_truce_end":
         return (
             f"The cooling-off period ended, leaving the relationship to settle into peace, rivalry, or renewed conflict."
+            + terrain_text
+        )
+    if event.type == "diplomacy_tributary_break":
+        relation_label = event.get("subordination_type", "tributary")
+        return (
+            f"The {relation_label} hierarchy between these factions unraveled, ending tribute transfers and restoring a more uncertain balance."
             + terrain_text
         )
     if event.type == "diplomacy_break":
@@ -1197,6 +1233,8 @@ def build_simulation_view_model(world):
             "trade_corridor_exposure": round(world.factions[faction_name].trade_corridor_exposure, 3),
             "trade_foreign_income": round(world.factions[faction_name].trade_foreign_income, 3),
             "trade_foreign_imported_flow": round(world.factions[faction_name].trade_foreign_imported_flow, 3),
+            "tribute_income": round(world.factions[faction_name].tribute_income, 3),
+            "tribute_paid": round(world.factions[faction_name].tribute_paid, 3),
             "migration_inflow": int(world.factions[faction_name].migration_inflow or 0),
             "migration_outflow": int(world.factions[faction_name].migration_outflow or 0),
             "refugee_inflow": int(world.factions[faction_name].refugee_inflow or 0),
@@ -3046,14 +3084,21 @@ def render_simulation_html(world):
         mobility_shortage: 0,
         metal_shortage: 0,
         construction_shortage: 0,
+        tribute_income: 0,
+        tribute_paid: 0,
         top_ally: "None",
         top_rival: "None",
+        overlord: null,
+        top_tributary: null,
+        top_tributary_share: 0,
         top_claim_dispute: null,
         top_claim_dispute_regions: 0,
         alliance_count: 0,
         truce_count: 0,
         pact_count: 0,
         rival_count: 0,
+        tributary_count: 0,
+        vassal_count: 0,
         claim_dispute_count: 0,
       }};
       const metrics = recordedMetrics || openingMetrics;
@@ -4632,8 +4677,10 @@ def render_simulation_html(world):
         event.type === "diplomacy_rivalry"
         || event.type === "diplomacy_pact"
         || event.type === "diplomacy_alliance"
+        || event.type === "diplomacy_tributary"
         || event.type === "diplomacy_truce"
         || event.type === "diplomacy_truce_end"
+        || event.type === "diplomacy_tributary_break"
         || event.type === "diplomacy_break"
       ) {{
         icon.symbol = "=";
@@ -5064,10 +5111,12 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Succession:</strong> legitimacy ${{(legitimacy * 100).toFixed(0)}}% | prestige ${{(prestige * 100).toFixed(0)}}% | regency ${{regencyTurns}} | crisis ${{successionCrisisTurns}} | claimant pressure ${{(claimantPressure * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Religion:</strong> ${{escapeHtml(officialReligion)}} | sacred sites ${{sacredSitesControlled}} / ${{totalSacredSites}} | religious legitimacy ${{(religiousLegitimacy * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Cult Politics:</strong> clergy ${{(clergySupport * 100).toFixed(0)}}% | tolerance ${{(religiousTolerance * 100).toFixed(0)}}% | zeal ${{(religiousZeal * 100).toFixed(0)}}% | state cult ${{(stateCultStrength * 100).toFixed(0)}}% | reform pressure ${{(reformPressure * 100).toFixed(0)}}%</div>
+            <div class="metric-line"><strong>Hierarchy:</strong> Overlord ${{escapeHtml(metrics.overlord || "None")}} | Top tributary ${{escapeHtml(metrics.top_tributary || "None")}} | Tributaries ${{Number(metrics.tributary_count || 0)}} (${{Number(metrics.vassal_count || 0)}} vassals)</div>
             <div class="metric-line"><strong>Food Stores:</strong> ${{Number(metrics.food_stored || 0).toFixed(1)}} / ${{Number(metrics.food_storage_capacity || 0).toFixed(1)}} | +${{Number(metrics.food_produced || 0).toFixed(1)}} / -${{Number(metrics.food_consumption || 0).toFixed(1)}}</div>
             <div class="metric-line"><strong>Food Pressure:</strong> Balance ${{Number(metrics.food_balance || 0).toFixed(1)}} / Deficit ${{Number(metrics.food_deficit || 0).toFixed(1)}} / Waste ${{Number((metrics.food_spoilage || 0) + (metrics.food_overflow || 0)).toFixed(1)}}</div>
             <div class="metric-line"><strong>Migration:</strong> In ${{Number(metrics.migration_inflow || 0).toFixed(0)}} / Out ${{Number(metrics.migration_outflow || 0).toFixed(0)}} | Refugees ${{Number(metrics.refugee_inflow || 0).toFixed(0)}} in / ${{Number(metrics.refugee_outflow || 0).toFixed(0)}} out | Frontier settlers ${{Number(metrics.frontier_settlers || 0).toFixed(0)}}</div>
             <div class="metric-line"><strong>Trade Warfare:</strong> Damage ${{Number(metrics.trade_warfare_damage || 0).toFixed(2)}} | Blockade losses ${{Number(metrics.trade_blockade_losses || 0).toFixed(2)}} | Corridor exposure ${{Number((metrics.trade_corridor_exposure || 0) * 100).toFixed(0)}}%</div>
+            <div class="metric-line"><strong>Tribute Flow:</strong> Income ${{Number(metrics.tribute_income || 0).toFixed(2)}} | Paid ${{Number(metrics.tribute_paid || 0).toFixed(2)}}</div>
           </article>
           <article class="inspector-card">
             <h4 class="inspector-title">Ethnic Distribution</h4>
@@ -5095,8 +5144,9 @@ def render_simulation_html(world):
             <h4 class="inspector-title">Diplomacy And Pressure</h4>
             <div class="metric-line"><strong>Top Ally:</strong> ${{escapeHtml(metrics.top_ally || "None")}}</div>
             <div class="metric-line"><strong>Top Rival:</strong> ${{escapeHtml(metrics.top_rival || "None")}}</div>
+            <div class="metric-line"><strong>Overlord / Tributary:</strong> ${{metrics.overlord ? escapeHtml(metrics.overlord) : "None"}} / ${{metrics.top_tributary ? `${{escapeHtml(metrics.top_tributary)}} (${{Number((metrics.top_tributary_share || 0) * 100).toFixed(0)}}%)` : "None"}}</div>
             <div class="metric-line"><strong>Claim Dispute:</strong> ${{metrics.top_claim_dispute ? `${{escapeHtml(metrics.top_claim_dispute)}} (${{Number(metrics.top_claim_dispute_regions || 0)}} regions)` : "None"}}</div>
-            <div class="metric-line"><strong>Diplomacy Counts:</strong> A${{metrics.alliance_count || 0}} / T${{metrics.truce_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}} / C${{metrics.claim_dispute_count || 0}}</div>
+            <div class="metric-line"><strong>Diplomacy Counts:</strong> A${{metrics.alliance_count || 0}} / T${{metrics.truce_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}} / S${{metrics.tributary_count || 0}} / C${{metrics.claim_dispute_count || 0}}</div>
           </article>
           <article class="inspector-card">
             <h4 class="inspector-title">Doctrine Evolution</h4>
@@ -5261,7 +5311,7 @@ def render_simulation_html(world):
               <div class="detail-grid detail-grid-two">
                 <div class="detail-row">
                   <div class="detail-label">Diplomacy</div>
-                  <div class="detail-value">A${{metrics.alliance_count || 0}} / T${{metrics.truce_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}} / C${{metrics.claim_dispute_count || 0}} / G${{metrics.regime_tension_count || 0}} / O${{metrics.regime_accommodation_count || 0}}</div>
+                  <div class="detail-value">A${{metrics.alliance_count || 0}} / T${{metrics.truce_count || 0}} / P${{metrics.pact_count || 0}} / R${{metrics.rival_count || 0}} / S${{metrics.tributary_count || 0}} / C${{metrics.claim_dispute_count || 0}} / G${{metrics.regime_tension_count || 0}} / O${{metrics.regime_accommodation_count || 0}}</div>
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">Realm Structure</div>

@@ -4,7 +4,7 @@ from src.config import (
     EMPIRE_FREE_REGIONS,
     EMPIRE_SCALE_COST,
 )
-from src.diplomacy import update_relationships
+from src.diplomacy import apply_tributary_flows, update_relationships
 from src.doctrine import update_faction_doctrines
 from src.region_state import get_region_core_status
 from src.resource_economy import (
@@ -163,6 +163,7 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     update_rebel_faction_status(world)
     update_faction_polity_tiers(world)
     update_relationships(world)
+    apply_tributary_flows(world, economy_snapshot=economy_snapshot)
     update_faction_doctrines(world)
     refresh_all_faction_visibility(world)
     if verbose:

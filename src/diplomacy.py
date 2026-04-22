@@ -12,6 +12,7 @@ from src.config import (
     DIPLOMACY_ATTACK_GRIEVANCE_SUCCESS,
     DIPLOMACY_ATTACK_TRUST_HIT_FAILURE,
     DIPLOMACY_ATTACK_TRUST_HIT_SUCCESS,
+    DIPLOMACY_OVERLORD_ATTACK_PENALTY,
     DIPLOMACY_BORDER_FRICTION_MAX,
     DIPLOMACY_BORDER_FRICTION_PER_EDGE,
     DIPLOMACY_DISTANT_PEACE_GAIN,
@@ -44,9 +45,17 @@ from src.config import (
     DIPLOMACY_SCORE_MIN,
     DIPLOMACY_SHARED_BORDER_PEACE_GAIN,
     DIPLOMACY_STATE_PEER_THREAT,
+    DIPLOMACY_SUBORDINATION_BREAK_THRESHOLD,
+    DIPLOMACY_SUBORDINATION_MIN_PEACE_YEARS,
+    DIPLOMACY_SUBORDINATION_THRESHOLD,
+    DIPLOMACY_TRIBUTARY_ATTACK_PENALTY,
+    DIPLOMACY_TRIBUTARY_MIN_POWER_RATIO,
+    DIPLOMACY_TRIBUTARY_TRIBUTE_SHARE,
     DIPLOMACY_TRUCE_ATTACK_PENALTY,
     DIPLOMACY_TRUCE_DURATION,
     DIPLOMACY_TRUST_MAX,
+    DIPLOMACY_VASSAL_MIN_POWER_RATIO,
+    DIPLOMACY_VASSAL_TRIBUTE_SHARE,
 )
 from src.models import Event, RelationshipState, WorldState
 from src.visibility import faction_knows_faction
@@ -56,6 +65,73 @@ REGIME_ACCORD_DIPLOMATIC_FORMS = {"council", "assembly", "republic"}
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
     return max(minimum, min(maximum, value))
+
+
+def _get_polity_rank(polity_tier: str) -> int:
+    return {
+        "band": 0,
+        "tribe": 1,
+        "chiefdom": 2,
+        "state": 3,
+    }.get(polity_tier, 1)
+
+
+def _is_republican_form(government_form: str) -> bool:
+    return government_form in {"council", "assembly", "republic"}
+
+
+def _estimate_faction_power(world: WorldState, faction_name: str) -> float:
+    faction = world.factions[faction_name]
+    owned_regions = 0
+    population = 0
+    for region in world.regions.values():
+        if region.owner != faction_name:
+            continue
+        owned_regions += 1
+        population += region.population
+    return round(
+        (owned_regions * 3.4)
+        + (population / 110.0)
+        + (max(0.0, float(faction.treasury)) * 0.45)
+        + (_get_polity_rank(faction.polity_tier) * 2.4),
+        3,
+    )
+
+
+def _get_subordination_profile(
+    world: WorldState,
+    overlord_name: str,
+    subordinate_name: str,
+) -> tuple[str, float, float]:
+    overlord = world.factions[overlord_name]
+    subordinate = world.factions[subordinate_name]
+    subordination_type = (
+        "vassal"
+        if overlord.government_form in {"leader", "monarchy", "oligarchy"}
+        or overlord.polity_tier == "chiefdom"
+        else "tributary"
+    )
+    min_power_ratio = (
+        DIPLOMACY_VASSAL_MIN_POWER_RATIO
+        if subordination_type == "vassal"
+        else DIPLOMACY_TRIBUTARY_MIN_POWER_RATIO
+    )
+    tribute_share = (
+        DIPLOMACY_VASSAL_TRIBUTE_SHARE
+        if subordination_type == "vassal"
+        else DIPLOMACY_TRIBUTARY_TRIBUTE_SHARE
+    )
+    if _is_republican_form(subordinate.government_form):
+        min_power_ratio += 0.12
+        tribute_share -= 0.02
+    if _is_republican_form(overlord.government_form):
+        min_power_ratio -= 0.05
+        tribute_share -= 0.03
+    return (
+        subordination_type,
+        round(max(0.06, tribute_share), 3),
+        round(max(1.2, min_power_ratio), 3),
+    )
 
 
 def canonical_relationship_pair(faction_a: str, faction_b: str) -> tuple[str, str]:
@@ -122,7 +198,29 @@ def get_relationship_status(world: WorldState, faction_a: str, faction_b: str) -
     key = canonical_relationship_pair(faction_a, faction_b)
     if key not in world.relationships and not _factions_have_diplomatic_contact(world, faction_a, faction_b):
         return "unknown"
-    return get_relationship_state(world, faction_a, faction_b).status
+    state = get_relationship_state(world, faction_a, faction_b)
+    if state.status == "tributary" and state.subordinate_faction is not None:
+        return "tributary" if state.subordinate_faction != faction_a else "overlord"
+    return state.status
+
+
+def get_faction_overlord(world: WorldState, faction_name: str) -> str | None:
+    for (faction_a, faction_b), state in world.relationships.items():
+        if state.status != "tributary" or state.subordinate_faction != faction_name:
+            continue
+        return faction_b if faction_a == faction_name else faction_a
+    return None
+
+
+def get_faction_tributaries(world: WorldState, faction_name: str) -> list[str]:
+    tributaries: list[str] = []
+    for (faction_a, faction_b), state in world.relationships.items():
+        if state.status != "tributary" or state.subordinate_faction is None:
+            continue
+        overlord = faction_b if faction_a == state.subordinate_faction else faction_a
+        if overlord == faction_name:
+            tributaries.append(state.subordinate_faction)
+    return sorted(tributaries)
 
 
 def _count_shared_borders(world: WorldState, faction_a: str, faction_b: str) -> int:
@@ -327,6 +425,65 @@ def _get_regime_accommodation(
     return round(accommodation, 2), reason
 
 
+def _resolve_subordination(
+    world: WorldState,
+    faction_a: str,
+    faction_b: str,
+    state: RelationshipState,
+    shared_borders: int,
+) -> tuple[str | None, str, float]:
+    if state.truce_turns_remaining > 0:
+        return None, "tributary", 0.0
+
+    prior_subordinate = state.subordinate_faction
+    if prior_subordinate is not None:
+        prior_overlord = faction_b if prior_subordinate == faction_a else faction_a
+        _subordination_type, _tribute_share, min_power_ratio = _get_subordination_profile(
+            world,
+            prior_overlord,
+            prior_subordinate,
+        )
+        subordinate_power = max(0.1, _estimate_faction_power(world, prior_subordinate))
+        overlord_power = max(0.1, _estimate_faction_power(world, prior_overlord))
+        if (
+            state.score >= DIPLOMACY_SUBORDINATION_BREAK_THRESHOLD
+            and (overlord_power / subordinate_power) >= (min_power_ratio * 0.8)
+        ):
+            return (
+                prior_subordinate,
+                state.subordination_type or "tributary",
+                max(0.0, float(state.tribute_share or 0.0)),
+            )
+
+    if (
+        shared_borders <= 0
+        or state.years_at_peace < DIPLOMACY_SUBORDINATION_MIN_PEACE_YEARS
+        or state.score < DIPLOMACY_SUBORDINATION_THRESHOLD
+    ):
+        return None, "tributary", 0.0
+
+    power_a = max(0.1, _estimate_faction_power(world, faction_a))
+    power_b = max(0.1, _estimate_faction_power(world, faction_b))
+    if abs(power_a - power_b) < 0.01:
+        return None, "tributary", 0.0
+
+    overlord_name = faction_a if power_a > power_b else faction_b
+    subordinate_name = faction_b if overlord_name == faction_a else faction_a
+    subordination_type, tribute_share, min_power_ratio = _get_subordination_profile(
+        world,
+        overlord_name,
+        subordinate_name,
+    )
+
+    if (max(power_a, power_b) / min(power_a, power_b)) < min_power_ratio:
+        return None, subordination_type, 0.0
+
+    if _get_polity_rank(world.factions[overlord_name].polity_tier) < _get_polity_rank(world.factions[subordinate_name].polity_tier):
+        return None, subordination_type, 0.0
+
+    return subordinate_name, subordination_type, tribute_share
+
+
 def _process_conflict_memory(world: WorldState) -> set[tuple[str, str]]:
     conflict_pairs: set[tuple[str, str]] = set()
     for event in world.events:
@@ -484,6 +641,57 @@ def _emit_status_change_event(
     ))
 
 
+def _emit_subordination_change_event(
+    world: WorldState,
+    faction_a: str,
+    faction_b: str,
+    previous_subordinate: str | None,
+    new_subordinate: str | None,
+    subordination_type: str,
+    tribute_share: float,
+    score: float,
+) -> None:
+    if previous_subordinate == new_subordinate:
+        return
+
+    if previous_subordinate is not None:
+        previous_overlord = faction_b if previous_subordinate == faction_a else faction_a
+        world.events.append(Event(
+            turn=world.turn,
+            type="diplomacy_tributary_break",
+            faction=previous_overlord,
+            details={
+                "counterpart": previous_subordinate,
+                "subordinate": previous_subordinate,
+                "overlord": previous_overlord,
+                "subordination_type": subordination_type,
+                "score": round(score, 2),
+            },
+            tags=["diplomacy", "tributary_break"],
+            significance=abs(score),
+        ))
+
+    if new_subordinate is None:
+        return
+
+    new_overlord = faction_b if new_subordinate == faction_a else faction_a
+    world.events.append(Event(
+        turn=world.turn,
+        type="diplomacy_tributary",
+        faction=new_overlord,
+        details={
+            "counterpart": new_subordinate,
+            "subordinate": new_subordinate,
+            "overlord": new_overlord,
+            "subordination_type": subordination_type,
+            "tribute_share": round(tribute_share, 3),
+            "score": round(score, 2),
+        },
+        tags=["diplomacy", "tributary", subordination_type],
+        significance=abs(score),
+    ))
+
+
 def update_relationships(world: WorldState) -> None:
     ensure_relationship_entries(world)
     conflict_pairs = _process_conflict_memory(world)
@@ -508,7 +716,7 @@ def update_relationships(world: WorldState) -> None:
                 if shared_borders == 0
                 else DIPLOMACY_SHARED_BORDER_PEACE_GAIN
             )
-            if state.status in {"non_aggression_pact", "alliance"}:
+            if state.status in {"non_aggression_pact", "alliance", "tributary"}:
                 peace_gain += DIPLOMACY_EXISTING_ACCORD_PEACE_BONUS
             state.trust = _clamp(state.trust + peace_gain, 0.0, DIPLOMACY_TRUST_MAX)
             state.grievance = _clamp(
@@ -554,8 +762,49 @@ def update_relationships(world: WorldState) -> None:
         )
 
         previous_status = state.status
-        state.status = _derive_status(state)
-        _emit_status_change_event(world, faction_a, faction_b, previous_status, state.status, state.score)
+        previous_subordinate = state.subordinate_faction
+        previous_subordination_type = state.subordination_type
+        previous_tribute_share = state.tribute_share
+        base_status = _derive_status(state)
+        subordinate_name, subordination_type, tribute_share = _resolve_subordination(
+            world,
+            faction_a,
+            faction_b,
+            state,
+            shared_borders,
+        )
+        if subordinate_name is not None:
+            state.status = "tributary"
+            state.subordinate_faction = subordinate_name
+            state.subordination_type = subordination_type
+            state.tribute_share = tribute_share
+            state.subordination_turns = (
+                state.subordination_turns + 1
+                if previous_subordinate == subordinate_name
+                else 1
+            )
+        else:
+            state.status = base_status
+            state.subordinate_faction = None
+            state.subordination_type = "tributary"
+            state.tribute_share = 0.0
+            state.subordination_turns = 0
+
+        if previous_subordinate != state.subordinate_faction or (
+            previous_status == "tributary" and state.status != "tributary"
+        ):
+            _emit_subordination_change_event(
+                world,
+                faction_a,
+                faction_b,
+                previous_subordinate,
+                state.subordinate_faction,
+                state.subordination_type if state.subordinate_faction is not None else previous_subordination_type,
+                state.tribute_share if state.subordinate_faction is not None else previous_tribute_share,
+                state.score,
+            )
+        elif state.status != "tributary":
+            _emit_status_change_event(world, faction_a, faction_b, previous_status, state.status, state.score)
 
 
 def get_attack_diplomacy_modifier(
@@ -570,9 +819,44 @@ def get_attack_diplomacy_modifier(
         return (DIPLOMACY_TRUCE_ATTACK_PENALTY, status)
     if status == "non_aggression_pact":
         return (DIPLOMACY_PACT_ATTACK_PENALTY, status)
+    if status == "tributary":
+        return (DIPLOMACY_TRIBUTARY_ATTACK_PENALTY, status)
+    if status == "overlord":
+        return (DIPLOMACY_OVERLORD_ATTACK_PENALTY, status)
     if status == "rival":
         return (DIPLOMACY_RIVAL_ATTACK_BONUS, status)
     return (0, status)
+
+
+def apply_tributary_flows(
+    world: WorldState,
+    economy_snapshot: dict[str, dict[str, float | int]] | None = None,
+) -> None:
+    for faction in world.factions.values():
+        faction.tribute_income = 0.0
+        faction.tribute_paid = 0.0
+
+    for (faction_a, faction_b), state in world.relationships.items():
+        if state.status != "tributary" or state.subordinate_faction is None:
+            continue
+        subordinate_name = state.subordinate_faction
+        overlord_name = faction_b if subordinate_name == faction_a else faction_a
+        subordinate = world.factions.get(subordinate_name)
+        overlord = world.factions.get(overlord_name)
+        if subordinate is None or overlord is None:
+            continue
+
+        subordinate_income = float((economy_snapshot or {}).get(subordinate_name, {}).get("effective_income", 0.0) or 0.0)
+        income_due = max(0.0, subordinate_income) * max(0.0, float(state.tribute_share or 0.0))
+        treasury_buffer = max(0.0, float(subordinate.treasury) - 1.0)
+        tribute_paid = round(min(treasury_buffer, income_due), 2)
+        if tribute_paid <= 0.0:
+            continue
+
+        subordinate.treasury = round(float(subordinate.treasury) - tribute_paid, 2)
+        overlord.treasury = round(float(overlord.treasury) + tribute_paid, 2)
+        subordinate.tribute_paid = round(subordinate.tribute_paid + tribute_paid, 2)
+        overlord.tribute_income = round(overlord.tribute_income + tribute_paid, 2)
 
 
 def seed_rebel_origin_relationship(
@@ -582,6 +866,10 @@ def seed_rebel_origin_relationship(
 ) -> None:
     state = get_relationship_state(world, rebel_faction, origin_faction)
     state.status = "truce"
+    state.subordinate_faction = None
+    state.subordination_type = "tributary"
+    state.tribute_share = 0.0
+    state.subordination_turns = 0
     state.truce_turns_remaining = DIPLOMACY_REBEL_SECESSION_TRUCE_DURATION
     state.years_at_peace = 0
     state.trust = max(state.trust, DIPLOMACY_REBEL_SECESSION_INITIAL_TRUST)
@@ -616,10 +904,15 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
     pact_count = 0
     truce_count = 0
     rival_count = 0
+    tributary_count = 0
+    vassal_count = 0
     claim_disputes: dict[str, int] = {}
     polity_tensions: list[tuple[str, float, str | None]] = []
     regime_tensions: list[tuple[str, float, str | None]] = []
     regime_accommodations: list[tuple[str, float, str | None]] = []
+    tributaries: list[tuple[str, float, str]] = []
+    overlord_name = None
+    overlord_type = None
 
     for other_faction in world.factions:
         if other_faction == faction_name:
@@ -627,7 +920,8 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
         if not _factions_have_diplomatic_contact(world, faction_name, other_faction):
             continue
         state = get_relationship_state(world, faction_name, other_faction)
-        counterpart_scores.append((other_faction, state.score, state.status))
+        status = get_relationship_status(world, faction_name, other_faction)
+        counterpart_scores.append((other_faction, state.score, status))
         polity_tension = _get_polity_tier_modifier(world, faction_name, other_faction)
         if polity_tension > 0:
             polity_tensions.append((
@@ -650,7 +944,19 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
                 regime_accommodation,
                 regime_accommodation_reason,
             ))
-        if state.status == "alliance":
+        if status == "tributary":
+            tributary_count += 1
+            tributaries.append((
+                other_faction,
+                max(0.0, float(state.tribute_share or 0.0)),
+                state.subordination_type or "tributary",
+            ))
+            if (state.subordination_type or "tributary") == "vassal":
+                vassal_count += 1
+        elif status == "overlord":
+            overlord_name = other_faction
+            overlord_type = state.subordination_type or "tributary"
+        elif state.status == "alliance":
             alliance_count += 1
         elif state.status == "truce":
             truce_count += 1
@@ -714,9 +1020,23 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
             key=lambda item: (item[1], item[0]),
         )
 
+    top_tributary = None
+    top_tributary_share = 0.0
+    top_tributary_type = None
+    if tributaries:
+        top_tributary, top_tributary_share, top_tributary_type = max(
+            tributaries,
+            key=lambda item: (item[1], item[0]),
+        )
+
     return {
         "top_ally": top_ally,
         "top_rival": top_rival,
+        "overlord": overlord_name,
+        "overlord_type": overlord_type,
+        "top_tributary": top_tributary,
+        "top_tributary_share": round(top_tributary_share, 3),
+        "top_tributary_type": top_tributary_type,
         "top_claim_dispute": top_claim_dispute,
         "top_claim_dispute_ethnicity": world.factions[faction_name].primary_ethnicity,
         "top_claim_dispute_regions": top_claim_dispute_regions,
@@ -736,4 +1056,6 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
         "truce_count": truce_count,
         "pact_count": pact_count,
         "rival_count": rival_count,
+        "tributary_count": tributary_count,
+        "vassal_count": vassal_count,
     }
