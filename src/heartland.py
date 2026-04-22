@@ -127,9 +127,12 @@ from src.resources import (
     RESOURCE_COPPER,
     RESOURCE_GRAIN,
     RESOURCE_HORSES,
+    RESOURCE_LIVESTOCK,
+    RESOURCE_SALT,
     RESOURCE_VALUE_WEIGHTS,
     RESOURCE_STONE,
     RESOURCE_TIMBER,
+    RESOURCE_TEXTILES,
     RESOURCE_WILD_FOOD,
     format_resource_map,
     get_legacy_region_resource_value,
@@ -1562,11 +1565,14 @@ def _transfer_region_to_rebellion(
         region,
         {
             RESOURCE_GRAIN: 0.08,
+            RESOURCE_LIVESTOCK: 0.07,
             RESOURCE_HORSES: 0.06,
             RESOURCE_WILD_FOOD: 0.04,
             RESOURCE_TIMBER: 0.07,
             RESOURCE_COPPER: 0.05,
             RESOURCE_STONE: 0.05,
+            RESOURCE_SALT: 0.05,
+            RESOURCE_TEXTILES: 0.06,
         },
     )
     population_loss = apply_region_population_loss(region, POPULATION_SECESSION_LOSS)
@@ -1896,6 +1902,10 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
     ethnic_pressure = get_region_ethnic_unrest_modifier(region, world)
     regime_pressure = get_region_regime_contestation_unrest_modifier(region, world)
     external_regime_pressure = get_region_external_regime_agitation_modifier(region, world)
+    salt_shortage_pressure = min(
+        0.65,
+        owner_faction.resource_shortages.get(RESOURCE_SALT, 0.0) * 0.12,
+    )
     stability_divisor = max(0.5, get_faction_stability_modifier(owner_faction))
     return (
         climate_pressure
@@ -1905,6 +1915,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         + ethnic_pressure
         + regime_pressure
         + external_regime_pressure
+        + salt_shortage_pressure
     ) / stability_divisor - UNREST_DECAY_PER_TURN
 
 

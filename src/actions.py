@@ -53,8 +53,11 @@ from src.resources import (
     RESOURCE_COPPER,
     RESOURCE_GRAIN,
     RESOURCE_HORSES,
+    RESOURCE_LIVESTOCK,
+    RESOURCE_SALT,
     RESOURCE_STONE,
     RESOURCE_TIMBER,
+    RESOURCE_TEXTILES,
     RESOURCE_WILD_FOOD,
     format_resource_map,
 )
@@ -114,7 +117,8 @@ def _get_region_resource_interest(region, faction_name, world) -> int:
     if shortages.get(CAPACITY_FOOD_SECURITY, 0.0) > 0:
         bonus += int(
             round(
-                region.resource_suitability.get(RESOURCE_GRAIN, 0.0) * 5
+                region.resource_suitability.get(RESOURCE_GRAIN, 0.0) * 4
+                + region.resource_suitability.get(RESOURCE_LIVESTOCK, 0.0) * 4
                 + region.resource_wild_endowments.get("wild_food", 0.0) * 2
             )
         )
@@ -122,6 +126,20 @@ def _get_region_resource_interest(region, faction_name, world) -> int:
         bonus += int(round(region.resource_suitability.get(RESOURCE_HORSES, 0.0) * 4))
     if shortages.get(CAPACITY_METAL, 0.0) > 0:
         bonus += int(round(region.resource_fixed_endowments.get(RESOURCE_COPPER, 0.0) * 5))
+    if shortages.get(CAPACITY_CONSTRUCTION, 0.0) > 0:
+        bonus += int(
+            round(
+                region.resource_fixed_endowments.get(RESOURCE_STONE, 0.0) * 2
+                + region.resource_wild_endowments.get(RESOURCE_TIMBER, 0.0) * 2
+            )
+        )
+    if shortages.get(CAPACITY_TAXABLE_VALUE, 0.0) > 0:
+        bonus += int(
+            round(
+                region.resource_fixed_endowments.get(RESOURCE_SALT, 0.0) * 3
+                + region.resource_suitability.get(RESOURCE_TEXTILES, 0.0) * 3
+            )
+        )
     bonus += int(round(region.resource_fixed_endowments.get(RESOURCE_STONE, 0.0) * 2))
     return bonus
 
@@ -229,7 +247,12 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
     extractive_pressure = (
         region.resource_output.get(RESOURCE_COPPER, 0.0)
         + region.resource_output.get(RESOURCE_STONE, 0.0)
+        + region.resource_output.get(RESOURCE_SALT, 0.0)
         + region.resource_output.get(RESOURCE_TIMBER, 0.0)
+    )
+    commercial_pressure = (
+        region.resource_output.get(RESOURCE_SALT, 0.0)
+        + region.resource_output.get(RESOURCE_TEXTILES, 0.0)
     )
     has_material_site = any(
         level > 0
@@ -239,7 +262,7 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
             region.stone_quarry_level,
             region.extractive_level,
         )
-    )
+    ) or region.resource_fixed_endowments.get(RESOURCE_SALT, 0.0) > 0.25
 
     grain_suitability = region.resource_suitability.get(RESOURCE_GRAIN, 0.0)
     grain_established = region.resource_established.get(RESOURCE_GRAIN, 0.0)
@@ -308,6 +331,32 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
             "resource_focus": RESOURCE_GRAIN,
         })
 
+    livestock_suitability = region.resource_suitability.get(RESOURCE_LIVESTOCK, 0.0)
+    livestock_established = region.resource_established.get(RESOURCE_LIVESTOCK, 0.0)
+    livestock_source = _get_best_resource_source_region(
+        faction_name,
+        region.name,
+        RESOURCE_LIVESTOCK,
+        world,
+    )
+    if (
+        livestock_suitability >= 0.4
+        and livestock_established < max(0.22, livestock_suitability - 0.1)
+        and livestock_source is not None
+    ):
+        source_path = _get_owned_path_length(faction_name, livestock_source.name, region.name, world) or 0
+        options.append({
+            "project_type": "introduce_livestock",
+            "score": (
+                4.6
+                + (livestock_suitability * 3.8)
+                + (shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 2.4)
+                - (source_path * 0.35)
+            ),
+            "resource_focus": RESOURCE_LIVESTOCK,
+            "source_region": livestock_source.name,
+        })
+
     horse_suitability = region.resource_suitability.get(RESOURCE_HORSES, 0.0)
     horse_established = region.resource_established.get(RESOURCE_HORSES, 0.0)
     horse_source = _get_best_resource_source_region(
@@ -328,7 +377,8 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
             "resource_focus": RESOURCE_HORSES,
             "source_region": horse_source.name,
         })
-    if horse_established > 0 and region.pasture_level < 1.8:
+    if (horse_established > 0 or livestock_established > 0) and region.pasture_level < 1.8:
+        pastoral_output = horse_established + (livestock_established * 0.85)
         options.append({
             "project_type": (
                 "establish_pasture"
@@ -337,18 +387,27 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
             ),
             "score": (
                 3.2
-                + (horse_established * 2.6)
-                + (shortages.get(CAPACITY_MOBILITY, 0.0) * 2.0)
+                + (pastoral_output * 2.6)
+                + (shortages.get(CAPACITY_MOBILITY, 0.0) * 1.9)
+                + (shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 0.8)
                 + (region.infrastructure_level * 0.25)
                 + (0.45 if region.pasture_level <= 0 else region.pasture_level * 0.3)
             ),
-            "resource_focus": RESOURCE_HORSES,
+            "resource_focus": (
+                RESOURCE_LIVESTOCK
+                if livestock_established >= horse_established and shortages.get(CAPACITY_FOOD_SECURITY, 0.0) > shortages.get(CAPACITY_MOBILITY, 0.0)
+                else RESOURCE_HORSES
+            ),
         })
-    if region.pasture_level > 0.4 and region.pastoral_level < 1.4:
+    if region.pasture_level > 0.4 and region.pastoral_level < 1.4 and (horse_established > 0 or livestock_established > 0):
         options.append({
             "project_type": "improve_pastoralism",
-            "score": 2.4 + (horse_established * 2.1) + (region.pasture_level * 1.1),
-            "resource_focus": RESOURCE_HORSES,
+            "score": 2.4 + ((horse_established + livestock_established) * 1.8) + (region.pasture_level * 1.1),
+            "resource_focus": (
+                RESOURCE_LIVESTOCK
+                if livestock_established >= horse_established
+                else RESOURCE_HORSES
+            ),
         })
 
     timber_endowment = region.resource_wild_endowments.get(RESOURCE_TIMBER, 0.0)
@@ -479,6 +538,7 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
             "score": (
                 3.1
                 + (routed_total_output * 1.4)
+                + (commercial_pressure * 1.1)
                 + (monetization_gap * 2.2)
                 + (get_region_taxable_value(region, world) * 0.42)
                 + (max(0.0, 0.8 - route_bottleneck) * 1.6)
@@ -1141,9 +1201,12 @@ def attack(faction_name, target_region_name, world):
             target_region,
             {
                 RESOURCE_GRAIN: 0.06,
+                RESOURCE_LIVESTOCK: 0.05,
                 RESOURCE_HORSES: 0.04,
                 RESOURCE_WILD_FOOD: 0.03,
                 RESOURCE_TIMBER: 0.04,
+                RESOURCE_SALT: 0.03,
+                RESOURCE_TEXTILES: 0.04,
             },
         )
         handle_region_owner_change(target_region, faction_name)
@@ -1168,9 +1231,12 @@ def attack(faction_name, target_region_name, world):
             target_region,
             {
                 RESOURCE_GRAIN: 0.03,
+                RESOURCE_LIVESTOCK: 0.025,
                 RESOURCE_HORSES: 0.02,
                 RESOURCE_WILD_FOOD: 0.015,
                 RESOURCE_TIMBER: 0.02,
+                RESOURCE_SALT: 0.015,
+                RESOURCE_TEXTILES: 0.02,
             },
         )
         actual_failure_penalty = min(ATTACK_FAILURE_PENALTY, attacker.treasury)
@@ -1287,6 +1353,12 @@ def develop(faction_name, target_region_name, world):
             region.resource_established.get(RESOURCE_GRAIN, 0.0) + 0.24,
         )
         project_amount = 0.24
+    elif project_type == "introduce_livestock":
+        region.resource_established[RESOURCE_LIVESTOCK] = min(
+            region.resource_suitability.get(RESOURCE_LIVESTOCK, 0.0),
+            region.resource_established.get(RESOURCE_LIVESTOCK, 0.0) + 0.2,
+        )
+        project_amount = 0.2
     elif project_type == "introduce_horses":
         region.resource_established[RESOURCE_HORSES] = min(
             region.resource_suitability.get(RESOURCE_HORSES, 0.0),
@@ -1385,6 +1457,8 @@ def develop(faction_name, target_region_name, world):
             {
                 score_components["resource_focus"]: 0.05
                 if project_type == "introduce_grain"
+                else 0.045
+                if project_type == "introduce_livestock"
                 else 0.04
             },
         )

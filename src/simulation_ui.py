@@ -941,9 +941,9 @@ def build_simulation_view_model(world):
             "food_deficit": round(world.factions[faction_name].food_deficit, 3),
             "food_spoilage": round(world.factions[faction_name].food_spoilage, 3),
             "food_overflow": round(world.factions[faction_name].food_overflow, 3),
-            "resource_access_summary": format_resource_map(world.factions[faction_name].resource_access, limit=4),
-            "resource_gross_summary": format_resource_map(world.factions[faction_name].resource_gross_output, limit=4),
-            "resource_isolated_summary": format_resource_map(world.factions[faction_name].resource_isolated_output, limit=4),
+            "resource_access_summary": format_resource_map(world.factions[faction_name].resource_access, limit=5),
+            "resource_gross_summary": format_resource_map(world.factions[faction_name].resource_gross_output, limit=5),
+            "resource_isolated_summary": format_resource_map(world.factions[faction_name].resource_isolated_output, limit=5),
             "food_store_summary": (
                 f"{world.factions[faction_name].food_stored:.1f} / "
                 f"{world.factions[faction_name].food_storage_capacity:.1f}"
@@ -956,6 +956,8 @@ def build_simulation_view_model(world):
                         ("Mobility", world.factions[faction_name].resource_shortages.get("mobility_capacity", 0.0)),
                         ("Metal", world.factions[faction_name].resource_shortages.get("metal_capacity", 0.0)),
                         ("Construction", world.factions[faction_name].resource_shortages.get("construction_capacity", 0.0)),
+                        ("Salt", world.factions[faction_name].resource_shortages.get("salt", 0.0)),
+                        ("Textiles", world.factions[faction_name].resource_shortages.get("textiles", 0.0)),
                     )
                     if value > 0
                 ]
@@ -2146,19 +2148,25 @@ def render_simulation_html(world):
     const atlasRegionByName = Object.fromEntries(data.atlas_regions.map((region) => [region.name, region]));
     const resourceMapAbbreviations = {{
       grain: "Gr",
+      livestock: "Lv",
       wild_food: "Fd",
       timber: "Tm",
       horses: "Hs",
       copper: "Cu",
       stone: "St",
+      salt: "Sa",
+      textiles: "Tx",
     }};
     const resourceMapColors = {{
       grain: "#3d7a48",
+      livestock: "#7a6a3d",
       wild_food: "#6d7e4a",
       timber: "#5d6b36",
       horses: "#8b6a4f",
       copper: "#b3672b",
       stone: "#6b7280",
+      salt: "#4d8aa8",
+      textiles: "#a3537d",
     }};
     const developmentMapEntries = [
       ["granary_level", "Gy"],

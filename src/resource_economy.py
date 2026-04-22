@@ -43,13 +43,19 @@ from src.resources import (
     CAPACITY_METAL,
     CAPACITY_MOBILITY,
     CAPACITY_TAXABLE_VALUE,
+    COMMERCIAL_RESOURCES,
+    CONSTRUCTION_RESOURCES,
     DOMESTICABLE_RESOURCES,
     EXTRACTIVE_RESOURCES,
+    FOOD_RESOURCES,
     RESOURCE_COPPER,
     RESOURCE_GRAIN,
     RESOURCE_HORSES,
+    RESOURCE_LIVESTOCK,
+    RESOURCE_SALT,
     RESOURCE_STONE,
     RESOURCE_TIMBER,
+    RESOURCE_TEXTILES,
     RESOURCE_WILD_FOOD,
     WILD_RESOURCES,
     build_empty_capacity_map,
@@ -63,15 +69,20 @@ from src.resources import (
 
 RESOURCE_BASE_OUTPUT = {
     RESOURCE_GRAIN: 3.4,
+    RESOURCE_LIVESTOCK: 2.25,
     RESOURCE_HORSES: 1.9,
     RESOURCE_WILD_FOOD: 1.8,
     RESOURCE_TIMBER: 1.5,
     RESOURCE_COPPER: 1.7,
     RESOURCE_STONE: 1.55,
+    RESOURCE_SALT: 1.35,
+    RESOURCE_TEXTILES: 1.45,
 }
 RESOURCE_GROWTH_STEP = {
     RESOURCE_GRAIN: 0.04,
+    RESOURCE_LIVESTOCK: 0.03,
     RESOURCE_HORSES: 0.025,
+    RESOURCE_TEXTILES: 0.02,
 }
 RESOURCE_DAMAGE_DECAY = 0.03
 RESOURCE_MAX_DAMAGE = 0.65
@@ -101,14 +112,24 @@ RESOURCE_ROUTE_ROAD_SUPPORT_BONUS = 0.1
 RESOURCE_GRAIN_UNIRRIGATED_FACTOR = 0.78
 RESOURCE_GRAIN_IRRIGATION_LEVEL_FACTOR = 0.55
 RESOURCE_GRAIN_SUPPORT_LEVEL_FACTOR = 0.22
+RESOURCE_LIVESTOCK_UNPASTURED_FACTOR = 0.8
+RESOURCE_LIVESTOCK_PASTURE_LEVEL_FACTOR = 0.48
+RESOURCE_LIVESTOCK_SUPPORT_LEVEL_FACTOR = 0.4
 RESOURCE_HORSE_UNPASTURED_FACTOR = 0.72
 RESOURCE_HORSE_PASTURE_LEVEL_FACTOR = 0.7
 RESOURCE_HORSE_SUPPORT_LEVEL_FACTOR = 0.22
 RESOURCE_TIMBER_UNDEVELOPED_FACTOR = 0.58
 RESOURCE_TIMBER_LOGGING_LEVEL_FACTOR = 0.78
+RESOURCE_TEXTILE_BASE_FACTOR = 0.68
+RESOURCE_TEXTILE_MARKET_FACTOR = 0.28
+RESOURCE_TEXTILE_INFRASTRUCTURE_FACTOR = 0.16
+RESOURCE_TEXTILE_FIBER_FACTOR = 0.16
 RESOURCE_EXTRACTIVE_UNDEVELOPED_FACTOR = 0.18
 RESOURCE_EXTRACTIVE_SITE_LEVEL_FACTOR = 0.95
 RESOURCE_EXTRACTIVE_SUPPORT_LEVEL_FACTOR = 0.16
+RESOURCE_SALT_UNWORKED_FACTOR = 0.34
+RESOURCE_SALT_STOREHOUSE_FACTOR = 0.16
+RESOURCE_SALT_MARKET_FACTOR = 0.12
 RESOURCE_RETENTION_BASE_FACTOR = 0.72
 RESOURCE_RETENTION_INFRASTRUCTURE_FACTOR = 0.05
 RESOURCE_RETENTION_STOREHOUSE_FACTOR = 0.18
@@ -262,6 +283,13 @@ def get_region_resource_development_factor(region: Region, resource_name: str) -
             + (region.agriculture_level * RESOURCE_GRAIN_SUPPORT_LEVEL_FACTOR)
             + (region.infrastructure_level * 0.08)
         )
+    if resource_name == RESOURCE_LIVESTOCK:
+        return (
+            RESOURCE_LIVESTOCK_UNPASTURED_FACTOR
+            + (region.pasture_level * RESOURCE_LIVESTOCK_PASTURE_LEVEL_FACTOR)
+            + (region.pastoral_level * RESOURCE_LIVESTOCK_SUPPORT_LEVEL_FACTOR)
+            + (region.infrastructure_level * 0.06)
+        )
     if resource_name == RESOURCE_HORSES:
         return (
             RESOURCE_HORSE_UNPASTURED_FACTOR
@@ -269,11 +297,31 @@ def get_region_resource_development_factor(region: Region, resource_name: str) -
             + (region.pastoral_level * RESOURCE_HORSE_SUPPORT_LEVEL_FACTOR)
             + (region.infrastructure_level * 0.08)
         )
+    if resource_name == RESOURCE_TEXTILES:
+        settlement_bonus = {
+            "wild": 0.0,
+            "rural": 0.04,
+            "town": 0.1,
+            "city": 0.16,
+        }.get(region.settlement_level, 0.0)
+        return (
+            RESOURCE_TEXTILE_BASE_FACTOR
+            + (region.agriculture_level * 0.12)
+            + (region.pastoral_level * RESOURCE_TEXTILE_FIBER_FACTOR)
+            + (region.infrastructure_level * RESOURCE_TEXTILE_INFRASTRUCTURE_FACTOR)
+            + settlement_bonus
+        )
     if resource_name == RESOURCE_TIMBER:
         return (
             RESOURCE_TIMBER_UNDEVELOPED_FACTOR
             + (region.logging_camp_level * RESOURCE_TIMBER_LOGGING_LEVEL_FACTOR)
             + (region.infrastructure_level * 0.08)
+        )
+    if resource_name == RESOURCE_SALT:
+        return (
+            RESOURCE_SALT_UNWORKED_FACTOR
+            + (region.extractive_level * RESOURCE_EXTRACTIVE_SUPPORT_LEVEL_FACTOR)
+            + (region.infrastructure_level * 0.1)
         )
     if resource_name in EXTRACTIVE_RESOURCES:
         site_level = get_region_extractive_site_level(region, resource_name)
@@ -308,8 +356,12 @@ def _get_domestic_resource_decay(region: Region, resource_name: str) -> float:
         decay += 0.006
     if resource_name == RESOURCE_GRAIN and region.agriculture_level < 0.1:
         decay += 0.007
+    if resource_name == RESOURCE_LIVESTOCK and region.pastoral_level < 0.1:
+        decay += 0.007
     if resource_name == RESOURCE_HORSES and region.pastoral_level < 0.1:
         decay += 0.007
+    if resource_name == RESOURCE_TEXTILES and region.market_level < 0.1:
+        decay += 0.006
     decay += region.resource_damage.get(resource_name, 0.0) * 0.06
     return decay
 
@@ -340,8 +392,12 @@ def advance_region_domesticable_resources(region: Region) -> None:
             growth = RESOURCE_GROWTH_STEP.get(resource_name, 0.02)
             if resource_name == RESOURCE_GRAIN:
                 growth += region.agriculture_level * 0.01
+            elif resource_name == RESOURCE_LIVESTOCK:
+                growth += region.pastoral_level * 0.01
             elif resource_name == RESOURCE_HORSES:
                 growth += region.pastoral_level * 0.01
+            elif resource_name == RESOURCE_TEXTILES:
+                growth += region.market_level * 0.008 + region.infrastructure_level * 0.004
             growth *= max(0.35, get_region_resource_unrest_factor(region))
         decay = _get_domestic_resource_decay(region, resource_name)
         region.resource_established[resource_name] = round(
@@ -643,8 +699,16 @@ def get_region_effective_resource_output(
                 0.58,
                 1.05,
             )
-        elif resource_name in {RESOURCE_GRAIN, RESOURCE_HORSES}:
+        elif resource_name in FOOD_RESOURCES or resource_name == RESOURCE_HORSES:
             resource_specific_factor *= _clamp(0.78 + (route_bottleneck * 0.24), 0.72, 1.0)
+        elif resource_name in COMMERCIAL_RESOURCES:
+            resource_specific_factor *= _clamp(
+                0.72
+                + (route_bottleneck * 0.26)
+                + (region.road_level * 0.03),
+                0.68,
+                1.08,
+            )
         effective_output[resource_name] = round(
             amount * resource_specific_factor,
             3,
@@ -659,9 +723,11 @@ def get_region_resource_retention_factor(region: Region, resource_name: str) -> 
     factor += min(0.16, region.infrastructure_level * RESOURCE_RETENTION_INFRASTRUCTURE_FACTOR)
     if resource_name in EXTRACTIVE_RESOURCES or resource_name == RESOURCE_TIMBER:
         factor += min(0.28, region.storehouse_level * RESOURCE_RETENTION_STOREHOUSE_FACTOR)
-    if resource_name in {RESOURCE_GRAIN, RESOURCE_WILD_FOOD}:
+    if resource_name in FOOD_RESOURCES:
         factor += min(0.24, region.granary_level * RESOURCE_RETENTION_GRANARY_FACTOR)
         factor += min(0.08, region.storehouse_level * 0.05)
+    if resource_name in COMMERCIAL_RESOURCES:
+        factor += min(0.1, region.storehouse_level * 0.08)
     if status == "homeland":
         factor += 0.04
     elif status == "core":
@@ -738,11 +804,14 @@ def _get_monetized_value_from_output(
     base_value = sum(
         amount * {
             RESOURCE_GRAIN: 0.82,
+            RESOURCE_LIVESTOCK: 0.88,
             RESOURCE_HORSES: 0.95,
             RESOURCE_WILD_FOOD: 0.58,
             RESOURCE_TIMBER: 0.9,
             RESOURCE_COPPER: 1.48,
             RESOURCE_STONE: 0.86,
+            RESOURCE_SALT: 1.24,
+            RESOURCE_TEXTILES: 1.18,
         }.get(resource_name, 1.0)
         for resource_name, amount in output.items()
     )
@@ -852,11 +921,14 @@ def _get_taxable_value_from_output(output: dict[str, float]) -> float:
         sum(
             amount * {
                 RESOURCE_GRAIN: 1.1,
+                RESOURCE_LIVESTOCK: 1.0,
                 RESOURCE_HORSES: 0.9,
                 RESOURCE_WILD_FOOD: 0.9,
                 RESOURCE_TIMBER: 0.85,
                 RESOURCE_COPPER: 1.35,
                 RESOURCE_STONE: 0.8,
+                RESOURCE_SALT: 1.18,
+                RESOURCE_TEXTILES: 1.15,
             }.get(resource_name, 1.0)
             for resource_name, amount in output.items()
         ),
@@ -973,18 +1045,33 @@ def get_faction_resource_demand(
     )
     infrastructure_gap = max(0.0, 1.2 - avg_infrastructure)
     construction_demand += infrastructure_gap * len(owned_regions) * 0.18
+    commercial_demand = max(
+        0.0,
+        len(owned_regions) * 0.06
+        + town_regions * 0.16
+        + city_regions * 0.34,
+    )
 
     demand[CAPACITY_FOOD_SECURITY] = round(food_demand, 3)
     demand[CAPACITY_MOBILITY] = round(mobility_demand, 3)
     demand[CAPACITY_METAL] = round(metal_demand, 3)
     demand[CAPACITY_CONSTRUCTION] = round(construction_demand, 3)
-    demand[RESOURCE_GRAIN] = round(max(0.3, food_demand * 0.65), 3)
+    demand[RESOURCE_GRAIN] = round(max(0.25, food_demand * 0.42), 3)
+    demand[RESOURCE_LIVESTOCK] = round(max(0.18, food_demand * 0.24), 3)
     demand[RESOURCE_HORSES] = round(mobility_demand, 3)
     demand[RESOURCE_COPPER] = round(metal_demand, 3)
-    demand[RESOURCE_STONE] = round(construction_demand * 0.55, 3)
-    demand[RESOURCE_TIMBER] = round(construction_demand * 0.45, 3)
-    demand[RESOURCE_WILD_FOOD] = round(max(0.2, food_demand * 0.35), 3)
-    demand[CAPACITY_TAXABLE_VALUE] = round(food_demand + mobility_demand + metal_demand + construction_demand, 3)
+    demand[RESOURCE_STONE] = round(construction_demand * 0.52, 3)
+    demand[RESOURCE_TIMBER] = round(construction_demand * 0.36, 3)
+    demand[RESOURCE_WILD_FOOD] = round(max(0.15, food_demand * 0.18), 3)
+    demand[RESOURCE_SALT] = round(
+        max(0.12, food_demand * 0.16 + town_regions * 0.04 + city_regions * 0.08),
+        3,
+    )
+    demand[RESOURCE_TEXTILES] = round(max(0.1, commercial_demand), 3)
+    demand[CAPACITY_TAXABLE_VALUE] = round(
+        food_demand + mobility_demand + metal_demand + construction_demand + commercial_demand,
+        3,
+    )
     return demand
 
 
@@ -1061,6 +1148,24 @@ def get_region_food_spoilage_rate(region: Region) -> float:
     )
 
 
+def get_faction_salt_preservation_modifier(
+    world: WorldState,
+    faction_name: str,
+) -> float:
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return 0.0
+    salt_shortage = max(0.0, faction.resource_shortages.get(RESOURCE_SALT, 0.0))
+    if salt_shortage <= 0:
+        salt_access = max(0.0, faction.resource_effective_access.get(RESOURCE_SALT, 0.0))
+        return round(-min(0.012, salt_access * 0.01), 3)
+    shortage_ratio = salt_shortage / max(
+        0.1,
+        salt_shortage + max(0.0, faction.resource_effective_access.get(RESOURCE_SALT, 0.0)),
+    )
+    return round(min(0.045, shortage_ratio * 0.045), 3)
+
+
 def get_region_food_demand(region: Region) -> float:
     if region.owner is None or region.population <= 0:
         return 0.0
@@ -1075,7 +1180,10 @@ def _build_faction_derived_capacity(
     effective_access = world.factions[faction_name].resource_effective_access
     derived_capacity = build_empty_capacity_map()
     derived_capacity[CAPACITY_FOOD_SECURITY] = round(
-        effective_access[RESOURCE_GRAIN] + effective_access[RESOURCE_WILD_FOOD],
+        effective_access[RESOURCE_GRAIN]
+        + (effective_access[RESOURCE_LIVESTOCK] * 0.9)
+        + (effective_access[RESOURCE_WILD_FOOD] * 0.7)
+        + (effective_access[RESOURCE_SALT] * 0.1),
         3,
     )
     derived_capacity[CAPACITY_MOBILITY] = round(effective_access[RESOURCE_HORSES], 3)
@@ -1185,6 +1293,7 @@ def update_faction_resource_economy(
             )
             region.food_produced = round(
                 region.resource_output.get(RESOURCE_GRAIN, 0.0)
+                + region.resource_output.get(RESOURCE_LIVESTOCK, 0.0)
                 + region.resource_output.get(RESOURCE_WILD_FOOD, 0.0),
                 3,
             )
@@ -1234,13 +1343,22 @@ def apply_turn_food_economy(world: WorldState) -> None:
 
         food_produced = round(
             region.resource_output.get(RESOURCE_GRAIN, 0.0)
+            + region.resource_output.get(RESOURCE_LIVESTOCK, 0.0)
             + region.resource_output.get(RESOURCE_WILD_FOOD, 0.0),
             3,
         )
         food_demand = get_region_food_demand(region)
         food_storage_capacity = get_region_food_storage_capacity(region)
         food_stored = min(region.food_stored, food_storage_capacity)
-        spoilage_rate = get_region_food_spoilage_rate(region)
+        spoilage_rate = get_region_food_spoilage_rate(region) + get_faction_salt_preservation_modifier(
+            world,
+            region.owner,
+        )
+        spoilage_rate = _clamp(
+            spoilage_rate,
+            FOOD_STORAGE_MIN_SPOILAGE,
+            FOOD_STORAGE_BASE_SPOILAGE + 0.05,
+        )
         food_spoilage = round(min(food_stored, food_stored * spoilage_rate), 3)
         usable_stored_food = round(max(0.0, food_stored - food_spoilage), 3)
         available_food = round(food_produced + usable_stored_food, 3)

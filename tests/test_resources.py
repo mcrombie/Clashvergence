@@ -24,8 +24,11 @@ from src.resources import (
     RESOURCE_COPPER,
     RESOURCE_GRAIN,
     RESOURCE_HORSES,
+    RESOURCE_LIVESTOCK,
+    RESOURCE_SALT,
     RESOURCE_STONE,
     RESOURCE_TIMBER,
+    RESOURCE_TEXTILES,
     seed_region_resource_profile,
 )
 from src.world import create_world
@@ -49,6 +52,47 @@ class ResourceSystemTests(unittest.TestCase):
         self.assertGreater(
             river_region.resource_suitability[RESOURCE_GRAIN],
             hill_region.resource_suitability[RESOURCE_GRAIN],
+        )
+
+    def test_region_profiles_seed_livestock_salt_and_textiles_by_geography(self):
+        plains_region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            terrain_tags=["plains"],
+            climate="temperate",
+        )
+        coastal_region = Region(
+            name="B",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            terrain_tags=["coast"],
+            climate="oceanic",
+        )
+        highland_region = Region(
+            name="C",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            terrain_tags=["highland"],
+            climate="cold",
+        )
+        for region in (plains_region, coastal_region, highland_region):
+            seed_region_resource_profile(region)
+
+        self.assertGreater(
+            plains_region.resource_suitability[RESOURCE_LIVESTOCK],
+            highland_region.resource_suitability[RESOURCE_LIVESTOCK],
+        )
+        self.assertGreater(
+            coastal_region.resource_fixed_endowments[RESOURCE_SALT],
+            plains_region.resource_fixed_endowments[RESOURCE_SALT],
+        )
+        self.assertGreater(
+            coastal_region.resource_suitability[RESOURCE_TEXTILES],
+            highland_region.resource_suitability[RESOURCE_TEXTILES],
         )
 
     def test_starting_population_can_be_estimated_from_resource_profile(self):
@@ -131,6 +175,48 @@ class ResourceSystemTests(unittest.TestCase):
         self.assertTrue(develop("FactionA", "B", world))
         self.assertGreater(world.regions["B"].resource_established[RESOURCE_GRAIN], 0.0)
         self.assertEqual(world.events[-1].details["project_type"], "introduce_grain")
+
+    def test_develop_can_introduce_livestock_into_suitable_owned_neighbor(self):
+        source = Region(
+            name="A",
+            neighbors=["B"],
+            owner="FactionA",
+            resources=2,
+            population=140,
+            terrain_tags=["plains", "steppe"],
+            climate="temperate",
+        )
+        target = Region(
+            name="B",
+            neighbors=["A"],
+            owner="FactionA",
+            resources=2,
+            population=120,
+            terrain_tags=["plains"],
+            climate="temperate",
+        )
+        seed_region_resource_profile(source)
+        seed_region_resource_profile(target)
+        target.resource_established[RESOURCE_GRAIN] = 0.0
+        target.resource_established[RESOURCE_LIVESTOCK] = 0.0
+        target.resource_established[RESOURCE_HORSES] = 0.0
+
+        world = WorldState(
+            regions={"A": source, "B": target},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        update_faction_resource_economy(world)
+
+        components = get_development_target_score_components("B", "FactionA", world)
+
+        self.assertIn(
+            components["project_type"],
+            {"introduce_grain", "introduce_livestock"},
+        )
+        if components["project_type"] == "introduce_livestock":
+            self.assertTrue(develop("FactionA", "B", world))
+            self.assertGreater(world.regions["B"].resource_established[RESOURCE_LIVESTOCK], 0.0)
+            self.assertEqual(world.events[-1].details["project_type"], "introduce_livestock")
 
     def test_resource_economy_populates_access_capacities_and_shortages(self):
         world = create_world(map_name="seven_region_ring", num_factions=3)
@@ -334,7 +420,7 @@ class ResourceSystemTests(unittest.TestCase):
             neighbors=[],
             owner="FactionA",
             resources=2,
-            population=150,
+            population=70,
             terrain_tags=["forest"],
             climate="temperate",
         )

@@ -4,15 +4,20 @@ from collections.abc import Mapping
 
 
 RESOURCE_GRAIN = "grain"
+RESOURCE_LIVESTOCK = "livestock"
 RESOURCE_HORSES = "horses"
 RESOURCE_WILD_FOOD = "wild_food"
 RESOURCE_TIMBER = "timber"
 RESOURCE_COPPER = "copper"
 RESOURCE_STONE = "stone"
+RESOURCE_SALT = "salt"
+RESOURCE_TEXTILES = "textiles"
 
 DOMESTICABLE_RESOURCES = (
     RESOURCE_GRAIN,
+    RESOURCE_LIVESTOCK,
     RESOURCE_HORSES,
+    RESOURCE_TEXTILES,
 )
 WILD_RESOURCES = (
     RESOURCE_WILD_FOOD,
@@ -21,6 +26,24 @@ WILD_RESOURCES = (
 EXTRACTIVE_RESOURCES = (
     RESOURCE_COPPER,
     RESOURCE_STONE,
+    RESOURCE_SALT,
+)
+FOOD_RESOURCES = (
+    RESOURCE_GRAIN,
+    RESOURCE_LIVESTOCK,
+    RESOURCE_WILD_FOOD,
+)
+CONSTRUCTION_RESOURCES = (
+    RESOURCE_TIMBER,
+    RESOURCE_STONE,
+)
+STRATEGIC_RESOURCES = (
+    RESOURCE_HORSES,
+    RESOURCE_COPPER,
+)
+COMMERCIAL_RESOURCES = (
+    RESOURCE_SALT,
+    RESOURCE_TEXTILES,
 )
 ALL_RESOURCES = (
     *DOMESTICABLE_RESOURCES,
@@ -43,99 +66,132 @@ ALL_CAPACITIES = (
 
 RESOURCE_LABELS = {
     RESOURCE_GRAIN: "Grain",
+    RESOURCE_LIVESTOCK: "Livestock",
     RESOURCE_HORSES: "Horses",
     RESOURCE_WILD_FOOD: "Wild Food",
     RESOURCE_TIMBER: "Timber",
     RESOURCE_COPPER: "Copper",
     RESOURCE_STONE: "Stone",
+    RESOURCE_SALT: "Salt",
+    RESOURCE_TEXTILES: "Textiles",
 }
 
 RESOURCE_VALUE_WEIGHTS = {
     RESOURCE_GRAIN: 1.25,
+    RESOURCE_LIVESTOCK: 1.1,
     RESOURCE_HORSES: 0.95,
     RESOURCE_WILD_FOOD: 1.05,
     RESOURCE_TIMBER: 0.8,
     RESOURCE_COPPER: 1.35,
     RESOURCE_STONE: 0.75,
+    RESOURCE_SALT: 1.15,
+    RESOURCE_TEXTILES: 1.2,
 }
 
 TERRAIN_RESOURCE_PROFILES = {
     "plains": {
         RESOURCE_GRAIN: 0.9,
+        RESOURCE_LIVESTOCK: 0.75,
         RESOURCE_HORSES: 0.65,
         RESOURCE_WILD_FOOD: 0.25,
         RESOURCE_TIMBER: 0.1,
         RESOURCE_STONE: 0.1,
+        RESOURCE_TEXTILES: 0.25,
     },
     "riverland": {
         RESOURCE_GRAIN: 1.0,
+        RESOURCE_LIVESTOCK: 0.58,
         RESOURCE_HORSES: 0.2,
         RESOURCE_WILD_FOOD: 0.85,
         RESOURCE_TIMBER: 0.15,
         RESOURCE_STONE: 0.1,
+        RESOURCE_TEXTILES: 0.45,
     },
     "coast": {
         RESOURCE_GRAIN: 0.45,
+        RESOURCE_LIVESTOCK: 0.4,
         RESOURCE_HORSES: 0.2,
         RESOURCE_WILD_FOOD: 0.95,
         RESOURCE_TIMBER: 0.2,
         RESOURCE_STONE: 0.05,
+        RESOURCE_SALT: 1.0,
+        RESOURCE_TEXTILES: 0.55,
     },
     "forest": {
         RESOURCE_GRAIN: 0.4,
+        RESOURCE_LIVESTOCK: 0.35,
         RESOURCE_HORSES: 0.25,
         RESOURCE_WILD_FOOD: 0.8,
         RESOURCE_TIMBER: 1.0,
         RESOURCE_STONE: 0.2,
+        RESOURCE_TEXTILES: 0.18,
     },
     "hills": {
         RESOURCE_GRAIN: 0.22,
+        RESOURCE_LIVESTOCK: 0.45,
         RESOURCE_HORSES: 0.45,
         RESOURCE_WILD_FOOD: 0.45,
         RESOURCE_TIMBER: 0.25,
         RESOURCE_COPPER: 0.8,
         RESOURCE_STONE: 0.9,
+        RESOURCE_SALT: 0.2,
     },
     "highland": {
         RESOURCE_GRAIN: 0.1,
+        RESOURCE_LIVESTOCK: 0.22,
         RESOURCE_HORSES: 0.15,
         RESOURCE_WILD_FOOD: 0.35,
         RESOURCE_TIMBER: 0.2,
         RESOURCE_COPPER: 1.0,
         RESOURCE_STONE: 1.0,
+        RESOURCE_SALT: 0.35,
     },
     "marsh": {
         RESOURCE_GRAIN: 0.18,
+        RESOURCE_LIVESTOCK: 0.22,
         RESOURCE_HORSES: 0.05,
         RESOURCE_WILD_FOOD: 0.78,
         RESOURCE_TIMBER: 0.18,
+        RESOURCE_SALT: 0.28,
+        RESOURCE_TEXTILES: 0.15,
     },
     "steppe": {
         RESOURCE_GRAIN: 0.55,
+        RESOURCE_LIVESTOCK: 0.82,
         RESOURCE_HORSES: 0.95,
         RESOURCE_WILD_FOOD: 0.22,
         RESOURCE_TIMBER: 0.05,
         RESOURCE_STONE: 0.08,
+        RESOURCE_SALT: 0.12,
+        RESOURCE_TEXTILES: 0.12,
     },
 }
 
 CLIMATE_RESOURCE_MODIFIERS = {
     "temperate": {
         RESOURCE_GRAIN: 0.05,
+        RESOURCE_LIVESTOCK: 0.04,
         RESOURCE_WILD_FOOD: 0.05,
         RESOURCE_TIMBER: 0.05,
+        RESOURCE_TEXTILES: 0.06,
     },
     "oceanic": {
         RESOURCE_GRAIN: 0.08,
+        RESOURCE_LIVESTOCK: 0.03,
         RESOURCE_WILD_FOOD: 0.15,
         RESOURCE_TIMBER: 0.08,
+        RESOURCE_SALT: 0.05,
+        RESOURCE_TEXTILES: 0.08,
     },
     "cold": {
         RESOURCE_GRAIN: -0.12,
+        RESOURCE_LIVESTOCK: 0.05,
         RESOURCE_HORSES: -0.08,
         RESOURCE_WILD_FOOD: 0.04,
         RESOURCE_TIMBER: 0.05,
         RESOURCE_STONE: 0.04,
+        RESOURCE_SALT: 0.06,
+        RESOURCE_TEXTILES: -0.08,
     },
 }
 
@@ -270,10 +326,30 @@ def seed_region_resource_profile(region) -> None:
                 _clamp(max(0.45, grain_suitability * 0.75), 0.0, 1.0),
                 3,
             )
+        livestock_suitability = suitability[RESOURCE_LIVESTOCK]
+        if livestock_suitability >= 0.4:
+            established[RESOURCE_LIVESTOCK] = round(
+                _clamp(max(0.28, livestock_suitability * 0.55), 0.0, 0.9),
+                3,
+            )
         horse_suitability = suitability[RESOURCE_HORSES]
         if horse_suitability >= 0.55:
             established[RESOURCE_HORSES] = round(
                 _clamp(max(0.22, horse_suitability * 0.45), 0.0, 0.8),
+                3,
+            )
+        textile_suitability = suitability[RESOURCE_TEXTILES]
+        if textile_suitability >= 0.22:
+            fiber_support = (
+                established[RESOURCE_GRAIN] * 0.12
+                + established[RESOURCE_LIVESTOCK] * 0.22
+            )
+            established[RESOURCE_TEXTILES] = round(
+                _clamp(
+                    max(0.14, textile_suitability * 0.3 + fiber_support),
+                    0.0,
+                    0.75,
+                ),
                 3,
             )
 
