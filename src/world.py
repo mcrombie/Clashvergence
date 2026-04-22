@@ -49,7 +49,16 @@ def create_world(
             climate=region_data.get("climate", "temperate"),
         )
 
-    world = WorldState(regions=regions, factions=factions, map_name=map_name)
+    world = WorldState(
+        regions=regions,
+        factions=factions,
+        map_name=map_name,
+        sea_links=[
+            tuple(link)
+            for link in map_definition.get("sea_links", [])
+            if len(link) == 2
+        ],
+    )
     for faction_name, faction in factions.items():
         register_ethnicity(
             world,

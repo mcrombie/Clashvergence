@@ -94,6 +94,7 @@ def _build_region_resource_payload(region):
         "resource_route_cost": round(float(region.resource_route_cost or 0.0), 3),
         "resource_route_anchor": region.resource_route_anchor,
         "resource_route_bottleneck": round(float(region.resource_route_bottleneck or 0.0), 3),
+        "resource_route_mode": region.resource_route_mode,
         "trade_route_role": region.trade_route_role,
         "trade_route_parent": region.trade_route_parent,
         "trade_route_children": int(region.trade_route_children or 0),
@@ -509,6 +510,7 @@ def build_simulation_snapshots(world):
             "resource_route_cost": initial_region_history.get(region_name, {}).get("resource_route_cost", region.resource_route_cost),
             "resource_route_anchor": initial_region_history.get(region_name, {}).get("resource_route_anchor", region.resource_route_anchor),
             "resource_route_bottleneck": initial_region_history.get(region_name, {}).get("resource_route_bottleneck", region.resource_route_bottleneck),
+            "resource_route_mode": initial_region_history.get(region_name, {}).get("resource_route_mode", region.resource_route_mode),
             "trade_route_role": initial_region_history.get(region_name, {}).get("trade_route_role", region.trade_route_role),
             "trade_route_parent": initial_region_history.get(region_name, {}).get("trade_route_parent", region.trade_route_parent),
             "trade_route_children": initial_region_history.get(region_name, {}).get("trade_route_children", region.trade_route_children),
@@ -602,6 +604,7 @@ def build_simulation_snapshots(world):
                 "resource_route_cost": region["resource_route_cost"],
                 "resource_route_anchor": region["resource_route_anchor"],
                 "resource_route_bottleneck": region["resource_route_bottleneck"],
+                "resource_route_mode": region["resource_route_mode"],
                 "trade_route_role": region["trade_route_role"],
                 "trade_route_parent": region["trade_route_parent"],
                 "trade_route_children": region["trade_route_children"],
@@ -723,6 +726,7 @@ def build_simulation_snapshots(world):
             region_state[region_name]["resource_route_cost"] = history_region.get("resource_route_cost", region_state[region_name]["resource_route_cost"])
             region_state[region_name]["resource_route_anchor"] = history_region.get("resource_route_anchor", region_state[region_name]["resource_route_anchor"])
             region_state[region_name]["resource_route_bottleneck"] = history_region.get("resource_route_bottleneck", region_state[region_name]["resource_route_bottleneck"])
+            region_state[region_name]["resource_route_mode"] = history_region.get("resource_route_mode", region_state[region_name]["resource_route_mode"])
             region_state[region_name]["trade_route_role"] = history_region.get("trade_route_role", region_state[region_name]["trade_route_role"])
             region_state[region_name]["trade_route_parent"] = history_region.get("trade_route_parent", region_state[region_name]["trade_route_parent"])
             region_state[region_name]["trade_route_children"] = history_region.get("trade_route_children", region_state[region_name]["trade_route_children"])
@@ -819,6 +823,7 @@ def build_simulation_snapshots(world):
                     "resource_route_cost": region["resource_route_cost"],
                     "resource_route_anchor": region["resource_route_anchor"],
                     "resource_route_bottleneck": region["resource_route_bottleneck"],
+                    "resource_route_mode": region["resource_route_mode"],
                     "trade_route_role": region["trade_route_role"],
                     "trade_route_parent": region["trade_route_parent"],
                     "trade_route_children": region["trade_route_children"],
@@ -3951,7 +3956,7 @@ def render_simulation_html(world):
             <div class="detail-row">
               <div class="detail-label">Route / Isolation</div>
               <div class="detail-value">
-                ${{(regionSnapshot.resource_route_anchor || staticRegion.resource_route_anchor) ? `${{escapeHtml(regionSnapshot.resource_route_anchor || staticRegion.resource_route_anchor)}} @ depth ${{Number(regionSnapshot.resource_route_depth ?? staticRegion.resource_route_depth ?? 0)}} / ` : ""}}
+                ${{(regionSnapshot.resource_route_anchor || staticRegion.resource_route_anchor) ? `${{escapeHtml(regionSnapshot.resource_route_anchor || staticRegion.resource_route_anchor)}} @ depth ${{Number(regionSnapshot.resource_route_depth ?? staticRegion.resource_route_depth ?? 0)}} via ${{escapeHtml(regionSnapshot.resource_route_mode || staticRegion.resource_route_mode || "land")}} / ` : ""}}
                 ${{Number((regionSnapshot.resource_isolation_factor ?? staticRegion.resource_isolation_factor ?? 0) * 100).toFixed(0)}}%
               </div>
             </div>
@@ -4109,7 +4114,7 @@ def render_simulation_html(world):
         .join(" / ");
       const routeAnchor = regionSnapshot.resource_route_anchor || staticRegion.resource_route_anchor;
       const routeText = routeAnchor
-        ? `${{escapeHtml(routeAnchor)}} at depth ${{Number(regionSnapshot.resource_route_depth ?? staticRegion.resource_route_depth ?? 0)}}`
+        ? `${{escapeHtml(routeAnchor)}} at depth ${{Number(regionSnapshot.resource_route_depth ?? staticRegion.resource_route_depth ?? 0)}} via ${{escapeHtml(regionSnapshot.resource_route_mode || staticRegion.resource_route_mode || "land")}}`
         : "Locally anchored";
       const portraitMarkup = buildRegionPortraitSvg(regionName, regionSnapshot, staticRegion, ownerColor);
       const relatedEvents = snapshot.events.filter((event) => event.region === regionName);

@@ -1041,6 +1041,83 @@ class ResourceSystemTests(unittest.TestCase):
         self.assertGreater(world.factions["FactionA"].trade_income, 0.0)
         self.assertGreaterEqual(faction_metrics["trade_import_dependency"], 0.0)
 
+    def test_coastal_ports_can_use_sea_links_for_internal_trade_routes(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=220,
+                    terrain_tags=["coast", "plains"],
+                    climate="oceanic",
+                    homeland_faction_id="FactionA",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.1,
+                    market_level=0.8,
+                    road_level=0.8,
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A", "C"],
+                    owner="FactionA",
+                    resources=2,
+                    population=110,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    integration_score=2.4,
+                    settlement_level="rural",
+                ),
+                "C": Region(
+                    name="C",
+                    neighbors=["B", "D"],
+                    owner="FactionA",
+                    resources=2,
+                    population=105,
+                    terrain_tags=["forest"],
+                    climate="temperate",
+                    integration_score=1.8,
+                    settlement_level="rural",
+                ),
+                "D": Region(
+                    name="D",
+                    neighbors=["C"],
+                    owner="FactionA",
+                    resources=2,
+                    population=180,
+                    terrain_tags=["coast", "forest"],
+                    climate="oceanic",
+                    integration_score=4.6,
+                    settlement_level="town",
+                    infrastructure_level=1.0,
+                    market_level=0.7,
+                    road_level=0.6,
+                    copper_mine_level=1.4,
+                ),
+            },
+            factions={"FactionA": Faction(name="FactionA")},
+            sea_links=[("A", "D")],
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        world.regions["D"].resource_fixed_endowments[RESOURCE_COPPER] = 1.15
+
+        update_faction_resource_economy(world)
+
+        self.assertEqual(world.regions["D"].resource_route_mode, "sea")
+        self.assertLess(world.regions["D"].resource_route_cost, 2.3)
+        self.assertGreater(world.regions["A"].trade_hub_value, 0.0)
+        self.assertGreater(world.factions["FactionA"].trade_income, 0.0)
+
+    def test_world_creation_populates_coastal_sea_links_from_map_definition(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+
+        self.assertTrue(world.sea_links)
+        self.assertIn(("A", "E"), world.sea_links)
+        self.assertIn(("E", "I"), world.sea_links)
+
     def test_bottlenecked_corridor_prefers_road_development(self):
         world = WorldState(
             regions={

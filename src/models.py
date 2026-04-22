@@ -170,6 +170,7 @@ class Region:
     resource_route_cost: float = 0.0
     resource_route_anchor: str | None = None
     resource_route_bottleneck: float = 1.0
+    resource_route_mode: str = "land"
     trade_route_role: str = "local"
     trade_route_parent: str | None = None
     trade_route_children: int = 0
@@ -462,6 +463,7 @@ class WorldState:
     factions: dict[str, Faction]
     ethnicities: dict[str, Ethnicity] = field(default_factory=dict)
     map_name: str = ""
+    sea_links: list[tuple[str, str]] = field(default_factory=list)
     turn: int = 0
     events: list[Event] = field(default_factory=list)
     metrics: list = field(default_factory=list)

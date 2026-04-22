@@ -2182,6 +2182,7 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "resource_route_cost": round(region.resource_route_cost, 3),
             "resource_route_anchor": region.resource_route_anchor,
             "resource_route_bottleneck": round(region.resource_route_bottleneck, 3),
+            "resource_route_mode": region.resource_route_mode,
             "trade_route_role": region.trade_route_role,
             "trade_route_parent": region.trade_route_parent,
             "trade_route_children": region.trade_route_children,

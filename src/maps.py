@@ -84,6 +84,24 @@ def _build_three_ring_climate(outer_names, middle_names, inner_names, center_nam
     return climate_lookup
 
 
+def _build_coastal_cycle_links(ordered_names, terrain_lookup):
+    coastal_names = [
+        region_name
+        for region_name in ordered_names
+        if "coast" in terrain_lookup.get(region_name, [])
+    ]
+    if len(coastal_names) < 2:
+        return []
+
+    link_pairs = set()
+    for index, region_name in enumerate(coastal_names):
+        next_name = coastal_names[(index + 1) % len(coastal_names)]
+        if region_name == next_name:
+            continue
+        link_pairs.add(tuple(sorted((region_name, next_name))))
+    return sorted(link_pairs)
+
+
 def _build_asymmetric_frontier_terrain():
     return {
         "A": ["plains"],
@@ -229,6 +247,10 @@ MULTI_RING_SYMMETRY_REGIONS = build_multi_ring_symmetry()
 MAPS = {
     "seven_region_ring": {
         "description": "Seven regions and three factions, where each faction starts bordering three unoccupied regions.",
+        "sea_links": _build_coastal_cycle_links(
+            ["A", "B", "C", "D", "E", "F"],
+            _build_single_ring_terrain(["A", "B", "C", "D", "E", "F"], "M"),
+        ),
         "regions": _copy_regions_with_terrain(
             SEVEN_REGION_RING_REGIONS,
             _build_single_ring_terrain(["A", "B", "C", "D", "E", "F"], "M"),
@@ -237,6 +259,10 @@ MAPS = {
 
     "ten_region_ring": {
         "description": "Ten regions with a nine-region outer ring and one center region.",
+        "sea_links": _build_coastal_cycle_links(
+            ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+            _build_single_ring_terrain(["A", "B", "C", "D", "E", "F", "G", "H", "I"], "M"),
+        ),
         "regions": _copy_regions_with_terrain(
             TEN_REGION_RING_REGIONS,
             _build_single_ring_terrain(["A", "B", "C", "D", "E", "F", "G", "H", "I"], "M"),
@@ -245,6 +271,10 @@ MAPS = {
 
     "thirteen_region_ring": {
         "description": "Thirteen regions with a twelve-region outer ring and one center region, designed for four factions.",
+        "sea_links": _build_coastal_cycle_links(
+            ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"],
+            _build_single_ring_terrain(["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"], "M"),
+        ),
         "regions": _copy_regions_with_terrain(
             THIRTEEN_REGION_RING_REGIONS,
             _build_single_ring_terrain(["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"], "M"),
@@ -253,6 +283,13 @@ MAPS = {
 
     "seventeen_region_ring": {
         "description": "Seventeen regions with a sixteen-region outer ring and one center region, designed for four factions.",
+        "sea_links": _build_coastal_cycle_links(
+            ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"],
+            _build_single_ring_terrain(
+                ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"],
+                "Q",
+            ),
+        ),
         "regions": _copy_regions_with_terrain(
             SEVENTEEN_REGION_RING_REGIONS,
             _build_single_ring_terrain(
@@ -264,6 +301,15 @@ MAPS = {
 
     "thirty_seven_region_ring": {
         "description": "Thirty-seven regions arranged as a sixteen-region outer ring, a twelve-region middle ring, an eight-region inner ring, and one center region.",
+        "sea_links": _build_coastal_cycle_links(
+            [f"O{i}" for i in range(1, 17)],
+            _build_three_ring_terrain(
+                [f"O{i}" for i in range(1, 17)],
+                [f"M{i}" for i in range(1, 13)],
+                [f"I{i}" for i in range(1, 9)],
+                "C",
+            ),
+        ),
         "regions": _copy_regions_with_terrain(
             THIRTY_SEVEN_REGION_RING_REGIONS,
             _build_three_ring_terrain(
@@ -293,6 +339,15 @@ MAPS = {
         "description": (
             "Thirty-seven regions arranged in three concentric rings around a single center, "
             "with four factions equally spaced on the outer ring."
+        ),
+        "sea_links": _build_coastal_cycle_links(
+            [f"O{i}" for i in range(1, 17)],
+            _build_three_ring_terrain(
+                [f"O{i}" for i in range(1, 17)],
+                [f"M{i}" for i in range(1, 13)],
+                [f"I{i}" for i in range(1, 9)],
+                "C",
+            ),
         ),
         "regions": _copy_regions_with_terrain(
             MULTI_RING_SYMMETRY_REGIONS,

@@ -109,6 +109,14 @@ RESOURCE_ROUTE_BOTTLENECK_INFRASTRUCTURE_BONUS = 0.09
 RESOURCE_ROUTE_BOTTLENECK_INTEGRATION_BONUS = 0.015
 RESOURCE_ROUTE_ROAD_STEP_BONUS = 0.18
 RESOURCE_ROUTE_ROAD_SUPPORT_BONUS = 0.1
+RESOURCE_ROUTE_SEA_STEP_COST = 0.62
+RESOURCE_ROUTE_SEA_PORT_SUPPORT = 0.9
+RESOURCE_ROUTE_SEA_MARKET_BONUS = 0.06
+RESOURCE_ROUTE_SEA_STOREHOUSE_BONUS = 0.04
+RESOURCE_ROUTE_SEA_INFRASTRUCTURE_BONUS = 0.03
+RESOURCE_ROUTE_SEA_ROAD_BONUS = 0.02
+RESOURCE_ROUTE_SEA_UNREST_FACTOR = 0.015
+RESOURCE_ROUTE_SEA_DAMAGE_FACTOR = 0.2
 RESOURCE_GRAIN_UNIRRIGATED_FACTOR = 0.78
 RESOURCE_GRAIN_IRRIGATION_LEVEL_FACTOR = 0.55
 RESOURCE_GRAIN_SUPPORT_LEVEL_FACTOR = 0.22
@@ -227,6 +235,7 @@ def ensure_region_resource_state(region: Region) -> None:
     region.resource_route_cost = round(float(region.resource_route_cost or 0.0), 3)
     region.resource_route_anchor = region.resource_route_anchor or None
     region.resource_route_bottleneck = round(float(region.resource_route_bottleneck or 0.0), 3)
+    region.resource_route_mode = (region.resource_route_mode or "land").strip().lower()
     region.trade_route_role = (region.trade_route_role or "local").strip().lower()
     region.trade_route_parent = region.trade_route_parent or None
     region.trade_route_children = int(region.trade_route_children or 0)
@@ -551,6 +560,161 @@ def _get_region_corridor_support_factor(region: Region) -> float:
     return _clamp(support, 0.32, 1.0)
 
 
+def _is_region_maritime_port(region: Region) -> bool:
+    if "coast" not in region.terrain_tags or region.owner is None:
+        return False
+    return any([
+        region.market_level >= 0.2,
+        region.storehouse_level >= 0.25,
+        region.infrastructure_level >= 0.45,
+        region.settlement_level in {"town", "city"},
+        region.population >= 125 and get_region_core_status(region) in {"homeland", "core"},
+    ])
+
+
+def _get_maritime_step_cost(source_region: Region, destination_region: Region) -> float:
+    average_damage = (
+        _get_region_average_resource_damage(source_region)
+        + _get_region_average_resource_damage(destination_region)
+    ) / 2.0
+    step_cost = (
+        RESOURCE_ROUTE_SEA_STEP_COST
+        - min(
+            0.16,
+            (
+                source_region.market_level
+                + destination_region.market_level
+            ) * RESOURCE_ROUTE_SEA_MARKET_BONUS,
+        )
+        - min(
+            0.12,
+            (
+                source_region.storehouse_level
+                + destination_region.storehouse_level
+            ) * RESOURCE_ROUTE_SEA_STOREHOUSE_BONUS,
+        )
+        - min(
+            0.1,
+            (
+                source_region.infrastructure_level
+                + destination_region.infrastructure_level
+            ) * RESOURCE_ROUTE_SEA_INFRASTRUCTURE_BONUS,
+        )
+        - min(
+            0.08,
+            (
+                source_region.road_level
+                + destination_region.road_level
+            ) * RESOURCE_ROUTE_SEA_ROAD_BONUS,
+        )
+        + min(
+            0.16,
+            (
+                source_region.unrest
+                + destination_region.unrest
+            ) * RESOURCE_ROUTE_SEA_UNREST_FACTOR,
+        )
+        + min(0.12, average_damage * RESOURCE_ROUTE_SEA_DAMAGE_FACTOR)
+    )
+    if source_region.unrest_event_level == "crisis" or destination_region.unrest_event_level == "crisis":
+        step_cost += 0.16
+    elif (
+        source_region.unrest_event_level == "disturbance"
+        or destination_region.unrest_event_level == "disturbance"
+    ):
+        step_cost += 0.08
+    return _clamp(step_cost, 0.32, 1.25)
+
+
+def _get_maritime_support_factor(source_region: Region, destination_region: Region) -> float:
+    average_damage = (
+        _get_region_average_resource_damage(source_region)
+        + _get_region_average_resource_damage(destination_region)
+    ) / 2.0
+    support = (
+        RESOURCE_ROUTE_SEA_PORT_SUPPORT
+        + min(
+            0.1,
+            (
+                source_region.market_level
+                + destination_region.market_level
+            ) * 0.05,
+        )
+        + min(
+            0.08,
+            (
+                source_region.storehouse_level
+                + destination_region.storehouse_level
+            ) * 0.035,
+        )
+        + min(
+            0.08,
+            (
+                source_region.infrastructure_level
+                + destination_region.infrastructure_level
+            ) * 0.028,
+        )
+        - min(
+            0.16,
+            (
+                source_region.unrest
+                + destination_region.unrest
+            ) * 0.012,
+        )
+        - min(0.12, average_damage * 0.24)
+    )
+    if source_region.unrest_event_level == "crisis" or destination_region.unrest_event_level == "crisis":
+        support -= 0.08
+    elif (
+        source_region.unrest_event_level == "disturbance"
+        or destination_region.unrest_event_level == "disturbance"
+    ):
+        support -= 0.04
+    return _clamp(support, 0.52, 1.0)
+
+
+def _iter_owned_trade_connections(
+    world: WorldState,
+    faction_name: str,
+    region_name: str,
+) -> list[tuple[str, float, float, str]]:
+    current_region = world.regions[region_name]
+    connections: list[tuple[str, float, float, str]] = []
+
+    for neighbor_name in current_region.neighbors:
+        neighbor = world.regions[neighbor_name]
+        if neighbor.owner != faction_name:
+            continue
+        connections.append((
+            neighbor_name,
+            _get_region_route_step_cost(neighbor),
+            _get_region_corridor_support_factor(neighbor),
+            "land",
+        ))
+
+    if _is_region_maritime_port(current_region):
+        for source_name, destination_name in world.sea_links:
+            if region_name == source_name:
+                neighbor_name = destination_name
+            elif region_name == destination_name:
+                neighbor_name = source_name
+            else:
+                continue
+            if neighbor_name not in world.regions:
+                continue
+            neighbor = world.regions[neighbor_name]
+            if neighbor.owner != faction_name or not _is_region_maritime_port(neighbor):
+                continue
+            connections.append((
+                neighbor_name,
+                _get_maritime_step_cost(current_region, neighbor),
+                _get_maritime_support_factor(current_region, neighbor),
+                "sea",
+            ))
+
+    return connections
+
+
 def build_faction_resource_route_map(
     world: WorldState,
     faction_name: str,
@@ -570,6 +734,7 @@ def build_faction_resource_route_map(
             "depth": 0,
             "cost": 0.0,
             "bottleneck": 1.0,
+            "mode": "anchor",
         }
         best_routes[anchor_name] = (0.0, 1.0)
         heappush(frontier, (0.0, -1.0, 0, anchor_name, anchor_name))
@@ -583,13 +748,11 @@ def build_faction_resource_route_map(
             or (abs(route_cost - best_cost) <= 1e-9 and route_bottleneck < best_bottleneck - 1e-9)
         ):
             continue
-        current_region = world.regions[region_name]
-        for neighbor_name in current_region.neighbors:
-            neighbor = world.regions[neighbor_name]
-            if neighbor.owner != faction_name:
-                continue
-            step_cost = _get_region_route_step_cost(neighbor)
-            step_support = _get_region_corridor_support_factor(neighbor)
+        for neighbor_name, step_cost, step_support, connection_mode in _iter_owned_trade_connections(
+            world,
+            faction_name,
+            region_name,
+        ):
             next_cost = route_cost + step_cost
             next_bottleneck = min(route_bottleneck, step_support)
             best_known = best_routes.get(neighbor_name)
@@ -615,6 +778,7 @@ def build_faction_resource_route_map(
                 "depth": route_depth + 1,
                 "cost": round(next_cost, 3),
                 "bottleneck": round(next_bottleneck, 3),
+                "mode": connection_mode,
             }
             heappush(frontier, (next_cost, -next_bottleneck, route_depth + 1, neighbor_name, anchor_name))
 
@@ -857,6 +1021,7 @@ def get_region_internal_distribution_state(
             "cost": 0.0,
             "anchor": None,
             "bottleneck": 0.65,
+            "mode": "land",
         }
 
     route_state = None
@@ -873,6 +1038,7 @@ def get_region_internal_distribution_state(
             "cost": 0.0,
             "anchor": None,
             "bottleneck": 0.4,
+            "mode": "land",
         }
 
     status = get_region_core_status(region)
@@ -914,6 +1080,7 @@ def get_region_internal_distribution_state(
         "cost": round(route_cost, 3),
         "anchor": route_state.get("anchor"),
         "bottleneck": round(route_bottleneck, 3),
+        "mode": route_state.get("mode", "land"),
     }
 
 
@@ -941,6 +1108,7 @@ def get_region_internal_distribution_factor(
         else None
     )
     region.resource_route_bottleneck = float(distribution_state["bottleneck"] or 0.0)
+    region.resource_route_mode = str(distribution_state.get("mode", "land") or "land")
     return float(distribution_state["factor"])
 
 
@@ -1559,6 +1727,7 @@ def update_faction_resource_economy(
             faction_route_map=faction_route_maps.get(region.owner or "", {}),
         )
         if region.owner is None:
+            region.resource_route_mode = "land"
             region.trade_route_role = "local"
             region.trade_route_parent = None
             region.trade_route_children = 0
