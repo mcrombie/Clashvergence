@@ -291,6 +291,16 @@ def _get_event_title(event, world):
         return f"{faction_name} and {counterpart_name} signed a non-aggression pact"
     if event.type == "diplomacy_alliance":
         return f"{faction_name} and {counterpart_name} formed an alliance"
+    if event.type == "war_declared":
+        objective = event.get("war_objective_label") or event.get("war_objective") or "war"
+        return f"{faction_name} launched a {objective} war against {counterpart_name}"
+    if event.type == "war_peace":
+        peace_term = event.get("peace_term", "settlement").replace("_", " ")
+        winner = _get_faction_display_name(world, event.get("winner"))
+        loser = _get_faction_display_name(world, event.get("loser"))
+        if event.get("winner"):
+            return f"{winner} ended the war with {loser} under {peace_term}"
+        return f"{faction_name} and {counterpart_name} settled for {peace_term}"
     if event.type == "diplomacy_tributary":
         relation_label = event.get("subordination_type", "tributary")
         return f"{counterpart_name} entered {faction_name}'s {relation_label} orbit"
@@ -547,6 +557,27 @@ def _get_event_summary(event, world):
     if event.type == "diplomacy_alliance":
         return (
             f"Shared interests hardened into a formal alignment that blocks direct conflict."
+            + terrain_text
+        )
+    if event.type == "war_declared":
+        objective = event.get("war_objective_label") or event.get("war_objective") or "war"
+        target_region = event.get("war_target_region")
+        target_clause = f" around {target_region}" if target_region else ""
+        return (
+            f"Open conflict began with an explicit aim of {objective}{target_clause}, replacing diplomatic tension with a live war footing."
+            + terrain_text
+        )
+    if event.type == "war_peace":
+        peace_term = (event.get("peace_term") or "settlement").replace("_", " ")
+        treasury_transfer = float(event.get("treasury_transfer", 0.0) or 0.0)
+        transfer_clause = (
+            f" Treasury shifted by {treasury_transfer:.2f} as part of the settlement."
+            if treasury_transfer > 0.0
+            else ""
+        )
+        return (
+            f"The war closed through {peace_term}, converting battlefield pressure into a concrete political settlement."
+            f"{transfer_clause}"
             + terrain_text
         )
     if event.type == "diplomacy_tributary":

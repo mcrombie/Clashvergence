@@ -661,6 +661,87 @@ def _is_trade_port_target(region) -> bool:
     )
 
 
+def _get_active_war_target_bonus(
+    faction_name: str,
+    defender_name: str,
+    region,
+    world,
+) -> tuple[int, str | None]:
+    war = world.wars.get(tuple(sorted((faction_name, defender_name))))
+    if war is None or not war.active:
+        return (0, None)
+
+    objective = war.objective_type or "territorial_conquest"
+    bonus = 0
+    if war.target_region and region.name == war.target_region:
+        bonus += 8
+
+    if objective == "trade_supremacy":
+        bonus += (
+            5
+            if region.trade_gateway_role != "none"
+            else 3 if region.trade_route_role in {"hub", "corridor"} else 0
+        )
+    elif objective in {"claim_reclamation", "claimant_restoration", "regime_change"}:
+        if region.core_status in {"homeland", "core"}:
+            bonus += 4
+    elif objective == "subjugation":
+        bonus += 4 if region.core_status == "homeland" else 2 if region.core_status == "core" else 0
+    elif objective == "punitive_raid":
+        bonus += 3 if get_region_taxable_value(region, world) >= 4 else 1
+
+    return (bonus, objective)
+
+
+def _choose_war_objective(
+    faction_name: str,
+    defender_name: str,
+    region,
+    score_components: dict[str, float | int | str | None],
+    world,
+) -> tuple[str, str]:
+    attacker = world.factions[faction_name]
+    defender = world.factions[defender_name]
+    objective_type = "territorial_conquest"
+    objective_label = "territorial conquest"
+
+    if score_components.get("regime_target_reason") == "civil_war_claim":
+        return ("claimant_restoration", "claimant restoration")
+    if score_components.get("regime_target_bonus", 0) and score_components.get("regime_target_reason") == "regime_split":
+        return ("regime_change", "regime change")
+    if int(score_components.get("ethnic_claim_bonus", 0) or 0) > 0:
+        return ("claim_reclamation", "claim reclamation")
+    if (
+        (region.trade_gateway_role or "none") != "none"
+        or float(score_components.get("foreign_gateway_bonus", 0) or 0) >= 4
+        or float(score_components.get("trade_chokepoint_bonus", 0) or 0) >= 7
+    ):
+        return ("trade_supremacy", "trade supremacy")
+
+    attacker_power = (
+        float(attacker.treasury)
+        + (int(score_components.get("attacker_region_count", 0) or 0) * 3.0)
+    )
+    defender_power = max(
+        1.0,
+        float(defender.treasury)
+        + (int(score_components.get("defender_region_count", 0) or 0) * 3.0),
+    )
+    if (
+        attacker_power / defender_power >= 1.6
+        and attacker.polity_tier in {"chiefdom", "state"}
+        and attacker.government_form in {"leader", "monarchy", "oligarchy", "council", "republic"}
+    ):
+        return ("subjugation", "subjugation")
+
+    if (
+        str(score_components.get("core_status") or "frontier") in {"core", "homeland"}
+        or float(score_components.get("target_taxable_value", 0.0) or 0.0) >= 4.5
+    ):
+        return (objective_type, objective_label)
+    return ("punitive_raid", "punitive raid")
+
+
 def _apply_trade_warfare_pressure(region, *, succeeded: bool) -> dict[str, float | bool | str]:
     trade_role = region.trade_route_role or "local"
     gateway_role = region.trade_gateway_role or "none"
@@ -872,6 +953,12 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + min(6, int(round(float(region.trade_foreign_value or 0.0) * 1.2)))
         + (5 if region.trade_gateway_role == "sea_gateway" else 3 if region.trade_gateway_role == "border_gateway" else 0)
     )
+    active_war_bonus, active_war_objective = _get_active_war_target_bonus(
+        faction_name,
+        defender_name,
+        region,
+        world,
+    )
     defender_strength = (
         defender_deployable_treasury
         + target_value
@@ -892,6 +979,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + resource_need_bonus
         + trade_chokepoint_bonus
         + foreign_gateway_bonus
+        + active_war_bonus
     )
 
     return {
@@ -925,6 +1013,8 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "resource_need_bonus": resource_need_bonus,
         "trade_chokepoint_bonus": trade_chokepoint_bonus,
         "foreign_gateway_bonus": foreign_gateway_bonus,
+        "active_war_bonus": active_war_bonus,
+        "active_war_objective": active_war_objective,
         "terrain_affinity": doctrine_alignment["average_affinity"],
         "core_status": region_core_status,
         "core_defense_bonus": core_defense_bonus,
@@ -1325,6 +1415,13 @@ def attack(faction_name, target_region_name, world):
         return False
 
     score_components = get_attack_target_score_components(target_region_name, faction_name, world)
+    war_objective, war_objective_label = _choose_war_objective(
+        faction_name,
+        defender_name,
+        target_region,
+        score_components,
+        world,
+    )
     treasury_before = attacker.treasury
     population_before = target_region.population
     attacker.treasury -= ATTACK_COST
@@ -1457,6 +1554,11 @@ def attack(faction_name, target_region_name, world):
             "regime_target_reason": score_components.get("regime_target_reason"),
             "trade_chokepoint_bonus": score_components["trade_chokepoint_bonus"],
             "foreign_gateway_bonus": score_components["foreign_gateway_bonus"],
+            "active_war_bonus": score_components.get("active_war_bonus", 0),
+            "active_war_objective": score_components.get("active_war_objective"),
+            "war_objective": war_objective,
+            "war_objective_label": war_objective_label,
+            "war_target_region": target_region_name,
             "region_display_name": target_region.display_name,
             "region_reference": format_region_reference(target_region, include_code=True),
             "population_before": population_before,

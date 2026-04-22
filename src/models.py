@@ -540,6 +540,32 @@ class RelationshipState:
 
 
 @dataclass
+class WarState:
+    active: bool = True
+    aggressor: str = ""
+    defender: str = ""
+    objective_type: str = "territorial_conquest"
+    objective_label: str = "territorial conquest"
+    target_region: str | None = None
+    target_faction: str | None = None
+    target_ethnicity: str | None = None
+    turns_active: int = 0
+    last_attack_turn: int | None = None
+    total_attacks: int = 0
+    successful_attacks: int = 0
+    aggressor_attacks: int = 0
+    defender_attacks: int = 0
+    aggressor_successes: int = 0
+    defender_successes: int = 0
+    aggressor_score: float = 0.0
+    defender_score: float = 0.0
+    war_exhaustion: float = 0.0
+    last_winner: str | None = None
+    last_peace_term: str = ""
+    last_settlement_turn: int | None = None
+
+
+@dataclass
 class WorldState:
     regions: dict[str, Region]
     factions: dict[str, Faction]
@@ -553,3 +579,4 @@ class WorldState:
     metrics: list = field(default_factory=list)
     region_history: list[dict[str, dict[str, Any]]] = field(default_factory=list)
     relationships: dict[tuple[str, str], RelationshipState] = field(default_factory=dict)
+    wars: dict[tuple[str, str], WarState] = field(default_factory=dict)

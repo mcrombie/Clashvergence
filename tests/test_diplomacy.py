@@ -12,7 +12,7 @@ from src.diplomacy import (
     update_relationships,
 )
 from src.metrics import build_turn_metrics
-from src.models import Event, Faction, FactionIdentity, Region, RelationshipState, WorldState
+from src.models import Event, Faction, FactionIdentity, Region, RelationshipState, WarState, WorldState
 from src.simulation_ui import _serialize_event
 from src.visibility import establish_faction_contact, initialize_faction_visibility, refresh_faction_visibility
 from src.world import create_world
@@ -89,6 +89,41 @@ class DiplomacySystemTests(unittest.TestCase):
         self.assertEqual(state.years_at_peace, 0)
         self.assertEqual(state.last_conflict_turn, 1)
         self.assertLess(state.score, 0.0)
+        self.assertEqual(state.status, "war")
+
+    def test_attack_event_starts_war_objective_and_exposes_metrics(self):
+        world = self._make_two_faction_border_world()
+        world.turn = 1
+        world.events.append(Event(
+            turn=1,
+            type="attack",
+            faction="FactionA",
+            region="B",
+            details={
+                "defender": "FactionB",
+                "success": False,
+                "war_objective": "trade_supremacy",
+                "war_objective_label": "trade supremacy",
+                "war_target_region": "B",
+                "trade_warfare_pressure_added": 0.22,
+            },
+        ))
+
+        update_relationships(world)
+
+        war = world.wars[("FactionA", "FactionB")]
+        self.assertTrue(war.active)
+        self.assertEqual(war.objective_type, "trade_supremacy")
+        self.assertEqual(war.target_region, "B")
+
+        metrics = build_turn_metrics(world)["factions"]["FactionA"]
+        self.assertEqual(metrics["active_war_count"], 1)
+        self.assertEqual(metrics["primary_war_enemy"], "FactionB")
+        self.assertEqual(metrics["primary_war_objective"], "trade supremacy")
+
+        war_event = next(event for event in world.events if event.type == "war_declared")
+        serialized = _serialize_event(war_event, world)
+        self.assertIn("trade supremacy", serialized["title"].lower())
 
     def test_alliance_blocks_attackable_regions(self):
         world = self._make_two_faction_border_world()
@@ -258,6 +293,110 @@ class DiplomacySystemTests(unittest.TestCase):
 
         self.assertNotEqual(state.status, "tributary")
         self.assertIsNone(state.subordinate_faction)
+
+    def test_subjugation_peace_term_can_enforce_tribute(self):
+        world = WorldState(
+            regions={
+                "CoreA": Region(
+                    name="CoreA",
+                    neighbors=["BorderB"],
+                    owner="FactionA",
+                    resources=5,
+                    population=180,
+                    ethnic_composition={"Aeth": 180},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+                "BorderB": Region(
+                    name="BorderB",
+                    neighbors=["CoreA"],
+                    owner="FactionA",
+                    resources=4,
+                    population=95,
+                    ethnic_composition={"Beth": 95},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                ),
+            },
+            factions={
+                "FactionA": Faction(
+                    name="FactionA",
+                    treasury=24,
+                    primary_ethnicity="Aeth",
+                    identity=FactionIdentity(
+                        internal_id="FactionA",
+                        culture_name="Aeth",
+                        polity_tier="state",
+                        government_form="monarchy",
+                    ),
+                ),
+                "FactionB": Faction(
+                    name="FactionB",
+                    treasury=5,
+                    primary_ethnicity="Beth",
+                    identity=FactionIdentity(
+                        internal_id="FactionB",
+                        culture_name="Beth",
+                        polity_tier="tribe",
+                        government_form="council",
+                    ),
+                ),
+            },
+        )
+        initialize_relationships(world)
+        world.relationships[("FactionA", "FactionB")].status = "war"
+        world.wars[("FactionA", "FactionB")] = WarState(
+            active=True,
+            aggressor="FactionA",
+            defender="FactionB",
+            objective_type="subjugation",
+            objective_label="subjugation",
+            target_region="BorderB",
+            target_faction="FactionB",
+            turns_active=3,
+            aggressor_score=4.2,
+            defender_score=0.8,
+            war_exhaustion=1.4,
+        )
+
+        update_relationships(world)
+
+        state = get_relationship_state(world, "FactionA", "FactionB")
+        self.assertEqual(state.status, "tributary")
+        self.assertEqual(state.subordinate_faction, "FactionB")
+        self.assertGreater(state.tribute_share, 0.0)
+        peace_event = next(event for event in world.events if event.type == "war_peace")
+        self.assertEqual(peace_event.get("peace_term"), "enforce_tribute")
+
+    def test_trade_supremacy_war_can_end_with_trade_concessions(self):
+        world = self._make_two_faction_border_world()
+        world.factions["FactionA"].treasury = 14
+        world.factions["FactionB"].treasury = 12
+        world.regions["B"].terrain_tags = ["coast", "plains"]
+        world.regions["B"].trade_gateway_role = "sea_gateway"
+        world.regions["B"].trade_blockade_strength = 0.55
+        world.relationships[("FactionA", "FactionB")].status = "war"
+        world.wars[("FactionA", "FactionB")] = WarState(
+            active=True,
+            aggressor="FactionA",
+            defender="FactionB",
+            objective_type="trade_supremacy",
+            objective_label="trade supremacy",
+            target_region="B",
+            target_faction="FactionB",
+            turns_active=2,
+            aggressor_score=3.8,
+            defender_score=1.0,
+            war_exhaustion=1.1,
+        )
+
+        update_relationships(world)
+
+        state = get_relationship_state(world, "FactionA", "FactionB")
+        self.assertEqual(state.status, "truce")
+        peace_event = next(event for event in world.events if event.type == "war_peace")
+        self.assertEqual(peace_event.get("peace_term"), "trade_concessions")
+        self.assertGreater(peace_event.get("treasury_transfer", 0.0), 0.0)
         self.assertEqual(get_relationship_status(world, "FactionA", "FactionB"), "truce")
 
     def test_apply_tributary_flows_transfers_treasury(self):

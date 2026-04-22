@@ -51,13 +51,25 @@ from src.config import (
     DIPLOMACY_TRIBUTARY_ATTACK_PENALTY,
     DIPLOMACY_TRIBUTARY_MIN_POWER_RATIO,
     DIPLOMACY_TRIBUTARY_TRIBUTE_SHARE,
+    DIPLOMACY_WAR_ATTACK_SCORE_FAILURE,
+    DIPLOMACY_WAR_ATTACK_SCORE_SUCCESS,
+    DIPLOMACY_WAR_BLOCKADE_BONUS,
+    DIPLOMACY_WAR_DEFENSIVE_THRESHOLD,
+    DIPLOMACY_WAR_MAX_TURNS,
+    DIPLOMACY_WAR_PUNITIVE_TREASURY_SHARE,
+    DIPLOMACY_WAR_SETTLEMENT_THRESHOLD,
+    DIPLOMACY_WAR_SETTLEMENT_TRUCE,
+    DIPLOMACY_WAR_TARGET_CONTROL_BONUS,
+    DIPLOMACY_WAR_TRADE_CONCESSION_SHARE,
+    DIPLOMACY_WAR_TRADE_PRESSURE_FACTOR,
+    DIPLOMACY_WAR_WHITE_PEACE_TRUCE,
     DIPLOMACY_TRUCE_ATTACK_PENALTY,
     DIPLOMACY_TRUCE_DURATION,
     DIPLOMACY_TRUST_MAX,
     DIPLOMACY_VASSAL_MIN_POWER_RATIO,
     DIPLOMACY_VASSAL_TRIBUTE_SHARE,
 )
-from src.models import Event, RelationshipState, WorldState
+from src.models import Event, RelationshipState, WarState, WorldState
 from src.visibility import faction_knows_faction
 
 REGIME_ACCORD_DIPLOMATIC_FORMS = {"council", "assembly", "republic"}
@@ -138,8 +150,17 @@ def canonical_relationship_pair(faction_a: str, faction_b: str) -> tuple[str, st
     return tuple(sorted((faction_a, faction_b)))
 
 
+def get_war_state(
+    world: WorldState,
+    faction_a: str,
+    faction_b: str,
+) -> WarState | None:
+    return world.wars.get(canonical_relationship_pair(faction_a, faction_b))
+
+
 def initialize_relationships(world: WorldState) -> None:
     world.relationships = {}
+    world.wars = {}
     ensure_relationship_entries(world)
 
 
@@ -484,6 +505,300 @@ def _resolve_subordination(
     return subordinate_name, subordination_type, tribute_share
 
 
+def _get_war_score_delta(event: Event) -> float:
+    delta = (
+        DIPLOMACY_WAR_ATTACK_SCORE_SUCCESS
+        if event.get("success", False)
+        else DIPLOMACY_WAR_ATTACK_SCORE_FAILURE
+    )
+    delta += min(
+        0.75,
+        float(event.get("trade_warfare_pressure_added", 0.0) or 0.0) * DIPLOMACY_WAR_TRADE_PRESSURE_FACTOR,
+    )
+    if event.get("port_blockaded"):
+        delta += DIPLOMACY_WAR_BLOCKADE_BONUS
+    if event.get("success", False) and event.region and event.region == event.get("war_target_region"):
+        delta += DIPLOMACY_WAR_TARGET_CONTROL_BONUS
+    return round(delta, 3)
+
+
+def _emit_war_declaration_event(
+    world: WorldState,
+    aggressor: str,
+    defender: str,
+    war: WarState,
+) -> None:
+    world.events.append(Event(
+        turn=world.turn,
+        type="war_declared",
+        faction=aggressor,
+        region=war.target_region,
+        details={
+            "counterpart": defender,
+            "defender": defender,
+            "war_objective": war.objective_type,
+            "war_objective_label": war.objective_label,
+            "war_target_region": war.target_region,
+            "target_ethnicity": war.target_ethnicity,
+        },
+        tags=["diplomacy", "war", "declaration"],
+        significance=1.0,
+    ))
+
+
+def _start_or_update_war_from_attack(
+    world: WorldState,
+    event: Event,
+    relationship: RelationshipState,
+) -> None:
+    defender = str(event.get("defender"))
+    key = canonical_relationship_pair(event.faction, defender)
+    war = world.wars.get(key)
+    new_war = war is None or not war.active
+    if new_war:
+        war = WarState(
+            active=True,
+            aggressor=event.faction,
+            defender=defender,
+            objective_type=str(event.get("war_objective") or "territorial_conquest"),
+            objective_label=str(event.get("war_objective_label") or "territorial conquest"),
+            target_region=event.get("war_target_region"),
+            target_faction=defender,
+            target_ethnicity=event.get("claim_ethnicity"),
+            turns_active=0,
+        )
+        world.wars[key] = war
+        relationship.wars_fought += 1
+        _emit_war_declaration_event(world, event.faction, defender, war)
+
+    score_delta = _get_war_score_delta(event)
+    side_is_aggressor = event.faction == war.aggressor
+    war.total_attacks += 1
+    war.turns_active += 1 if new_war else 0
+    war.last_attack_turn = world.turn
+    war.war_exhaustion = round(war.war_exhaustion + 0.22 + (0.08 if event.get("success", False) else 0.03), 3)
+    if event.get("success", False):
+        war.successful_attacks += 1
+    if side_is_aggressor:
+        war.aggressor_attacks += 1
+        war.aggressor_score = round(war.aggressor_score + score_delta, 3)
+        if event.get("success", False):
+            war.aggressor_successes += 1
+    else:
+        war.defender_attacks += 1
+        war.defender_score = round(war.defender_score + score_delta, 3)
+        if event.get("success", False):
+            war.defender_successes += 1
+
+    if relationship.subordinate_faction is not None:
+        relationship.subordinate_faction = None
+        relationship.subordination_type = "tributary"
+        relationship.tribute_share = 0.0
+        relationship.subordination_turns = 0
+
+    relationship.truce_turns_remaining = 0
+    relationship.years_at_peace = 0
+    relationship.last_conflict_turn = world.turn
+    relationship.status = "war"
+
+
+def _objective_is_achieved(world: WorldState, war: WarState, faction_name: str) -> bool:
+    if not war.target_region:
+        return faction_name == war.aggressor and war.aggressor_score >= DIPLOMACY_WAR_SETTLEMENT_THRESHOLD
+    target_region = world.regions.get(war.target_region)
+    if target_region is None:
+        return False
+    if war.objective_type in {"territorial_conquest", "claim_reclamation", "claimant_restoration", "regime_change", "subjugation"}:
+        return target_region.owner == faction_name
+    if war.objective_type == "trade_supremacy":
+        if target_region.owner == faction_name:
+            return True
+        return (
+            float(target_region.trade_blockade_strength or 0.0) >= 0.42
+            or float(target_region.trade_warfare_pressure or 0.0) >= 0.28
+        )
+    if war.objective_type == "punitive_raid":
+        if faction_name == war.aggressor:
+            return war.aggressor_successes >= 1 or war.aggressor_score >= DIPLOMACY_WAR_SETTLEMENT_THRESHOLD
+        return war.defender_successes >= 1
+    return False
+
+
+def _force_directional_tributary_settlement(
+    world: WorldState,
+    relationship: RelationshipState,
+    overlord_name: str,
+    subordinate_name: str,
+) -> tuple[str, float]:
+    subordination_type, tribute_share, _min_power_ratio = _get_subordination_profile(
+        world,
+        overlord_name,
+        subordinate_name,
+    )
+    relationship.status = "tributary"
+    relationship.subordinate_faction = subordinate_name
+    relationship.subordination_type = subordination_type
+    relationship.tribute_share = tribute_share
+    relationship.subordination_turns = 1
+    relationship.truce_turns_remaining = 0
+    relationship.years_at_peace = 0
+    return (subordination_type, tribute_share)
+
+
+def _determine_war_settlement(
+    world: WorldState,
+    war: WarState,
+) -> tuple[str | None, str | None, str]:
+    aggressor_margin = war.aggressor_score - war.defender_score
+    defender_margin = war.defender_score - war.aggressor_score
+    aggressor_objective = _objective_is_achieved(world, war, war.aggressor)
+    defender_objective = _objective_is_achieved(world, war, war.defender)
+
+    if aggressor_objective and aggressor_margin >= DIPLOMACY_WAR_SETTLEMENT_THRESHOLD:
+        term = {
+            "trade_supremacy": "trade_concessions",
+            "subjugation": "enforce_tribute",
+            "punitive_raid": "punitive_tribute",
+            "claim_reclamation": "recognize_claim",
+            "claimant_restoration": "recognize_claimant",
+            "regime_change": "recognize_regime",
+        }.get(war.objective_type, "confirm_conquest")
+        return (war.aggressor, war.defender, term)
+
+    if defender_objective and defender_margin >= DIPLOMACY_WAR_DEFENSIVE_THRESHOLD:
+        return (war.defender, war.aggressor, "defensive_truce")
+
+    if war.turns_active >= DIPLOMACY_WAR_MAX_TURNS or war.war_exhaustion >= DIPLOMACY_WAR_SETTLEMENT_THRESHOLD:
+        if aggressor_margin >= DIPLOMACY_WAR_SETTLEMENT_THRESHOLD:
+            return (war.aggressor, war.defender, "confirm_conquest")
+        if defender_margin >= DIPLOMACY_WAR_DEFENSIVE_THRESHOLD:
+            return (war.defender, war.aggressor, "defensive_truce")
+        return (None, None, "white_peace")
+
+    return (None, None, "")
+
+
+def _apply_war_settlement(
+    world: WorldState,
+    faction_a: str,
+    faction_b: str,
+    relationship: RelationshipState,
+    war: WarState,
+    winner: str | None,
+    loser: str | None,
+    peace_term: str,
+) -> None:
+    treasury_transfer = 0.0
+    truce_turns = DIPLOMACY_WAR_SETTLEMENT_TRUCE
+    relationship.subordinate_faction = None
+    relationship.subordination_type = "tributary"
+    relationship.tribute_share = 0.0
+    relationship.subordination_turns = 0
+
+    if winner is not None and loser is not None:
+        winning_faction = world.factions[winner]
+        losing_faction = world.factions[loser]
+        if peace_term == "enforce_tribute":
+            subordination_type, tribute_share = _force_directional_tributary_settlement(
+                world,
+                relationship,
+                winner,
+                loser,
+            )
+            truce_turns = 0
+        else:
+            relationship.status = "truce"
+            relationship.truce_turns_remaining = truce_turns
+            relationship.years_at_peace = 0
+            if peace_term == "punitive_tribute":
+                treasury_transfer = min(
+                    max(0.0, float(losing_faction.treasury) - 1.0),
+                    max(1.0, float(losing_faction.treasury) * DIPLOMACY_WAR_PUNITIVE_TREASURY_SHARE),
+                )
+            elif peace_term == "trade_concessions":
+                treasury_transfer = min(
+                    max(0.0, float(losing_faction.treasury) - 1.0),
+                    max(1.0, float(losing_faction.treasury) * DIPLOMACY_WAR_TRADE_CONCESSION_SHARE),
+                )
+            elif peace_term in {"recognize_claim", "recognize_claimant", "recognize_regime", "confirm_conquest", "defensive_truce"}:
+                treasury_transfer = 0.0
+
+            if treasury_transfer > 0.0:
+                treasury_transfer = round(treasury_transfer, 2)
+                losing_faction.treasury = round(float(losing_faction.treasury) - treasury_transfer, 2)
+                winning_faction.treasury = round(float(winning_faction.treasury) + treasury_transfer, 2)
+
+            if peace_term in {"recognize_claim", "recognize_claimant", "recognize_regime"}:
+                winning_faction.succession.legitimacy = round(
+                    _clamp(
+                        float(winning_faction.succession.legitimacy or 0.0) + 0.06,
+                        0.0,
+                        1.0,
+                    ),
+                    3,
+                )
+                winning_faction.succession.claimant_pressure = round(
+                    max(0.0, float(winning_faction.succession.claimant_pressure or 0.0) - 0.08),
+                    3,
+                )
+    else:
+        relationship.status = "truce"
+        relationship.truce_turns_remaining = DIPLOMACY_WAR_WHITE_PEACE_TRUCE
+        relationship.years_at_peace = 0
+
+    relationship.last_conflict_turn = world.turn
+    war.active = False
+    war.last_winner = winner
+    war.last_peace_term = peace_term
+    war.last_settlement_turn = world.turn
+
+    event_details = {
+        "counterpart": loser if winner is not None else (faction_b if faction_a == war.aggressor else faction_a),
+        "winner": winner,
+        "loser": loser,
+        "war_objective": war.objective_type,
+        "war_objective_label": war.objective_label,
+        "war_target_region": war.target_region,
+        "peace_term": peace_term,
+        "treasury_transfer": round(treasury_transfer, 2),
+        "truce_turns": int(relationship.truce_turns_remaining or 0),
+    }
+    if relationship.status == "tributary" and relationship.subordinate_faction is not None:
+        event_details["subordination_type"] = relationship.subordination_type
+        event_details["tribute_share"] = round(float(relationship.tribute_share or 0.0), 3)
+    world.events.append(Event(
+        turn=world.turn,
+        type="war_peace",
+        faction=winner or war.aggressor,
+        region=war.target_region,
+        details=event_details,
+        tags=["diplomacy", "war", "peace", peace_term],
+        significance=max(war.aggressor_score, war.defender_score, war.war_exhaustion),
+    ))
+
+
+def _resolve_active_wars(world: WorldState) -> None:
+    for faction_a, faction_b in combinations(sorted(world.factions), 2):
+        war = world.wars.get(canonical_relationship_pair(faction_a, faction_b))
+        if war is None or not war.active:
+            continue
+        war.turns_active += 1
+        relationship = get_relationship_state(world, faction_a, faction_b)
+        winner, loser, peace_term = _determine_war_settlement(world, war)
+        if not peace_term:
+            continue
+        _apply_war_settlement(
+            world,
+            faction_a,
+            faction_b,
+            relationship,
+            war,
+            winner,
+            loser,
+            peace_term,
+        )
+
+
 def _process_conflict_memory(world: WorldState) -> set[tuple[str, str]]:
     conflict_pairs: set[tuple[str, str]] = set()
     for event in world.events:
@@ -521,32 +836,13 @@ def _process_conflict_memory(world: WorldState) -> set[tuple[str, str]]:
             0.0,
             DIPLOMACY_TRUST_MAX,
         )
-        relationship.truce_turns_remaining = max(
-            relationship.truce_turns_remaining,
-            DIPLOMACY_TRUCE_DURATION,
-        )
-        relationship.years_at_peace = 0
-        relationship.wars_fought += 1
-        relationship.last_conflict_turn = world.turn
-        previous_status = relationship.status
-        relationship.status = "truce"
-        if previous_status != "truce":
-            world.events.append(Event(
-                turn=world.turn,
-                type="diplomacy_truce",
-                faction=event.faction,
-                details={
-                    "counterpart": defender,
-                    "duration": relationship.truce_turns_remaining,
-                    "reason": "war_exhaustion",
-                },
-                tags=["diplomacy", "truce", "war"],
-                significance=relationship.grievance,
-            ))
+        _start_or_update_war_from_attack(world, event, relationship)
     return conflict_pairs
 
 
 def _derive_status(state: RelationshipState) -> str:
+    if state.status == "war":
+        return "war"
     if state.truce_turns_remaining > 0:
         return "truce"
 
@@ -706,8 +1002,10 @@ def update_relationships(world: WorldState) -> None:
             shared_borders * DIPLOMACY_BORDER_FRICTION_PER_EDGE,
         )
         key = canonical_relationship_pair(faction_a, faction_b)
+        war = world.wars.get(key)
+        active_war = war is not None and war.active
 
-        if key not in conflict_pairs:
+        if not active_war and key not in conflict_pairs:
             if state.truce_turns_remaining > 0:
                 state.truce_turns_remaining -= 1
             state.years_at_peace += 1
@@ -724,6 +1022,9 @@ def update_relationships(world: WorldState) -> None:
                 0.0,
                 DIPLOMACY_GRIEVANCE_MAX,
             )
+        elif active_war:
+            state.truce_turns_remaining = 0
+            state.years_at_peace = 0
 
         doctrine_affinity = _get_doctrine_affinity(world, faction_a, faction_b)
         runaway_modifier = _get_runaway_modifier(world, faction_a, faction_b)
@@ -765,6 +1066,13 @@ def update_relationships(world: WorldState) -> None:
         previous_subordinate = state.subordinate_faction
         previous_subordination_type = state.subordination_type
         previous_tribute_share = state.tribute_share
+        if active_war:
+            state.status = "war"
+            state.subordinate_faction = None
+            state.subordination_type = "tributary"
+            state.tribute_share = 0.0
+            state.subordination_turns = 0
+            continue
         base_status = _derive_status(state)
         subordinate_name, subordination_type, tribute_share = _resolve_subordination(
             world,
@@ -806,6 +1114,8 @@ def update_relationships(world: WorldState) -> None:
         elif state.status != "tributary":
             _emit_status_change_event(world, faction_a, faction_b, previous_status, state.status, state.score)
 
+    _resolve_active_wars(world)
+
 
 def get_attack_diplomacy_modifier(
     world: WorldState,
@@ -823,6 +1133,8 @@ def get_attack_diplomacy_modifier(
         return (DIPLOMACY_TRIBUTARY_ATTACK_PENALTY, status)
     if status == "overlord":
         return (DIPLOMACY_OVERLORD_ATTACK_PENALTY, status)
+    if status == "war":
+        return (8, status)
     if status == "rival":
         return (DIPLOMACY_RIVAL_ATTACK_BONUS, status)
     return (0, status)
@@ -906,11 +1218,13 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
     rival_count = 0
     tributary_count = 0
     vassal_count = 0
+    active_war_count = 0
     claim_disputes: dict[str, int] = {}
     polity_tensions: list[tuple[str, float, str | None]] = []
     regime_tensions: list[tuple[str, float, str | None]] = []
     regime_accommodations: list[tuple[str, float, str | None]] = []
     tributaries: list[tuple[str, float, str]] = []
+    wars: list[tuple[str, float, str]] = []
     overlord_name = None
     overlord_type = None
 
@@ -953,6 +1267,19 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
             ))
             if (state.subordination_type or "tributary") == "vassal":
                 vassal_count += 1
+        elif status == "war":
+            active_war_count += 1
+            war = get_war_state(world, faction_name, other_faction)
+            if war is not None and war.active:
+                war_pressure = (
+                    float(war.aggressor_score if war.aggressor == faction_name else war.defender_score)
+                    + (float(war.war_exhaustion or 0.0) * 0.35)
+                )
+                wars.append((
+                    other_faction,
+                    round(war_pressure, 3),
+                    war.objective_label or war.objective_type,
+                ))
         elif status == "overlord":
             overlord_name = other_faction
             overlord_type = state.subordination_type or "tributary"
@@ -984,6 +1311,15 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
     if rival_candidates:
         rival_candidates.sort(key=lambda item: (item[1], item[0]))
         top_rival = rival_candidates[0][0]
+
+    primary_war_enemy = None
+    primary_war_pressure = 0.0
+    primary_war_objective = None
+    if wars:
+        primary_war_enemy, primary_war_pressure, primary_war_objective = max(
+            wars,
+            key=lambda item: (item[1], item[0]),
+        )
 
     top_claim_dispute = None
     top_claim_dispute_regions = 0
@@ -1056,6 +1392,10 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
         "truce_count": truce_count,
         "pact_count": pact_count,
         "rival_count": rival_count,
+        "active_war_count": active_war_count,
+        "primary_war_enemy": primary_war_enemy,
+        "primary_war_pressure": round(primary_war_pressure, 3),
+        "primary_war_objective": primary_war_objective,
         "tributary_count": tributary_count,
         "vassal_count": vassal_count,
     }
