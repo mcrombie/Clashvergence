@@ -60,6 +60,31 @@ from src.config import (
     REGIME_AGITATION_TREASURY_MAX_BONUS,
     REGIME_AGITATION_UNREST_PER_SPONSOR,
     REGIME_AGITATION_WAR_POSTURE_FACTOR,
+    SUCCESSION_CLAIMANT_PRESSURE_DECAY,
+    SUCCESSION_CLAIMANT_REGION_MIN_POPULATION,
+    SUCCESSION_CLAIMANT_TRIGGER_THRESHOLD,
+    SUCCESSION_CRISIS_TREASURY_HIT,
+    SUCCESSION_CRISIS_TURNS,
+    SUCCESSION_CRISIS_UNREST_PRESSURE,
+    SUCCESSION_FOOD_DEFICIT_LEGITIMACY_PENALTY,
+    SUCCESSION_FORCED_AGE,
+    SUCCESSION_INITIAL_HEIR_PREPAREDNESS_MAX,
+    SUCCESSION_INITIAL_HEIR_PREPAREDNESS_MIN,
+    SUCCESSION_INITIAL_LEGITIMACY_MAX,
+    SUCCESSION_INITIAL_LEGITIMACY_MIN,
+    SUCCESSION_INITIAL_PRESTIGE_MAX,
+    SUCCESSION_INITIAL_PRESTIGE_MIN,
+    SUCCESSION_MAX_TRIGGER_CHANCE,
+    SUCCESSION_MINOR_HEIR_AGE,
+    SUCCESSION_PRESTIGE_GAIN_FACTOR,
+    SUCCESSION_PROSPERITY_LEGITIMACY_GAIN,
+    SUCCESSION_REALM_LEGITIMACY_PENALTY,
+    SUCCESSION_REGENCY_TURNS,
+    SUCCESSION_REGENCY_UNREST_PRESSURE,
+    SUCCESSION_STABLE_TREASURY_HIT,
+    SUCCESSION_TRADE_LEGITIMACY_GAIN,
+    SUCCESSION_TRIGGER_AGE,
+    SUCCESSION_UNREST_LEGITIMACY_PENALTY,
     POPULATION_BASE,
     POPULATION_FOOD_DEFICIT_MAX_PENALTY,
     POPULATION_FOOD_DEFICIT_PENALTY_FACTOR,
@@ -118,6 +143,7 @@ from src.models import (
     Event,
     Faction,
     FactionIdentity,
+    FactionSuccessionState,
     GOVERNMENT_FORMS_BY_TIER,
     LanguageProfile,
     Region,
@@ -219,10 +245,394 @@ CIVIL_WAR_REGIME_LABELS = {
     ("state", "republic"): "Republic",
     ("state", "oligarchy"): "Oligarchy",
 }
+DYNASTIC_FORMS = {"leader", "monarchy"}
+SUCCESSION_COLLEGIAL_FORMS = {"council", "assembly", "republic", "oligarchy"}
+SUCCESSION_POLITY_PROFILE = {
+    "band": {
+        "legitimacy": -0.12,
+        "prestige": -0.16,
+        "preparedness": -0.18,
+        "claimant": -0.06,
+        "ruler_age": (22, 40),
+        "heir_age": (10, 20),
+        "adult_successor_age": (18, 28),
+    },
+    "tribe": {
+        "legitimacy": -0.06,
+        "prestige": -0.08,
+        "preparedness": -0.08,
+        "claimant": -0.02,
+        "ruler_age": (24, 48),
+        "heir_age": (8, 22),
+        "adult_successor_age": (20, 34),
+    },
+    "chiefdom": {
+        "legitimacy": 0.0,
+        "prestige": 0.04,
+        "preparedness": 0.03,
+        "claimant": 0.03,
+        "ruler_age": (26, 58),
+        "heir_age": (7, 25),
+        "adult_successor_age": (24, 42),
+    },
+    "state": {
+        "legitimacy": 0.08,
+        "prestige": 0.1,
+        "preparedness": 0.1,
+        "claimant": 0.06,
+        "ruler_age": (30, 64),
+        "heir_age": (6, 28),
+        "adult_successor_age": (28, 50),
+    },
+}
+SUCCESSION_FORM_PROFILE = {
+    "leader": {
+        "legitimacy": -0.04,
+        "prestige": 0.03,
+        "preparedness": -0.06,
+        "claimant": -0.03,
+        "adult_successor": False,
+        "regency": True,
+        "dynasty_rotation": 0.12,
+    },
+    "council": {
+        "legitimacy": 0.02,
+        "prestige": -0.03,
+        "preparedness": 0.02,
+        "claimant": 0.02,
+        "adult_successor": True,
+        "regency": False,
+        "dynasty_rotation": 0.2,
+    },
+    "assembly": {
+        "legitimacy": 0.04,
+        "prestige": -0.05,
+        "preparedness": 0.05,
+        "claimant": 0.04,
+        "adult_successor": True,
+        "regency": False,
+        "dynasty_rotation": 0.28,
+    },
+    "monarchy": {
+        "legitimacy": 0.08,
+        "prestige": 0.12,
+        "preparedness": 0.08,
+        "claimant": 0.06,
+        "adult_successor": False,
+        "regency": True,
+        "dynasty_rotation": 0.04,
+    },
+    "republic": {
+        "legitimacy": 0.06,
+        "prestige": -0.02,
+        "preparedness": 0.12,
+        "claimant": 0.09,
+        "adult_successor": True,
+        "regency": False,
+        "dynasty_rotation": 0.5,
+    },
+    "oligarchy": {
+        "legitimacy": 0.02,
+        "prestige": 0.04,
+        "preparedness": 0.08,
+        "claimant": 0.11,
+        "adult_successor": True,
+        "regency": False,
+        "dynasty_rotation": 0.36,
+    },
+}
 
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
     return max(minimum, min(maximum, value))
+
+
+def _pick_name_fragment(options: list[str], fallback: str) -> str:
+    filtered = [option for option in options if option]
+    if filtered:
+        return random.choice(filtered)
+    return fallback
+
+
+def _generate_personal_name(faction: Faction, *, seed: str | None = None) -> str:
+    culture_name = (faction.culture_name or faction.name or "Ruler").strip()
+    profile = faction.identity.language_profile if faction.identity is not None else LanguageProfile()
+    fallback_core = (seed or culture_name or "rul").strip().lower()
+    fallback_core = re.sub(r"[^a-z]", "", fallback_core) or "rul"
+    onset = _pick_name_fragment(profile.onsets, fallback_core[:2] or "ru")
+    middle = _pick_name_fragment(profile.middles, fallback_core[1:3] or "la")
+    suffix = _pick_name_fragment(profile.suffixes, fallback_core[-2:] or "an")
+    token = f"{onset}{middle}{suffix}"
+    token = re.sub(r"[^a-z]", "", token.lower()) or fallback_core
+    return token[:1].upper() + token[1:]
+
+
+def _generate_dynasty_name(faction: Faction, *, cadet: bool = False) -> str:
+    culture_name = (faction.culture_name or faction.name or "Line").strip()
+    dynasty_root = _generate_personal_name(faction, seed=culture_name)
+    prefix = "House" if faction.government_form in DYNASTIC_FORMS else "Line"
+    if cadet:
+        return f"{prefix} {dynasty_root}cad"
+    return f"{prefix} {dynasty_root}"
+
+
+def _get_succession_polity_profile(faction: Faction) -> dict[str, object]:
+    return SUCCESSION_POLITY_PROFILE.get(
+        faction.polity_tier,
+        SUCCESSION_POLITY_PROFILE["tribe"],
+    )
+
+
+def _get_succession_form_profile(faction: Faction) -> dict[str, object]:
+    return SUCCESSION_FORM_PROFILE.get(
+        faction.government_form,
+        SUCCESSION_FORM_PROFILE["council"],
+    )
+
+
+def _get_successor_age_range(faction: Faction, *, adult: bool = False) -> tuple[int, int]:
+    polity_profile = _get_succession_polity_profile(faction)
+    if adult or bool(_get_succession_form_profile(faction).get("adult_successor")):
+        return polity_profile["adult_successor_age"]  # type: ignore[return-value]
+    return polity_profile["heir_age"]  # type: ignore[return-value]
+
+
+def _can_have_regency(faction: Faction) -> bool:
+    return bool(_get_succession_form_profile(faction).get("regency"))
+
+
+def _get_dynasty_rotation_chance(faction: Faction, claimant_pressure: float = 0.0) -> float:
+    base = float(_get_succession_form_profile(faction).get("dynasty_rotation", 0.2))
+    if faction.government_form == "republic":
+        base += claimant_pressure * 0.18
+    elif faction.government_form in {"assembly", "council", "oligarchy"}:
+        base += claimant_pressure * 0.08
+    return _clamp(base, 0.0, 0.9)
+
+
+def evolve_faction_succession_politics(
+    faction: Faction,
+    *,
+    previous_tier: str | None = None,
+    previous_form: str | None = None,
+) -> None:
+    succession = faction.succession
+    polity_profile = _get_succession_polity_profile(faction)
+    form_profile = _get_succession_form_profile(faction)
+    previous_tier = previous_tier or faction.polity_tier
+    previous_form = previous_form or faction.government_form
+    tier_gain = max(
+        0,
+        POLITY_TIER_ORDER.index(faction.polity_tier) - POLITY_TIER_ORDER.index(previous_tier),
+    )
+    tier_rank = max(0, POLITY_TIER_ORDER.index(faction.polity_tier))
+    legitimacy_floor = 0.3 + (tier_rank * 0.07)
+    preparedness_floor = 0.24 + (tier_rank * 0.08)
+    prestige_floor = 0.18 + (tier_rank * 0.06)
+    succession.legitimacy = round(
+        _clamp(
+            max(
+                float(succession.legitimacy or 0.0),
+                legitimacy_floor + float(polity_profile["legitimacy"]) * 0.35 + float(form_profile["legitimacy"]) * 0.25,
+            )
+            + (0.03 * tier_gain),
+            0.15,
+            0.95,
+        ),
+        3,
+    )
+    succession.heir_preparedness = round(
+        _clamp(
+            max(
+                float(succession.heir_preparedness or 0.0),
+                preparedness_floor + float(polity_profile["preparedness"]) * 0.4 + float(form_profile["preparedness"]) * 0.35,
+            )
+            + (0.04 * tier_gain),
+            0.18,
+            0.95,
+        ),
+        3,
+    )
+    succession.dynasty_prestige = round(
+        _clamp(
+            max(
+                float(succession.dynasty_prestige or 0.0),
+                prestige_floor + float(polity_profile["prestige"]) * 0.35 + float(form_profile["prestige"]) * 0.35,
+            )
+            + (0.03 * tier_gain),
+            0.18,
+            0.95,
+        ),
+        3,
+    )
+    claimant_adjustment = -0.03 * tier_gain
+    if faction.government_form == "republic":
+        claimant_adjustment += 0.03
+    elif faction.government_form == "monarchy":
+        claimant_adjustment += 0.01
+    succession.claimant_pressure = round(
+        _clamp(
+            float(succession.claimant_pressure or 0.0)
+            + claimant_adjustment
+            + float(polity_profile["claimant"]) * 0.15
+            + float(form_profile["claimant"]) * 0.1,
+            0.0,
+            1.0,
+        ),
+        3,
+    )
+    if bool(form_profile.get("adult_successor")) and succession.heir_age < 18:
+        adult_min, adult_max = _get_successor_age_range(faction, adult=True)
+        succession.heir_age = max(18, random.randint(adult_min, adult_max))
+    if not succession.heir_name:
+        succession.heir_name = _generate_personal_name(faction, seed=succession.ruler_name)
+    if faction.government_form in DYNASTIC_FORMS and succession.dynasty_name.startswith("Line "):
+        succession.dynasty_name = succession.dynasty_name.replace("Line ", "House ", 1)
+    elif faction.government_form not in DYNASTIC_FORMS and succession.dynasty_name.startswith("House "):
+        succession.dynasty_name = succession.dynasty_name.replace("House ", "Line ", 1)
+    if previous_form != faction.government_form and faction.government_form == "republic":
+        succession.heir_age = max(succession.heir_age, random.randint(24, 42))
+        succession.heir_preparedness = round(_clamp(succession.heir_preparedness + 0.08, 0.18, 0.95), 3)
+
+
+def _build_initial_succession_state(
+    faction: Faction,
+    *,
+    dynasty_name: str | None = None,
+    heir_name: str | None = None,
+    claimant: bool = False,
+) -> FactionSuccessionState:
+    polity_profile = _get_succession_polity_profile(faction)
+    form_profile = _get_succession_form_profile(faction)
+    ruler_name = _generate_personal_name(faction)
+    heir_label = heir_name if heir_name is not None else _generate_personal_name(faction, seed=ruler_name)
+    heir_min, heir_max = _get_successor_age_range(
+        faction,
+        adult=bool(form_profile.get("adult_successor")),
+    )
+    heir_age = random.randint(heir_min, heir_max)
+    legitimacy = random.uniform(
+        SUCCESSION_INITIAL_LEGITIMACY_MIN,
+        SUCCESSION_INITIAL_LEGITIMACY_MAX,
+    ) + float(polity_profile["legitimacy"]) + float(form_profile["legitimacy"])
+    prestige = random.uniform(
+        SUCCESSION_INITIAL_PRESTIGE_MIN,
+        SUCCESSION_INITIAL_PRESTIGE_MAX,
+    ) + float(polity_profile["prestige"]) + float(form_profile["prestige"])
+    preparedness = random.uniform(
+        SUCCESSION_INITIAL_HEIR_PREPAREDNESS_MIN,
+        SUCCESSION_INITIAL_HEIR_PREPAREDNESS_MAX,
+    ) + float(polity_profile["preparedness"]) + float(form_profile["preparedness"])
+    if claimant:
+        legitimacy -= 0.08
+        preparedness += 0.06
+        prestige -= 0.03
+    ruler_age_min, ruler_age_max = polity_profile["ruler_age"]  # type: ignore[misc]
+    return FactionSuccessionState(
+        dynasty_name=dynasty_name or _generate_dynasty_name(faction),
+        ruler_name=ruler_name,
+        ruler_age=random.randint(ruler_age_min, ruler_age_max),
+        ruler_reign_turns=0,
+        heir_name=heir_label,
+        heir_age=heir_age,
+        heir_preparedness=round(_clamp(preparedness, 0.2, 0.95), 3),
+        legitimacy=round(_clamp(legitimacy, 0.25, 0.95), 3),
+        dynasty_prestige=round(_clamp(prestige, 0.2, 0.95), 3),
+        regency_turns=0,
+        succession_crisis_turns=0,
+        claimant_pressure=round(
+            _clamp(
+                (0.16 if claimant else 0.0)
+                + float(polity_profile["claimant"])
+                + float(form_profile["claimant"]),
+                0.0,
+                1.0,
+            ),
+            3,
+        ),
+        last_succession_turn=None,
+        last_succession_type="founding",
+    )
+
+
+def initialize_faction_succession_state(
+    faction: Faction,
+    *,
+    parent_faction: Faction | None = None,
+    claimant: bool = False,
+) -> None:
+    dynasty_name = None
+    if claimant and parent_faction is not None and parent_faction.succession.dynasty_name:
+        dynasty_name = parent_faction.succession.dynasty_name
+    elif parent_faction is not None and parent_faction.succession.dynasty_name:
+        dynasty_name = _generate_dynasty_name(faction, cadet=True)
+    faction.succession = _build_initial_succession_state(
+        faction,
+        dynasty_name=dynasty_name,
+        claimant=claimant,
+    )
+    evolve_faction_succession_politics(faction)
+
+
+def initialize_dynastic_politics(world: WorldState) -> None:
+    for faction in world.factions.values():
+        initialize_faction_succession_state(faction)
+
+
+def _get_faction_owned_regions(world: WorldState, faction_name: str) -> list[Region]:
+    return [
+        region
+        for region in world.regions.values()
+        if region.owner == faction_name
+    ]
+
+
+def _choose_succession_claimant_region(world: WorldState, faction_name: str) -> Region | None:
+    faction = world.factions[faction_name]
+    candidates = [
+        region
+        for region in _get_faction_owned_regions(world, faction_name)
+        if (
+            region.population >= SUCCESSION_CLAIMANT_REGION_MIN_POPULATION
+            and get_region_dominant_ethnicity(region) == faction.primary_ethnicity
+            and region.core_status in {"core", "homeland"}
+        )
+    ]
+    if not candidates:
+        return None
+    ordered = sorted(
+        candidates,
+        key=lambda region: (
+            0 if region.core_status == "core" else 1,
+            -region.unrest,
+            -region.population,
+            region.name,
+        ),
+    )
+    return ordered[0]
+
+
+def _inherit_successor_heir(faction: Faction) -> tuple[str, int, float]:
+    succession = faction.succession
+    if succession.heir_name:
+        if bool(_get_succession_form_profile(faction).get("adult_successor")) and succession.heir_age < 18:
+            adult_min, adult_max = _get_successor_age_range(faction, adult=True)
+            return (
+                succession.heir_name,
+                random.randint(adult_min, adult_max),
+                max(0.32, float(succession.heir_preparedness or 0.0)),
+            )
+        return (
+            succession.heir_name,
+            max(0, succession.heir_age),
+            max(0.18, float(succession.heir_preparedness or 0.0)),
+        )
+    heir_min, heir_max = _get_successor_age_range(faction)
+    return (
+        _generate_personal_name(faction, seed=faction.succession.ruler_name),
+        random.randint(heir_min, heir_max),
+        random.uniform(0.32, 0.78),
+    )
 
 
 def _normalize_region_ethnic_composition(region: Region) -> None:
@@ -1050,22 +1460,28 @@ def update_faction_polity_tiers(world: WorldState) -> None:
             continue
 
         current_tier = faction.polity_tier
+        previous_form = faction.government_form
         profile = get_faction_settlement_profile(world, faction_name)
         next_tier = get_next_polity_tier(current_tier, profile)
         if next_tier == current_tier:
             continue
 
-        current_form = faction.government_form
-        if current_form not in GOVERNMENT_FORMS_BY_TIER[next_tier]:
-            current_form = get_default_government_form(next_tier)
+        next_form = previous_form
+        if next_form not in GOVERNMENT_FORMS_BY_TIER[next_tier]:
+            next_form = get_default_government_form(next_tier)
 
         prior_display_name = faction.identity.display_name
         refresh_display_name = prior_display_name == faction.identity.default_display_name()
         old_government_type = faction.government_type
         faction.identity.set_government_structure(
             next_tier,
-            current_form,
+            next_form,
             update_display_name=refresh_display_name,
+        )
+        evolve_faction_succession_politics(
+            faction,
+            previous_tier=current_tier,
+            previous_form=previous_form,
         )
         for region in world.regions.values():
             if region.owner != faction_name:
@@ -1750,6 +2166,11 @@ def _restore_extinct_faction(
         faction.doctrine_state.homeland_terrain_tags = list(world.regions[region_name].terrain_tags)
     if faction.origin_faction is None and faction.is_rebel:
         faction.origin_faction = former_owner
+    initialize_faction_succession_state(
+        faction,
+        parent_faction=world.factions.get(former_owner),
+        claimant=faction.rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR,
+    )
     inherit_parent_visibility(
         world,
         faction_name,
@@ -1898,6 +2319,11 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         rebel_age=0,
         independence_score=0.0,
         proto_state=True,
+    )
+    initialize_faction_succession_state(
+        world.factions[rebel_name],
+        parent_faction=former_faction,
+        claimant=conflict_type == REBEL_CONFLICT_CIVIL_WAR,
     )
     initialize_rebel_faction_doctrine(
         world,
@@ -2125,6 +2551,298 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
     ))
 
 
+def _update_faction_legitimacy(world: WorldState, faction_name: str) -> None:
+    faction = world.factions[faction_name]
+    succession = faction.succession
+    polity_profile = _get_succession_polity_profile(faction)
+    owned_regions = _get_faction_owned_regions(world, faction_name)
+    if not owned_regions:
+        succession.legitimacy = round(_clamp(float(succession.legitimacy or 0.0), 0.15, 0.95), 3)
+        return
+
+    average_unrest = sum(region.unrest for region in owned_regions) / max(1, len(owned_regions))
+    prosperity = max(0.0, faction.treasury / max(1.0, len(owned_regions) * 6.0))
+    trade_stability = max(0.0, float(faction.trade_income or 0.0) / max(1.0, len(owned_regions) * 2.5))
+    legitimacy = float(succession.legitimacy or 0.0)
+    legitimacy += min(0.04, prosperity * SUCCESSION_PROSPERITY_LEGITIMACY_GAIN)
+    legitimacy += min(0.03, trade_stability * SUCCESSION_TRADE_LEGITIMACY_GAIN)
+    prestige_factor = SUCCESSION_PRESTIGE_GAIN_FACTOR
+    if faction.government_form == "monarchy":
+        prestige_factor *= 1.4
+    elif faction.government_form == "republic":
+        prestige_factor *= 0.6
+    legitimacy += float(succession.dynasty_prestige or 0.0) * prestige_factor
+    legitimacy -= average_unrest * SUCCESSION_UNREST_LEGITIMACY_PENALTY
+    legitimacy -= max(0.0, float(faction.food_deficit or 0.0)) * SUCCESSION_FOOD_DEFICIT_LEGITIMACY_PENALTY
+    realm_penalty = SUCCESSION_REALM_LEGITIMACY_PENALTY
+    if faction.polity_tier == "band":
+        realm_penalty *= 1.25
+    elif faction.polity_tier == "state":
+        realm_penalty *= 0.75
+    if faction.government_form == "republic":
+        legitimacy += 0.015
+    legitimacy -= max(0, len(owned_regions) - 2) * realm_penalty
+    if succession.regency_turns > 0:
+        legitimacy -= 0.05 if faction.government_form == "monarchy" else 0.02
+    if succession.succession_crisis_turns > 0:
+        legitimacy -= 0.045 if faction.government_form == "monarchy" else 0.035
+    legitimacy += float(polity_profile["legitimacy"]) * 0.08
+    succession.legitimacy = round(_clamp(legitimacy, 0.15, 0.95), 3)
+    claimant_pressure = float(succession.claimant_pressure or 0.0)
+    claimant_pressure += max(0.0, 0.52 - succession.legitimacy) * 0.12
+    claimant_pressure -= SUCCESSION_CLAIMANT_PRESSURE_DECAY
+    if succession.succession_crisis_turns > 0:
+        claimant_pressure += 0.08
+    if faction.government_form == "republic":
+        claimant_pressure += max(0.0, average_unrest - 2.0) * 0.012
+        claimant_pressure += max(0, len(owned_regions) - 2) * 0.01
+    elif faction.government_form == "monarchy":
+        claimant_pressure += max(0.0, 0.55 - float(succession.dynasty_prestige or 0.0)) * 0.08
+    succession.claimant_pressure = round(_clamp(claimant_pressure, 0.0, 1.0), 3)
+    succession.dynasty_prestige = round(
+        _clamp(
+            float(succession.dynasty_prestige or 0.0)
+            + min(0.02, prosperity * 0.015)
+            - min(0.025, average_unrest * 0.01),
+            0.18,
+            0.95,
+        ),
+        3,
+    )
+
+
+def _get_succession_trigger_chance(faction: Faction) -> float:
+    ruler_age = int(faction.succession.ruler_age or 0)
+    if ruler_age >= SUCCESSION_FORCED_AGE:
+        return 1.0
+    if ruler_age < SUCCESSION_TRIGGER_AGE:
+        return 0.0
+    age_ratio = (ruler_age - SUCCESSION_TRIGGER_AGE + 1) / max(1, SUCCESSION_FORCED_AGE - SUCCESSION_TRIGGER_AGE)
+    chance = age_ratio * SUCCESSION_MAX_TRIGGER_CHANCE
+    if faction.government_form in DYNASTIC_FORMS:
+        chance += 0.06
+    if faction.succession.succession_crisis_turns > 0:
+        chance += 0.08
+    return _clamp(chance, 0.0, 1.0)
+
+
+def _get_next_successor_designate(faction: Faction, new_ruler_name: str) -> tuple[str, int, float]:
+    if bool(_get_succession_form_profile(faction).get("adult_successor")):
+        adult_min, adult_max = _get_successor_age_range(faction, adult=True)
+        preparedness_floor = 0.46 if faction.government_form == "republic" else 0.4
+        return (
+            _generate_personal_name(faction, seed=new_ruler_name),
+            random.randint(adult_min, adult_max),
+            round(random.uniform(preparedness_floor, 0.88), 3),
+        )
+    heir_min, heir_max = _get_successor_age_range(faction)
+    return (
+        _generate_personal_name(faction, seed=new_ruler_name),
+        random.randint(max(2, heir_min // 2), max(18, heir_max)),
+        round(random.uniform(0.35, 0.82), 3),
+    )
+
+
+def _apply_succession_unrest(world: WorldState, faction_name: str, severity: float) -> None:
+    for region in _get_faction_owned_regions(world, faction_name):
+        base = 0.12
+        if region.core_status == "homeland":
+            base += 0.55
+        elif region.core_status == "core":
+            base += 0.34
+        else:
+            base += 0.18
+        set_region_unrest(region, region.unrest + (base * severity))
+
+
+def _resolve_faction_succession(world: WorldState, faction_name: str) -> None:
+    faction = world.factions[faction_name]
+    succession = faction.succession
+    succession.ruler_age += 1
+    succession.ruler_reign_turns += 1
+    succession.heir_age = max(0, int(succession.heir_age or 0) + 1)
+    if succession.regency_turns > 0:
+        succession.regency_turns -= 1
+    if succession.succession_crisis_turns > 0:
+        succession.succession_crisis_turns -= 1
+
+    _update_faction_legitimacy(world, faction_name)
+    trigger_chance = _get_succession_trigger_chance(faction)
+    if trigger_chance <= 0.0 or random.random() >= trigger_chance:
+        return
+
+    owned_regions = _get_faction_owned_regions(world, faction_name)
+    average_unrest = (
+        sum(region.unrest for region in owned_regions) / max(1, len(owned_regions))
+        if owned_regions
+        else 0.0
+    )
+    can_have_regency = _can_have_regency(faction)
+    new_ruler_name, heir_age, heir_preparedness = _inherit_successor_heir(faction)
+    regency = can_have_regency and heir_age < SUCCESSION_MINOR_HEIR_AGE
+    crisis_score = (
+        max(0.0, 0.64 - float(succession.legitimacy or 0.0)) * 0.9
+        + max(0.0, 0.55 - float(heir_preparedness or 0.0)) * 0.7
+        + (average_unrest * 0.06)
+        + (max(0, len(owned_regions) - 2) * 0.05)
+        + (0.16 if regency else 0.0)
+        + (0.1 if faction.government_form == "monarchy" else -0.02 if faction.government_form in {"council", "assembly"} else 0.0)
+        + (0.06 if faction.government_form == "republic" else 0.0)
+        + (float(succession.claimant_pressure or 0.0) * 0.35)
+    )
+    crisis_score = _clamp(crisis_score, 0.0, 1.15)
+    treasury_before = faction.treasury
+    previous_ruler = succession.ruler_name or faction.display_name
+    previous_dynasty = succession.dynasty_name or _generate_dynasty_name(faction)
+    treasury_hit = SUCCESSION_STABLE_TREASURY_HIT
+    succession_type = "orderly"
+    claimant_faction = None
+    claimant_region = None
+
+    succession.ruler_name = new_ruler_name
+    succession.ruler_age = max(SUCCESSION_MINOR_HEIR_AGE, heir_age) if not regency else max(10, heir_age)
+    succession.ruler_reign_turns = 0
+    if faction.government_form == "republic" and random.random() < _get_dynasty_rotation_chance(
+        faction,
+        float(succession.claimant_pressure or 0.0),
+    ):
+        succession.dynasty_name = _generate_dynasty_name(faction)
+    heir_designate_name, successor_age, successor_preparedness = _get_next_successor_designate(
+        faction,
+        new_ruler_name,
+    )
+    succession.heir_name = heir_designate_name
+    succession.heir_age = successor_age
+    succession.heir_preparedness = successor_preparedness
+    succession.last_succession_turn = world.turn
+    succession.last_succession_type = succession_type
+
+    if regency:
+        succession.regency_turns = max(succession.regency_turns, SUCCESSION_REGENCY_TURNS)
+        succession.legitimacy = round(_clamp(succession.legitimacy - 0.12, 0.12, 0.95), 3)
+
+    if crisis_score >= 0.52:
+        succession_type = "crisis"
+        succession.succession_crisis_turns = max(
+            succession.succession_crisis_turns,
+            SUCCESSION_CRISIS_TURNS,
+        )
+        succession.claimant_pressure = round(
+            _clamp(float(succession.claimant_pressure or 0.0) + (crisis_score * 0.35), 0.0, 1.0),
+            3,
+        )
+        succession.legitimacy = round(_clamp(succession.legitimacy - 0.12, 0.1, 0.9), 3)
+        treasury_hit = SUCCESSION_CRISIS_TREASURY_HIT
+        _apply_succession_unrest(world, faction_name, SUCCESSION_CRISIS_UNREST_PRESSURE + (0.2 if regency else 0.0))
+
+    if regency and succession_type != "crisis":
+        succession_type = "regency"
+        _apply_succession_unrest(world, faction_name, SUCCESSION_REGENCY_UNREST_PRESSURE)
+
+    if (
+        succession_type == "crisis"
+        and crisis_score >= SUCCESSION_CLAIMANT_TRIGGER_THRESHOLD
+        and len(owned_regions) >= 2
+    ):
+        claimant_region_obj = _choose_succession_claimant_region(world, faction_name)
+        if claimant_region_obj is not None:
+            claimant_region_obj.unrest = max(claimant_region_obj.unrest, 9.4)
+            claimant_region_obj.unrest_event_level = "crisis"
+            claimant_region_obj.unrest_event_turns_remaining = max(
+                claimant_region_obj.unrest_event_turns_remaining,
+                2,
+            )
+            claimant_region_obj.secession_cooldown_turns = 0
+            apply_unrest_secession(world, claimant_region_obj)
+            claimant_faction = claimant_region_obj.owner
+            claimant_region = claimant_region_obj.name
+            if claimant_faction in world.factions:
+                claimant_state = world.factions[claimant_faction].succession
+                claimant_state.dynasty_name = previous_dynasty
+                claimant_state.ruler_name = _generate_personal_name(world.factions[claimant_faction], seed=previous_ruler)
+                claimant_state.legitimacy = round(_clamp(claimant_state.legitimacy + 0.12, 0.2, 0.95), 3)
+                claimant_state.claimant_pressure = round(_clamp(claimant_state.claimant_pressure + 0.22, 0.0, 1.0), 3)
+                claimant_state.last_succession_type = "claimant"
+
+    succession.last_succession_type = succession_type
+    faction.treasury = max(0, faction.treasury - treasury_hit)
+    world.events.append(Event(
+        turn=world.turn,
+        type="succession",
+        faction=faction_name,
+        details={
+            "old_ruler": previous_ruler,
+            "new_ruler": succession.ruler_name,
+            "dynasty_name": succession.dynasty_name,
+            "old_dynasty": previous_dynasty,
+            "heir_age": heir_age,
+            "regency": regency,
+            "succession_type": succession_type,
+            "legitimacy": round(succession.legitimacy, 3),
+            "claimant_pressure": round(succession.claimant_pressure, 3),
+            "claimant_faction": claimant_faction,
+            "claimant_region": claimant_region,
+        },
+        context={
+            "treasury_before": treasury_before,
+        },
+        impact={
+            "treasury_after": faction.treasury,
+            "treasury_change": faction.treasury - treasury_before,
+            "regency_turns": succession.regency_turns,
+            "succession_crisis_turns": succession.succession_crisis_turns,
+            "claimant_faction": claimant_faction,
+        },
+        tags=[
+            "politics",
+            "succession",
+            succession_type,
+            *(["regency"] if regency else []),
+            *(["claimant"] if claimant_faction else []),
+        ],
+        significance=crisis_score,
+    ))
+
+    if succession_type == "crisis":
+        world.events.append(Event(
+            turn=world.turn,
+            type="succession_crisis",
+            faction=faction_name,
+            region=claimant_region,
+            details={
+                "new_ruler": succession.ruler_name,
+                "dynasty_name": succession.dynasty_name,
+                "regency": regency,
+                "claimant_faction": claimant_faction,
+                "claimant_region": claimant_region,
+                "claimant_pressure": round(succession.claimant_pressure, 3),
+            },
+            impact={
+                "treasury_after": faction.treasury,
+                "regency_turns": succession.regency_turns,
+                "succession_crisis_turns": succession.succession_crisis_turns,
+            },
+            tags=[
+                "politics",
+                "succession",
+                "crisis",
+                *(["claimant"] if claimant_faction else []),
+            ],
+            significance=crisis_score,
+        ))
+
+
+def resolve_dynastic_succession(world: WorldState) -> None:
+    faction_names = sorted(world.factions)
+    for faction_name in faction_names:
+        faction = world.factions[faction_name]
+        if faction.is_rebel or get_owned_region_counts(world).get(faction_name, 0) <= 0:
+            continue
+        if not faction.succession.dynasty_name or not faction.succession.ruler_name:
+            initialize_faction_succession_state(faction)
+        _resolve_faction_succession(world, faction_name)
+
+
 def get_rebel_reclaim_bonus(
     attacker_faction_name: str,
     defender_faction_name: str | None,
@@ -2291,6 +3009,11 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         0.65,
         owner_faction.resource_shortages.get(RESOURCE_SALT, 0.0) * 0.12,
     )
+    succession_pressure = (
+        (owner_faction.succession.succession_crisis_turns * SUCCESSION_CRISIS_UNREST_PRESSURE)
+        + (owner_faction.succession.regency_turns * SUCCESSION_REGENCY_UNREST_PRESSURE)
+        + (float(owner_faction.succession.claimant_pressure or 0.0) * 0.08)
+    )
     stability_divisor = max(0.5, get_faction_stability_modifier(owner_faction))
     return (
         climate_pressure
@@ -2301,6 +3024,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         + regime_pressure
         + external_regime_pressure
         + salt_shortage_pressure
+        + succession_pressure
     ) / stability_divisor - UNREST_DECAY_PER_TURN
 
 

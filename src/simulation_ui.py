@@ -272,6 +272,16 @@ def _get_event_title(event, world):
             f"{faction_name} advanced from {event.get('old_government_type', event.get('old_polity_tier', 'tribe'))} "
             f"to {event.get('new_government_type', event.get('new_polity_tier', 'chiefdom'))}"
         )
+    if event.type == "succession":
+        if event.get("succession_type") == "crisis":
+            return f"{faction_name} entered a succession crisis under {event.get('new_ruler', 'a new ruler')}"
+        if event.get("succession_type") == "regency":
+            return f"{faction_name} entered a regency for {event.get('new_ruler', 'its new ruler')}"
+        return f"{faction_name} passed to {event.get('new_ruler', 'a new ruler')}"
+    if event.type == "succession_crisis":
+        if event.get("claimant_faction"):
+            return f"{faction_name}'s succession crisis produced a claimant in {event.get('claimant_region') or 'the realm'}"
+        return f"{faction_name} struggled through a succession crisis"
     if event.type == "diplomacy_rivalry":
         return f"{faction_name} and {counterpart_name} became rivals"
     if event.type == "diplomacy_pact":
@@ -348,6 +358,31 @@ def _get_event_summary(event, world):
         if event.get("success", False):
             return f"Successful attack at {chance:.0%} displayed odds.{terrain_text}"
         return f"Attack failed at {chance:.0%} displayed odds.{terrain_text}"
+    if event.type == "succession":
+        succession_type = event.get("succession_type", "orderly")
+        legitimacy = float(event.get("legitimacy", 0.0) or 0.0)
+        regency_text = " Regency followed." if event.get("regency") else ""
+        if succession_type == "crisis":
+            return (
+                f"Power changed hands under a fragile settlement with legitimacy at {legitimacy:.0%}."
+                f"{regency_text}"
+            )
+        if succession_type == "regency":
+            return (
+                f"The ruler changed while the heir remained underage, leaving the polity under regency."
+                f" Legitimacy settled at {legitimacy:.0%}."
+            )
+        return f"An orderly succession raised {event.get('new_ruler', 'a new ruler')} with legitimacy at {legitimacy:.0%}."
+    if event.type == "succession_crisis":
+        claimant = event.get("claimant_faction")
+        if claimant:
+            claimant_region = event.get("claimant_region")
+            claimant_region_text = f" in {claimant_region}" if claimant_region else ""
+            return (
+                f"Rival elites pushed the succession into open claimant politics, backing {claimant}"
+                f"{claimant_region_text}."
+            )
+        return "Rival elites turned a disputed succession into a broader legitimacy crisis."
     if event.type in {"develop", "invest"}:
         project_type = event.get("project_type", "development").replace("_", " ")
         resource_focus = event.get("resource_focus")
@@ -1100,6 +1135,20 @@ def build_simulation_view_model(world):
             "government_type": world.factions[faction_name].government_type,
             "polity_tier": world.factions[faction_name].polity_tier,
             "government_form": world.factions[faction_name].government_form,
+            "dynasty_name": world.factions[faction_name].succession.dynasty_name,
+            "ruler_name": world.factions[faction_name].succession.ruler_name,
+            "ruler_age": int(world.factions[faction_name].succession.ruler_age or 0),
+            "ruler_reign_turns": int(world.factions[faction_name].succession.ruler_reign_turns or 0),
+            "heir_name": world.factions[faction_name].succession.heir_name,
+            "heir_age": int(world.factions[faction_name].succession.heir_age or 0),
+            "heir_preparedness": round(float(world.factions[faction_name].succession.heir_preparedness or 0.0), 3),
+            "legitimacy": round(float(world.factions[faction_name].succession.legitimacy or 0.0), 3),
+            "dynasty_prestige": round(float(world.factions[faction_name].succession.dynasty_prestige or 0.0), 3),
+            "regency_turns": int(world.factions[faction_name].succession.regency_turns or 0),
+            "succession_crisis_turns": int(world.factions[faction_name].succession.succession_crisis_turns or 0),
+            "claimant_pressure": round(float(world.factions[faction_name].succession.claimant_pressure or 0.0), 3),
+            "last_succession_turn": world.factions[faction_name].succession.last_succession_turn,
+            "last_succession_type": world.factions[faction_name].succession.last_succession_type,
             "primary_ethnicity": world.factions[faction_name].primary_ethnicity,
             "ethnic_claims": get_faction_ethnic_claims(world, faction_name),
             "rebel_age": world.factions[faction_name].rebel_age,
@@ -2913,6 +2962,20 @@ def render_simulation_html(world):
         war_posture: 0,
         development_posture: 0,
         insularity: 0,
+        dynasty_name: faction.dynasty_name || "Unknown line",
+        ruler_name: faction.ruler_name || "Unknown ruler",
+        ruler_age: Number(faction.ruler_age || 0),
+        ruler_reign_turns: Number(faction.ruler_reign_turns || 0),
+        heir_name: faction.heir_name || "No clear heir",
+        heir_age: Number(faction.heir_age || 0),
+        heir_preparedness: Number(faction.heir_preparedness || 0),
+        legitimacy: Number(faction.legitimacy || 0),
+        dynasty_prestige: Number(faction.dynasty_prestige || 0),
+        regency_turns: Number(faction.regency_turns || 0),
+        succession_crisis_turns: Number(faction.succession_crisis_turns || 0),
+        claimant_pressure: Number(faction.claimant_pressure || 0),
+        last_succession_turn: faction.last_succession_turn,
+        last_succession_type: faction.last_succession_type || "founding",
         population: ownedRegions.reduce((total, region) => total + Number(region.population || 0), 0),
         net_income: 0,
         base_income: 0,
@@ -4842,6 +4905,14 @@ def render_simulation_html(world):
       const realmMiniMapMarkup = buildFactionRealmMiniMapSvg(factionName, snapshot);
       const factionEthnicComposition = buildFactionEthnicComposition(snapshot, factionName);
       const factionEthnicDistributionText = formatEthnicComposition(factionEthnicComposition, 6);
+      const dynastyName = metrics.dynasty_name || faction.dynasty_name || "Unknown line";
+      const rulerName = metrics.ruler_name || faction.ruler_name || "Unknown ruler";
+      const heirName = metrics.heir_name || faction.heir_name || "No clear heir";
+      const legitimacy = Number(metrics.legitimacy ?? faction.legitimacy ?? 0);
+      const prestige = Number(metrics.dynasty_prestige ?? faction.dynasty_prestige ?? 0);
+      const regencyTurns = Number(metrics.regency_turns ?? faction.regency_turns ?? 0);
+      const successionCrisisTurns = Number(metrics.succession_crisis_turns ?? faction.succession_crisis_turns ?? 0);
+      const claimantPressure = Number(metrics.claimant_pressure ?? faction.claimant_pressure ?? 0);
       const doctrineHistoryMarkup = history.length
         ? history.map((entry, index) => {{
             const prior = index > 0 ? history[index - 1] : null;
@@ -4944,6 +5015,8 @@ def render_simulation_html(world):
               </div>
             </div>
             <div class="metric-line"><strong>Realm Structure:</strong> Homeland ${{metrics.homeland_regions}} / Core ${{metrics.core_regions}} / Frontier ${{metrics.frontier_regions}}</div>
+            <div class="metric-line"><strong>Dynasty:</strong> ${{escapeHtml(dynastyName)}} | ruler ${{escapeHtml(rulerName)}} | heir ${{escapeHtml(heirName)}}</div>
+            <div class="metric-line"><strong>Succession:</strong> legitimacy ${{(legitimacy * 100).toFixed(0)}}% | prestige ${{(prestige * 100).toFixed(0)}}% | regency ${{regencyTurns}} | crisis ${{successionCrisisTurns}} | claimant pressure ${{(claimantPressure * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Food Stores:</strong> ${{Number(metrics.food_stored || 0).toFixed(1)}} / ${{Number(metrics.food_storage_capacity || 0).toFixed(1)}} | +${{Number(metrics.food_produced || 0).toFixed(1)}} / -${{Number(metrics.food_consumption || 0).toFixed(1)}}</div>
             <div class="metric-line"><strong>Food Pressure:</strong> Balance ${{Number(metrics.food_balance || 0).toFixed(1)}} / Deficit ${{Number(metrics.food_deficit || 0).toFixed(1)}} / Waste ${{Number((metrics.food_spoilage || 0) + (metrics.food_overflow || 0)).toFixed(1)}}</div>
             <div class="metric-line"><strong>Migration:</strong> In ${{Number(metrics.migration_inflow || 0).toFixed(0)}} / Out ${{Number(metrics.migration_outflow || 0).toFixed(0)}} | Refugees ${{Number(metrics.refugee_inflow || 0).toFixed(0)}} in / ${{Number(metrics.refugee_outflow || 0).toFixed(0)}} out | Frontier settlers ${{Number(metrics.frontier_settlers || 0).toFixed(0)}}</div>

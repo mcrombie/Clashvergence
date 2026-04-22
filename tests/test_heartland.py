@@ -7,6 +7,7 @@ from src.config import (
     REBEL_FULL_INDEPENDENCE_THRESHOLD,
     REBEL_INDEPENDENCE_TREASURY_BONUS,
     REBEL_MATURE_GOVERNMENT_TYPE,
+    SUCCESSION_FORCED_AGE,
     UNREST_SECESSION_CRISIS_TURNS,
 )
 from src.actions import (
@@ -29,11 +30,14 @@ from src.heartland import (
     REBEL_CONFLICT_SECESSION,
     apply_unrest_secession,
     estimate_region_population,
+    evolve_faction_succession_politics,
     faction_has_ethnic_claim,
     get_regime_agitation_sponsor_factor,
     get_regime_agitation_sponsor_mode,
     get_region_external_regime_agitation_modifier,
     get_region_external_regime_agitators,
+    initialize_dynastic_politics,
+    initialize_faction_succession_state,
     get_faction_ethnic_claims,
     get_region_dominant_ethnicity,
     get_region_ethnic_claimants,
@@ -41,6 +45,7 @@ from src.heartland import (
     get_rebel_reclaim_bonus,
     get_region_ruling_ethnic_affinity,
     get_region_unrest_pressure,
+    resolve_dynastic_succession,
     resolve_population_migration,
     resolve_unrest_events,
     seed_region_ethnicity,
@@ -49,7 +54,7 @@ from src.heartland import (
     update_region_integration,
 )
 from src.metrics import build_turn_metrics
-from src.models import Faction, Region, RelationshipState, WorldState
+from src.models import Faction, FactionIdentity, Region, RelationshipState, WorldState
 from src.simulation_ui import build_simulation_snapshots, build_simulation_view_model
 from src.simulation import get_faction_economy_snapshot
 from src.world import create_world
@@ -206,6 +211,173 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertIn("frontier_regions", faction_metrics)
         self.assertGreaterEqual(faction_metrics["homeland_regions"], 1)
         self.assertGreaterEqual(faction_metrics["frontier_regions"], 1)
+
+    def test_world_initializes_dynastic_succession_state(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+
+        for faction in world.factions.values():
+            self.assertTrue(faction.succession.dynasty_name)
+            self.assertTrue(faction.succession.ruler_name)
+            self.assertTrue(faction.succession.heir_name)
+            self.assertGreater(faction.succession.legitimacy, 0.0)
+            self.assertGreater(faction.succession.dynasty_prestige, 0.0)
+
+    def test_metrics_and_view_model_expose_dynastic_fields(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+
+        metrics = build_turn_metrics(world)
+        faction_metrics = metrics["factions"][faction_name]
+        self.assertIn("dynasty_name", faction_metrics)
+        self.assertIn("ruler_name", faction_metrics)
+        self.assertIn("legitimacy", faction_metrics)
+        self.assertIn("claimant_pressure", faction_metrics)
+
+        view_model = build_simulation_view_model(world)
+        faction_payload = next(
+            faction
+            for faction in view_model["factions"]
+            if faction["name"] == faction_name
+        )
+        self.assertIn("dynasty_name", faction_payload)
+        self.assertIn("ruler_name", faction_payload)
+        self.assertIn("legitimacy", faction_payload)
+
+    def test_resolve_dynastic_succession_can_produce_orderly_transition(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        faction = world.factions[faction_name]
+        old_ruler = faction.succession.ruler_name
+        faction.succession.ruler_age = SUCCESSION_FORCED_AGE
+        faction.succession.legitimacy = 0.82
+        faction.succession.heir_age = 22
+        faction.succession.heir_preparedness = 0.9
+        faction.succession.claimant_pressure = 0.0
+        faction.treasury = 8
+
+        with patch("src.heartland.random.random", return_value=0.0):
+            resolve_dynastic_succession(world)
+
+        self.assertNotEqual(faction.succession.ruler_name, old_ruler)
+        succession_events = [event for event in world.events if event.type == "succession"]
+        self.assertTrue(succession_events)
+        self.assertEqual(succession_events[-1].get("succession_type"), "orderly")
+        self.assertEqual(faction.succession.regency_turns, 0)
+
+    def test_succession_crisis_can_spawn_claimant_civil_war(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        faction = world.factions[faction_name]
+        faction.identity.set_government_structure("state", "monarchy")
+        for region_name in ("M", "D"):
+            region = world.regions[region_name]
+            region.owner = faction_name
+            region.integrated_owner = faction_name
+            region.core_status = "core"
+            region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+            region.population = max(region.population, 160)
+            seed_region_ethnicity(region, faction.primary_ethnicity)
+            region.unrest = 6.5
+
+        initialize_dynastic_politics(world)
+        faction.succession.ruler_age = SUCCESSION_FORCED_AGE
+        faction.succession.legitimacy = 0.18
+        faction.succession.heir_age = 10
+        faction.succession.heir_preparedness = 0.2
+        faction.succession.claimant_pressure = 0.7
+        faction.treasury = 10
+
+        with patch("src.heartland.random.random", return_value=0.0):
+            resolve_dynastic_succession(world)
+
+        claimant_factions = [
+            other_name
+            for other_name, other_faction in world.factions.items()
+            if other_faction.is_rebel and other_faction.origin_faction == faction_name
+        ]
+        self.assertTrue(claimant_factions)
+        self.assertGreater(faction.succession.succession_crisis_turns, 0)
+        self.assertGreater(faction.succession.regency_turns, 0)
+        self.assertTrue(any(event.type == "succession_crisis" for event in world.events))
+
+    def test_initial_succession_profiles_scale_by_tier_and_form(self):
+        band_faction = Faction(
+            name="BandFaction",
+            identity=FactionIdentity(
+                internal_id="BandFaction",
+                culture_name="BandFaction",
+                polity_tier="band",
+                government_form="leader",
+            ),
+        )
+        world_identity = band_faction.identity
+
+        monarchy_faction = Faction(
+            name="MonarchyFaction",
+            identity=deepcopy(world_identity),
+        )
+        monarchy_faction.identity.internal_id = "MonarchyFaction"
+        monarchy_faction.identity.culture_name = "MonarchyFaction"
+        monarchy_faction.identity.set_government_structure("state", "monarchy")
+
+        republic_faction = Faction(
+            name="RepublicFaction",
+            identity=deepcopy(world_identity),
+        )
+        republic_faction.identity.internal_id = "RepublicFaction"
+        republic_faction.identity.culture_name = "RepublicFaction"
+        republic_faction.identity.set_government_structure("state", "republic")
+
+        with patch("src.heartland.random.uniform", side_effect=lambda a, b: (a + b) / 2), patch(
+            "src.heartland.random.randint",
+            side_effect=lambda a, b: (a + b) // 2,
+        ):
+            initialize_faction_succession_state(band_faction)
+            initialize_faction_succession_state(monarchy_faction)
+            initialize_faction_succession_state(republic_faction)
+
+        self.assertLess(band_faction.succession.legitimacy, monarchy_faction.succession.legitimacy)
+        self.assertLess(band_faction.succession.heir_preparedness, monarchy_faction.succession.heir_preparedness)
+        self.assertGreater(monarchy_faction.succession.dynasty_prestige, republic_faction.succession.dynasty_prestige)
+        self.assertGreaterEqual(republic_faction.succession.heir_age, 18)
+        self.assertGreater(republic_faction.succession.claimant_pressure, band_faction.succession.claimant_pressure)
+
+    def test_polity_advancement_hook_matures_succession_profile(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction = world.factions[next(iter(world.factions))]
+        faction.identity.set_government_structure("tribe", "council")
+        initialize_faction_succession_state(faction)
+        initial_legitimacy = faction.succession.legitimacy
+        initial_preparedness = faction.succession.heir_preparedness
+        faction.identity.set_government_structure("state", "republic")
+        evolve_faction_succession_politics(
+            faction,
+            previous_tier="tribe",
+            previous_form="council",
+        )
+        self.assertEqual(faction.polity_tier, "state")
+        self.assertGreaterEqual(faction.succession.legitimacy, initial_legitimacy)
+        self.assertGreaterEqual(faction.succession.heir_preparedness, initial_preparedness)
+        self.assertGreaterEqual(faction.succession.heir_age, 18)
+
+    def test_republic_succession_avoids_regency_and_can_rotate_line(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        faction = world.factions[faction_name]
+        faction.identity.set_government_structure("state", "republic")
+        initialize_faction_succession_state(faction)
+        faction.succession.ruler_age = SUCCESSION_FORCED_AGE
+        faction.succession.heir_age = 11
+        faction.succession.heir_preparedness = 0.62
+        faction.succession.claimant_pressure = 0.85
+        old_dynasty = faction.succession.dynasty_name
+
+        with patch("src.heartland.random.random", side_effect=[0.0, 0.0]):
+            resolve_dynastic_succession(world)
+
+        self.assertEqual(faction.succession.regency_turns, 0)
+        self.assertGreaterEqual(faction.succession.ruler_age, 18)
+        self.assertNotEqual(faction.succession.dynasty_name, old_dynasty)
 
     def test_world_seeds_population_only_for_starting_factions(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)

@@ -4,6 +4,7 @@ from src.factions import create_factions, validate_map_factions
 from src.heartland import (
     estimate_region_population,
     estimate_region_population_from_resource_profile,
+    initialize_dynastic_politics,
     initialize_heartlands,
     initialize_region_history,
     register_ethnicity,
@@ -70,6 +71,7 @@ def create_world(
     initialize_heartlands(world)
     initialize_region_resources(world)
     initialize_faction_doctrines(world)
+    initialize_dynastic_politics(world)
 
     homeland_assigned: dict[str, int] = {}
     for region_name, region in world.regions.items():

@@ -131,6 +131,24 @@ class FactionDoctrineProfile:
 
 
 @dataclass
+class FactionSuccessionState:
+    dynasty_name: str = ""
+    ruler_name: str = ""
+    ruler_age: int = 30
+    ruler_reign_turns: int = 0
+    heir_name: str = ""
+    heir_age: int = 16
+    heir_preparedness: float = 0.55
+    legitimacy: float = 0.62
+    dynasty_prestige: float = 0.45
+    regency_turns: int = 0
+    succession_crisis_turns: int = 0
+    claimant_pressure: float = 0.0
+    last_succession_turn: int | None = None
+    last_succession_type: str = "founding"
+
+
+@dataclass
 class LanguageProfile:
     family_name: str = ""
     onsets: list[str] = field(default_factory=list)
@@ -321,6 +339,7 @@ class Faction:
     starting_treasury: int = 0
     doctrine_state: FactionDoctrineState = field(default_factory=FactionDoctrineState)
     doctrine_profile: FactionDoctrineProfile = field(default_factory=FactionDoctrineProfile)
+    succession: FactionSuccessionState = field(default_factory=FactionSuccessionState)
     primary_ethnicity: str | None = None
     is_rebel: bool = False
     origin_faction: str | None = None
