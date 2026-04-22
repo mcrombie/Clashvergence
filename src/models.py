@@ -183,6 +183,11 @@ class Region:
     trade_value_bonus: float = 0.0
     trade_import_reliance: float = 0.0
     trade_disruption_risk: float = 0.0
+    trade_warfare_pressure: float = 0.0
+    trade_warfare_turns: int = 0
+    trade_blockade_strength: float = 0.0
+    trade_blockade_turns: int = 0
+    trade_value_denied: float = 0.0
     trade_foreign_partner: str | None = None
     trade_foreign_partner_region: str | None = None
     trade_foreign_flow: float = 0.0
@@ -343,6 +348,8 @@ class Faction:
     trade_corridor_exposure: float = 0.0
     trade_foreign_income: float = 0.0
     trade_foreign_imported_flow: float = 0.0
+    trade_warfare_damage: float = 0.0
+    trade_blockade_losses: float = 0.0
     migration_inflow: int = 0
     migration_outflow: int = 0
     refugee_inflow: int = 0

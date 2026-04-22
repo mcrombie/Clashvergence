@@ -118,6 +118,16 @@ RESOURCE_ROUTE_SEA_INFRASTRUCTURE_BONUS = 0.03
 RESOURCE_ROUTE_SEA_ROAD_BONUS = 0.02
 RESOURCE_ROUTE_SEA_UNREST_FACTOR = 0.015
 RESOURCE_ROUTE_SEA_DAMAGE_FACTOR = 0.2
+RESOURCE_ROUTE_TRADE_WARFARE_STEP_FACTOR = 0.55
+RESOURCE_ROUTE_TRADE_WARFARE_SUPPORT_FACTOR = 0.3
+RESOURCE_ROUTE_TRADE_BLOCKADE_THRESHOLD = 0.42
+RESOURCE_ROUTE_TRADE_BLOCKADE_STEP_FACTOR = 0.34
+TRADE_WARFARE_DISRUPTION_FACTOR = 0.36
+TRADE_BLOCKADE_DISRUPTION_FACTOR = 0.46
+TRADE_WARFARE_DENIAL_FACTOR = 0.44
+TRADE_BLOCKADE_DENIAL_FACTOR = 0.62
+TRADE_WARFARE_DAMAGE_FACTOR = 0.18
+TRADE_BLOCKADE_LOSS_FACTOR = 0.26
 RESOURCE_ROUTE_CONTESTED_UNKNOWN_EDGE_PRESSURE = 0.08
 RESOURCE_ROUTE_CONTESTED_NEUTRAL_EDGE_PRESSURE = 0.1
 RESOURCE_ROUTE_CONTESTED_PACT_EDGE_PRESSURE = 0.04
@@ -314,6 +324,17 @@ def ensure_region_resource_state(region: Region) -> None:
         _clamp(float(region.trade_disruption_risk or 0.0), 0.0, 1.0),
         3,
     )
+    region.trade_warfare_pressure = round(
+        _clamp(float(region.trade_warfare_pressure or 0.0), 0.0, 1.0),
+        3,
+    )
+    region.trade_warfare_turns = max(0, int(region.trade_warfare_turns or 0))
+    region.trade_blockade_strength = round(
+        _clamp(float(region.trade_blockade_strength or 0.0), 0.0, 1.0),
+        3,
+    )
+    region.trade_blockade_turns = max(0, int(region.trade_blockade_turns or 0))
+    region.trade_value_denied = round(max(0.0, float(region.trade_value_denied or 0.0)), 3)
     region.trade_foreign_partner = region.trade_foreign_partner or None
     region.trade_foreign_partner_region = region.trade_foreign_partner_region or None
     region.trade_foreign_flow = round(max(0.0, float(region.trade_foreign_flow or 0.0)), 3)
@@ -374,6 +395,8 @@ def _ensure_faction_resource_state(faction: Faction) -> None:
     )
     faction.trade_foreign_income = round(max(0.0, float(faction.trade_foreign_income or 0.0)), 3)
     faction.trade_foreign_imported_flow = round(max(0.0, float(faction.trade_foreign_imported_flow or 0.0)), 3)
+    faction.trade_warfare_damage = round(max(0.0, float(faction.trade_warfare_damage or 0.0)), 3)
+    faction.trade_blockade_losses = round(max(0.0, float(faction.trade_blockade_losses or 0.0)), 3)
 
 
 def get_region_resource_workforce_factor(region: Region) -> float:
@@ -641,6 +664,53 @@ def _get_region_trade_contestation_pressure(
     return _clamp(pressure, 0.0, 0.85)
 
 
+def _get_region_trade_warfare_pressure(region: Region) -> float:
+    turns_active = int(region.trade_warfare_turns or 0)
+    base_pressure = max(0.0, float(region.trade_warfare_pressure or 0.0))
+    if turns_active > 0:
+        return _clamp(base_pressure, 0.0, 1.0)
+    return _clamp(base_pressure * 0.55, 0.0, 1.0)
+
+
+def _get_region_trade_blockade_strength(region: Region) -> float:
+    turns_active = int(region.trade_blockade_turns or 0)
+    base_strength = max(0.0, float(region.trade_blockade_strength or 0.0))
+    if turns_active > 0:
+        return _clamp(base_strength, 0.0, 1.0)
+    return _clamp(base_strength * 0.5, 0.0, 1.0)
+
+
+def advance_trade_warfare_state(world: WorldState) -> None:
+    for region in world.regions.values():
+        if region.owner is None:
+            region.trade_warfare_pressure = 0.0
+            region.trade_warfare_turns = 0
+            region.trade_blockade_strength = 0.0
+            region.trade_blockade_turns = 0
+            continue
+
+        if region.trade_warfare_turns > 0:
+            region.trade_warfare_turns -= 1
+        else:
+            region.trade_warfare_pressure = round(
+                max(0.0, float(region.trade_warfare_pressure or 0.0) - 0.1),
+                3,
+            )
+        if region.trade_blockade_turns > 0:
+            region.trade_blockade_turns -= 1
+        else:
+            region.trade_blockade_strength = round(
+                max(0.0, float(region.trade_blockade_strength or 0.0) - 0.12),
+                3,
+            )
+        if region.trade_warfare_turns <= 0 and region.trade_warfare_pressure < 0.02:
+            region.trade_warfare_pressure = 0.0
+            region.trade_warfare_turns = 0
+        if region.trade_blockade_turns <= 0 and region.trade_blockade_strength < 0.02:
+            region.trade_blockade_strength = 0.0
+            region.trade_blockade_turns = 0
+
+
 def _is_port_trade_blockaded(
     world: WorldState | None,
     region: Region,
@@ -648,6 +718,8 @@ def _is_port_trade_blockaded(
 ) -> bool:
     if world is None or faction_name is None:
         return False
+    if _get_region_trade_blockade_strength(region) >= RESOURCE_ROUTE_TRADE_BLOCKADE_THRESHOLD:
+        return True
     contested_pressure = _get_region_trade_contestation_pressure(world, region, faction_name)
     average_damage = _get_region_average_resource_damage(region)
     if region.unrest_event_level == "crisis" and contested_pressure >= 0.32:
@@ -679,6 +751,8 @@ def _get_region_foreign_trade_gateway_quality(region: Region) -> float:
     quality *= _clamp(1.0 - (float(region.resource_isolation_factor or 0.0) * 0.55), 0.35, 1.0)
     quality *= _clamp(0.55 + (float(region.resource_route_bottleneck or 0.0) * 0.45), 0.4, 1.0)
     quality *= _clamp(1.0 - (float(region.trade_disruption_risk or 0.0) * 0.45), 0.35, 1.0)
+    quality *= _clamp(1.0 - (_get_region_trade_warfare_pressure(region) * 0.35), 0.3, 1.0)
+    quality *= _clamp(1.0 - (_get_region_trade_blockade_strength(region) * 0.55), 0.22, 1.0)
     return round(_clamp(quality, 0.0, 1.0), 3)
 
 
@@ -1324,7 +1398,11 @@ def _get_region_route_step_cost(
     step_cost -= min(0.28, region.infrastructure_level * RESOURCE_ROUTE_INFRASTRUCTURE_STEP_BONUS)
     step_cost -= min(0.35, region.road_level * RESOURCE_ROUTE_ROAD_STEP_BONUS)
     contested_pressure = _get_region_trade_contestation_pressure(world, region, faction_name)
+    trade_warfare_pressure = _get_region_trade_warfare_pressure(region)
+    blockade_strength = _get_region_trade_blockade_strength(region)
     step_cost += min(0.5, contested_pressure * RESOURCE_ROUTE_CONTESTED_LAND_STEP_FACTOR)
+    step_cost += min(0.6, trade_warfare_pressure * RESOURCE_ROUTE_TRADE_WARFARE_STEP_FACTOR)
+    step_cost += min(0.42, blockade_strength * RESOURCE_ROUTE_TRADE_BLOCKADE_STEP_FACTOR)
     return _clamp(step_cost, 0.55, 2.4)
 
 
@@ -1367,7 +1445,11 @@ def _get_region_corridor_support_factor(
         support -= 0.12
 
     contested_pressure = _get_region_trade_contestation_pressure(world, region, faction_name)
+    trade_warfare_pressure = _get_region_trade_warfare_pressure(region)
+    blockade_strength = _get_region_trade_blockade_strength(region)
     support -= min(0.28, contested_pressure * RESOURCE_ROUTE_CONTESTED_LAND_SUPPORT_FACTOR)
+    support -= min(0.28, trade_warfare_pressure * RESOURCE_ROUTE_TRADE_WARFARE_SUPPORT_FACTOR)
+    support -= min(0.2, blockade_strength * 0.22)
     return _clamp(support, 0.32, 1.0)
 
 
@@ -1396,6 +1478,10 @@ def _get_maritime_step_cost(
     contested_pressure = max(
         _get_region_trade_contestation_pressure(world, source_region, faction_name),
         _get_region_trade_contestation_pressure(world, destination_region, faction_name),
+    )
+    blockade_strength = max(
+        _get_region_trade_blockade_strength(source_region),
+        _get_region_trade_blockade_strength(destination_region),
     )
     step_cost = (
         RESOURCE_ROUTE_SEA_STEP_COST
@@ -1436,6 +1522,7 @@ def _get_maritime_step_cost(
         )
         + min(0.12, average_damage * RESOURCE_ROUTE_SEA_DAMAGE_FACTOR)
         + min(0.28, contested_pressure * RESOURCE_ROUTE_CONTESTED_SEA_STEP_FACTOR)
+        + min(0.36, blockade_strength * 0.34)
     )
     if source_region.unrest_event_level == "crisis" or destination_region.unrest_event_level == "crisis":
         step_cost += 0.16
@@ -1460,6 +1547,10 @@ def _get_maritime_support_factor(
     contested_pressure = max(
         _get_region_trade_contestation_pressure(world, source_region, faction_name),
         _get_region_trade_contestation_pressure(world, destination_region, faction_name),
+    )
+    blockade_strength = max(
+        _get_region_trade_blockade_strength(source_region),
+        _get_region_trade_blockade_strength(destination_region),
     )
     support = (
         RESOURCE_ROUTE_SEA_PORT_SUPPORT
@@ -1493,6 +1584,7 @@ def _get_maritime_support_factor(
         )
         - min(0.12, average_damage * 0.24)
         - min(0.16, contested_pressure * RESOURCE_ROUTE_CONTESTED_SEA_SUPPORT_FACTOR)
+        - min(0.2, blockade_strength * 0.18)
     )
     if source_region.unrest_event_level == "crisis" or destination_region.unrest_event_level == "crisis":
         support -= 0.08
@@ -1673,6 +1765,8 @@ def _apply_faction_trade_state(
         faction.trade_transit_value = 0.0
         faction.trade_import_dependency = 0.0
         faction.trade_corridor_exposure = 0.0
+        faction.trade_warfare_damage = 0.0
+        faction.trade_blockade_losses = 0.0
         return
 
     children_by_region = {
@@ -1723,6 +1817,8 @@ def _apply_faction_trade_state(
     total_base_value = 0.0
     exposure_weight = 0.0
     weighted_exposure = 0.0
+    total_trade_warfare_damage = 0.0
+    total_trade_blockade_losses = 0.0
 
     for region in owned_regions:
         route_state = faction_route_map.get(region.name, {})
@@ -1734,6 +1830,8 @@ def _apply_faction_trade_state(
         bottleneck = max(0.35, float(region.resource_route_bottleneck or 0.35))
         average_damage = _get_region_average_resource_damage(region)
         contested_pressure = _get_region_trade_contestation_pressure(world, region, faction_name)
+        trade_warfare_pressure = _get_region_trade_warfare_pressure(region)
+        blockade_strength = _get_region_trade_blockade_strength(region)
         disruption_risk = _clamp(
             (float(region.resource_isolation_factor or 0.0) * TRADE_DISRUPTION_ISOLATION_FACTOR)
             + (max(0.0, 0.85 - bottleneck) * TRADE_DISRUPTION_BOTTLENECK_FACTOR)
@@ -1747,6 +1845,13 @@ def _apply_faction_trade_state(
             disruption_risk + min(0.28, contested_pressure * 0.4),
             0.0,
             0.95,
+        )
+        disruption_risk = _clamp(
+            disruption_risk
+            + min(0.32, trade_warfare_pressure * TRADE_WARFARE_DISRUPTION_FACTOR)
+            + min(0.38, blockade_strength * TRADE_BLOCKADE_DISRUPTION_FACTOR),
+            0.0,
+            0.98,
         )
         children_count = len(children_by_region.get(region.name, []))
         route_role = _get_trade_route_role(
@@ -1806,6 +1911,17 @@ def _apply_faction_trade_state(
         trade_bonus = max(0.0, import_value + transit_value + hub_value)
         base_value = max(0.0, float(region.resource_monetized_value or 0.0))
         total_value = base_value + trade_bonus
+        trade_value_denied = max(
+            0.0,
+            (
+                (max(0.0, import_value) + max(0.0, transit_value) + max(0.0, hub_value))
+                * min(
+                    0.85,
+                    (trade_warfare_pressure * TRADE_WARFARE_DENIAL_FACTOR)
+                    + (blockade_strength * TRADE_BLOCKADE_DENIAL_FACTOR),
+                )
+            ),
+        )
 
         region.trade_route_role = route_role
         region.trade_route_parent = str(parent_name) if isinstance(parent_name, str) else None
@@ -1826,6 +1942,7 @@ def _apply_faction_trade_state(
             3,
         )
         region.trade_disruption_risk = round(disruption_risk, 3)
+        region.trade_value_denied = round(trade_value_denied, 3)
 
         total_trade_income += trade_bonus
         total_transit_value += max(0.0, transit_value)
@@ -1833,6 +1950,13 @@ def _apply_faction_trade_state(
         total_base_value += base_value
         exposure_weight += max(0.1, throughput)
         weighted_exposure += disruption_risk * max(0.1, throughput)
+        total_trade_warfare_damage += max(
+            trade_value_denied,
+            throughput * trade_warfare_pressure * TRADE_WARFARE_DAMAGE_FACTOR,
+        )
+        total_trade_blockade_losses += (
+            throughput * blockade_strength * TRADE_BLOCKADE_LOSS_FACTOR
+        )
 
     faction.trade_income = round(total_trade_income, 3)
     faction.trade_transit_value = round(total_transit_value, 3)
@@ -1844,6 +1968,8 @@ def _apply_faction_trade_state(
         _clamp(weighted_exposure / max(0.1, exposure_weight), 0.0, 0.95),
         3,
     )
+    faction.trade_warfare_damage = round(max(0.0, total_trade_warfare_damage), 3)
+    faction.trade_blockade_losses = round(max(0.0, total_trade_blockade_losses), 3)
 
 
 def get_region_internal_distribution_state(
@@ -2570,6 +2696,7 @@ def update_faction_resource_economy(
         region.trade_foreign_flow = 0.0
         region.trade_foreign_value = 0.0
         region.trade_gateway_role = "none"
+        region.trade_value_denied = 0.0
         if region.owner is None:
             region.resource_route_mode = "land"
             region.trade_route_role = "local"
@@ -2584,6 +2711,11 @@ def update_faction_resource_economy(
             region.trade_value_bonus = 0.0
             region.trade_import_reliance = 0.0
             region.trade_disruption_risk = 0.0
+            region.trade_warfare_pressure = 0.0
+            region.trade_warfare_turns = 0
+            region.trade_blockade_strength = 0.0
+            region.trade_blockade_turns = 0
+            region.trade_value_denied = 0.0
             region.trade_foreign_partner = None
             region.trade_foreign_partner_region = None
             region.trade_foreign_flow = 0.0
@@ -2625,6 +2757,8 @@ def update_faction_resource_economy(
         _ensure_faction_resource_state(faction)
         faction.trade_foreign_income = 0.0
         faction.trade_foreign_imported_flow = 0.0
+        faction.trade_warfare_damage = 0.0
+        faction.trade_blockade_losses = 0.0
         _apply_faction_trade_state(
             world,
             faction_name,

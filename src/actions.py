@@ -66,6 +66,18 @@ from src.terrain import get_terrain_profile
 from src.visibility import faction_knows_region
 
 
+TRADE_WARFARE_MAX_PRESSURE = 1.0
+TRADE_BLOCKADE_MAX_STRENGTH = 1.0
+TRADE_WARFARE_SUCCESS_TURNS = 3
+TRADE_WARFARE_FAILURE_TURNS = 2
+TRADE_BLOCKADE_SUCCESS_TURNS = 3
+TRADE_BLOCKADE_FAILURE_TURNS = 2
+
+
+def _clamp(value, minimum, maximum):
+    return max(minimum, min(maximum, value))
+
+
 def get_expandable_regions(faction_name, world):
     """Returns a list of Regions the given faction is capable of expanding into."""
 
@@ -633,6 +645,104 @@ def get_owned_region_count(faction_name, world):
         for region in world.regions.values()
         if region.owner == faction_name
     )
+
+
+def _is_trade_port_target(region) -> bool:
+    return (
+        "coast" in region.terrain_tags
+        and (
+            region.trade_gateway_role == "sea_gateway"
+            or region.trade_route_mode == "sea"
+            or region.market_level >= 0.2
+            or region.storehouse_level >= 0.25
+            or region.infrastructure_level >= 0.45
+            or region.settlement_level in {"town", "city"}
+        )
+    )
+
+
+def _apply_trade_warfare_pressure(region, *, succeeded: bool) -> dict[str, float | bool | str]:
+    trade_role = region.trade_route_role or "local"
+    gateway_role = region.trade_gateway_role or "none"
+    throughput = float(region.trade_throughput or 0.0)
+    transit_flow = float(region.trade_transit_flow or 0.0)
+    foreign_flow = float(region.trade_foreign_flow or 0.0)
+    foreign_value = float(region.trade_foreign_value or 0.0)
+    served_regions = int(region.trade_served_regions or 0)
+    value_denied_before = float(region.trade_value_denied or 0.0)
+
+    pressure_gain = 0.06
+    pressure_gain += min(0.2, throughput * 0.018)
+    pressure_gain += min(0.14, transit_flow * 0.045)
+    pressure_gain += min(0.1, foreign_flow * 0.04)
+    pressure_gain += min(0.08, foreign_value * 0.05)
+    pressure_gain += min(0.08, served_regions * 0.015)
+    if trade_role == "corridor":
+        pressure_gain += 0.12
+    elif trade_role == "hub":
+        pressure_gain += 0.09
+    elif trade_role == "terminal":
+        pressure_gain += 0.04
+    if gateway_role == "border_gateway":
+        pressure_gain += 0.08
+    elif gateway_role == "sea_gateway":
+        pressure_gain += 0.14
+    if succeeded:
+        pressure_gain += 0.08
+    else:
+        pressure_gain += 0.03
+
+    blockade_gain = 0.0
+    if gateway_role == "sea_gateway" or _is_trade_port_target(region):
+        blockade_gain = 0.12 + min(0.18, throughput * 0.02) + min(0.1, foreign_flow * 0.05)
+        if gateway_role == "sea_gateway":
+            blockade_gain += 0.14
+        blockade_gain += 0.1 if succeeded else 0.04
+
+    pressure_after = _clamp(
+        float(region.trade_warfare_pressure or 0.0) + pressure_gain,
+        0.0,
+        TRADE_WARFARE_MAX_PRESSURE,
+    )
+    blockade_after = _clamp(
+        float(region.trade_blockade_strength or 0.0) + blockade_gain,
+        0.0,
+        TRADE_BLOCKADE_MAX_STRENGTH,
+    )
+    region.trade_warfare_pressure = round(pressure_after, 3)
+    region.trade_warfare_turns = max(
+        int(region.trade_warfare_turns or 0),
+        TRADE_WARFARE_SUCCESS_TURNS if succeeded else TRADE_WARFARE_FAILURE_TURNS,
+    )
+    if blockade_gain > 0.0:
+        region.trade_blockade_strength = round(blockade_after, 3)
+        region.trade_blockade_turns = max(
+            int(region.trade_blockade_turns or 0),
+            TRADE_BLOCKADE_SUCCESS_TURNS if succeeded else TRADE_BLOCKADE_FAILURE_TURNS,
+        )
+
+    trade_value_loss = max(
+        value_denied_before,
+        (
+            throughput * pressure_gain * 0.18
+            + foreign_value * pressure_gain * 0.7
+            + blockade_gain * max(0.0, throughput + foreign_flow) * 0.16
+        ),
+    )
+    trade_value_loss = round(max(0.0, trade_value_loss), 3)
+    region.trade_value_denied = round(max(float(region.trade_value_denied or 0.0), trade_value_loss), 3)
+
+    return {
+        "trade_warfare_hit": pressure_gain > 0.08,
+        "trade_warfare_pressure_added": round(pressure_gain, 3),
+        "trade_warfare_pressure": round(pressure_after, 3),
+        "trade_blockade_added": round(blockade_gain, 3),
+        "trade_blockade_strength": round(blockade_after, 3),
+        "trade_warfare_target_role": trade_role,
+        "trade_gateway_role": gateway_role,
+        "trade_value_denied": trade_value_loss,
+        "port_blockaded": blockade_after >= 0.42,
+    }
 
 
 def get_treasury_concentration_multiplier(region_count):
@@ -1223,6 +1333,17 @@ def attack(faction_name, target_region_name, world):
     treasury_change = -ATTACK_COST
     actual_failure_penalty = 0
     population_loss = 0
+    trade_warfare_effect = {
+        "trade_warfare_hit": False,
+        "trade_warfare_pressure_added": 0.0,
+        "trade_warfare_pressure": round(float(target_region.trade_warfare_pressure or 0.0), 3),
+        "trade_blockade_added": 0.0,
+        "trade_blockade_strength": round(float(target_region.trade_blockade_strength or 0.0), 3),
+        "trade_warfare_target_role": target_region.trade_route_role or "local",
+        "trade_gateway_role": target_region.trade_gateway_role or "none",
+        "trade_value_denied": round(float(target_region.trade_value_denied or 0.0), 3),
+        "port_blockaded": False,
+    }
     defender_faction = world.factions.get(defender_name)
     is_reintegration_attempt = (
         defender_faction is not None
@@ -1252,6 +1373,16 @@ def attack(faction_name, target_region_name, world):
                 RESOURCE_TEXTILES: 0.04,
             },
         )
+        apply_region_resource_damage(
+            target_region,
+            {
+                RESOURCE_SALT: 0.08,
+                RESOURCE_TEXTILES: 0.08,
+                RESOURCE_TIMBER: 0.05,
+            },
+        )
+        trade_warfare_effect = _apply_trade_warfare_pressure(target_region, succeeded=True)
+        set_region_unrest(target_region, target_region.unrest + 0.45 + (trade_warfare_effect["trade_warfare_pressure_added"] * 1.1))
         handle_region_owner_change(target_region, faction_name)
         if is_proto_reintegration_attempt:
             set_region_unrest(
@@ -1282,6 +1413,16 @@ def attack(faction_name, target_region_name, world):
                 RESOURCE_TEXTILES: 0.02,
             },
         )
+        apply_region_resource_damage(
+            target_region,
+            {
+                RESOURCE_SALT: 0.05,
+                RESOURCE_TEXTILES: 0.05,
+                RESOURCE_TIMBER: 0.03,
+            },
+        )
+        trade_warfare_effect = _apply_trade_warfare_pressure(target_region, succeeded=False)
+        set_region_unrest(target_region, target_region.unrest + 0.2 + (trade_warfare_effect["trade_warfare_pressure_added"] * 0.75))
         actual_failure_penalty = min(ATTACK_FAILURE_PENALTY, attacker.treasury)
         treasury_change -= actual_failure_penalty
         attacker.treasury -= actual_failure_penalty
@@ -1314,11 +1455,14 @@ def attack(faction_name, target_region_name, world):
             "claim_ethnicity": score_components.get("claim_ethnicity"),
             "regime_target_attack": score_components["regime_target_bonus"] > 0,
             "regime_target_reason": score_components.get("regime_target_reason"),
+            "trade_chokepoint_bonus": score_components["trade_chokepoint_bonus"],
+            "foreign_gateway_bonus": score_components["foreign_gateway_bonus"],
             "region_display_name": target_region.display_name,
             "region_reference": format_region_reference(target_region, include_code=True),
             "population_before": population_before,
             "population_after": target_region.population,
             "population_loss": population_loss,
+            **trade_warfare_effect,
         },
         context={
             "treasury_before": treasury_before,
@@ -1338,6 +1482,8 @@ def attack(faction_name, target_region_name, world):
             "combat",
             "attack",
             "success" if succeeded else "failure",
+            *(["trade_warfare"] if trade_warfare_effect["trade_warfare_hit"] else []),
+            *(["blockade"] if trade_warfare_effect["port_blockaded"] else []),
             *(["reintegration"] if is_reintegration_attempt else []),
         ],
         significance=score_components["success_chance"],

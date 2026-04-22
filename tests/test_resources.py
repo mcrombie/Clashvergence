@@ -1,6 +1,8 @@
 import unittest
+from unittest.mock import patch
 
 from src.actions import (
+    attack,
     develop,
     get_attack_target_score_components,
     get_developable_regions,
@@ -1496,6 +1498,259 @@ class ResourceSystemTests(unittest.TestCase):
         self.assertGreater(world.regions["B"].trade_foreign_flow, 0.0)
         self.assertGreater(world.regions["A"].trade_throughput, baseline_a_throughput)
         self.assertGreater(world.regions["A"].trade_value_bonus, baseline_a_value)
+
+    def test_failed_attack_can_trigger_trade_warfare_on_enemy_corridor(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=220,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    homeland_faction_id="FactionA",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.0,
+                    market_level=0.7,
+                    road_level=0.7,
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A", "C", "D"],
+                    owner="FactionB",
+                    resources=2,
+                    population=150,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    homeland_faction_id="FactionB",
+                    integration_score=5.0,
+                    settlement_level="town",
+                    infrastructure_level=0.9,
+                    market_level=0.6,
+                    road_level=0.8,
+                ),
+                "C": Region(
+                    name="C",
+                    neighbors=["B"],
+                    owner="FactionB",
+                    resources=3,
+                    population=220,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    homeland_faction_id="FactionB",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.1,
+                    market_level=0.8,
+                    road_level=0.7,
+                ),
+                "D": Region(
+                    name="D",
+                    neighbors=["B"],
+                    owner="FactionB",
+                    resources=2,
+                    population=135,
+                    terrain_tags=["highland"],
+                    climate="cold",
+                    integration_score=1.2,
+                    settlement_level="rural",
+                    copper_mine_level=1.6,
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", treasury=10),
+                "FactionB": Faction(name="FactionB", treasury=10),
+            },
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        world.regions["D"].resource_fixed_endowments[RESOURCE_COPPER] = 1.25
+
+        update_faction_resource_economy(world)
+        baseline_income = world.factions["FactionB"].trade_income
+
+        with patch("src.actions.random.random", return_value=0.999):
+            succeeded = attack("FactionA", "B", world)
+
+        self.assertFalse(succeeded)
+        update_faction_resource_economy(world)
+
+        self.assertGreater(world.regions["B"].trade_warfare_pressure, 0.0)
+        self.assertGreater(world.regions["B"].trade_warfare_turns, 0)
+        self.assertGreater(world.regions["B"].trade_value_denied, 0.0)
+        self.assertGreater(world.factions["FactionB"].trade_warfare_damage, 0.0)
+        self.assertLess(world.factions["FactionB"].trade_income, baseline_income)
+
+    def test_attack_on_port_can_blockade_maritime_foreign_trade(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=220,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    homeland_faction_id="FactionA",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.0,
+                    market_level=0.7,
+                    road_level=0.7,
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionB",
+                    resources=3,
+                    population=220,
+                    terrain_tags=["coast", "plains"],
+                    climate="oceanic",
+                    homeland_faction_id="FactionB",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.0,
+                    market_level=0.8,
+                    road_level=0.6,
+                    copper_mine_level=1.7,
+                ),
+                "C": Region(
+                    name="C",
+                    neighbors=[],
+                    owner="FactionC",
+                    resources=2,
+                    population=210,
+                    terrain_tags=["coast", "plains"],
+                    climate="oceanic",
+                    homeland_faction_id="FactionC",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.0,
+                    market_level=0.8,
+                    road_level=0.6,
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", treasury=10),
+                "FactionB": Faction(name="FactionB", treasury=10),
+                "FactionC": Faction(name="FactionC", treasury=10),
+            },
+            sea_links=[("B", "C")],
+            relationships={
+                ("FactionB", "FactionC"): RelationshipState(
+                    status="non_aggression_pact",
+                    trust=5.0,
+                )
+            },
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        world.regions["B"].resource_fixed_endowments[RESOURCE_COPPER] = 1.3
+        world.regions["C"].resource_fixed_endowments[RESOURCE_COPPER] = 0.0
+
+        update_faction_resource_economy(world)
+        baseline_copper_access = world.factions["FactionC"].resource_effective_access[RESOURCE_COPPER]
+        self.assertEqual(world.regions["B"].trade_gateway_role, "sea_gateway")
+
+        with patch("src.actions.random.random", return_value=0.999):
+            succeeded = attack("FactionA", "B", world)
+
+        self.assertFalse(succeeded)
+        update_faction_resource_economy(world)
+
+        self.assertGreater(world.regions["B"].trade_blockade_strength, 0.0)
+        self.assertGreater(world.regions["B"].trade_blockade_turns, 0)
+        self.assertEqual(world.regions["B"].trade_gateway_role, "none")
+        self.assertEqual(world.regions["C"].trade_gateway_role, "none")
+        self.assertLess(
+            world.factions["FactionC"].resource_effective_access[RESOURCE_COPPER],
+            baseline_copper_access,
+        )
+        self.assertGreater(world.factions["FactionB"].trade_blockade_losses, 0.0)
+
+    def test_metrics_include_trade_warfare_and_blockade_losses(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=220,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    homeland_faction_id="FactionA",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.0,
+                    market_level=0.7,
+                    road_level=0.7,
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionB",
+                    resources=3,
+                    population=220,
+                    terrain_tags=["coast", "plains"],
+                    climate="oceanic",
+                    homeland_faction_id="FactionB",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.0,
+                    market_level=0.8,
+                    road_level=0.6,
+                    copper_mine_level=1.7,
+                ),
+                "C": Region(
+                    name="C",
+                    neighbors=[],
+                    owner="FactionC",
+                    resources=2,
+                    population=210,
+                    terrain_tags=["coast", "plains"],
+                    climate="oceanic",
+                    homeland_faction_id="FactionC",
+                    integration_score=10.0,
+                    settlement_level="town",
+                    infrastructure_level=1.0,
+                    market_level=0.8,
+                    road_level=0.6,
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", treasury=10),
+                "FactionB": Faction(name="FactionB", treasury=10),
+                "FactionC": Faction(name="FactionC", treasury=10),
+            },
+            sea_links=[("B", "C")],
+            relationships={
+                ("FactionB", "FactionC"): RelationshipState(
+                    status="alliance",
+                    trust=7.0,
+                )
+            },
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        world.regions["B"].resource_fixed_endowments[RESOURCE_COPPER] = 1.3
+        world.regions["C"].resource_fixed_endowments[RESOURCE_COPPER] = 0.0
+
+        update_faction_resource_economy(world)
+        with patch("src.actions.random.random", return_value=0.999):
+            attack("FactionA", "B", world)
+        update_faction_resource_economy(world)
+
+        metrics = build_turn_metrics(world)
+        faction_metrics = metrics["factions"]["FactionB"]
+        self.assertIn("trade_warfare_damage", faction_metrics)
+        self.assertIn("trade_blockade_losses", faction_metrics)
+        self.assertGreater(faction_metrics["trade_warfare_damage"], 0.0)
+        self.assertGreater(faction_metrics["trade_blockade_losses"], 0.0)
 
     def test_metrics_include_trade_fields_from_internal_routes(self):
         world = WorldState(

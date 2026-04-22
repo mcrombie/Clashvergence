@@ -107,6 +107,11 @@ def _build_region_resource_payload(region):
         "trade_value_bonus": round(float(region.trade_value_bonus or 0.0), 3),
         "trade_import_reliance": round(float(region.trade_import_reliance or 0.0), 3),
         "trade_disruption_risk": round(float(region.trade_disruption_risk or 0.0), 3),
+        "trade_warfare_pressure": round(float(region.trade_warfare_pressure or 0.0), 3),
+        "trade_warfare_turns": int(region.trade_warfare_turns or 0),
+        "trade_blockade_strength": round(float(region.trade_blockade_strength or 0.0), 3),
+        "trade_blockade_turns": int(region.trade_blockade_turns or 0),
+        "trade_value_denied": round(float(region.trade_value_denied or 0.0), 3),
         "trade_foreign_partner": region.trade_foreign_partner,
         "trade_foreign_partner_region": region.trade_foreign_partner_region,
         "trade_foreign_flow": round(float(region.trade_foreign_flow or 0.0), 3),
@@ -196,6 +201,10 @@ def _get_event_title(event, world):
         return f"{faction_name} expanded into {region_reference}"
     if event.type == "attack":
         defender = _get_faction_display_name(world, event.get("defender")) if event.get("defender") else "Unknown"
+        if event.get("port_blockaded"):
+            if event.get("success", False):
+                return f"{faction_name} captured and blockaded {region_reference} from {defender}"
+            return f"{faction_name} failed to take {region_reference} but threw it under blockade pressure"
         if event.get("regime_target_attack"):
             if event.get("success", False):
                 return f"{faction_name} seized {region_reference} from {defender} in a regime claim offensive"
@@ -302,6 +311,17 @@ def _get_event_summary(event, world):
         )
     if event.type == "attack":
         chance = event.get("success_chance", 0)
+        if event.get("trade_warfare_hit"):
+            blockade_text = ""
+            if event.get("port_blockaded"):
+                blockade_text = " The strike left the port effectively blockaded."
+            pressure_added = float(event.get("trade_warfare_pressure_added", 0.0) or 0.0)
+            denied_value = float(event.get("trade_value_denied", 0.0) or 0.0)
+            return (
+                f"Attack pressure spilled into trade warfare at {chance:.0%} displayed odds."
+                f" Trade pressure rose by {pressure_added:.2f} and threatened {denied_value:.2f} value."
+                f"{blockade_text}{terrain_text}"
+            )
         if event.get("regime_target_attack"):
             reason = event.get("regime_target_reason")
             motive = "civil-war legitimacy" if reason == "civil_war_claim" else "same-people regime rivalry"
@@ -573,6 +593,11 @@ def build_simulation_snapshots(world):
             "trade_value_bonus": initial_region_history.get(region_name, {}).get("trade_value_bonus", region.trade_value_bonus),
             "trade_import_reliance": initial_region_history.get(region_name, {}).get("trade_import_reliance", region.trade_import_reliance),
             "trade_disruption_risk": initial_region_history.get(region_name, {}).get("trade_disruption_risk", region.trade_disruption_risk),
+            "trade_warfare_pressure": initial_region_history.get(region_name, {}).get("trade_warfare_pressure", region.trade_warfare_pressure),
+            "trade_warfare_turns": initial_region_history.get(region_name, {}).get("trade_warfare_turns", region.trade_warfare_turns),
+            "trade_blockade_strength": initial_region_history.get(region_name, {}).get("trade_blockade_strength", region.trade_blockade_strength),
+            "trade_blockade_turns": initial_region_history.get(region_name, {}).get("trade_blockade_turns", region.trade_blockade_turns),
+            "trade_value_denied": initial_region_history.get(region_name, {}).get("trade_value_denied", region.trade_value_denied),
             "resource_profile": initial_region_history.get(region_name, {}).get("resource_profile", _build_region_resource_payload(region)["resource_profile"]),
             "resource_output_summary": initial_region_history.get(region_name, {}).get("resource_output_summary", _build_region_resource_payload(region)["resource_output_summary"]),
             "resource_retained_output_summary": initial_region_history.get(region_name, {}).get("resource_retained_output_summary", _build_region_resource_payload(region)["resource_retained_output_summary"]),
@@ -674,6 +699,11 @@ def build_simulation_snapshots(world):
                 "trade_value_bonus": region["trade_value_bonus"],
                 "trade_import_reliance": region["trade_import_reliance"],
                 "trade_disruption_risk": region["trade_disruption_risk"],
+                "trade_warfare_pressure": region["trade_warfare_pressure"],
+                "trade_warfare_turns": region["trade_warfare_turns"],
+                "trade_blockade_strength": region["trade_blockade_strength"],
+                "trade_blockade_turns": region["trade_blockade_turns"],
+                "trade_value_denied": region["trade_value_denied"],
                 "resource_profile": region["resource_profile"],
                 "resource_output_summary": region["resource_output_summary"],
                 "resource_retained_output_summary": region["resource_retained_output_summary"],
@@ -803,6 +833,11 @@ def build_simulation_snapshots(world):
             region_state[region_name]["trade_value_bonus"] = history_region.get("trade_value_bonus", region_state[region_name]["trade_value_bonus"])
             region_state[region_name]["trade_import_reliance"] = history_region.get("trade_import_reliance", region_state[region_name]["trade_import_reliance"])
             region_state[region_name]["trade_disruption_risk"] = history_region.get("trade_disruption_risk", region_state[region_name]["trade_disruption_risk"])
+            region_state[region_name]["trade_warfare_pressure"] = history_region.get("trade_warfare_pressure", region_state[region_name]["trade_warfare_pressure"])
+            region_state[region_name]["trade_warfare_turns"] = history_region.get("trade_warfare_turns", region_state[region_name]["trade_warfare_turns"])
+            region_state[region_name]["trade_blockade_strength"] = history_region.get("trade_blockade_strength", region_state[region_name]["trade_blockade_strength"])
+            region_state[region_name]["trade_blockade_turns"] = history_region.get("trade_blockade_turns", region_state[region_name]["trade_blockade_turns"])
+            region_state[region_name]["trade_value_denied"] = history_region.get("trade_value_denied", region_state[region_name]["trade_value_denied"])
             region_state[region_name]["resource_profile"] = history_region.get("resource_profile", region_state[region_name]["resource_profile"])
             region_state[region_name]["resource_output_summary"] = history_region.get("resource_output_summary", region_state[region_name]["resource_output_summary"])
             region_state[region_name]["resource_retained_output_summary"] = history_region.get("resource_retained_output_summary", region_state[region_name]["resource_retained_output_summary"])
@@ -907,6 +942,11 @@ def build_simulation_snapshots(world):
                     "trade_value_bonus": region["trade_value_bonus"],
                     "trade_import_reliance": region["trade_import_reliance"],
                     "trade_disruption_risk": region["trade_disruption_risk"],
+                    "trade_warfare_pressure": region["trade_warfare_pressure"],
+                    "trade_warfare_turns": region["trade_warfare_turns"],
+                    "trade_blockade_strength": region["trade_blockade_strength"],
+                    "trade_blockade_turns": region["trade_blockade_turns"],
+                    "trade_value_denied": region["trade_value_denied"],
                     "resource_profile": region["resource_profile"],
                     "resource_output_summary": region["resource_output_summary"],
                     "resource_retained_output_summary": region["resource_retained_output_summary"],
@@ -3275,6 +3315,9 @@ def render_simulation_html(world):
         const gatewayRole = regionSnapshot.trade_gateway_role || "none";
         const foreignPartnerRegion = regionSnapshot.trade_foreign_partner_region;
         const foreignFlow = Number(regionSnapshot.trade_foreign_flow || 0);
+        const warfarePressure = Number(regionSnapshot.trade_warfare_pressure || 0);
+        const blockadeStrength = Number(regionSnapshot.trade_blockade_strength || 0);
+        const activelyBlockaded = blockadeStrength >= 0.42;
 
         if (shouldShowDomesticTrade() && routeParent && throughput > 0.05) {{
           domesticLinks.push({{
@@ -3284,10 +3327,12 @@ def render_simulation_html(world):
             mode: routeMode,
             flow: throughput,
             risk: disruptionRisk,
-            disrupted: disruptionRisk >= 0.4,
-            color: routeMode === "sea"
-              ? "rgba(54, 105, 150, 0.82)"
-              : hexToRgba(ownerColor, Math.max(0.42, 0.86 - (disruptionRisk * 0.35))),
+            disrupted: disruptionRisk >= 0.4 || warfarePressure >= 0.35,
+            color: activelyBlockaded
+              ? "rgba(182, 67, 46, 0.9)"
+              : routeMode === "sea"
+                ? "rgba(54, 105, 150, 0.82)"
+                : hexToRgba(ownerColor, Math.max(0.42, 0.86 - (disruptionRisk * 0.35))),
           }});
         }}
 
@@ -3302,11 +3347,13 @@ def render_simulation_html(world):
               mode: gatewayRole,
               flow: foreignFlow,
               risk: disruptionRisk,
-              disrupted: disruptionRisk >= 0.45,
+              disrupted: disruptionRisk >= 0.45 || activelyBlockaded,
               partnerName: regionSnapshot.trade_foreign_partner || "",
-              color: gatewayRole === "sea_gateway"
-                ? "rgba(46, 128, 182, 0.88)"
-                : "rgba(191, 138, 55, 0.92)",
+              color: activelyBlockaded
+                ? "rgba(182, 67, 46, 0.92)"
+                : gatewayRole === "sea_gateway"
+                  ? "rgba(46, 128, 182, 0.88)"
+                  : "rgba(191, 138, 55, 0.92)",
             }});
           }}
         }}
@@ -3327,6 +3374,12 @@ def render_simulation_html(world):
           if (gatewayRole !== "none") {{
             titleBits.push(`gateway: ${{gatewayRole}}`);
           }}
+          if (warfarePressure > 0.01) {{
+            titleBits.push(`trade warfare: ${{warfarePressure.toFixed(2)}}`);
+          }}
+          if (blockadeStrength > 0.01) {{
+            titleBits.push(`blockade: ${{blockadeStrength.toFixed(2)}}`);
+          }}
           if (regionSnapshot.trade_foreign_partner) {{
             titleBits.push(`partner: ${{regionSnapshot.trade_foreign_partner}}`);
           }}
@@ -3334,7 +3387,7 @@ def render_simulation_html(world):
             regionName: region.name,
             radius: gatewayRole !== "none" ? 12 : 9,
             strokeWidth: gatewayRole !== "none" ? 2.8 : 2.2,
-            color: markerColor,
+            color: activelyBlockaded ? "rgba(182, 67, 46, 0.96)" : markerColor,
             className,
             title: titleBits.join(" | "),
           }});
@@ -4652,6 +4705,7 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Routed Flow:</strong> ${{escapeHtml(regionSnapshot.resource_routed_output_summary || staticRegion.resource_routed_output_summary || regionSnapshot.resource_output_summary || staticRegion.resource_output_summary || "None")}}</div>
             <div class="metric-line"><strong>Trade Layer:</strong> ${{escapeHtml(regionSnapshot.trade_route_role || staticRegion.trade_route_role || "local")}} | throughput ${{Number(regionSnapshot.trade_throughput ?? staticRegion.trade_throughput ?? 0).toFixed(2)}} | trade bonus ${{Number(regionSnapshot.trade_value_bonus ?? staticRegion.trade_value_bonus ?? 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Import / Transit:</strong> ${{Number(regionSnapshot.trade_import_value ?? staticRegion.trade_import_value ?? 0).toFixed(2)}} / ${{Number(regionSnapshot.trade_transit_value ?? staticRegion.trade_transit_value ?? 0).toFixed(2)}} | disruption ${{Number((regionSnapshot.trade_disruption_risk ?? staticRegion.trade_disruption_risk ?? 0) * 100).toFixed(0)}}%</div>
+            <div class="metric-line"><strong>Trade Warfare:</strong> pressure ${{Number(regionSnapshot.trade_warfare_pressure ?? staticRegion.trade_warfare_pressure ?? 0).toFixed(2)}} for ${{Number(regionSnapshot.trade_warfare_turns ?? staticRegion.trade_warfare_turns ?? 0).toFixed(0)}} turn(s) | blockade ${{Number(regionSnapshot.trade_blockade_strength ?? staticRegion.trade_blockade_strength ?? 0).toFixed(2)}} for ${{Number(regionSnapshot.trade_blockade_turns ?? staticRegion.trade_blockade_turns ?? 0).toFixed(0)}} turn(s) | denied ${{Number(regionSnapshot.trade_value_denied ?? staticRegion.trade_value_denied ?? 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Foreign Gateway:</strong> ${{escapeHtml(regionSnapshot.trade_gateway_role || staticRegion.trade_gateway_role || "none")}}${{(regionSnapshot.trade_foreign_partner || staticRegion.trade_foreign_partner) ? ` with ${{escapeHtml(regionSnapshot.trade_foreign_partner || staticRegion.trade_foreign_partner)}}` : ""}}${{(regionSnapshot.trade_foreign_partner_region || staticRegion.trade_foreign_partner_region) ? ` via ${{escapeHtml(regionSnapshot.trade_foreign_partner_region || staticRegion.trade_foreign_partner_region)}}` : ""}} | flow ${{Number(regionSnapshot.trade_foreign_flow ?? staticRegion.trade_foreign_flow ?? 0).toFixed(2)}} | value ${{Number(regionSnapshot.trade_foreign_value ?? staticRegion.trade_foreign_value ?? 0).toFixed(2)}}</div>
           </article>
           <article class="inspector-card">
@@ -4893,6 +4947,7 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Food Stores:</strong> ${{Number(metrics.food_stored || 0).toFixed(1)}} / ${{Number(metrics.food_storage_capacity || 0).toFixed(1)}} | +${{Number(metrics.food_produced || 0).toFixed(1)}} / -${{Number(metrics.food_consumption || 0).toFixed(1)}}</div>
             <div class="metric-line"><strong>Food Pressure:</strong> Balance ${{Number(metrics.food_balance || 0).toFixed(1)}} / Deficit ${{Number(metrics.food_deficit || 0).toFixed(1)}} / Waste ${{Number((metrics.food_spoilage || 0) + (metrics.food_overflow || 0)).toFixed(1)}}</div>
             <div class="metric-line"><strong>Migration:</strong> In ${{Number(metrics.migration_inflow || 0).toFixed(0)}} / Out ${{Number(metrics.migration_outflow || 0).toFixed(0)}} | Refugees ${{Number(metrics.refugee_inflow || 0).toFixed(0)}} in / ${{Number(metrics.refugee_outflow || 0).toFixed(0)}} out | Frontier settlers ${{Number(metrics.frontier_settlers || 0).toFixed(0)}}</div>
+            <div class="metric-line"><strong>Trade Warfare:</strong> Damage ${{Number(metrics.trade_warfare_damage || 0).toFixed(2)}} | Blockade losses ${{Number(metrics.trade_blockade_losses || 0).toFixed(2)}} | Corridor exposure ${{Number((metrics.trade_corridor_exposure || 0) * 100).toFixed(0)}}%</div>
           </article>
           <article class="inspector-card">
             <h4 class="inspector-title">Ethnic Distribution</h4>

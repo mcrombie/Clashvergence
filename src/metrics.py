@@ -132,6 +132,8 @@ def build_turn_metrics(world, economy_snapshot=None):
             "trade_corridor_exposure": round(faction.trade_corridor_exposure, 3),
             "trade_foreign_income": round(faction.trade_foreign_income, 3),
             "trade_foreign_imported_flow": round(faction.trade_foreign_imported_flow, 3),
+            "trade_warfare_damage": round(faction.trade_warfare_damage, 3),
+            "trade_blockade_losses": round(faction.trade_blockade_losses, 3),
             "migration_inflow": int(faction.migration_inflow or 0),
             "migration_outflow": int(faction.migration_outflow or 0),
             "refugee_inflow": int(faction.refugee_inflow or 0),
