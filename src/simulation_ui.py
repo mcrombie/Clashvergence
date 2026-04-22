@@ -1396,6 +1396,54 @@ def render_simulation_html(world):
       stroke: rgba(83, 88, 98, 0.28);
       stroke-width: 2;
     }}
+    .trade-layer {{
+      pointer-events: none;
+    }}
+    .trade-link {{
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.88;
+      filter: drop-shadow(0 2px 4px rgba(16, 21, 29, 0.14));
+    }}
+    .trade-link.halo {{
+      opacity: 0.4;
+      filter: none;
+    }}
+    .trade-link.core {{
+      opacity: 0.95;
+    }}
+    .trade-link.domestic {{
+      stroke-dasharray: none;
+    }}
+    .trade-link.sea {{
+      stroke-dasharray: 10 8;
+    }}
+    .trade-link.foreign {{
+      stroke-dasharray: 7 7;
+    }}
+    .trade-link.disrupted {{
+      stroke-dasharray: 3 7;
+      opacity: 0.6;
+    }}
+    .trade-marker {{
+      pointer-events: none;
+      fill: rgba(255, 251, 245, 0.1);
+    }}
+    .trade-endcap {{
+      pointer-events: none;
+      fill: rgba(255, 252, 245, 0.96);
+      stroke-width: 1.6;
+    }}
+    .trade-marker.hub {{
+      stroke: rgba(32, 78, 74, 0.82);
+    }}
+    .trade-marker.gateway {{
+      stroke: rgba(184, 126, 46, 0.92);
+    }}
+    .trade-marker.foreign {{
+      stroke: rgba(60, 110, 170, 0.9);
+    }}
     .atlas-water {{
       fill: rgba(24, 73, 122, 0.34);
     }}
@@ -2127,12 +2175,14 @@ def render_simulation_html(world):
               <svg id="simulation-map" viewBox="0 0 900 900" role="img" aria-label="Simulation map">
                 <g id="atlas-background-layer" class="map-layer"></g>
                 <g id="atlas-layer" class="map-layer"></g>
+                <g id="atlas-trade-layer" class="map-layer trade-layer hidden"></g>
                 <g id="atlas-symbol-layer" class="map-layer"></g>
                 <g id="atlas-label-layer" class="map-layer"></g>
                 <g id="atlas-polity-label-layer" class="map-layer hidden"></g>
                 <g id="atlas-terrain-layer" class="map-layer hidden"></g>
                 <g id="graph-layer" class="map-layer">
                   <g id="edge-layer"></g>
+                  <g id="trade-layer" class="trade-layer"></g>
                   <g id="region-layer"></g>
                   <g id="label-layer"></g>
                   <g id="terrain-layer" class="map-layer hidden"></g>
@@ -2182,6 +2232,7 @@ def render_simulation_html(world):
       showTerrainOverlay: false,
       colorMode: "ownership",
       mapDataMode: "taxable",
+      tradeOverlayMode: "off",
       playbackTab: "map",
       focusRegionName: null,
       focusFactionName: null,
@@ -2200,6 +2251,7 @@ def render_simulation_html(world):
     const terrainToggle = document.getElementById("terrain-toggle");
     const atlasBackgroundLayer = document.getElementById("atlas-background-layer");
     const atlasLayer = document.getElementById("atlas-layer");
+    const atlasTradeLayer = document.getElementById("atlas-trade-layer");
     const atlasSymbolLayer = document.getElementById("atlas-symbol-layer");
     const atlasLabelLayer = document.getElementById("atlas-label-layer");
     const atlasPolityLabelLayer = document.getElementById("atlas-polity-label-layer");
@@ -2207,6 +2259,7 @@ def render_simulation_html(world):
     const graphLayer = document.getElementById("graph-layer");
     const regionLayer = document.getElementById("region-layer");
     const edgeLayer = document.getElementById("edge-layer");
+    const tradeLayer = document.getElementById("trade-layer");
     const labelLayer = document.getElementById("label-layer");
     const terrainLayer = document.getElementById("terrain-layer");
     const legend = document.getElementById("legend");
@@ -2910,6 +2963,19 @@ def render_simulation_html(world):
       return "Taxable";
     }}
 
+    function getTradeOverlayModeLabel() {{
+      if (state.tradeOverlayMode === "domestic") {{
+        return "Trade: Domestic";
+      }}
+      if (state.tradeOverlayMode === "foreign") {{
+        return "Trade: Foreign";
+      }}
+      if (state.tradeOverlayMode === "all") {{
+        return "Trade: All";
+      }}
+      return "Trade: Off";
+    }}
+
     function cycleMapDataMode() {{
       if (state.mapDataMode === "taxable") {{
         state.mapDataMode = "resources";
@@ -2917,6 +2983,18 @@ def render_simulation_html(world):
         state.mapDataMode = "development";
       }} else {{
         state.mapDataMode = "taxable";
+      }}
+    }}
+
+    function cycleTradeOverlayMode() {{
+      if (state.tradeOverlayMode === "off") {{
+        state.tradeOverlayMode = "domestic";
+      }} else if (state.tradeOverlayMode === "domestic") {{
+        state.tradeOverlayMode = "foreign";
+      }} else if (state.tradeOverlayMode === "foreign") {{
+        state.tradeOverlayMode = "all";
+      }} else {{
+        state.tradeOverlayMode = "off";
       }}
     }}
 
@@ -2942,6 +3020,261 @@ def render_simulation_html(world):
         return "#204e4a";
       }}
       return getUnrestColor(regionSnapshot);
+    }}
+
+    function shouldShowDomesticTrade() {{
+      return state.tradeOverlayMode === "domestic" || state.tradeOverlayMode === "all";
+    }}
+
+    function shouldShowForeignTrade() {{
+      return state.tradeOverlayMode === "foreign" || state.tradeOverlayMode === "all";
+    }}
+
+    function clearSvgChildren(layer) {{
+      while (layer.firstChild) {{
+        layer.removeChild(layer.firstChild);
+      }}
+    }}
+
+    function getTradePoint(regionName, atlas = false) {{
+      const atlasRegion = atlasRegionByName[regionName];
+      const graphRegion = staticRegionByName[regionName];
+      if (atlas && atlasRegion) {{
+        return {{
+          x: Number(atlasRegion.label_x),
+          y: Number(atlasRegion.label_y),
+        }};
+      }}
+      if (graphRegion) {{
+        return {{
+          x: Number(graphRegion.x),
+          y: Number(graphRegion.y),
+        }};
+      }}
+      if (atlasRegion) {{
+        return {{
+          x: Number(atlasRegion.label_x),
+          y: Number(atlasRegion.label_y),
+        }};
+      }}
+      return null;
+    }}
+
+    function getTradeNodeRadius(atlas = false) {{
+      return atlas ? 12 : 25;
+    }}
+
+    function getTradeLineEndpoints(link, atlas = false) {{
+      const fromPoint = getTradePoint(link.fromName, atlas);
+      const toPoint = getTradePoint(link.toName, atlas);
+      if (!fromPoint || !toPoint) {{
+        return null;
+      }}
+      const dx = toPoint.x - fromPoint.x;
+      const dy = toPoint.y - fromPoint.y;
+      const distance = Math.hypot(dx, dy);
+      if (distance < 1) {{
+        return null;
+      }}
+      const ux = dx / distance;
+      const uy = dy / distance;
+      const radius = getTradeNodeRadius(atlas);
+      const padding = atlas ? 3 : 5;
+      return {{
+        fromX: fromPoint.x + (ux * (radius - padding)),
+        fromY: fromPoint.y + (uy * (radius - padding)),
+        toX: toPoint.x - (ux * (radius - padding)),
+        toY: toPoint.y - (uy * (radius - padding)),
+      }};
+    }}
+
+    function buildTradeLinkTitle(link) {{
+      const parts = [
+        `${{link.fromName}} -> ${{link.toName}}`,
+        link.kind === "foreign" ? "foreign trade" : "domestic corridor",
+        `mode: ${{link.mode}}`,
+        `flow: ${{link.flow.toFixed(2)}}`,
+      ];
+      if (link.partnerName) {{
+        parts.push(`partner: ${{link.partnerName}}`);
+      }}
+      if (link.risk > 0.01) {{
+        parts.push(`risk: ${{Math.round(link.risk * 100)}}%`);
+      }}
+      return parts.join(" | ");
+    }}
+
+    function appendTradeLink(layer, link, atlas = false) {{
+      const endpoints = getTradeLineEndpoints(link, atlas);
+      if (!endpoints) {{
+        return;
+      }}
+      const strokeWidth = Math.max(1.6, Math.min(6.4, 1.2 + (Math.sqrt(Math.max(0.0, link.flow || 0.0)) * 0.9)));
+      const color = link.color || "rgba(87, 99, 117, 0.82)";
+      const group = svgElement("g", {{}});
+      const halo = svgElement("line", {{
+        x1: endpoints.fromX.toFixed(1),
+        y1: endpoints.fromY.toFixed(1),
+        x2: endpoints.toX.toFixed(1),
+        y2: endpoints.toY.toFixed(1),
+        stroke: "rgba(255, 250, 240, 0.9)",
+        "stroke-width": (strokeWidth + 2.4).toFixed(2),
+        class: `trade-link halo ${{link.kind}} ${{link.mode === "sea" || link.mode === "sea_gateway" ? "sea" : ""}} ${{link.disrupted ? "disrupted" : ""}}`.trim(),
+      }});
+      const path = svgElement("line", {{
+        x1: endpoints.fromX.toFixed(1),
+        y1: endpoints.fromY.toFixed(1),
+        x2: endpoints.toX.toFixed(1),
+        y2: endpoints.toY.toFixed(1),
+        stroke: color,
+        "stroke-width": strokeWidth.toFixed(2),
+        class: `trade-link core ${{link.kind}} ${{link.mode === "sea" || link.mode === "sea_gateway" ? "sea" : ""}} ${{link.disrupted ? "disrupted" : ""}}`.trim(),
+      }});
+      const endcapRadius = Math.max(2.2, Math.min(4.4, strokeWidth * 0.55));
+      const fromCap = svgElement("circle", {{
+        cx: endpoints.fromX.toFixed(1),
+        cy: endpoints.fromY.toFixed(1),
+        r: endcapRadius.toFixed(1),
+        stroke: color,
+        class: "trade-endcap",
+      }});
+      const toCap = svgElement("circle", {{
+        cx: endpoints.toX.toFixed(1),
+        cy: endpoints.toY.toFixed(1),
+        r: endcapRadius.toFixed(1),
+        stroke: color,
+        class: "trade-endcap",
+      }});
+      const title = svgElement("title", {{}});
+      title.textContent = buildTradeLinkTitle(link);
+      group.appendChild(title);
+      group.appendChild(halo);
+      group.appendChild(path);
+      group.appendChild(fromCap);
+      group.appendChild(toCap);
+      layer.appendChild(group);
+    }}
+
+    function appendTradeMarker(layer, marker, atlas = false) {{
+      const point = getTradePoint(marker.regionName, atlas);
+      if (!point) {{
+        return;
+      }}
+      const circle = svgElement("circle", {{
+        cx: point.x.toFixed(1),
+        cy: point.y.toFixed(1),
+        r: marker.radius.toFixed(1),
+        stroke: marker.color,
+        "stroke-width": marker.strokeWidth.toFixed(2),
+        class: `trade-marker ${{marker.className}}`,
+      }});
+      const title = svgElement("title", {{}});
+      title.textContent = marker.title;
+      circle.appendChild(title);
+      layer.appendChild(circle);
+    }}
+
+    function renderTradeOverlay(snapshot) {{
+      clearSvgChildren(tradeLayer);
+      clearSvgChildren(atlasTradeLayer);
+      if (state.tradeOverlayMode === "off") {{
+        return;
+      }}
+
+      const domesticLinks = [];
+      const foreignLinks = [];
+      const markers = [];
+      const seenForeignLinks = new Set();
+
+      for (const region of data.regions) {{
+        const regionSnapshot = snapshot.regions[region.name];
+        const ownerColor = colorByFaction[regionSnapshot.owner] || "#5f6b7a";
+        const throughput = Number(regionSnapshot.trade_throughput || 0);
+        const disruptionRisk = Number(regionSnapshot.trade_disruption_risk || 0);
+        const routeParent = regionSnapshot.trade_route_parent;
+        const routeRole = regionSnapshot.trade_route_role || "local";
+        const routeMode = regionSnapshot.resource_route_mode || "land";
+        const gatewayRole = regionSnapshot.trade_gateway_role || "none";
+        const foreignPartnerRegion = regionSnapshot.trade_foreign_partner_region;
+        const foreignFlow = Number(regionSnapshot.trade_foreign_flow || 0);
+
+        if (shouldShowDomesticTrade() && routeParent && throughput > 0.05) {{
+          domesticLinks.push({{
+            fromName: region.name,
+            toName: routeParent,
+            kind: "domestic",
+            mode: routeMode,
+            flow: throughput,
+            risk: disruptionRisk,
+            disrupted: disruptionRisk >= 0.4,
+            color: routeMode === "sea"
+              ? "rgba(54, 105, 150, 0.82)"
+              : hexToRgba(ownerColor, Math.max(0.42, 0.86 - (disruptionRisk * 0.35))),
+          }});
+        }}
+
+        if (shouldShowForeignTrade() && foreignPartnerRegion && foreignFlow > 0.05) {{
+          const key = [region.name, foreignPartnerRegion].sort().join("::");
+          if (!seenForeignLinks.has(key)) {{
+            seenForeignLinks.add(key);
+            foreignLinks.push({{
+              fromName: region.name,
+              toName: foreignPartnerRegion,
+              kind: "foreign",
+              mode: gatewayRole,
+              flow: foreignFlow,
+              risk: disruptionRisk,
+              disrupted: disruptionRisk >= 0.45,
+              partnerName: regionSnapshot.trade_foreign_partner || "",
+              color: gatewayRole === "sea_gateway"
+                ? "rgba(46, 128, 182, 0.88)"
+                : "rgba(191, 138, 55, 0.92)",
+            }});
+          }}
+        }}
+
+        if ((shouldShowDomesticTrade() && (routeRole === "hub" || routeRole === "corridor"))
+            || (shouldShowForeignTrade() && gatewayRole !== "none")) {{
+          const className = gatewayRole !== "none"
+            ? (gatewayRole === "sea_gateway" ? "foreign" : "gateway")
+            : "hub";
+          const markerColor = gatewayRole !== "none"
+            ? (gatewayRole === "sea_gateway" ? "rgba(46, 128, 182, 0.94)" : "rgba(191, 138, 55, 0.94)")
+            : hexToRgba(ownerColor, 0.88);
+          const titleBits = [
+            `${{regionSnapshot.display_name || region.display_name || region.name}}`,
+            `role: ${{routeRole}}`,
+            `throughput: ${{throughput.toFixed(2)}}`,
+          ];
+          if (gatewayRole !== "none") {{
+            titleBits.push(`gateway: ${{gatewayRole}}`);
+          }}
+          if (regionSnapshot.trade_foreign_partner) {{
+            titleBits.push(`partner: ${{regionSnapshot.trade_foreign_partner}}`);
+          }}
+          markers.push({{
+            regionName: region.name,
+            radius: gatewayRole !== "none" ? 12 : 9,
+            strokeWidth: gatewayRole !== "none" ? 2.8 : 2.2,
+            color: markerColor,
+            className,
+            title: titleBits.join(" | "),
+          }});
+        }}
+      }}
+
+      for (const link of domesticLinks) {{
+        appendTradeLink(tradeLayer, link, false);
+        appendTradeLink(atlasTradeLayer, link, true);
+      }}
+      for (const link of foreignLinks) {{
+        appendTradeLink(tradeLayer, link, false);
+        appendTradeLink(atlasTradeLayer, link, true);
+      }}
+      for (const marker of markers) {{
+        appendTradeMarker(tradeLayer, marker, false);
+        appendTradeMarker(atlasTradeLayer, marker, true);
+      }}
     }}
 
     function updateSelectedRegionHighlight() {{
@@ -3513,11 +3846,13 @@ def render_simulation_html(world):
       const overlayLabel = state.showTerrainOverlay ? "Terrain Labels On" : "Terrain Labels";
       const colorModeLabel = `Colors: ${{getColorModeLabel()}}`;
       const dataModeLabel = `Map Data: ${{getMapDataModeLabel()}}`;
+      const tradeModeLabel = getTradeOverlayModeLabel();
       const atlasLabelModeLabel = `Labels: ${{state.atlasLabelMode === "realms" ? "Realms" : "Regions"}}`;
       terrainToggle.innerHTML = `
         <button type="button" class="secondary" data-terrain="overlay">${{overlayLabel}}</button>
         <button type="button" class="secondary" data-terrain="mode">${{colorModeLabel}}</button>
         <button type="button" class="secondary" data-terrain="data">${{dataModeLabel}}</button>
+        <button type="button" class="secondary" data-terrain="trade">${{tradeModeLabel}}</button>
         ${{data.atlas_regions.length ? `<button type="button" class="secondary" data-terrain="labels">${{atlasLabelModeLabel}}</button>` : ""}}
       `;
 
@@ -3530,6 +3865,7 @@ def render_simulation_html(world):
             (button.dataset.terrain === "overlay" && state.showTerrainOverlay)
             || (button.dataset.terrain === "mode" && state.colorMode !== "ownership")
             || (button.dataset.terrain === "data" && state.mapDataMode !== "taxable")
+            || (button.dataset.terrain === "trade" && state.tradeOverlayMode !== "off")
             || (button.dataset.terrain === "labels" && state.atlasLabelMode !== "regions")
           );
           button.classList.toggle("active", isActive);
@@ -3540,6 +3876,8 @@ def render_simulation_html(world):
               cycleColorMode();
             }} else if (button.dataset.terrain === "data") {{
               cycleMapDataMode();
+            }} else if (button.dataset.terrain === "trade") {{
+              cycleTradeOverlayMode();
             }} else if (button.dataset.terrain === "labels") {{
               state.atlasLabelMode = state.atlasLabelMode === "regions" ? "realms" : "regions";
             }}
@@ -3571,6 +3909,7 @@ def render_simulation_html(world):
           (button.dataset.terrain === "overlay" && state.showTerrainOverlay)
           || (button.dataset.terrain === "mode" && state.colorMode !== "ownership")
           || (button.dataset.terrain === "data" && state.mapDataMode !== "taxable")
+          || (button.dataset.terrain === "trade" && state.tradeOverlayMode !== "off")
           || (button.dataset.terrain === "labels" && state.atlasLabelMode !== "regions")
         );
         button.classList.toggle("active", isActive);
@@ -3581,6 +3920,8 @@ def render_simulation_html(world):
             cycleColorMode();
           }} else if (button.dataset.terrain === "data") {{
             cycleMapDataMode();
+          }} else if (button.dataset.terrain === "trade") {{
+            cycleTradeOverlayMode();
           }} else if (button.dataset.terrain === "labels") {{
             state.atlasLabelMode = state.atlasLabelMode === "regions" ? "realms" : "regions";
           }}
@@ -3601,8 +3942,10 @@ def render_simulation_html(world):
       atlasLabelLayer.classList.toggle("hidden", !showAtlas || state.atlasLabelMode !== "regions");
       atlasPolityLabelLayer.classList.toggle("hidden", !showAtlas || state.atlasLabelMode !== "realms");
       atlasTerrainLayer.classList.toggle("hidden", !showAtlas || !state.showTerrainOverlay);
+      atlasTradeLayer.classList.toggle("hidden", !showAtlas || state.tradeOverlayMode === "off");
       graphLayer.classList.toggle("hidden", showAtlas);
       terrainLayer.classList.toggle("hidden", !state.showTerrainOverlay);
+      tradeLayer.classList.toggle("hidden", showAtlas || state.tradeOverlayMode === "off");
 
       for (const button of viewToggle.querySelectorAll("[data-view]")) {{
         button.classList.toggle("active", button.dataset.view === state.mapView);
@@ -3612,6 +3955,7 @@ def render_simulation_html(world):
           (button.dataset.terrain === "overlay" && state.showTerrainOverlay)
           || (button.dataset.terrain === "mode" && state.colorMode !== "ownership")
           || (button.dataset.terrain === "data" && state.mapDataMode !== "taxable")
+          || (button.dataset.terrain === "trade" && state.tradeOverlayMode !== "off")
           || (button.dataset.terrain === "labels" && state.atlasLabelMode !== "regions")
         );
         button.classList.toggle("active", isActive);
@@ -3676,6 +4020,15 @@ def render_simulation_html(world):
         ];
         if (hasUnclaimedRegions) {{
           items.push(`<span class="legend-item"><span class="swatch" style="background:${{unclaimedColor}}"></span>Unclaimed</span>`);
+        }}
+      }}
+      if (state.tradeOverlayMode !== "off") {{
+        if (shouldShowDomesticTrade()) {{
+          items.push(`<span class="legend-item"><span class="swatch" style="background:rgba(32,78,74,0.72)"></span>Domestic corridors</span>`);
+          items.push(`<span class="legend-item"><span class="swatch" style="background:rgba(54,105,150,0.72)"></span>Sea routes</span>`);
+        }}
+        if (shouldShowForeignTrade()) {{
+          items.push(`<span class="legend-item"><span class="swatch" style="background:rgba(191,138,55,0.78)"></span>Foreign gateways</span>`);
         }}
       }}
       legend.innerHTML = items.join("");
@@ -4801,7 +5154,8 @@ def render_simulation_html(world):
           const terrainText = regionSnapshot.terrain_label || region.terrain_label || "Plains";
           const climateText = regionSnapshot.climate_label || region.climate_label || "Temperate";
           const unrestText = getUnrestLabel(regionSnapshot);
-          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}} - ${{climateText}} - Unrest: ${{unrestText}}`;
+          const tradeText = `Trade: ${{regionSnapshot.trade_route_role || "local"}} / throughput ${{Number(regionSnapshot.trade_throughput || 0).toFixed(1)}} / gateway ${{regionSnapshot.trade_gateway_role || "none"}}`;
+          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}} - ${{climateText}} - Unrest: ${{unrestText}} - ${{tradeText}}`;
         }}
         if (terrainOverlay) {{
           terrainOverlay.textContent = getTerrainAbbreviation(regionSnapshot.terrain_tags || region.terrain_tags);
@@ -4834,13 +5188,15 @@ def render_simulation_html(world):
           const terrainText = regionSnapshot.terrain_label || region.terrain_label || "Plains";
           const climateText = regionSnapshot.climate_label || region.climate_label || "Temperate";
           const unrestText = getUnrestLabel(regionSnapshot);
-          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}} - ${{climateText}} - Unrest: ${{unrestText}}`;
+          const tradeText = `Trade: ${{regionSnapshot.trade_route_role || "local"}} / throughput ${{Number(regionSnapshot.trade_throughput || 0).toFixed(1)}} / gateway ${{regionSnapshot.trade_gateway_role || "none"}}`;
+          title.textContent = `${{regionSnapshot.display_name || region.display_name || region.name}} (${{region.name}}) - ${{ownerText}} - ${{terrainText}} - ${{climateText}} - Unrest: ${{unrestText}} - ${{tradeText}}`;
         }}
         if (terrainOverlay) {{
           terrainOverlay.textContent = getTerrainAbbreviation(regionSnapshot.terrain_tags || region.terrain_tags);
           terrainOverlay.setAttribute("fill", getTerrainColor(regionSnapshot.terrain_tags || region.terrain_tags));
         }}
       }}
+      renderTradeOverlay(snapshot);
       updateSelectedRegionHighlight();
     }}
 

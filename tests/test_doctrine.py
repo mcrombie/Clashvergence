@@ -171,6 +171,16 @@ class FactionDoctrineTests(unittest.TestCase):
         self.assertIn('data-terrain="labels"', html)
         self.assertIn('atlasLabelMode: "regions"', html)
 
+    def test_viewer_html_contains_trade_overlay_controls(self):
+        world = create_world(map_name="thirty_seven_region_ring", num_factions=4)
+        html = render_simulation_html(world)
+
+        self.assertIn('id="atlas-trade-layer"', html)
+        self.assertIn('id="trade-layer"', html)
+        self.assertIn('data-terrain="trade"', html)
+        self.assertIn('tradeOverlayMode: "off"', html)
+        self.assertIn("renderTradeOverlay(snapshot);", html)
+
 
 if __name__ == "__main__":
     unittest.main()
