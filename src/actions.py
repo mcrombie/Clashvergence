@@ -740,6 +740,13 @@ def get_attack_target_score_components(region_name, faction_name, world):
     )
     resource_need_bonus = _get_region_resource_interest(region, faction_name, world)
     target_value = _get_region_strategic_value(region, world)
+    trade_chokepoint_bonus = (
+        min(10, int(round(float(region.trade_throughput or 0.0) * 0.18)))
+        + min(6, int(round(float(region.trade_transit_flow or 0.0) * 0.45)))
+        + min(5, int(round(float(region.trade_hub_value or 0.0) * 0.3)))
+        + (4 if region.trade_route_role == "corridor" else 2 if region.trade_route_role == "hub" else 0)
+        + min(4, int(region.trade_served_regions or 0))
+    )
     defender_strength = (
         defender_deployable_treasury
         + target_value
@@ -758,6 +765,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + diplomacy_attack_modifier
         + regime_target_score_bonus
         + resource_need_bonus
+        + trade_chokepoint_bonus
     )
 
     return {
@@ -789,6 +797,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "diplomacy_status": diplomacy_status,
         "diplomacy_attack_modifier": diplomacy_attack_modifier,
         "resource_need_bonus": resource_need_bonus,
+        "trade_chokepoint_bonus": trade_chokepoint_bonus,
         "terrain_affinity": doctrine_alignment["average_affinity"],
         "core_status": region_core_status,
         "core_defense_bonus": core_defense_bonus,

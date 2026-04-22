@@ -23,6 +23,7 @@ from src.config import (
     UNREST_MAX,
     UNREST_MODERATE_THRESHOLD,
 )
+from src.diplomacy import get_relationship_state, get_relationship_status
 from src.governance import (
     get_faction_income_modifier,
     get_faction_maintenance_modifier,
@@ -117,6 +118,24 @@ RESOURCE_ROUTE_SEA_INFRASTRUCTURE_BONUS = 0.03
 RESOURCE_ROUTE_SEA_ROAD_BONUS = 0.02
 RESOURCE_ROUTE_SEA_UNREST_FACTOR = 0.015
 RESOURCE_ROUTE_SEA_DAMAGE_FACTOR = 0.2
+RESOURCE_ROUTE_CONTESTED_UNKNOWN_EDGE_PRESSURE = 0.08
+RESOURCE_ROUTE_CONTESTED_NEUTRAL_EDGE_PRESSURE = 0.1
+RESOURCE_ROUTE_CONTESTED_PACT_EDGE_PRESSURE = 0.04
+RESOURCE_ROUTE_CONTESTED_TRUCE_EDGE_PRESSURE = 0.12
+RESOURCE_ROUTE_CONTESTED_RIVAL_EDGE_PRESSURE = 0.2
+RESOURCE_ROUTE_CONTESTED_BORDER_FRICTION_FACTOR = 0.012
+RESOURCE_ROUTE_CONTESTED_GRIEVANCE_FACTOR = 0.008
+RESOURCE_ROUTE_CONTESTED_TRUST_FACTOR = 0.004
+RESOURCE_ROUTE_CONTESTED_RECENT_CONFLICT_MAX = 0.18
+RESOURCE_ROUTE_CONTESTED_RECENT_CONFLICT_TURNS = 6
+RESOURCE_ROUTE_CONTESTED_FRONTIER_MULTIPLIER = 1.1
+RESOURCE_ROUTE_CONTESTED_LAND_STEP_FACTOR = 0.7
+RESOURCE_ROUTE_CONTESTED_LAND_SUPPORT_FACTOR = 0.34
+RESOURCE_ROUTE_CONTESTED_SEA_STEP_FACTOR = 0.4
+RESOURCE_ROUTE_CONTESTED_SEA_SUPPORT_FACTOR = 0.22
+RESOURCE_ROUTE_PORT_BLOCKADE_THRESHOLD = 0.52
+RESOURCE_ROUTE_PORT_BLOCKADE_UNREST = 7.5
+RESOURCE_ROUTE_PORT_BLOCKADE_DAMAGE = 0.5
 RESOURCE_GRAIN_UNIRRIGATED_FACTOR = 0.78
 RESOURCE_GRAIN_IRRIGATION_LEVEL_FACTOR = 0.55
 RESOURCE_GRAIN_SUPPORT_LEVEL_FACTOR = 0.22
@@ -499,7 +518,106 @@ def _get_owned_resource_anchor_names(world: WorldState, faction_name: str) -> se
     }
 
 
-def _get_region_route_step_cost(region: Region) -> float:
+def _get_contested_trade_edge_pressure(
+    world: WorldState,
+    faction_name: str,
+    opposing_faction_name: str | None,
+) -> float:
+    if opposing_faction_name is None or opposing_faction_name == faction_name:
+        return 0.0
+
+    status = get_relationship_status(world, faction_name, opposing_faction_name)
+    base_pressure = RESOURCE_ROUTE_CONTESTED_NEUTRAL_EDGE_PRESSURE
+    if status == "unknown":
+        base_pressure = RESOURCE_ROUTE_CONTESTED_UNKNOWN_EDGE_PRESSURE
+    elif status == "alliance":
+        base_pressure = 0.0
+    elif status == "non_aggression_pact":
+        base_pressure = RESOURCE_ROUTE_CONTESTED_PACT_EDGE_PRESSURE
+    elif status == "truce":
+        base_pressure = RESOURCE_ROUTE_CONTESTED_TRUCE_EDGE_PRESSURE
+    elif status == "rival":
+        base_pressure = RESOURCE_ROUTE_CONTESTED_RIVAL_EDGE_PRESSURE
+
+    relationship = get_relationship_state(world, faction_name, opposing_faction_name)
+    edge_pressure = (
+        base_pressure
+        + min(
+            0.12,
+            relationship.border_friction * RESOURCE_ROUTE_CONTESTED_BORDER_FRICTION_FACTOR,
+        )
+        + min(
+            0.08,
+            relationship.grievance * RESOURCE_ROUTE_CONTESTED_GRIEVANCE_FACTOR,
+        )
+        - min(
+            0.04,
+            max(0.0, relationship.trust) * RESOURCE_ROUTE_CONTESTED_TRUST_FACTOR,
+        )
+    )
+    if relationship.last_conflict_turn is not None:
+        turns_since_conflict = max(0, world.turn - relationship.last_conflict_turn)
+        if turns_since_conflict < RESOURCE_ROUTE_CONTESTED_RECENT_CONFLICT_TURNS:
+            recent_conflict_factor = 1.0 - (
+                turns_since_conflict / RESOURCE_ROUTE_CONTESTED_RECENT_CONFLICT_TURNS
+            )
+            edge_pressure += (
+                recent_conflict_factor * RESOURCE_ROUTE_CONTESTED_RECENT_CONFLICT_MAX
+            )
+    return _clamp(edge_pressure, 0.0, 0.45)
+
+
+def _get_region_trade_contestation_pressure(
+    world: WorldState | None,
+    region: Region,
+    faction_name: str | None,
+) -> float:
+    if world is None or faction_name is None:
+        return 0.0
+
+    foreign_edge_pressures: list[float] = []
+    for neighbor_name in region.neighbors:
+        neighbor = world.regions.get(neighbor_name)
+        if neighbor is None or neighbor.owner in {None, faction_name}:
+            continue
+        foreign_edge_pressures.append(
+            _get_contested_trade_edge_pressure(world, faction_name, neighbor.owner)
+        )
+
+    if not foreign_edge_pressures:
+        return 0.0
+
+    pressure = sum(foreign_edge_pressures)
+    if get_region_core_status(region) == "frontier":
+        pressure *= RESOURCE_ROUTE_CONTESTED_FRONTIER_MULTIPLIER
+    return _clamp(pressure, 0.0, 0.85)
+
+
+def _is_port_trade_blockaded(
+    world: WorldState | None,
+    region: Region,
+    faction_name: str | None,
+) -> bool:
+    if world is None or faction_name is None:
+        return False
+    contested_pressure = _get_region_trade_contestation_pressure(world, region, faction_name)
+    average_damage = _get_region_average_resource_damage(region)
+    if region.unrest_event_level == "crisis" and contested_pressure >= 0.32:
+        return True
+    return (
+        contested_pressure >= RESOURCE_ROUTE_PORT_BLOCKADE_THRESHOLD
+        and (
+            region.unrest >= RESOURCE_ROUTE_PORT_BLOCKADE_UNREST
+            or average_damage >= RESOURCE_ROUTE_PORT_BLOCKADE_DAMAGE
+        )
+    )
+
+
+def _get_region_route_step_cost(
+    region: Region,
+    world: WorldState | None = None,
+    faction_name: str | None = None,
+) -> float:
     step_cost = RESOURCE_ROUTE_BASE_STEP_COST
     status = get_region_core_status(region)
     if status == "frontier":
@@ -520,10 +638,16 @@ def _get_region_route_step_cost(region: Region) -> float:
     step_cost += min(0.3, average_damage * RESOURCE_ROUTE_DAMAGE_STEP_FACTOR)
     step_cost -= min(0.28, region.infrastructure_level * RESOURCE_ROUTE_INFRASTRUCTURE_STEP_BONUS)
     step_cost -= min(0.35, region.road_level * RESOURCE_ROUTE_ROAD_STEP_BONUS)
+    contested_pressure = _get_region_trade_contestation_pressure(world, region, faction_name)
+    step_cost += min(0.5, contested_pressure * RESOURCE_ROUTE_CONTESTED_LAND_STEP_FACTOR)
     return _clamp(step_cost, 0.55, 2.4)
 
 
-def _get_region_corridor_support_factor(region: Region) -> float:
+def _get_region_corridor_support_factor(
+    region: Region,
+    world: WorldState | None = None,
+    faction_name: str | None = None,
+) -> float:
     support = 0.78
     status = get_region_core_status(region)
     if status == "homeland":
@@ -557,6 +681,8 @@ def _get_region_corridor_support_factor(region: Region) -> float:
     elif region.unrest_event_level == "crisis":
         support -= 0.12
 
+    contested_pressure = _get_region_trade_contestation_pressure(world, region, faction_name)
+    support -= min(0.28, contested_pressure * RESOURCE_ROUTE_CONTESTED_LAND_SUPPORT_FACTOR)
     return _clamp(support, 0.32, 1.0)
 
 
@@ -572,11 +698,20 @@ def _is_region_maritime_port(region: Region) -> bool:
     ])
 
 
-def _get_maritime_step_cost(source_region: Region, destination_region: Region) -> float:
+def _get_maritime_step_cost(
+    source_region: Region,
+    destination_region: Region,
+    world: WorldState | None = None,
+    faction_name: str | None = None,
+) -> float:
     average_damage = (
         _get_region_average_resource_damage(source_region)
         + _get_region_average_resource_damage(destination_region)
     ) / 2.0
+    contested_pressure = max(
+        _get_region_trade_contestation_pressure(world, source_region, faction_name),
+        _get_region_trade_contestation_pressure(world, destination_region, faction_name),
+    )
     step_cost = (
         RESOURCE_ROUTE_SEA_STEP_COST
         - min(
@@ -615,6 +750,7 @@ def _get_maritime_step_cost(source_region: Region, destination_region: Region) -
             ) * RESOURCE_ROUTE_SEA_UNREST_FACTOR,
         )
         + min(0.12, average_damage * RESOURCE_ROUTE_SEA_DAMAGE_FACTOR)
+        + min(0.28, contested_pressure * RESOURCE_ROUTE_CONTESTED_SEA_STEP_FACTOR)
     )
     if source_region.unrest_event_level == "crisis" or destination_region.unrest_event_level == "crisis":
         step_cost += 0.16
@@ -626,11 +762,20 @@ def _get_maritime_step_cost(source_region: Region, destination_region: Region) -
     return _clamp(step_cost, 0.32, 1.25)
 
 
-def _get_maritime_support_factor(source_region: Region, destination_region: Region) -> float:
+def _get_maritime_support_factor(
+    source_region: Region,
+    destination_region: Region,
+    world: WorldState | None = None,
+    faction_name: str | None = None,
+) -> float:
     average_damage = (
         _get_region_average_resource_damage(source_region)
         + _get_region_average_resource_damage(destination_region)
     ) / 2.0
+    contested_pressure = max(
+        _get_region_trade_contestation_pressure(world, source_region, faction_name),
+        _get_region_trade_contestation_pressure(world, destination_region, faction_name),
+    )
     support = (
         RESOURCE_ROUTE_SEA_PORT_SUPPORT
         + min(
@@ -662,6 +807,7 @@ def _get_maritime_support_factor(source_region: Region, destination_region: Regi
             ) * 0.012,
         )
         - min(0.12, average_damage * 0.24)
+        - min(0.16, contested_pressure * RESOURCE_ROUTE_CONTESTED_SEA_SUPPORT_FACTOR)
     )
     if source_region.unrest_event_level == "crisis" or destination_region.unrest_event_level == "crisis":
         support -= 0.08
@@ -687,12 +833,12 @@ def _iter_owned_trade_connections(
             continue
         connections.append((
             neighbor_name,
-            _get_region_route_step_cost(neighbor),
-            _get_region_corridor_support_factor(neighbor),
+            _get_region_route_step_cost(neighbor, world, faction_name),
+            _get_region_corridor_support_factor(neighbor, world, faction_name),
             "land",
         ))
 
-    if _is_region_maritime_port(current_region):
+    if _is_region_maritime_port(current_region) and not _is_port_trade_blockaded(world, current_region, faction_name):
         for source_name, destination_name in world.sea_links:
             if region_name == source_name:
                 neighbor_name = destination_name
@@ -705,10 +851,12 @@ def _iter_owned_trade_connections(
             neighbor = world.regions[neighbor_name]
             if neighbor.owner != faction_name or not _is_region_maritime_port(neighbor):
                 continue
+            if _is_port_trade_blockaded(world, neighbor, faction_name):
+                continue
             connections.append((
                 neighbor_name,
-                _get_maritime_step_cost(current_region, neighbor),
-                _get_maritime_support_factor(current_region, neighbor),
+                _get_maritime_step_cost(current_region, neighbor, world, faction_name),
+                _get_maritime_support_factor(current_region, neighbor, world, faction_name),
                 "sea",
             ))
 
@@ -900,12 +1048,18 @@ def _apply_faction_trade_state(
         route_factor = max(0.0, 1.0 - float(region.resource_isolation_factor or 0.0))
         bottleneck = max(0.35, float(region.resource_route_bottleneck or 0.35))
         average_damage = _get_region_average_resource_damage(region)
+        contested_pressure = _get_region_trade_contestation_pressure(world, region, faction_name)
         disruption_risk = _clamp(
             (float(region.resource_isolation_factor or 0.0) * TRADE_DISRUPTION_ISOLATION_FACTOR)
             + (max(0.0, 0.85 - bottleneck) * TRADE_DISRUPTION_BOTTLENECK_FACTOR)
             + (region.unrest * TRADE_DISRUPTION_UNREST_FACTOR)
             + (average_damage * TRADE_DISRUPTION_DAMAGE_FACTOR)
             + (depth * TRADE_DISRUPTION_DEPTH_FACTOR),
+            0.0,
+            0.95,
+        )
+        disruption_risk = _clamp(
+            disruption_risk + min(0.28, contested_pressure * 0.4),
             0.0,
             0.95,
         )
