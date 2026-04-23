@@ -6,6 +6,7 @@ from src.simulation import run_simulation
 from src.narrative import build_chronicle
 from src.event_analysis import get_event_log
 from src.metrics import analyze_competition_metrics, get_metrics_log
+from src.map_generator_ui import write_map_generator_html
 from src.simulation_ui import write_simulation_html
 from src.region_naming import format_region_reference
 from src.terrain import format_terrain_label
@@ -341,7 +342,7 @@ def parse_args():
         "--map",
         dest="map_name",
         default="multi_ring_symmetry",
-        help="Map name to simulate.",
+        help="Map name to simulate. Use generated_ring, generated_frontier, or generated_basin for dynamic maps.",
     )
     parser.add_argument(
         "--turns",
@@ -356,17 +357,67 @@ def parse_args():
         default=4,
         help="Number of factions to include in the simulation.",
     )
+    parser.add_argument(
+        "--map-lab",
+        action="store_true",
+        help="Write the standalone dynamic map generator UI and exit.",
+    )
+    parser.add_argument("--map-style", choices=["continent", "frontier", "basin", "archipelago", "highlands"])
+    parser.add_argument("--map-seed")
+    parser.add_argument("--map-regions", type=int)
+    parser.add_argument("--map-landmasses", type=int)
+    parser.add_argument("--map-water", type=float)
+    parser.add_argument("--map-rivers", type=int)
+    parser.add_argument("--map-mountains", type=int)
+    parser.add_argument("--map-climate", choices=["temperate", "varied", "arid", "cold", "tropical"])
+    parser.add_argument("--map-richness", type=float)
+    parser.add_argument("--map-chokepoints", type=float)
+    parser.add_argument("--map-diversity", type=float)
+    parser.add_argument("--map-starts", choices=["balanced", "coastal", "heartland", "frontier"])
     return parser.parse_args()
+
+
+def build_map_generation_overrides(args):
+    option_map = {
+        "map_style": "style",
+        "map_seed": "seed",
+        "map_regions": "region_count",
+        "map_landmasses": "landmass_count",
+        "map_water": "water_level",
+        "map_rivers": "river_count",
+        "map_mountains": "mountain_spines",
+        "map_climate": "climate_mode",
+        "map_richness": "resource_richness",
+        "map_chokepoints": "chokepoint_density",
+        "map_diversity": "terrain_diversity",
+        "map_starts": "start_strategy",
+    }
+    overrides = {}
+    for attribute_name, config_name in option_map.items():
+        value = getattr(args, attribute_name, None)
+        if value is not None:
+            overrides[config_name] = value
+    return overrides or None
 
 
 def main():
     args = parse_args()
+    if args.map_lab:
+        output_path = write_map_generator_html()
+        print(f"Map generator UI written to {output_path}")
+        return
+
     map_name = args.map_name
     num_turns = args.num_turns
     num_factions = args.num_factions
+    map_generation_config = build_map_generation_overrides(args)
 
     try:
-        world = create_world(map_name=map_name, num_factions=num_factions)
+        world = create_world(
+            map_name=map_name,
+            num_factions=num_factions,
+            map_generation_config=map_generation_config,
+        )
     except ValueError as error:
         raise SystemExit(f"Error: {error}") from error
 

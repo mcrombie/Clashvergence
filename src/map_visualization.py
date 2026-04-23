@@ -221,7 +221,29 @@ def build_force_layout(regions, width, height, iterations=250):
     return {name: tuple(coords) for name, coords in positions.items()}
 
 
+def build_explicit_position_layout(regions, width, height):
+    positions = {}
+    for name, region_data in regions.items():
+        position = region_data.get("position")
+        if not isinstance(position, dict):
+            return None
+        try:
+            x = float(position["x"])
+            y = float(position["y"])
+        except (KeyError, TypeError, ValueError):
+            return None
+        positions[name] = (
+            min(width - 40, max(40, x * width)),
+            min(height - 40, max(40, y * height)),
+        )
+    return positions
+
+
 def build_map_layout(regions, width=900, height=900):
+    explicit_positions = build_explicit_position_layout(regions, width, height)
+    if explicit_positions is not None:
+        return explicit_positions
+
     if is_multi_ring_map(regions):
         return build_multi_ring_layout(regions, width, height)
 

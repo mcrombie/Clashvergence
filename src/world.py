@@ -15,6 +15,7 @@ from src.heartland import (
 )
 from src.models import Region, WorldState
 from src.maps import MAPS
+from src.map_generator import build_generated_map_definition, is_generated_map_name
 from src.region_naming import assign_region_founding_name
 from src.resource_economy import (
     initialize_region_resources,
@@ -26,7 +27,14 @@ from src.visibility import initialize_faction_visibility
 def create_world(
     map_name="seven_region_ring",
     num_factions=4,
+    map_generation_config=None,
 ) -> WorldState:
+    if is_generated_map_name(map_name):
+        MAPS[map_name] = build_generated_map_definition(
+            map_name,
+            num_factions,
+            config=map_generation_config,
+        )
     validate_map_factions(map_name, num_factions)
     map_definition = MAPS[map_name]
     factions = create_factions(
