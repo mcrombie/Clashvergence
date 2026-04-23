@@ -97,6 +97,8 @@ class HeartlandSystemTests(unittest.TestCase):
 
     def _spawn_civil_war_from_region(self, world, faction_name, region_name="M"):
         region = world.regions[region_name]
+        world.factions[faction_name].succession.succession_crisis_turns = 2
+        world.factions[faction_name].succession.claimant_pressure = 0.5
         region.owner = faction_name
         region.integrated_owner = faction_name
         region.core_status = "core"
@@ -1406,7 +1408,34 @@ class HeartlandSystemTests(unittest.TestCase):
             region.climate,
         )
 
-    def test_core_same_ethnicity_revolt_becomes_civil_war_claimant(self):
+    def test_core_same_ethnicity_revolt_without_succession_pressure_becomes_secession(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "core"
+        region.integration_score = CORE_INTEGRATION_SCORE + 1.0
+        region.homeland_faction_id = None
+        if region.population <= 0:
+            region.population = estimate_region_population(
+                region.resources,
+                len(region.neighbors),
+                owner=faction_name,
+            )
+        seed_region_ethnicity(region, world.factions[faction_name].primary_ethnicity)
+        region.unrest = 9.5
+        region.unrest_event_level = "crisis"
+        region.secession_cooldown_turns = 0
+
+        apply_unrest_secession(world, region)
+
+        self.assertEqual(world.factions[region.owner].rebel_conflict_type, REBEL_CONFLICT_SECESSION)
+        self.assertFalse(world.events[-1].details["civil_war"])
+        self.assertEqual(world.events[-1].details["conflict_type"], REBEL_CONFLICT_SECESSION)
+        self.assertNotIn("civil_war", world.events[-1].tags)
+
+    def test_succession_pressure_same_ethnicity_revolt_becomes_civil_war_claimant(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
         parent_faction = world.factions[faction_name]
@@ -1535,6 +1564,8 @@ class HeartlandSystemTests(unittest.TestCase):
     def test_adjacent_civil_war_regions_join_same_claimant(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
+        world.factions[faction_name].succession.succession_crisis_turns = 2
+        world.factions[faction_name].succession.claimant_pressure = 0.5
         seed_region = world.regions["M"]
         join_region = world.regions[seed_region.neighbors[0]]
 
@@ -1628,13 +1659,14 @@ class HeartlandSystemTests(unittest.TestCase):
             treasury_before + REBEL_INDEPENDENCE_TREASURY_BONUS,
         )
 
-    def test_proto_civil_war_matures_into_rival_regime_without_new_ethnicity(self):
+    def test_proto_civil_war_matures_into_rival_regime_with_successor_ethnicity(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
         parent_faction = world.factions[faction_name]
-        rebel_name, _region = self._spawn_civil_war_from_region(world, faction_name)
+        rebel_name, region = self._spawn_civil_war_from_region(world, faction_name)
         rebel_faction = world.factions[rebel_name]
         ethnicity_count_before = len(world.ethnicities)
+        parent_ethnicity = parent_faction.primary_ethnicity
 
         rebel_faction.independence_score = REBEL_FULL_INDEPENDENCE_THRESHOLD - 0.2
 
@@ -1644,12 +1676,14 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertEqual(world.events[-1].details["conflict_type"], REBEL_CONFLICT_CIVIL_WAR)
         self.assertTrue(world.events[-1].details["civil_war"])
         self.assertFalse(rebel_faction.proto_state)
-        self.assertEqual(rebel_faction.primary_ethnicity, parent_faction.primary_ethnicity)
-        self.assertEqual(len(world.ethnicities), ethnicity_count_before)
-        self.assertIsNone(world.events[-1].details["successor_ethnicity"])
-        self.assertEqual(rebel_faction.culture_name, parent_faction.culture_name)
+        self.assertNotEqual(rebel_faction.primary_ethnicity, parent_ethnicity)
+        self.assertEqual(len(world.ethnicities), ethnicity_count_before + 1)
+        self.assertEqual(world.events[-1].details["successor_ethnicity"], rebel_faction.primary_ethnicity)
+        self.assertEqual(world.ethnicities[rebel_faction.primary_ethnicity].parent_ethnicity, parent_ethnicity)
+        self.assertEqual(rebel_faction.culture_name, rebel_faction.primary_ethnicity)
         self.assertNotEqual(rebel_faction.display_name, parent_faction.display_name)
-        self.assertIn(parent_faction.culture_name, rebel_faction.display_name)
+        self.assertIn(rebel_faction.primary_ethnicity, rebel_faction.display_name)
+        self.assertEqual(get_region_dominant_ethnicity(region), rebel_faction.primary_ethnicity)
 
     def test_proto_rebel_uses_less_concentrated_treasury_than_mature_successor(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)

@@ -269,6 +269,7 @@ SURPLUS_TERRAIN_PRODUCTIVITY = {
 REBEL_CONFLICT_SECESSION = "secession"
 REBEL_CONFLICT_CIVIL_WAR = "civil_war"
 CIVIL_WAR_AFFINITY_THRESHOLD = 0.65
+CIVIL_WAR_CLAIMANT_PRESSURE_THRESHOLD = 0.45
 CIVIL_WAR_SUCCESSOR_FORMS = {
     ("band", "leader"): "council",
     ("band", "council"): "leader",
@@ -2942,8 +2943,14 @@ def _determine_rebel_conflict_type(
     if region.homeland_faction_id == former_owner:
         return REBEL_CONFLICT_CIVIL_WAR
 
+    succession = former_faction.succession
+    has_open_succession_fight = (
+        succession.succession_crisis_turns > 0
+        or float(succession.claimant_pressure or 0.0) >= CIVIL_WAR_CLAIMANT_PRESSURE_THRESHOLD
+    )
     if (
-        region.core_status in {"core", "homeland"}
+        has_open_succession_fight
+        and region.core_status in {"core", "homeland"}
         and get_region_ruling_ethnic_affinity(region, world) >= CIVIL_WAR_AFFINITY_THRESHOLD
     ):
         return REBEL_CONFLICT_CIVIL_WAR
@@ -3192,10 +3199,7 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
     successor_language_profile = None
     successor_population = 0
     parent_population = 0
-    if (
-        conflict_type == REBEL_CONFLICT_SECESSION
-        and parent_ethnicity is not None
-    ):
+    if parent_ethnicity is not None:
         parent_language_profile = (
             deepcopy(world.ethnicities[parent_ethnicity].language_profile)
             if parent_ethnicity in world.ethnicities
@@ -3230,7 +3234,10 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
     faction.treasury += REBEL_INDEPENDENCE_TREASURY_BONUS
     if faction.identity is not None:
         if conflict_type == REBEL_CONFLICT_CIVIL_WAR:
-            if origin_faction in world.factions:
+            if successor_ethnicity is not None:
+                faction.identity.culture_name = successor_ethnicity
+                faction.identity.language_profile = deepcopy(successor_language_profile)
+            elif origin_faction in world.factions:
                 faction.identity.culture_name = world.factions[origin_faction].culture_name
                 if world.factions[origin_faction].identity is not None:
                     faction.identity.language_profile = deepcopy(
