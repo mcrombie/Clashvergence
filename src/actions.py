@@ -652,7 +652,7 @@ def _is_trade_port_target(region) -> bool:
         "coast" in region.terrain_tags
         and (
             region.trade_gateway_role == "sea_gateway"
-            or region.trade_route_mode == "sea"
+            or region.resource_route_mode == "sea"
             or region.market_level >= 0.2
             or region.storehouse_level >= 0.25
             or region.infrastructure_level >= 0.45
