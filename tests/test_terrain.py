@@ -5,7 +5,16 @@ from src.actions import (
     get_expand_target_score_components,
 )
 from src.simulation_ui import build_simulation_view_model
-from src.terrain import format_terrain_label, get_terrain_profile, normalize_terrain_tags
+from src.terrain import (
+    format_terrain_label,
+    get_seasonal_terrain_attack_projection_modifier,
+    get_seasonal_terrain_defense_bonus,
+    get_seasonal_terrain_migration_attraction_multiplier,
+    get_seasonal_terrain_note,
+    get_seasonal_terrain_unrest_multiplier,
+    get_terrain_profile,
+    normalize_terrain_tags,
+)
 from src.world import create_world
 
 
@@ -66,6 +75,51 @@ class TerrainSystemTests(unittest.TestCase):
         self.assertGreater(rough_score["defender_strength"], plains_score["defender_strength"])
         self.assertLess(rough_score["success_chance"], plains_score["success_chance"])
         self.assertEqual(rough_score["terrain_label"], "Highland Forest")
+
+    def test_seasonal_terrain_helpers_capture_river_mud_and_winter_highlands(self):
+        self.assertLess(
+            get_seasonal_terrain_attack_projection_modifier(["riverland", "plains"], "Spring"),
+            get_seasonal_terrain_attack_projection_modifier(["riverland", "plains"], "Autumn"),
+        )
+        self.assertGreater(
+            get_seasonal_terrain_defense_bonus(["highland", "forest"], "Winter"),
+            get_seasonal_terrain_defense_bonus(["highland", "forest"], "Summer"),
+        )
+        self.assertLess(
+            get_seasonal_terrain_migration_attraction_multiplier(["riverland", "plains"], "Spring"),
+            get_seasonal_terrain_migration_attraction_multiplier(["riverland", "plains"], "Autumn"),
+        )
+        self.assertGreater(
+            get_seasonal_terrain_unrest_multiplier(["highland", "forest"], "Winter"),
+            get_seasonal_terrain_unrest_multiplier(["plains"], "Winter"),
+        )
+        self.assertIn(
+            "flooding",
+            get_seasonal_terrain_note(["riverland", "plains"], "Spring", context="migration").lower(),
+        )
+        self.assertIn(
+            "highland",
+            get_seasonal_terrain_note(["highland", "forest"], "Winter", context="unrest").lower(),
+        )
+
+    def test_spring_riverlands_are_harder_to_attack_than_autumn_riverlands(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_names = list(world.factions)
+        attacker_name = faction_names[0]
+        defender_name = faction_names[1]
+
+        world.factions[attacker_name].treasury = 6
+        world.factions[defender_name].treasury = 6
+        world.regions["D"].owner = defender_name
+        world.regions["D"].terrain_tags = ["riverland", "plains"]
+
+        world.turn = 0  # Spring
+        spring_score = get_attack_target_score_components("D", attacker_name, world)
+        world.turn = 2  # Autumn
+        autumn_score = get_attack_target_score_components("D", attacker_name, world)
+
+        self.assertGreater(spring_score["seasonal_terrain_defense_bonus"], autumn_score["seasonal_terrain_defense_bonus"])
+        self.assertGreater(spring_score["defender_strength"], autumn_score["defender_strength"])
 
     def test_view_model_exposes_terrain_data(self):
         world = create_world(map_name="asymmetric_frontier", num_factions=4)

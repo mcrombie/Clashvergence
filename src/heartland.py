@@ -4,6 +4,15 @@ from copy import deepcopy
 import random
 import re
 
+from src.calendar import (
+    get_seasonal_migration_attraction_modifier,
+    get_seasonal_migration_capacity_modifier,
+    get_seasonal_migration_flow_modifier,
+    get_seasonal_migration_pressure_modifier,
+    get_seasonal_refugee_flow_modifier,
+    get_seasonal_unrest_pressure_modifier,
+    get_turn_season_name,
+)
 from src.config import (
     ADMIN_BASE_CAPACITY_PER_REGION,
     ADMIN_BURDEN_CORE,
@@ -242,7 +251,12 @@ from src.resources import (
     get_region_resource_summary,
     normalize_resource_map,
 )
-from src.terrain import get_terrain_profile
+from src.terrain import (
+    get_seasonal_terrain_migration_attraction_multiplier,
+    get_seasonal_terrain_migration_capacity_multiplier,
+    get_seasonal_terrain_unrest_multiplier,
+    get_terrain_profile,
+)
 
 
 CONQUEST_INTEGRATION_SCORE = 1.0
@@ -2437,15 +2451,17 @@ def _get_food_surplus_ratio(region: Region) -> float:
 def _get_region_migration_pressure(region: Region, world: WorldState) -> float:
     if region.owner is None or region.population < MIGRATION_MIN_SOURCE_POPULATION:
         return 0.0
+    season_name = get_turn_season_name(world.turn)
     unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
     surplus_pressure = _clamp(max(0.0, -get_region_surplus(region, world)) / 3.0, 0.0, 1.0)
     frontier_pressure = 1.0 if get_region_core_status(region) == "frontier" else 0.0
-    pressure = (
+    base_pressure = (
         _get_food_deficit_ratio(region) * MIGRATION_PRESSURE_FOOD_FACTOR
         + unrest_ratio * MIGRATION_PRESSURE_UNREST_FACTOR
         + surplus_pressure * MIGRATION_PRESSURE_SURPLUS_FACTOR
         + frontier_pressure * MIGRATION_PRESSURE_FRONTIER_FACTOR
     )
+    pressure = base_pressure * get_seasonal_migration_pressure_modifier(season_name)
     if region.unrest_event_level == "crisis":
         pressure += MIGRATION_REFUGEE_CRISIS_BONUS
     elif region.unrest_event_level == "disturbance":
@@ -2456,6 +2472,7 @@ def _get_region_migration_pressure(region: Region, world: WorldState) -> float:
 def _get_region_migration_attraction(region: Region, world: WorldState) -> float:
     if region.owner is None or region.population <= 0:
         return 0.0
+    season_name = get_turn_season_name(world.turn)
     low_unrest = 1.0 - _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
     surplus_bonus = _clamp(max(0.0, get_region_surplus(region, world)) / 3.5, 0.0, 1.0)
     food_bonus = _get_food_surplus_ratio(region)
@@ -2494,12 +2511,15 @@ def _get_region_migration_attraction(region: Region, world: WorldState) -> float
         attraction += MIGRATION_ATTRACTION_CITY_BONUS
     elif region.settlement_level == "town":
         attraction += MIGRATION_ATTRACTION_CITY_BONUS * 0.6
+    attraction *= get_seasonal_migration_attraction_modifier(season_name)
+    attraction *= get_seasonal_terrain_migration_attraction_multiplier(region, season_name)
     return round(_clamp(attraction, 0.0, 1.5), 3)
 
 
 def _get_region_migration_capacity(region: Region, world: WorldState) -> int:
     if region.owner is None or region.population <= 0:
         return 0
+    season_name = get_turn_season_name(world.turn)
     food_headroom = max(0.0, float(region.food_storage_capacity or 0.0) - float(region.food_stored or 0.0))
     capacity = (
         max(14, int(round(region.population * 0.11)))
@@ -2508,6 +2528,8 @@ def _get_region_migration_capacity(region: Region, world: WorldState) -> int:
     )
     if get_region_core_status(region) == "frontier":
         capacity = int(round(capacity * 1.2))
+    capacity = int(round(capacity * get_seasonal_migration_capacity_modifier(season_name)))
+    capacity = int(round(capacity * get_seasonal_terrain_migration_capacity_multiplier(region, season_name)))
     return max(8, capacity)
 
 
@@ -2657,6 +2679,9 @@ def resolve_population_migration(world: WorldState) -> None:
     _reset_migration_state(world)
     if not world.regions:
         return
+    season_name = get_turn_season_name(world.turn)
+    migration_flow_modifier = get_seasonal_migration_flow_modifier(season_name)
+    refugee_flow_modifier = get_seasonal_refugee_flow_modifier(season_name)
 
     source_regions: list[tuple[Region, int, int]] = []
     for region in world.regions.values():
@@ -2669,15 +2694,17 @@ def resolve_population_migration(world: WorldState) -> None:
             MIGRATION_MAX_SHARE_PER_TURN,
             float(region.migration_pressure or 0.0) * MIGRATION_MAX_SHARE_PER_TURN,
         )
-        movable_population = int(round(region.population * migration_share))
-        if movable_population <= 0:
-            continue
-        refugee_ratio = 0.0
-        if (
+        severe_displacement = (
             region.unrest_event_level == "crisis"
             or region.unrest >= MIGRATION_REFUGEE_SEVERE_UNREST
             or _get_food_deficit_ratio(region) >= 0.75
-        ):
+        )
+        movement_volume_modifier = refugee_flow_modifier if severe_displacement else migration_flow_modifier
+        movable_population = int(round(region.population * migration_share * movement_volume_modifier))
+        if movable_population <= 0:
+            continue
+        refugee_ratio = 0.0
+        if severe_displacement:
             refugee_ratio = _clamp(0.25 + (float(region.migration_pressure or 0.0) * 0.45), 0.25, 0.85)
         refugee_population = int(round(movable_population * refugee_ratio))
         source_regions.append((region, movable_population, refugee_population))
@@ -2704,7 +2731,7 @@ def resolve_population_migration(world: WorldState) -> None:
             target_capacity = _get_region_migration_capacity(target, world) - destination_capacity_used[target.name]
             if target_capacity <= 0:
                 continue
-            move_cap = max(6, int(round(score * 10)))
+            move_cap = max(4, int(round(score * 10 * migration_flow_modifier)))
             move_amount = min(remaining - refugee_remaining, target_capacity, move_cap, source.population)
             if move_amount <= 0:
                 continue
@@ -2723,7 +2750,7 @@ def resolve_population_migration(world: WorldState) -> None:
             target_capacity = _get_region_migration_capacity(target, world) - destination_capacity_used[target.name]
             if target_capacity <= 0:
                 continue
-            move_cap = max(5, int(round(score * 9)))
+            move_cap = max(4, int(round(score * 9 * refugee_flow_modifier)))
             move_amount = min(refugee_remaining, target_capacity, move_cap, source.population)
             if move_amount <= 0:
                 continue
@@ -2747,7 +2774,7 @@ def resolve_population_migration(world: WorldState) -> None:
                 target_capacity = _get_region_migration_capacity(target, world) - destination_capacity_used[target.name]
                 if target_capacity <= 0:
                     continue
-                move_cap = max(4, int(round(score * 7)))
+                move_cap = max(3, int(round(score * 7 * migration_flow_modifier)))
                 move_amount = min(remaining, target_capacity, move_cap, source.population)
                 if move_amount <= 0:
                     continue
@@ -4198,6 +4225,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
     if region.homeland_faction_id == region.owner:
         return -UNREST_DECAY_PER_TURN
 
+    season_name = get_turn_season_name(world.turn)
     owner_faction = world.factions[region.owner]
     climate_affinity = get_region_climate_affinity(region, world)
     climate_pressure = (1.0 - climate_affinity) * UNREST_CLIMATE_PRESSURE_FACTOR
@@ -4232,7 +4260,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
     )
     administrative_pressure = float(region.administrative_autonomy or 0.0) * ADMIN_UNREST_AUTONOMY_FACTOR
     stability_divisor = max(0.5, get_faction_stability_modifier(owner_faction))
-    return (
+    pressure = (
         climate_pressure
         + integration_pressure
         + frontier_pressure
@@ -4244,7 +4272,9 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         + succession_pressure
         + religion_pressure
         + administrative_pressure
-    ) / stability_divisor - UNREST_DECAY_PER_TURN
+    ) * get_seasonal_unrest_pressure_modifier(season_name)
+    pressure *= get_seasonal_terrain_unrest_multiplier(region, season_name)
+    return pressure / stability_divisor - UNREST_DECAY_PER_TURN
 
 
 def resolve_unrest_events(world: WorldState) -> None:

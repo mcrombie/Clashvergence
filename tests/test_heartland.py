@@ -733,6 +733,180 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertGreater(world.factions["FactionB"].refugee_inflow, 0)
         self.assertIn("Alpha", world.regions["B"].ethnic_composition)
 
+    def test_winter_slows_ordinary_migration_relative_to_spring(self):
+        spring_world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=260,
+                    ethnic_composition={"Alpha": 260},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    core_status="core",
+                    settlement_level="town",
+                    food_consumption=2.0,
+                    food_deficit=1.7,
+                    unrest=8.2,
+                    trade_route_role="corridor",
+                    resource_route_anchor="A",
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionA",
+                    resources=4,
+                    population=120,
+                    ethnic_composition={"Alpha": 120},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    core_status="frontier",
+                    settlement_level="town",
+                    food_consumption=1.4,
+                    food_balance=2.7,
+                    unrest=1.0,
+                    road_level=0.9,
+                    infrastructure_level=0.8,
+                    market_level=0.6,
+                    storehouse_level=0.6,
+                    trade_route_role="hub",
+                    resource_route_anchor="A",
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", primary_ethnicity="Alpha"),
+            },
+            turn=0,
+        )
+        winter_world = deepcopy(spring_world)
+        winter_world.turn = 3
+
+        resolve_population_migration(spring_world)
+        resolve_population_migration(winter_world)
+
+        self.assertGreater(
+            spring_world.regions["A"].migration_outflow,
+            winter_world.regions["A"].migration_outflow,
+        )
+        self.assertGreater(
+            spring_world.regions["B"].migration_inflow,
+            winter_world.regions["B"].migration_inflow,
+        )
+
+    def test_winter_crisis_still_allows_refugee_spillover(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=2,
+                    population=180,
+                    ethnic_composition={"Alpha": 180},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    core_status="frontier",
+                    settlement_level="rural",
+                    food_consumption=1.8,
+                    food_deficit=1.8,
+                    unrest=9.2,
+                    unrest_event_level="crisis",
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionB",
+                    resources=3,
+                    population=140,
+                    ethnic_composition={"Beta": 140},
+                    terrain_tags=["riverland", "plains"],
+                    climate="temperate",
+                    core_status="core",
+                    settlement_level="town",
+                    food_consumption=1.5,
+                    food_balance=2.6,
+                    unrest=1.0,
+                    road_level=0.8,
+                    market_level=0.7,
+                    trade_route_role="hub",
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", primary_ethnicity="Alpha"),
+                "FactionB": Faction(name="FactionB", primary_ethnicity="Beta"),
+            },
+            relationships={
+                ("FactionA", "FactionB"): RelationshipState(score=30.0, status="alliance"),
+            },
+            turn=3,
+        )
+
+        resolve_population_migration(world)
+
+        self.assertGreater(world.regions["A"].refugee_outflow, 0)
+        self.assertGreater(world.regions["B"].refugee_inflow, 0)
+        self.assertIn("Alpha", world.regions["B"].ethnic_composition)
+
+    def test_autumn_riverland_frontier_draws_more_migrants_than_spring(self):
+        spring_world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=260,
+                    ethnic_composition={"Alpha": 260},
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                    core_status="core",
+                    settlement_level="town",
+                    food_consumption=2.0,
+                    food_deficit=1.6,
+                    unrest=8.0,
+                    trade_route_role="corridor",
+                    resource_route_anchor="A",
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionA",
+                    resources=4,
+                    population=120,
+                    ethnic_composition={"Alpha": 120},
+                    terrain_tags=["riverland", "plains"],
+                    climate="temperate",
+                    core_status="frontier",
+                    settlement_level="town",
+                    food_consumption=1.4,
+                    food_balance=2.7,
+                    unrest=1.0,
+                    road_level=0.9,
+                    infrastructure_level=0.8,
+                    market_level=0.7,
+                    storehouse_level=0.6,
+                    trade_route_role="hub",
+                    resource_route_anchor="A",
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", primary_ethnicity="Alpha"),
+            },
+            turn=0,
+        )
+        autumn_world = deepcopy(spring_world)
+        autumn_world.turn = 2
+
+        resolve_population_migration(spring_world)
+        resolve_population_migration(autumn_world)
+
+        self.assertGreater(
+            autumn_world.regions["B"].migration_attraction,
+            spring_world.regions["B"].migration_attraction,
+        )
+
     def test_language_contact_borrowing_adopts_neighbor_features(self):
         world = WorldState(
             regions={
@@ -1023,6 +1197,52 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertGreater(
             get_region_unrest_pressure(region, world),
             get_region_unrest_pressure(baseline_region, baseline_world),
+        )
+
+    def test_winter_unrest_pressure_runs_higher_than_autumn(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4, seed="seasonal-unrest")
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        owner = world.factions[faction_name]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "frontier"
+        region.integration_score = 1.2
+        region.population = 100
+        region.ethnic_composition = {"Neighborfolk": 100}
+        region.climate = owner.doctrine_state.homeland_climate
+        region.unrest = 4.6
+
+        world.turn = 2  # Autumn
+        autumn_pressure = get_region_unrest_pressure(region, world)
+        world.turn = 3  # Winter
+        winter_pressure = get_region_unrest_pressure(region, world)
+
+        self.assertGreater(winter_pressure, autumn_pressure)
+
+    def test_winter_highland_unrest_runs_higher_than_winter_plains(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4, seed="seasonal-highland-unrest")
+        faction_name = next(iter(world.factions))
+        owner = world.factions[faction_name]
+        highland_region = world.regions["M"]
+        plain_region = world.regions["D"]
+        for region in (highland_region, plain_region):
+            region.owner = faction_name
+            region.integrated_owner = faction_name
+            region.core_status = "frontier"
+            region.integration_score = 1.2
+            region.population = 100
+            region.ethnic_composition = {"Neighborfolk": 100}
+            region.climate = owner.doctrine_state.homeland_climate
+            region.unrest = 4.6
+        highland_region.terrain_tags = ["highland", "forest"]
+        plain_region.terrain_tags = ["plains"]
+
+        world.turn = 3  # Winter
+
+        self.assertGreater(
+            get_region_unrest_pressure(highland_region, world),
+            get_region_unrest_pressure(plain_region, world),
         )
 
     def test_adjacent_rival_regime_can_agitate_same_people_border_region(self):

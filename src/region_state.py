@@ -19,7 +19,9 @@ from src.config import (
     UNREST_INCOME_MIN_FACTOR,
     UNREST_MAX,
 )
+from src.calendar import get_turn_season_name
 from src.models import Region, WorldState
+from src.terrain import get_seasonal_terrain_attack_projection_modifier
 
 
 HOMELAND_INTEGRATION_SCORE = 10.0
@@ -146,5 +148,7 @@ def get_region_attack_projection_modifier(
         climate_affinity = get_faction_climate_affinity(world.factions[faction_name], region.climate)
         climate_penalty = int(round((1.0 - climate_affinity) * CLIMATE_ATTACK_PROJECTION_MAX_PENALTY))
         modifier -= climate_penalty
+        season_name = get_turn_season_name(world.turn)
+        modifier += get_seasonal_terrain_attack_projection_modifier(region, season_name)
 
     return modifier

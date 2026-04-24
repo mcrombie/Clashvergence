@@ -1,5 +1,10 @@
 import random
 
+from src.calendar import (
+    get_seasonal_attack_score_bonus,
+    get_seasonal_attack_strength_bonus,
+    get_turn_season_name,
+)
 from src.diplomacy import get_attack_diplomacy_modifier, get_relationship_status
 from src.config import (
     ATTACK_COST,
@@ -62,7 +67,7 @@ from src.resources import (
     format_resource_map,
 )
 from src.region_naming import apply_region_name_layer, assign_region_founding_name, format_region_reference
-from src.terrain import get_terrain_profile
+from src.terrain import get_seasonal_terrain_defense_bonus, get_terrain_profile
 from src.visibility import faction_knows_region
 
 
@@ -965,6 +970,12 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + terrain_profile["defense_modifier"]
         + core_defense_bonus
     )
+    season_name = get_turn_season_name(world.turn)
+    seasonal_terrain_defense_bonus = get_seasonal_terrain_defense_bonus(region, season_name)
+    seasonal_attack_strength_bonus = get_seasonal_attack_strength_bonus(season_name)
+    seasonal_attack_score_bonus = get_seasonal_attack_score_bonus(season_name)
+    defender_strength += seasonal_terrain_defense_bonus
+    attacker_strength += seasonal_attack_strength_bonus
     success_chance = 0.5 + (
         (attacker_strength - defender_strength) * ATTACK_SUCCESS_STRENGTH_FACTOR
     )
@@ -980,6 +991,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + trade_chokepoint_bonus
         + foreign_gateway_bonus
         + active_war_bonus
+        + seasonal_attack_score_bonus
     )
 
     return {
@@ -1015,6 +1027,10 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "foreign_gateway_bonus": foreign_gateway_bonus,
         "active_war_bonus": active_war_bonus,
         "active_war_objective": active_war_objective,
+        "season": season_name,
+        "seasonal_terrain_defense_bonus": seasonal_terrain_defense_bonus,
+        "seasonal_attack_strength_bonus": seasonal_attack_strength_bonus,
+        "seasonal_attack_score_bonus": seasonal_attack_score_bonus,
         "terrain_affinity": doctrine_alignment["average_affinity"],
         "core_status": region_core_status,
         "core_defense_bonus": core_defense_bonus,

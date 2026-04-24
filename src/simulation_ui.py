@@ -13,6 +13,7 @@ from src.calendar import (
     format_turn_label,
     get_snapshot_season_name,
     get_snapshot_year,
+    get_turn_season_name,
 )
 from src.event_analysis import (
     build_initial_opening_state,
@@ -55,7 +56,7 @@ from src.narrative import (
 )
 from src.resources import format_resource_map
 from src.region_naming import format_region_reference, get_region_display_name
-from src.terrain import format_terrain_label
+from src.terrain import format_terrain_label, get_seasonal_terrain_note
 
 
 SIMULATION_VIEWER_OUTPUT = Path("reports/simulation_view.html")
@@ -193,6 +194,7 @@ def _serialize_event(event, world):
     event_data["turn_display"] = event.turn + 1
     event_data["date_label"] = format_turn_date(event.turn)
     event_data["turn_label"] = format_turn_label(event.turn)
+    event_season = get_turn_season_name(event.turn)
     event_data["faction_display_name"] = _get_faction_display_name(world, event.faction)
     event_data["counterpart_display_name"] = _get_faction_display_name(
         world,
@@ -214,6 +216,18 @@ def _serialize_event(event, world):
         event_data["terrain_tags"] = list(region.terrain_tags)
         event_data["climate"] = region.climate
         event_data["climate_label"] = format_climate_label(region.climate)
+        event_context = "general"
+        if event.type == "attack":
+            event_context = "attack"
+        elif event.type in {"migration_wave", "refugee_wave"}:
+            event_context = "migration"
+        elif event.type in {"unrest_disturbance", "unrest_crisis", "unrest_secession", "regime_agitation"}:
+            event_context = "unrest"
+        event_data["seasonal_terrain_note"] = get_seasonal_terrain_note(
+            region.terrain_tags,
+            event_season,
+            context=event_context,
+        )
     else:
         event_data["region_display_name"] = event.region
         event_data["region_reference"] = event.region
@@ -221,6 +235,7 @@ def _serialize_event(event, world):
         event_data["terrain_tags"] = []
         event_data["climate"] = None
         event_data["climate_label"] = None
+        event_data["seasonal_terrain_note"] = ""
     event_data["title"] = _get_event_title(event, world)
     event_data["summary"] = _get_event_summary(event, world)
     return event_data
@@ -372,8 +387,23 @@ def _get_event_title(event, world):
 def _get_event_summary(event, world):
     faction_name = _get_faction_display_name(world, event.faction)
     terrain_text = ""
+    seasonal_note = ""
     if event.region is not None and event.region in world.regions:
-        terrain_text = f" Terrain: {format_terrain_label(world.regions[event.region].terrain_tags)}."
+        region = world.regions[event.region]
+        terrain_text = f" Terrain: {format_terrain_label(region.terrain_tags)}."
+        event_context = "general"
+        if event.type == "attack":
+            event_context = "attack"
+        elif event.type in {"migration_wave", "refugee_wave"}:
+            event_context = "migration"
+        elif event.type in {"unrest_disturbance", "unrest_crisis", "regime_agitation"}:
+            event_context = "unrest"
+        seasonal_note = get_seasonal_terrain_note(
+            region.terrain_tags,
+            get_turn_season_name(event.turn),
+            context=event_context,
+        )
+    seasonal_text = f" {seasonal_note}" if seasonal_note else ""
 
     if event.type == "expand":
         return (
@@ -391,7 +421,7 @@ def _get_event_summary(event, world):
             return (
                 f"Attack pressure spilled into trade warfare at {chance:.0%} displayed odds."
                 f" Trade pressure rose by {pressure_added:.2f} and threatened {denied_value:.2f} value."
-                f"{blockade_text}{terrain_text}"
+                f"{blockade_text}{terrain_text}{seasonal_text}"
             )
         if event.get("regime_target_attack"):
             reason = event.get("regime_target_reason")
@@ -399,26 +429,26 @@ def _get_event_summary(event, world):
             if event.get("success", False):
                 return (
                     f"A {motive} attack succeeded at {chance:.0%} displayed odds."
-                    f"{terrain_text}"
+                    f"{terrain_text}{seasonal_text}"
                 )
             return (
                 f"A {motive} attack failed at {chance:.0%} displayed odds."
-                f"{terrain_text}"
+                    f"{terrain_text}{seasonal_text}"
             )
         if event.get("ethnic_claim_attack"):
             claim_ethnicity = event.get("claim_ethnicity") or "local"
             if event.get("success", False):
                 return (
                     f"A claim-driven attack by {claim_ethnicity} forces succeeded at {chance:.0%} displayed odds."
-                    f"{terrain_text}"
+                    f"{terrain_text}{seasonal_text}"
                 )
             return (
                 f"A claim-driven attack by {claim_ethnicity} forces failed at {chance:.0%} displayed odds."
-                f"{terrain_text}"
+                    f"{terrain_text}{seasonal_text}"
             )
         if event.get("success", False):
-            return f"Successful attack at {chance:.0%} displayed odds.{terrain_text}"
-        return f"Attack failed at {chance:.0%} displayed odds.{terrain_text}"
+            return f"Successful attack at {chance:.0%} displayed odds.{terrain_text}{seasonal_text}"
+        return f"Attack failed at {chance:.0%} displayed odds.{terrain_text}{seasonal_text}"
     if event.type == "region_rename":
         old_name = event.get("old_name") or "the old name"
         new_name = event.get("new_name") or "a new name"
@@ -493,12 +523,12 @@ def _get_event_summary(event, world):
     if event.type == "unrest_disturbance":
         return (
             f"Moderate unrest disrupted local order and forced a treasury hit of "
-            f"{abs(event.get('treasury_change', 0))}.{terrain_text}"
+            f"{abs(event.get('treasury_change', 0))}.{terrain_text}{seasonal_text}"
         )
     if event.type == "unrest_crisis":
         return (
             f"Critical unrest triggered a deeper disruption and treasury hit of "
-            f"{abs(event.get('treasury_change', 0))}.{terrain_text}"
+            f"{abs(event.get('treasury_change', 0))}.{terrain_text}{seasonal_text}"
         )
     if event.type == "regime_agitation":
         sponsors = [
@@ -519,12 +549,12 @@ def _get_event_summary(event, world):
             return (
                 f"{sponsor_text} helped push the region toward {event.get('event_level', 'disturbance')} {mode_text} by backing same-people unrest across the border"
                 f"{f', paying {total_treasury_cost} treasury in the process' if total_treasury_cost > 0 else ''}."
-                f"{terrain_text}"
+                f"{terrain_text}{seasonal_text}"
             )
         return (
             f"{sponsor_text} aggravated same-people political tension across the border {mode_text}, helping local unrest rise"
             f"{f' while spending {total_treasury_cost} treasury to sustain the pressure' if total_treasury_cost > 0 else ''}."
-            f"{terrain_text}"
+            f"{terrain_text}{seasonal_text}"
         )
     if event.type == "unrest_secession":
         rebel_faction = _get_faction_display_name(world, event.get("rebel_faction"))
@@ -676,10 +706,12 @@ def _get_event_summary(event, world):
                 f"Pressure from food shortage, unrest, or weak surplus pushed {moved} people out, with the largest stream heading toward {destination}"
                 f"{f' and {refugees} moving in refugee conditions' if refugees > 0 else ''}."
                 + terrain_text
+                + seasonal_text
             )
         return (
             f"Pressure from food shortage, unrest, or weak surplus pushed {moved} people out of the region."
             + terrain_text
+            + seasonal_text
         )
     if event.type == "refugee_wave":
         destination = event.get("top_destination")
@@ -688,10 +720,12 @@ def _get_event_summary(event, world):
             return (
                 f"Crisis conditions forced {moved} refugees out, with the strongest flow seeking safety in {destination}."
                 + terrain_text
+                + seasonal_text
             )
         return (
             f"Crisis conditions forced {moved} refugees out of the region."
             + terrain_text
+            + seasonal_text
         )
     return "No summary available."
 
@@ -738,6 +772,7 @@ def build_simulation_snapshots(world):
             ),
             "terrain_tags": list(region.terrain_tags),
             "terrain_label": format_terrain_label(region.terrain_tags),
+            "seasonal_terrain_note": "",
             "climate": initial_region_history.get(region_name, {}).get("climate", region.climate),
             "climate_label": format_climate_label(initial_region_history.get(region_name, {}).get("climate", region.climate)),
             "resource_fixed_endowments": dict(initial_region_history.get(region_name, {}).get("resource_fixed_endowments", region.resource_fixed_endowments)),
@@ -1116,6 +1151,11 @@ def build_simulation_snapshots(world):
                     "name_history_summary": list(region["name_history_summary"]),
                     "terrain_tags": region["terrain_tags"],
                     "terrain_label": region["terrain_label"],
+                    "seasonal_terrain_note": get_seasonal_terrain_note(
+                        region["terrain_tags"],
+                        get_snapshot_season_name(turn_number),
+                        context="general",
+                    ),
                     "climate": region["climate"],
                     "climate_label": region["climate_label"],
                     "resource_fixed_endowments": dict(region["resource_fixed_endowments"]),
@@ -3135,6 +3175,7 @@ def render_simulation_html(world):
       const nameHistoryText = Array.isArray(regionSnapshot.name_history_summary) && regionSnapshot.name_history_summary.length
         ? regionSnapshot.name_history_summary.map((line) => escapeHtml(line)).join("<br>")
         : "No recorded renamings.";
+      const seasonalTerrainNote = regionSnapshot.seasonal_terrain_note || "";
 
       return {{
         regionName,
@@ -3146,6 +3187,7 @@ def render_simulation_html(world):
         nameHistoryText,
         claimsText,
         agitationText,
+        seasonalTerrainNote,
       }};
     }}
 
@@ -4582,6 +4624,7 @@ def render_simulation_html(world):
         nameHistoryText,
         claimsText,
         agitationText,
+        seasonalTerrainNote,
       }} = selected;
 
       regionDetail.innerHTML = `
@@ -4589,6 +4632,7 @@ def render_simulation_html(world):
           <div>
             <strong>${{escapeHtml(regionSnapshot.display_name || staticRegion.display_name || regionName)}}</strong>
             <p class="panel-note">${{escapeHtml(regionSnapshot.terrain_label || staticRegion.terrain_label || "Plains")}} terrain, ${{escapeHtml(regionSnapshot.climate_label || staticRegion.climate_label || "Temperate")}} climate.</p>
+            ${{seasonalTerrainNote ? `<p class="panel-note">${{escapeHtml(seasonalTerrainNote)}}</p>` : ""}}
           </div>
           <span class="pill" style="background:${{ownerColor}}22; color:${{ownerColor}};">${{escapeHtml(ownerText)}}</span>
         </div>
@@ -4629,6 +4673,10 @@ def render_simulation_html(world):
                 <span class="terrain-chip" style="background:${{getClimateColor(regionSnapshot.climate || staticRegion.climate)}}; display:inline-block; margin-right:8px; vertical-align:middle;"></span>
                 ${{escapeHtml(regionSnapshot.climate_label || staticRegion.climate_label || "Temperate")}}
               </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Seasonal Terrain</div>
+              <div class="detail-value">${{escapeHtml(seasonalTerrainNote || "No special seasonal terrain pressure right now.")}}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">Settlement</div>

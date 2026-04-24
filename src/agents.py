@@ -7,6 +7,7 @@ from src.actions import (
     get_expand_target_score_components,
     get_expandable_regions,
 )
+from src.calendar import get_seasonal_action_modifier, get_turn_season_name
 from src.config import (
     ATTACK_COST,
     EXPANSION_COST,
@@ -96,6 +97,7 @@ def choose_action(faction_name, world):
     faction = world.factions[faction_name]
     doctrine = faction.doctrine_profile
     is_proto_state = faction.is_rebel and faction.proto_state
+    season_name = get_turn_season_name(world.turn)
 
     attackable_regions = get_attackable_regions(faction_name, world)
     expandable_regions = get_expandable_regions(faction_name, world)
@@ -161,6 +163,7 @@ def choose_action(faction_name, world):
                 attack_utility -= 0.36
             elif best_attack_components["diplomacy_status"] == "rival":
                 attack_utility += 0.08
+        attack_utility += get_seasonal_action_modifier("attack", season_name)
         action_utilities["attack"] = attack_utility
 
     if can_expand:
@@ -171,6 +174,7 @@ def choose_action(faction_name, world):
         )
         if faction.treasury >= EXPANSION_COST * 2:
             expand_utility += 0.05
+        expand_utility += get_seasonal_action_modifier("expand", season_name)
         action_utilities["expand"] = expand_utility
 
     if can_develop and best_develop_target is not None:
@@ -195,6 +199,7 @@ def choose_action(faction_name, world):
             develop_utility += 0.03
         if is_proto_state:
             develop_utility += REBEL_PROTO_INVEST_UTILITY_BONUS
+        develop_utility += get_seasonal_action_modifier("develop", season_name)
         action_utilities["develop"] = develop_utility
 
     if action_utilities:

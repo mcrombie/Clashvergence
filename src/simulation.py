@@ -1,9 +1,9 @@
 from src.agents import choose_action
 from src.actions import attack, develop, expand
 from src.calendar import (
-    SEASONAL_ECONOMY_SHARE,
     SEASONAL_TIME_STEP_YEARS,
     format_turn_label,
+    get_seasonal_economy_share,
     get_turn_season_name,
     is_year_end,
 )
@@ -183,7 +183,10 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     resolve_unrest_events(world)
     update_faction_resource_economy(world, advance_resources=False)
     refresh_administrative_state(world)
-    economy_snapshot = apply_turn_economy(world, share=SEASONAL_ECONOMY_SHARE)
+    economy_snapshot = apply_turn_economy(
+        world,
+        share=get_seasonal_economy_share(season_name),
+    )
     apply_turn_food_economy(world, season_name=season_name)
     update_region_integration(world, time_step_years=SEASONAL_TIME_STEP_YEARS)
     refresh_administrative_state(world)

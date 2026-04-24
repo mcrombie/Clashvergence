@@ -10,6 +10,7 @@ from src.calendar import (
     format_snapshot_label,
     format_turn_label,
     format_turn_span,
+    get_turn_season_name,
 )
 from src.ai_interpretation import (
     AI_INTERPRETATION_MODEL,
@@ -25,7 +26,7 @@ from src.metrics import analyze_competition_metrics, get_metrics_log
 from src.map_generator_ui import write_map_generator_html
 from src.simulation_ui import write_simulation_html
 from src.region_naming import format_region_reference
-from src.terrain import format_terrain_label
+from src.terrain import format_terrain_label, get_seasonal_terrain_note
 
 
 REPORTS_DIR = Path("reports")
@@ -92,9 +93,20 @@ def format_event(event, world):
     origin_name = _get_faction_display_name(world, event.get("origin_faction"))
     rebel_name = _get_faction_display_name(world, event.get("rebel_faction"))
     terrain_text = ""
+    seasonal_text = ""
     if event.region is not None and event.region in world.regions:
-        region_reference = format_region_reference(world.regions[event.region], include_code=True)
-        terrain_text = f", terrain={format_terrain_label(world.regions[event.region].terrain_tags)}"
+        region = world.regions[event.region]
+        region_reference = format_region_reference(region, include_code=True)
+        terrain_text = f", terrain={format_terrain_label(region.terrain_tags)}"
+        event_context = "general"
+        if event["type"] == "attack":
+            event_context = "attack"
+        elif event["type"] in {"migration_wave", "refugee_wave"}:
+            event_context = "migration"
+        elif event["type"] in {"unrest_disturbance", "unrest_crisis", "regime_agitation"}:
+            event_context = "unrest"
+        seasonal_note = get_seasonal_terrain_note(region.terrain_tags, get_turn_season_name(event["turn"]), context=event_context)
+        seasonal_text = f", seasonal_note={seasonal_note}" if seasonal_note else ""
 
     if event["type"] == "expand":
         return (
@@ -103,7 +115,7 @@ def format_event(event, world):
             f"neighbors={event.get('neighbors', 0)}, "
             f"unclaimed_neighbors={event.get('unclaimed_neighbors', 0)}, "
             f"core_status={event.get('core_status', 'frontier')}, "
-            f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
+            f"treasury_after={event.get('treasury_after', 0)}{terrain_text}{seasonal_text})"
         )
 
     if event["type"] in {"invest", "develop"}:
@@ -114,7 +126,7 @@ def format_event(event, world):
             f"(project={project_type}"
             f"{f', focus={resource_focus}' if resource_focus else ''}, "
             f"invest_amount={event.get('invest_amount', 0)}, "
-            f"new_taxable={event.get('new_taxable_value', event.get('new_resources', 0))}{terrain_text})"
+            f"new_taxable={event.get('new_taxable_value', event.get('new_resources', 0))}{terrain_text}{seasonal_text})"
         )
 
     if event["type"] == "attack":
@@ -127,7 +139,7 @@ def format_event(event, world):
             f"attack_strength={event.get('attack_strength', 0)}, "
             f"defense_strength={event.get('defense_strength', 0)}, "
             f"core_status={event.get('core_status', 'frontier')}, "
-            f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
+            f"treasury_after={event.get('treasury_after', 0)}{terrain_text}{seasonal_text})"
         )
 
     if event["type"] == "income":
@@ -163,7 +175,7 @@ def format_event(event, world):
             f"{time_label}: unrest disturbed {region_reference} under {faction_name} "
             f"(unrest={event.get('unrest', 0):.2f}, "
             f"duration={event.get('duration', 0)}, "
-            f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
+            f"treasury_after={event.get('treasury_after', 0)}{terrain_text}{seasonal_text})"
         )
 
     if event["type"] == "unrest_crisis":
@@ -171,7 +183,7 @@ def format_event(event, world):
             f"{time_label}: crisis gripped {region_reference} under {faction_name} "
             f"(unrest={event.get('unrest', 0):.2f}, "
             f"duration={event.get('duration', 0)}, "
-            f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
+            f"treasury_after={event.get('treasury_after', 0)}{terrain_text}{seasonal_text})"
         )
 
     if event["type"] == "unrest_secession":

@@ -80,10 +80,140 @@ TERRAIN_DISPLAY_ORDER = [
     "steppe",
     "plains",
 ]
+SEASONAL_TERRAIN_ATTACK_PROJECTION_MODIFIERS = {
+    "riverland": {"Spring": -1, "Autumn": 1},
+    "marsh": {"Spring": -2, "Summer": -1, "Winter": 1},
+    "highland": {"Winter": -2, "Summer": 1},
+    "forest": {"Winter": -1},
+    "coast": {"Summer": 1, "Winter": -1},
+    "steppe": {"Summer": 1, "Winter": -1},
+}
+SEASONAL_TERRAIN_DEFENSE_BONUSES = {
+    "riverland": {"Spring": 2, "Autumn": -1},
+    "marsh": {"Spring": 2, "Summer": 1, "Winter": -1},
+    "highland": {"Winter": 2, "Summer": -1},
+    "forest": {"Winter": 1},
+    "coast": {"Winter": 1},
+}
+SEASONAL_TERRAIN_UNREST_OFFSETS = {
+    "riverland": {"Spring": 0.06, "Autumn": -0.05},
+    "highland": {"Winter": 0.12, "Autumn": -0.03},
+    "forest": {"Winter": 0.05},
+    "coast": {"Summer": -0.03, "Autumn": -0.02},
+    "plains": {"Autumn": -0.04},
+    "marsh": {"Spring": 0.08, "Summer": 0.03},
+}
+SEASONAL_TERRAIN_MIGRATION_ATTRACTION_OFFSETS = {
+    "riverland": {"Spring": -0.12, "Autumn": 0.18},
+    "coast": {"Summer": 0.06, "Autumn": 0.04, "Winter": -0.05},
+    "highland": {"Winter": -0.14, "Summer": 0.03},
+    "forest": {"Winter": -0.06},
+    "marsh": {"Spring": -0.14, "Summer": -0.08},
+}
+SEASONAL_TERRAIN_MIGRATION_CAPACITY_OFFSETS = {
+    "riverland": {"Spring": -0.16, "Autumn": 0.12},
+    "coast": {"Summer": 0.05, "Winter": -0.04},
+    "highland": {"Winter": -0.16},
+    "forest": {"Winter": -0.07},
+    "marsh": {"Spring": -0.18, "Summer": -0.10},
+}
+SEASONAL_TERRAIN_CONTEXT_NOTES = {
+    "general": {
+        "riverland": {
+            "Spring": "Spring flooding is making the riverland slow and muddy.",
+            "Autumn": "Post-harvest river traffic is opening the riverland back up.",
+        },
+        "highland": {
+            "Winter": "Winter hardship is biting hard across the highland routes.",
+            "Summer": "Summer weather is easing movement across the highlands.",
+        },
+        "coast": {
+            "Summer": "Summer sailing weather is favoring the coast.",
+            "Winter": "Winter seas are making the coast less reliable.",
+        },
+        "marsh": {
+            "Spring": "Spring wetness is bogging down the marsh approaches.",
+        },
+        "forest": {
+            "Winter": "Winter cover and cold are making the forests harder to manage.",
+        },
+        "plains": {
+            "Autumn": "The autumn harvest is steadying the plains.",
+        },
+    },
+    "attack": {
+        "riverland": {
+            "Spring": "Spring flooding and mud are slowing any advance through the riverland.",
+            "Autumn": "Autumn waters are more navigable, making the riverland easier to contest.",
+        },
+        "highland": {
+            "Winter": "Winter cold and elevation are hardening the highland defenses.",
+            "Summer": "Summer weather is softening the usual highland barrier.",
+        },
+        "coast": {
+            "Winter": "Winter seas are complicating coastal operations.",
+            "Summer": "Summer sailing is helping movement along the coast.",
+        },
+        "marsh": {
+            "Spring": "Spring wet ground is turning the marsh into a serious obstacle.",
+        },
+    },
+    "migration": {
+        "riverland": {
+            "Spring": "Spring flooding is discouraging ordinary movement into the riverland.",
+            "Autumn": "Post-harvest traffic is drawing migrants back toward the riverland.",
+        },
+        "highland": {
+            "Winter": "Winter exposure is making the highlands a poor destination for settlers.",
+        },
+        "coast": {
+            "Summer": "Summer trade is making the coast more attractive to movers.",
+            "Winter": "Winter seas are dampening coastal movement.",
+        },
+        "marsh": {
+            "Spring": "The marsh is especially difficult to move through in spring.",
+        },
+    },
+    "unrest": {
+        "highland": {
+            "Winter": "Winter isolation is sharpening strain in the highlands.",
+        },
+        "riverland": {
+            "Spring": "Spring flooding is adding friction in the riverland communities.",
+            "Autumn": "The harvest season is calming the riverland somewhat.",
+        },
+        "plains": {
+            "Autumn": "The harvest season is easing pressure across the plains.",
+        },
+        "coast": {
+            "Summer": "Summer traffic is taking a little pressure off the coast.",
+        },
+        "forest": {
+            "Winter": "Winter hardship is putting extra strain on the forests.",
+        },
+    },
+}
 
 
 def _clamp(value: int, minimum: int, maximum: int) -> int:
     return max(minimum, min(maximum, value))
+
+
+def _normalize_tags_from_input(tags_or_region: Region | list[str] | None) -> list[str]:
+    if isinstance(tags_or_region, Region):
+        return normalize_terrain_tags(tags_or_region.terrain_tags)
+    return normalize_terrain_tags(tags_or_region)
+
+
+def _sum_seasonal_offsets(
+    mapping: dict[str, dict[str, float]],
+    tags_or_region: Region | list[str] | None,
+    season_name: str,
+) -> float:
+    total = 0.0
+    for tag in _normalize_tags_from_input(tags_or_region):
+        total += mapping.get(tag, {}).get(season_name, 0.0)
+    return total
 
 
 def normalize_terrain_tags(tags: list[str] | None) -> list[str]:
@@ -116,10 +246,7 @@ def format_terrain_label(tags: list[str] | None) -> str:
 
 
 def get_terrain_profile(tags_or_region: Region | list[str] | None) -> dict:
-    if isinstance(tags_or_region, Region):
-        normalized = normalize_terrain_tags(tags_or_region.terrain_tags)
-    else:
-        normalized = normalize_terrain_tags(tags_or_region)
+    normalized = _normalize_tags_from_input(tags_or_region)
 
     expansion_modifier = 0
     defense_modifier = 0
@@ -144,3 +271,71 @@ def get_terrain_profile(tags_or_region: Region | list[str] | None) -> dict:
         "name_cues": name_cues,
     }
 
+
+def get_seasonal_terrain_attack_projection_modifier(
+    tags_or_region: Region | list[str] | None,
+    season_name: str,
+) -> int:
+    return _clamp(
+        int(round(_sum_seasonal_offsets(SEASONAL_TERRAIN_ATTACK_PROJECTION_MODIFIERS, tags_or_region, season_name))),
+        -3,
+        3,
+    )
+
+
+def get_seasonal_terrain_defense_bonus(
+    tags_or_region: Region | list[str] | None,
+    season_name: str,
+) -> int:
+    return _clamp(
+        int(round(_sum_seasonal_offsets(SEASONAL_TERRAIN_DEFENSE_BONUSES, tags_or_region, season_name))),
+        -2,
+        3,
+    )
+
+
+def get_seasonal_terrain_unrest_multiplier(
+    tags_or_region: Region | list[str] | None,
+    season_name: str,
+) -> float:
+    return max(
+        0.8,
+        min(1.25, 1.0 + _sum_seasonal_offsets(SEASONAL_TERRAIN_UNREST_OFFSETS, tags_or_region, season_name)),
+    )
+
+
+def get_seasonal_terrain_migration_attraction_multiplier(
+    tags_or_region: Region | list[str] | None,
+    season_name: str,
+) -> float:
+    return max(
+        0.75,
+        min(1.25, 1.0 + _sum_seasonal_offsets(SEASONAL_TERRAIN_MIGRATION_ATTRACTION_OFFSETS, tags_or_region, season_name)),
+    )
+
+
+def get_seasonal_terrain_migration_capacity_multiplier(
+    tags_or_region: Region | list[str] | None,
+    season_name: str,
+) -> float:
+    return max(
+        0.7,
+        min(1.25, 1.0 + _sum_seasonal_offsets(SEASONAL_TERRAIN_MIGRATION_CAPACITY_OFFSETS, tags_or_region, season_name)),
+    )
+
+
+def get_seasonal_terrain_note(
+    tags_or_region: Region | list[str] | None,
+    season_name: str,
+    *,
+    context: str = "general",
+) -> str:
+    context_notes = SEASONAL_TERRAIN_CONTEXT_NOTES.get(context, {})
+    notes: list[str] = []
+    for tag in _normalize_tags_from_input(tags_or_region):
+        note = context_notes.get(tag, {}).get(season_name)
+        if note and note not in notes:
+            notes.append(note)
+    if not notes and context != "general":
+        return get_seasonal_terrain_note(tags_or_region, season_name, context="general")
+    return " ".join(notes[:2])
