@@ -1,6 +1,12 @@
 import argparse
+import json
 from pathlib import Path
 
+from src.ai_interpretation import (
+    AI_INTERPRETATION_MODEL,
+    build_ai_interpretation_summary,
+    generate_ai_interpretation,
+)
 from src.world import create_world
 from src.simulation import run_simulation
 from src.narrative import build_chronicle
@@ -15,6 +21,8 @@ from src.terrain import format_terrain_label
 REPORTS_DIR = Path("reports")
 RESULTS_OUTPUT = REPORTS_DIR / "results.txt"
 CHRONICLE_OUTPUT = REPORTS_DIR / "chronicle.txt"
+AI_INTERPRETIVE_NARRATIVE_OUTPUT = REPORTS_DIR / "interpretive_narrative.txt"
+AI_INTERPRETIVE_INPUT_OUTPUT = REPORTS_DIR / "interpretive_narrative_input.json"
 
 
 def _get_faction_display_name(world, faction_name):
@@ -437,8 +445,28 @@ def main():
     with open(CHRONICLE_OUTPUT, "w") as file:
         file.write(chronicle)
 
+    ai_summary = build_ai_interpretation_summary(
+        world,
+        map_name=map_name,
+        num_turns=num_turns,
+    )
+    with open(AI_INTERPRETIVE_INPUT_OUTPUT, "w", encoding="utf-8") as file:
+        json.dump(ai_summary, file, indent=2, ensure_ascii=True)
+
+    ai_narrative = generate_ai_interpretation(ai_summary, strict=True)
+    ai_lines = [
+        "Interpretive Narrative",
+        "",
+        f"Model: {AI_INTERPRETATION_MODEL}",
+        "",
+        ai_narrative,
+    ]
+    with open(AI_INTERPRETIVE_NARRATIVE_OUTPUT, "w", encoding="utf-8") as file:
+        file.write("\n".join(ai_lines).rstrip() + "\n")
+
     simulation_view_output = write_simulation_html(world)
     print(f"\nSimulation viewer written to {simulation_view_output}")
+    print(f"AI interpretive narrative written to {AI_INTERPRETIVE_NARRATIVE_OUTPUT}")
 
 
 if __name__ == "__main__":
