@@ -434,22 +434,89 @@ def _pick_name_fragment(options: list[str], fallback: str) -> str:
     return fallback
 
 
+def _pick_lexical_root(
+    profile: LanguageProfile,
+    concepts: list[str],
+    fallback: str,
+) -> str:
+    lexical_roots = profile.lexical_roots or {}
+    options: list[str] = []
+    for concept in concepts:
+        options.extend(lexical_roots.get(concept, []))
+    filtered = [re.sub(r"[^a-z]", "", option.lower()) for option in options if option]
+    filtered = [option for option in filtered if option]
+    if filtered:
+        return random.choice(filtered)
+    return fallback
+
+
+def _merge_language_lexical_roots(
+    base_roots: dict[str, list[str]],
+    extra_roots: dict[str, list[str]],
+    *,
+    limit: int = 3,
+) -> dict[str, list[str]]:
+    merged: dict[str, list[str]] = {}
+    for concept in sorted(set(base_roots) | set(extra_roots)):
+        seen: set[str] = set()
+        ordered: list[str] = []
+        for value in list(base_roots.get(concept, [])) + list(extra_roots.get(concept, [])):
+            normalized = re.sub(r"[^a-z]", "", (value or "").lower())
+            if not normalized or normalized in seen:
+                continue
+            seen.add(normalized)
+            ordered.append(normalized)
+            if len(ordered) >= limit:
+                break
+        if ordered:
+            merged[concept] = ordered
+    return merged
+
+
+def _get_religion_root_concepts(region: Region | None, doctrine: str | None) -> list[str]:
+    concepts = ["sacred"]
+    doctrine_text = (doctrine or "").lower()
+    if "ancestor" in doctrine_text:
+        concepts.append("ancestor")
+    if "sun" in doctrine_text:
+        concepts.append("sun")
+    if region is not None:
+        if "riverland" in region.terrain_tags:
+            concepts.append("river")
+        if "forest" in region.terrain_tags:
+            concepts.append("forest")
+        if "coast" in region.terrain_tags:
+            concepts.append("sea")
+        if "hills" in region.terrain_tags or "mountains" in region.terrain_tags:
+            concepts.append("hill")
+    return concepts
+
+
 def _generate_personal_name(faction: Faction, *, seed: str | None = None) -> str:
     culture_name = (faction.culture_name or faction.name or "Ruler").strip()
     profile = faction.identity.language_profile if faction.identity is not None else LanguageProfile()
     fallback_core = (seed or culture_name or "rul").strip().lower()
     fallback_core = re.sub(r"[^a-z]", "", fallback_core) or "rul"
-    onset = _pick_name_fragment(profile.onsets, fallback_core[:2] or "ru")
+    lexical_root = _pick_lexical_root(profile, ["ruler", "ancestor"], fallback_core[:3] or "ru")
+    onset = _pick_name_fragment(profile.onsets, lexical_root[:2] or fallback_core[:2] or "ru")
     middle = _pick_name_fragment(profile.middles, fallback_core[1:3] or "la")
-    suffix = _pick_name_fragment(profile.suffixes, fallback_core[-2:] or "an")
+    suffix = _pick_name_fragment(
+        profile.suffixes,
+        lexical_root[-2:] or fallback_core[-2:] or "an",
+    )
     token = f"{onset}{middle}{suffix}"
     token = re.sub(r"[^a-z]", "", token.lower()) or fallback_core
     return token[:1].upper() + token[1:]
 
 
 def _generate_dynasty_name(faction: Faction, *, cadet: bool = False) -> str:
-    culture_name = (faction.culture_name or faction.name or "Line").strip()
-    dynasty_root = _generate_personal_name(faction, seed=culture_name)
+    profile = faction.identity.language_profile if faction.identity is not None else LanguageProfile()
+    dynasty_seed = _pick_lexical_root(
+        profile,
+        ["dynasty", "ancestor", "ruler"],
+        (faction.culture_name or faction.name or "line").strip().lower(),
+    )
+    dynasty_root = _generate_personal_name(faction, seed=dynasty_seed)
     prefix = "House" if faction.government_form in DYNASTIC_FORMS else "Line"
     if cadet:
         return f"{prefix} {dynasty_root}cad"
@@ -511,9 +578,21 @@ def _pick_religion_doctrine(region: Region) -> str:
     return "Ancestor Rite"
 
 
-def _generate_religion_name(faction: Faction, *, suffix: str = "rite") -> str:
+def _generate_religion_name(
+    faction: Faction,
+    *,
+    suffix: str = "rite",
+    doctrine: str | None = None,
+    region: Region | None = None,
+) -> str:
+    profile = faction.identity.language_profile if faction.identity is not None else LanguageProfile()
     culture_name = (faction.culture_name or faction.name or "Faith").strip()
-    root = _generate_personal_name(faction, seed=culture_name)
+    root_seed = _pick_lexical_root(
+        profile,
+        _get_religion_root_concepts(region, doctrine),
+        culture_name.lower(),
+    )
+    root = _generate_personal_name(faction, seed=root_seed)
     label = f"{root}{suffix}"
     label = re.sub(r"[^A-Za-z]", "", label) or root or "Faith"
     return _to_title_case_root(label)
@@ -620,14 +699,19 @@ def initialize_faction_religion_state(
     elif parent_faction is not None and parent_faction.religion.official_religion:
         official_religion = parent_faction.religion.official_religion
     else:
-        official_religion = _generate_religion_name(faction)
+        doctrine = _pick_religion_doctrine(region) if region is not None else "Ancestor Rite"
+        official_religion = _generate_religion_name(
+            faction,
+            doctrine=doctrine,
+            region=region,
+        )
         while official_religion in world.religions:
             official_religion = f"{official_religion}a"
         register_religion(
             world,
             official_religion,
             founding_faction=faction.name,
-            doctrine=_pick_religion_doctrine(region) if region is not None else "Ancestor Rite",
+            doctrine=doctrine,
             sacred_terrain_tags=list(region.terrain_tags or []) if region is not None else [],
             sacred_climate=region.climate if region is not None else "temperate",
         )
@@ -746,17 +830,23 @@ def _maybe_reform_state_religion(world: WorldState, faction_name: str) -> None:
     old_religion = religion_state.official_religion
     if not old_religion:
         return
-    new_religion = _generate_religion_name(faction, suffix="an")
-    while new_religion in world.religions:
-        new_religion = f"{new_religion}a"
     homeland_region_name = faction.doctrine_state.homeland_region
     homeland_region = world.regions.get(homeland_region_name) if homeland_region_name else None
+    reform_doctrine = f"Reformed {_pick_religion_doctrine(homeland_region) if homeland_region is not None else 'Rite'}"
+    new_religion = _generate_religion_name(
+        faction,
+        suffix="an",
+        doctrine=reform_doctrine,
+        region=homeland_region,
+    )
+    while new_religion in world.religions:
+        new_religion = f"{new_religion}a"
     register_religion(
         world,
         new_religion,
         founding_faction=faction_name,
         parent_religion=old_religion,
-        doctrine=f"Reformed {_pick_religion_doctrine(homeland_region) if homeland_region is not None else 'Rite'}",
+        doctrine=reform_doctrine,
         sacred_terrain_tags=list(homeland_region.terrain_tags or []) if homeland_region is not None else [],
         sacred_climate=homeland_region.climate if homeland_region is not None else "temperate",
         reform_origin_turn=world.turn,
@@ -1588,6 +1678,208 @@ def _choose_regime_agitation_backlash_region(
             region.name,
         ),
     )
+
+
+def _dedupe_language_values(values: list[str], *, limit: int) -> list[str]:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for value in values:
+        normalized = (value or "").strip().lower()
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        ordered.append(normalized)
+        if len(ordered) >= limit:
+            break
+    return ordered
+
+
+def _profile_contact_markers(profile: LanguageProfile) -> set[str]:
+    markers: set[str] = set()
+    for note in profile.style_notes or []:
+        if note.startswith("borrowed from "):
+            markers.add(note.removeprefix("borrowed from ").strip())
+    return markers
+
+
+def _add_contact_borrowing(
+    receiver_profile: LanguageProfile,
+    donor_profile: LanguageProfile,
+    *,
+    donor_label: str,
+    seed_text: str,
+    intensity: float,
+) -> bool:
+    if donor_profile.family_name and donor_profile.family_name == receiver_profile.family_name:
+        return False
+    if donor_label in _profile_contact_markers(receiver_profile):
+        return False
+
+    donor_fragments = donor_profile.seed_fragments or _extract_name_fragments(donor_profile.family_name)
+    donor_onsets = donor_profile.onsets or donor_fragments
+    donor_middles = donor_profile.middles or ["a", "e", "i"]
+    donor_suffixes = donor_profile.suffixes or donor_fragments
+    if not donor_onsets and not donor_suffixes and not donor_fragments:
+        return False
+
+    rng = random.Random(seed_text)
+    borrowed_onsets = []
+    borrowed_middles = []
+    borrowed_suffixes = []
+    borrowed_fragments = []
+    borrowed_lexical_roots: dict[str, list[str]] = {}
+    borrow_count = 2 if intensity >= 2.0 else 1
+
+    for _ in range(borrow_count):
+        if donor_onsets:
+            borrowed_onsets.append(rng.choice(donor_onsets))
+        if donor_middles:
+            borrowed_middles.append(rng.choice(donor_middles))
+        if donor_suffixes:
+            borrowed_suffixes.append(rng.choice(donor_suffixes))
+        if donor_fragments:
+            borrowed_fragments.append(rng.choice(donor_fragments))
+    donor_lexical_roots = donor_profile.lexical_roots or {}
+    lexical_concepts = sorted(donor_lexical_roots)
+    for _ in range(borrow_count):
+        if not lexical_concepts:
+            break
+        concept = rng.choice(lexical_concepts)
+        concept_roots = donor_lexical_roots.get(concept, [])
+        if not concept_roots:
+            continue
+        borrowed_lexical_roots.setdefault(concept, []).append(rng.choice(concept_roots))
+
+    next_onsets = _dedupe_language_values(receiver_profile.onsets + borrowed_onsets + receiver_profile.onsets, limit=12)
+    next_middles = _dedupe_language_values(receiver_profile.middles + borrowed_middles + receiver_profile.middles, limit=12)
+    next_suffixes = _dedupe_language_values(receiver_profile.suffixes + borrowed_suffixes + receiver_profile.suffixes, limit=12)
+    next_fragments = _dedupe_language_values(receiver_profile.seed_fragments + borrowed_fragments + receiver_profile.seed_fragments, limit=16)
+    next_lexical_roots = _merge_language_lexical_roots(
+        receiver_profile.lexical_roots or {},
+        borrowed_lexical_roots,
+        limit=3,
+    )
+
+    changed = (
+        next_onsets != list(receiver_profile.onsets)
+        or next_middles != list(receiver_profile.middles)
+        or next_suffixes != list(receiver_profile.suffixes)
+        or next_fragments != list(receiver_profile.seed_fragments)
+        or next_lexical_roots != dict(receiver_profile.lexical_roots or {})
+    )
+    if not changed:
+        return False
+
+    receiver_profile.onsets = next_onsets
+    receiver_profile.middles = next_middles
+    receiver_profile.suffixes = next_suffixes
+    receiver_profile.seed_fragments = next_fragments
+    receiver_profile.lexical_roots = next_lexical_roots
+    receiver_profile.style_notes = (
+        list(receiver_profile.style_notes[:3]) + [f"borrowed from {donor_label}"]
+    )[-4:]
+    return True
+
+
+def _get_faction_language_profile(world: WorldState, faction_name: str) -> LanguageProfile | None:
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return None
+    if faction.primary_ethnicity and faction.primary_ethnicity in world.ethnicities:
+        return world.ethnicities[faction.primary_ethnicity].language_profile
+    if faction.identity is not None:
+        return faction.identity.language_profile
+    return None
+
+
+def _get_contact_language_sources(world: WorldState, faction_name: str) -> list[tuple[str, float]]:
+    contact_scores: dict[str, float] = {}
+    owned_regions = [region for region in world.regions.values() if region.owner == faction_name]
+    if not owned_regions:
+        return []
+
+    for region in owned_regions:
+        for neighbor_name in region.neighbors:
+            neighbor_owner = world.regions[neighbor_name].owner
+            if neighbor_owner is None or neighbor_owner == faction_name:
+                continue
+            contact_scores[neighbor_owner] = contact_scores.get(neighbor_owner, 0.0) + 1.0
+        if region.trade_foreign_partner and region.trade_foreign_partner != faction_name:
+            contact_scores[region.trade_foreign_partner] = contact_scores.get(region.trade_foreign_partner, 0.0) + 1.5
+
+    owned_region_names = {region.name for region in owned_regions}
+    for first, second in world.river_links:
+        if first in owned_region_names:
+            other_owner = world.regions.get(second).owner if second in world.regions else None
+            if other_owner is not None and other_owner != faction_name:
+                contact_scores[other_owner] = contact_scores.get(other_owner, 0.0) + 0.6
+        if second in owned_region_names:
+            other_owner = world.regions.get(first).owner if first in world.regions else None
+            if other_owner is not None and other_owner != faction_name:
+                contact_scores[other_owner] = contact_scores.get(other_owner, 0.0) + 0.6
+
+    for first, second in world.sea_links:
+        if first in owned_region_names:
+            other_owner = world.regions.get(second).owner if second in world.regions else None
+            if other_owner is not None and other_owner != faction_name:
+                contact_scores[other_owner] = contact_scores.get(other_owner, 0.0) + 0.5
+        if second in owned_region_names:
+            other_owner = world.regions.get(first).owner if first in world.regions else None
+            if other_owner is not None and other_owner != faction_name:
+                contact_scores[other_owner] = contact_scores.get(other_owner, 0.0) + 0.5
+
+    for (faction_a, faction_b), state in world.relationships.items():
+        if faction_name not in {faction_a, faction_b}:
+            continue
+        other_name = faction_b if faction_a == faction_name else faction_a
+        if other_name not in world.factions:
+            continue
+        if state.status == "alliance":
+            contact_scores[other_name] = contact_scores.get(other_name, 0.0) + 2.0
+        elif state.status == "tributary":
+            contact_scores[other_name] = contact_scores.get(other_name, 0.0) + 2.4
+        elif state.status == "non_aggression_pact":
+            contact_scores[other_name] = contact_scores.get(other_name, 0.0) + 0.8
+
+    return sorted(
+        contact_scores.items(),
+        key=lambda item: (-item[1], item[0]),
+    )
+
+
+def apply_language_contact_borrowing(world: WorldState) -> None:
+    for faction_name, faction in world.factions.items():
+        if faction.primary_ethnicity is None:
+            continue
+        if faction.primary_ethnicity not in world.ethnicities:
+            continue
+        receiver_ethnicity = world.ethnicities[faction.primary_ethnicity]
+        receiver_profile = receiver_ethnicity.language_profile
+        receiver_identity_profile = faction.identity.language_profile if faction.identity is not None else None
+
+        for donor_name, intensity in _get_contact_language_sources(world, faction_name)[:2]:
+            donor_profile = _get_faction_language_profile(world, donor_name)
+            donor_faction = world.factions.get(donor_name)
+            if donor_profile is None or donor_faction is None:
+                continue
+            donor_label = donor_profile.family_name or donor_faction.primary_ethnicity or donor_faction.culture_name
+            changed = _add_contact_borrowing(
+                receiver_profile,
+                donor_profile,
+                donor_label=donor_label,
+                seed_text=f"{world.turn}|{faction_name}|{donor_name}|{donor_label}",
+                intensity=intensity,
+            )
+            if changed and receiver_identity_profile is not None:
+                receiver_identity_profile.onsets = list(receiver_profile.onsets)
+                receiver_identity_profile.middles = list(receiver_profile.middles)
+                receiver_identity_profile.suffixes = list(receiver_profile.suffixes)
+                receiver_identity_profile.seed_fragments = list(receiver_profile.seed_fragments)
+                receiver_identity_profile.lexical_roots = {
+                    concept: list(values)
+                    for concept, values in receiver_profile.lexical_roots.items()
+                }
+                receiver_identity_profile.style_notes = list(receiver_profile.style_notes)
 
 
 def _apply_regime_agitation_sponsor_costs(
@@ -2714,6 +3006,78 @@ def _to_title_case_root(value: str) -> str:
     return value[0].upper() + value[1:].lower()
 
 
+SUCCESSOR_SOUND_CHANGE_SETS = (
+    ("a_to_e", (("a", "e"),)),
+    ("o_to_u", (("o", "u"),)),
+    ("k_to_h", (("k", "h"), ("kh", "h"))),
+    ("t_to_s", (("ti", "si"), ("ta", "sa"), ("to", "so"), ("t", "s"))),
+    ("r_to_l", (("r", "l"),)),
+    ("an_to_en", (("an", "en"), ("ar", "er"))),
+    ("or_to_ur", (("or", "ur"), ("on", "un"))),
+    ("final_soften", (("ad", "ar"), ("and", "an"), ("os", "or"), ("um", "un"))),
+)
+
+
+def _apply_successor_sound_changes(value: str, sound_changes: tuple[tuple[str, str], ...]) -> str:
+    normalized = _letters_only(value).lower()
+    if not normalized:
+        return normalized
+    updated = normalized
+    for source, target in sound_changes:
+        updated = updated.replace(source, target)
+    updated = re.sub(r"([aeiou])\1{2,}", r"\1\1", updated)
+    updated = re.sub(r"(.)\1{2,}", r"\1\1", updated)
+    updated = re.sub(r"([bcdfghjklmnpqrstvwxyz]{4,})", lambda match: match.group(0)[:3], updated)
+    return updated
+
+
+def _derive_successor_sound_changes(
+    parent_profile: LanguageProfile,
+    parent_ethnicity: str,
+    faction_name: str,
+    turn: int,
+) -> tuple[list[str], tuple[tuple[str, str], ...]]:
+    rng = random.Random(
+        f"{parent_profile.family_name}|{parent_ethnicity}|{faction_name}|{turn}|successor_sound_change"
+    )
+    available = list(SUCCESSOR_SOUND_CHANGE_SETS)
+    rng.shuffle(available)
+    selected = available[: rng.randint(2, 3)]
+    labels = [label for label, _changes in selected]
+    changes = tuple(
+        pair
+        for _label, replacements in selected
+        for pair in replacements
+    )
+    return labels, changes
+
+
+def _mutate_successor_language_pool(
+    values: list[str],
+    sound_changes: tuple[tuple[str, str], ...],
+    *,
+    minimum_length: int,
+    maximum_length: int,
+    limit: int,
+) -> list[str]:
+    mutated: list[str] = []
+    for value in values:
+        changed = _apply_successor_sound_changes(value, sound_changes)
+        if minimum_length <= len(changed) <= maximum_length:
+            mutated.append(changed)
+        normalized = _letters_only(value).lower()
+        if minimum_length <= len(normalized) <= maximum_length:
+            mutated.append(normalized)
+    unique: list[str] = []
+    seen: set[str] = set()
+    for value in mutated:
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        unique.append(value)
+    return unique[:limit]
+
+
 def _generate_successor_ethnicity_name(
     world: WorldState,
     parent_ethnicity: str,
@@ -2721,27 +3085,71 @@ def _generate_successor_ethnicity_name(
 ) -> str:
     parent_profile = world.ethnicities.get(parent_ethnicity).language_profile if parent_ethnicity in world.ethnicities else LanguageProfile()
     rng = random.Random(f"{parent_ethnicity}:{faction_name}:{world.turn}")
+    _sound_change_labels, sound_changes = _derive_successor_sound_changes(
+        parent_profile,
+        parent_ethnicity,
+        faction_name,
+        world.turn,
+    )
 
     onsets = parent_profile.onsets or ["ka", "sa", "va", "ta", "no"]
     middles = parent_profile.middles or ["a", "e", "i", "o", "u", "ae", "ia"]
     suffixes = parent_profile.suffixes or ["ar", "an", "en", "or", "ri", "var"]
     fragments = parent_profile.seed_fragments or [_letters_only(parent_ethnicity).lower() or "novan"]
 
-    fragment = rng.choice(fragments)
-    onset = rng.choice(onsets)
-    middle = rng.choice(middles)
-    suffix = rng.choice(suffixes)
-    endings = ["ri", "vi", "ra", "ta", "ni", "len", "var", "sar"]
+    shifted_fragments = _mutate_successor_language_pool(
+        fragments,
+        sound_changes,
+        minimum_length=2,
+        maximum_length=8,
+        limit=16,
+    ) or fragments
+    shifted_onsets = _mutate_successor_language_pool(
+        onsets,
+        sound_changes,
+        minimum_length=2,
+        maximum_length=5,
+        limit=12,
+    ) or onsets
+    shifted_middles = _mutate_successor_language_pool(
+        middles,
+        sound_changes,
+        minimum_length=1,
+        maximum_length=4,
+        limit=12,
+    ) or middles
+    shifted_suffixes = _mutate_successor_language_pool(
+        suffixes,
+        sound_changes,
+        minimum_length=2,
+        maximum_length=5,
+        limit=12,
+    ) or suffixes
 
-    pattern = rng.choice(("profile_blend", "fragment_soften", "compound"))
+    fragment = rng.choice(shifted_fragments)
+    onset = rng.choice(shifted_onsets)
+    middle = rng.choice(shifted_middles)
+    suffix = rng.choice(shifted_suffixes)
+    endings = ["ri", "vi", "ra", "ta", "ni", "len", "var", "sar"]
+    shifted_parent_root = _apply_successor_sound_changes(parent_ethnicity, sound_changes) or _letters_only(parent_ethnicity).lower()
+
+    pattern = rng.choice(("profile_blend", "fragment_soften", "compound", "shifted_root"))
     if pattern == "profile_blend":
         candidate = f"{onset[: max(1, min(3, len(onset)))]}{middle}{fragment[-max(2, min(4, len(fragment))):]}{rng.choice(endings)}"
     elif pattern == "fragment_soften":
         candidate = f"{fragment[: max(2, min(4, len(fragment)))]}{middle}{suffix}"
-    else:
+    elif pattern == "compound":
         candidate = f"{onset[:2]}{fragment[max(1, len(fragment) // 3): max(3, len(fragment) // 3 + 3)]}{suffix}"
+    else:
+        candidate = (
+            f"{shifted_parent_root[: max(2, min(4, len(shifted_parent_root)))]}"
+            f"{middle}"
+            f"{suffix}"
+        )
 
     candidate = _to_title_case_root(re.sub(r"[^A-Za-z]", "", candidate))
+    if _letters_only(candidate).lower() == _letters_only(parent_ethnicity).lower():
+        candidate = _to_title_case_root(f"{candidate}n")
     while candidate in world.ethnicities:
         candidate = f"{candidate}n"
     return candidate
@@ -2750,15 +3158,64 @@ def _generate_successor_ethnicity_name(
 def _build_successor_language_profile(
     parent_profile: LanguageProfile,
     successor_ethnicity: str,
+    sound_change_labels: list[str],
+    sound_changes: tuple[tuple[str, str], ...],
 ) -> LanguageProfile:
     successor_fragments = _extract_name_fragments(successor_ethnicity)
+    shifted_onsets = _mutate_successor_language_pool(
+        parent_profile.onsets,
+        sound_changes,
+        minimum_length=2,
+        maximum_length=5,
+        limit=12,
+    )
+    shifted_middles = _mutate_successor_language_pool(
+        parent_profile.middles,
+        sound_changes,
+        minimum_length=1,
+        maximum_length=4,
+        limit=12,
+    )
+    shifted_suffixes = _mutate_successor_language_pool(
+        parent_profile.suffixes,
+        sound_changes,
+        minimum_length=2,
+        maximum_length=5,
+        limit=12,
+    )
+    shifted_seed_fragments = _mutate_successor_language_pool(
+        parent_profile.seed_fragments,
+        sound_changes,
+        minimum_length=2,
+        maximum_length=8,
+        limit=16,
+    )
+    shifted_lexical_roots = {
+        concept: _mutate_successor_language_pool(
+            values,
+            sound_changes,
+            minimum_length=2,
+            maximum_length=8,
+            limit=3,
+        )
+        for concept, values in (parent_profile.lexical_roots or {}).items()
+    }
     return LanguageProfile(
         family_name=parent_profile.family_name or successor_ethnicity,
-        onsets=(parent_profile.onsets + successor_fragments[:3])[:12],
-        middles=parent_profile.middles[:12],
-        suffixes=(parent_profile.suffixes + [fragment[-3:] for fragment in successor_fragments if len(fragment) >= 3])[:12],
-        seed_fragments=(parent_profile.seed_fragments + successor_fragments)[:16],
-        style_notes=parent_profile.style_notes[:4],
+        onsets=(shifted_onsets + successor_fragments[:3])[:12],
+        middles=(shifted_middles + successor_fragments[:2])[:12],
+        suffixes=(shifted_suffixes + [fragment[-3:] for fragment in successor_fragments if len(fragment) >= 3])[:12],
+        seed_fragments=(shifted_seed_fragments + successor_fragments)[:16],
+        lexical_roots=_merge_language_lexical_roots(
+            shifted_lexical_roots,
+            {
+                "ruler": successor_fragments[:1],
+                "dynasty": successor_fragments[-1:],
+                "ancestor": successor_fragments[:1],
+                "settlement": successor_fragments[-1:],
+            },
+        ),
+        style_notes=(parent_profile.style_notes[:3] + [f"successor shifts: {', '.join(sound_change_labels)}"])[:4],
     )
 
 
@@ -3205,6 +3662,12 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
             if parent_ethnicity in world.ethnicities
             else LanguageProfile(family_name=parent_ethnicity)
         )
+        sound_change_labels, sound_changes = _derive_successor_sound_changes(
+            parent_language_profile,
+            parent_ethnicity,
+            faction_name,
+            world.turn,
+        )
         successor_ethnicity = _generate_successor_ethnicity_name(
             world,
             parent_ethnicity,
@@ -3213,11 +3676,13 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
         successor_language_profile = _build_successor_language_profile(
             parent_language_profile,
             successor_ethnicity,
+            sound_change_labels,
+            sound_changes,
         )
         register_ethnicity(
             world,
             successor_ethnicity,
-            language_family=parent_ethnicity,
+            language_family=parent_language_profile.family_name or parent_ethnicity,
             parent_ethnicity=parent_ethnicity,
             origin_faction=faction_name,
             language_profile=successor_language_profile,
@@ -3931,7 +4396,7 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
     ))
 
 
-def update_region_integration(world: WorldState) -> None:
+def update_region_integration(world: WorldState, *, time_step_years: float = 1.0) -> None:
     refresh_administrative_state(world)
     for region in world.regions.values():
         if region.owner is None:
@@ -3954,9 +4419,9 @@ def update_region_integration(world: WorldState) -> None:
 
         if region.homeland_faction_id == region.owner:
             region.integration_score = max(region.integration_score, HOMELAND_INTEGRATION_SCORE)
-            region.ownership_turns += 1
+            region.ownership_turns += time_step_years
             region.core_status = "homeland"
-            set_region_unrest(region, region.unrest - UNREST_DECAY_PER_TURN)
+            set_region_unrest(region, region.unrest - (UNREST_DECAY_PER_TURN * time_step_years))
             reset_region_crisis_streak(region)
             if region.unrest_event_turns_remaining > 0:
                 region.unrest_event_turns_remaining -= 1
@@ -3964,7 +4429,7 @@ def update_region_integration(world: WorldState) -> None:
                     clear_region_unrest_event(region)
             continue
 
-        region.ownership_turns += 1
+        region.ownership_turns += time_step_years
         if region.unrest_event_level == "crisis":
             region.unrest_crisis_streak += 1
             apply_region_population_loss(
@@ -3997,10 +4462,16 @@ def update_region_integration(world: WorldState) -> None:
                 base_gain = PER_TURN_CORE_GAIN
             region.integration_score += max(
                 0.0,
-                (base_gain * ethnic_multiplier * government_multiplier * administrative_multiplier) + climate_modifier,
+                (
+                    (base_gain * ethnic_multiplier * government_multiplier * administrative_multiplier)
+                    + climate_modifier
+                ) * time_step_years,
             )
         region.core_status = get_region_core_status(region)
-        set_region_unrest(region, region.unrest + get_region_unrest_pressure(region, world))
+        set_region_unrest(
+            region,
+            region.unrest + (get_region_unrest_pressure(region, world) * time_step_years),
+        )
         owner_faction = world.factions.get(region.owner)
         if owner_faction is not None and owner_faction.is_rebel:
             if (
@@ -4153,6 +4624,7 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "display_name": region.display_name,
             "founding_name": region.founding_name,
             "original_namer_faction_id": region.original_namer_faction_id,
+            "name_metadata": deepcopy(region.name_metadata),
             "terrain_tags": list(region.terrain_tags),
             "climate": region.climate,
             "homeland_faction_id": region.homeland_faction_id,

@@ -4,6 +4,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from typing import Any
 
+from src.calendar import format_snapshot_date, format_turn_date, format_turn_span
 from src.event_analysis import ensure_event_importance_scores
 from src.metrics import get_faction_metrics_history
 
@@ -137,7 +138,7 @@ def _display_name(world, faction_name: str | None) -> str:
 def _format_turn(zero_based_turn: int | None) -> str:
     if zero_based_turn is None:
         return "an unknown turn"
-    return f"turn {zero_based_turn + 1}"
+    return format_turn_date(zero_based_turn)
 
 
 def _count_noun(count: int | float, singular: str, plural: str | None = None) -> str:
@@ -807,42 +808,42 @@ def _classify_outcome(world, standings: list[dict[str, Any]], drivers: list[Narr
     if runner_up is not None and treasury_margin == 0 and region_margin == 0:
         return (
             "dead_heat",
-            f"After {world.turn} turns, the world closed in an effective dead heat: {winner['display_name']} only finished atop the table by tie-break, level with {runner_up['display_name']} on both treasury and region count.",
+            f"After {world.turn} turns spanning {format_turn_span(world.turn)}, the world closed in an effective dead heat: {winner['display_name']} only finished atop the table by tie-break, level with {runner_up['display_name']} on both treasury and region count.",
         )
 
     if runner_up is not None and treasury_margin == 0 and region_margin > 0:
         return (
             "territorial_edge",
-            f"After {world.turn} turns, the leading powers shared the treasury lead, but {winner['display_name']} held the stronger territorial position with {region_margin} more regions than {runner_up['display_name']}.",
+            f"After {world.turn} turns spanning {format_turn_span(world.turn)}, the leading powers shared the treasury lead, but {winner['display_name']} held the stronger territorial position with {region_margin} more regions than {runner_up['display_name']}.",
         )
 
     if winner["regions"] == total_regions or len(alive) <= 1:
         return (
             "domination",
-            f"After {world.turn} turns, {winner['display_name']} stood alone as the dominant territorial power, holding {_count_noun(winner['regions'], 'region')} and finishing on {winner['treasury']} treasury.",
+            f"After {world.turn} turns spanning {format_turn_span(world.turn)}, {winner['display_name']} stood alone as the dominant territorial power, holding {_count_noun(winner['regions'], 'region')} and finishing on {winner['treasury']} treasury.",
         )
 
     if runner_up is not None and winner["regions"] < runner_up["regions"] and treasury_margin > 0:
         return (
             "economic_win",
-            f"After {world.turn} turns, {winner['display_name']} won the age on treasury rather than sheer map share, finishing {treasury_margin} treasury ahead of {runner_up['display_name']} despite holding fewer regions.",
+            f"After {world.turn} turns spanning {format_turn_span(world.turn)}, {winner['display_name']} won the age on treasury rather than sheer map share, finishing {treasury_margin} treasury ahead of {runner_up['display_name']} despite holding fewer regions.",
         )
 
     if region_margin >= max(3, total_regions // 5) or treasury_margin >= 8:
         return (
             "hegemonic_edge",
-            f"After {world.turn} turns, {winner['display_name']} closed as the clear hegemon, leading by {treasury_margin} treasury and {region_margin} regions over the nearest rival.",
+            f"After {world.turn} turns spanning {format_turn_span(world.turn)}, {winner['display_name']} closed as the clear hegemon, leading by {treasury_margin} treasury and {region_margin} regions over the nearest rival.",
         )
 
     if leading_driver == "internal fracture" and len(alive) >= 3:
         return (
             "fractured_order",
-            f"After {world.turn} turns, the world ended in a fractured order: {winner['display_name']} finished first, but repeated breakaways kept the field politically splintered.",
+            f"After {world.turn} turns spanning {format_turn_span(world.turn)}, the world ended in a fractured order: {winner['display_name']} finished first, but repeated breakaways kept the field politically splintered.",
         )
 
     return (
         "contested_balance",
-        f"After {world.turn} turns, {winner['display_name']} finished first in a contested balance, with no power fully extinguishing the rest of the field.",
+        f"After {world.turn} turns spanning {format_turn_span(world.turn)}, {winner['display_name']} finished first in a contested balance, with no power fully extinguishing the rest of the field.",
     )
 
 
@@ -928,14 +929,14 @@ def _build_faction_epilogue(world, standings_by_name: dict[str, dict[str, Any]],
             f"{display_name} began as a {conflict_type.replace('_', ' ')} breakaway from {_display_name(world, faction.origin_faction)}"
         )
     elif opening_turn > 1:
-        clauses.append(f"{display_name} only emerged on turn {opening_turn}")
+        clauses.append(f"{display_name} only emerged by {format_snapshot_date(opening_turn)}")
     else:
         clauses.append(
             f"{display_name} opened with {_count_noun(initial_regions, 'region')}"
         )
 
     clauses.append(
-        f"peaked at {_count_noun(peak_regions, 'region')} on turn {peak_turn}"
+        f"peaked at {_count_noun(peak_regions, 'region')} by {format_snapshot_date(peak_turn)}"
     )
 
     if final_regions <= 0:
@@ -1124,6 +1125,32 @@ def summarize_victor_history(world) -> list[str]:
     return lines
 
 
+def summarize_place_name_strata(world) -> list[str]:
+    entries: list[tuple[int, str]] = []
+    for region in world.regions.values():
+        layers = list(region.name_metadata.get("name_layers", []))
+        if len(layers) <= 1:
+            continue
+        fragments: list[str] = []
+        for layer in layers[:4]:
+            name = layer.get("name")
+            faction_name = layer.get("faction_name")
+            layer_type = layer.get("type")
+            if not name or not layer_type:
+                continue
+            if layer_type == "founding":
+                fragments.append(f"founded as {name} by {faction_name}")
+            elif layer_type == "conquest":
+                fragments.append(f"renamed to {name} under {faction_name}")
+            elif layer_type == "restoration":
+                fragments.append(f"restored as {name} by {faction_name}")
+        if not fragments:
+            continue
+        line = f"{region.name}: " + ", then ".join(fragments) + "."
+        entries.append((len(layers), line))
+    return [line for _score, line in sorted(entries, key=lambda item: (-item[0], item[1]))[:5]]
+
+
 def build_chronicle(world, max_key_events: int = 10) -> str:
     key_event_limit = max(1, int(max_key_events))
     lines: list[str] = ["Simulation Chronicle"]
@@ -1137,6 +1164,7 @@ def build_chronicle(world, max_key_events: int = 10) -> str:
     sections.append(("Turning Points", [item["summary"] for item in _top_turning_points(world, limit=key_event_limit)]))
     sections.append(("Structural Drivers", summarize_structural_drivers(world)))
     sections.append(("Faction Epilogues", summarize_faction_epilogues(world)))
+    sections.append(("Place-Name Strata", summarize_place_name_strata(world)))
     sections.append(("Final Standings", summarize_final_standings(world)))
     sections.append(("Victor's History", summarize_victor_history(world)))
 

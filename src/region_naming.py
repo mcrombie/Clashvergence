@@ -38,6 +38,15 @@ GENERIC_PLACE_NOUNS = [
     "Watch",
 ]
 GENERIC_DIRECTIONS = ["North", "South", "East", "West", "Upper", "Lower"]
+TERRAIN_ROOT_CONCEPTS = {
+    "riverland": ("river",),
+    "forest": ("forest",),
+    "hills": ("hill",),
+    "mountains": ("hill", "fort"),
+    "plains": ("plain",),
+    "marsh": ("marsh", "river"),
+    "coast": ("sea", "market"),
+}
 
 
 def _stable_random(seed_text: str) -> random.Random:
@@ -91,6 +100,21 @@ def _dedupe_preserving_order(values: list[str]) -> list[str]:
         seen.add(normalized)
         ordered.append(value)
     return ordered
+
+
+def _get_profile_roots(language_profile: LanguageProfile, concept: str) -> list[str]:
+    return list((language_profile.lexical_roots or {}).get(concept, []))
+
+
+def _collect_region_semantic_roots(language_profile: LanguageProfile, region: Region) -> list[str]:
+    roots: list[str] = []
+    for terrain_tag in region.terrain_tags or ["plains"]:
+        for concept in TERRAIN_ROOT_CONCEPTS.get(terrain_tag, ()):
+            roots.extend(_get_profile_roots(language_profile, concept))
+    roots.extend(_get_profile_roots(language_profile, "settlement"))
+    if region.trade_foreign_partner is not None or region.trade_route_role in {"hub", "corridor", "gateway"}:
+        roots.extend(_get_profile_roots(language_profile, "market"))
+    return _dedupe_preserving_order([_letters_only(root).capitalize() for root in roots if root])
 
 
 def _get_naming_language_profile(world: WorldState, faction: Faction) -> LanguageProfile:
@@ -225,6 +249,8 @@ def _candidate_names(
         language_fragment = rng.choice(language_profile.seed_fragments)
     elif language_profile.onsets:
         language_fragment = rng.choice(language_profile.onsets)
+    semantic_roots = _collect_region_semantic_roots(language_profile, region)
+    semantic_root = rng.choice(semantic_roots) if semantic_roots else ""
 
     candidates: list[tuple[str, str]] = []
     if is_homeland:
@@ -248,6 +274,11 @@ def _candidate_names(
                 (f"{fragment}{settlement_suffix}", "ethnicity_fragment_settlement"),
                 (f"{fragment} {place_noun}", "ethnicity_fragment_place"),
             ])
+    if semantic_root:
+        candidates.extend([
+            (f"{variants['stem']}{semantic_root.lower()}", "semantic_compound"),
+            (f"{semantic_root} {place_noun}", "semantic_place"),
+        ])
 
     candidates.extend([
         (f"New {variants['root']}", "new_root"),
@@ -325,5 +356,190 @@ def assign_region_founding_name(
         "named_from_ethnicity": faction.primary_ethnicity,
         "terrain_label": get_terrain_profile(region)["terrain_label"],
         "terrain_tags": list(region.terrain_tags),
+        "name_layers": [
+            {
+                "type": "founding",
+                "name": chosen_name,
+                "pattern": chosen_pattern,
+                "faction_id": faction.internal_id,
+                "faction_name": faction_name,
+                "turn": getattr(world, "turn", 0),
+            }
+        ],
+        "current_name_reason": "founding",
     }
     return chosen_name
+
+
+def _get_region_name_layers(region: Region) -> list[dict]:
+    layers = region.name_metadata.get("name_layers")
+    if isinstance(layers, list):
+        return layers
+    layers = []
+    region.name_metadata["name_layers"] = layers
+    return layers
+
+
+def _record_region_name_layer(
+    region: Region,
+    *,
+    layer_type: str,
+    name: str,
+    pattern: str,
+    faction_id: str | None,
+    faction_name: str | None,
+    turn: int,
+) -> None:
+    layers = _get_region_name_layers(region)
+    if layers and layers[-1].get("name") == name and layers[-1].get("type") == layer_type:
+        return
+    layers.append(
+        {
+            "type": layer_type,
+            "name": name,
+            "pattern": pattern,
+            "faction_id": faction_id,
+            "faction_name": faction_name,
+            "turn": turn,
+        }
+    )
+
+
+def _split_place_tokens(place_name: str) -> tuple[str, str | None]:
+    parts = [part for part in place_name.split() if part]
+    if not parts:
+        return "", None
+    if len(parts) == 1:
+        return parts[0], None
+    return parts[0], parts[-1]
+
+
+def _build_layered_conquest_candidates(
+    world: WorldState,
+    faction: Faction,
+    region: Region,
+    prior_name: str,
+) -> list[tuple[str, str]]:
+    root_name = _get_naming_root_name(world, faction)
+    variants = _derive_root_variants(root_name)
+    profile = _build_profile(world, faction)
+    language_profile = _get_naming_language_profile(world, faction)
+    rng = _stable_random(f"{faction.internal_id}:{region.name}:{prior_name}:layered")
+    prior_root, prior_noun = _split_place_tokens(prior_name)
+    prior_root_letters = _letters_only(prior_root).capitalize()
+    direction = rng.choice(profile["directions"])
+    place_noun = prior_noun or rng.choice(profile["place_nouns"])
+    semantic_roots = _collect_region_semantic_roots(language_profile, region)
+    semantic_root = rng.choice(semantic_roots).lower() if semantic_roots else ""
+    candidates: list[tuple[str, str]] = []
+
+    if prior_noun:
+        candidates.extend(
+            [
+                (f"{variants['root']} {prior_noun}", "conqueror_root_old_noun"),
+                (f"{variants['adjectival']} {prior_noun}", "conqueror_adjectival_old_noun"),
+            ]
+        )
+    if prior_root_letters and semantic_root:
+        candidates.extend(
+            [
+                (f"{prior_root_letters}{semantic_root}", "substrate_semantic_compound"),
+                (f"{semantic_root.capitalize()} {place_noun}", "semantic_overlay_place"),
+            ]
+        )
+    candidates.extend(
+        [
+            (f"{direction} {prior_name}", "directional_overlay"),
+            (f"New {prior_name}", "new_overlay"),
+        ]
+    )
+    if prior_root_letters:
+        candidates.append((f"{variants['stem']}{prior_root_letters.lower()}", "dynastic_overlay"))
+
+    deduped: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for candidate, pattern in candidates:
+        tidy_candidate = _tidy_place_name(candidate)
+        normalized = tidy_candidate.lower()
+        if not normalized or normalized == prior_name.lower() or normalized in seen:
+            continue
+        seen.add(normalized)
+        deduped.append((tidy_candidate, pattern))
+    return deduped
+
+
+def apply_region_name_layer(
+    world: WorldState,
+    region_name: str,
+    faction_name: str,
+    *,
+    reason: str = "conquest",
+) -> dict[str, str | bool | None]:
+    region = world.regions[region_name]
+    if not region.founding_name:
+        assigned_name = assign_region_founding_name(world, region_name, faction_name, is_homeland=False)
+        return {
+            "name": assigned_name,
+            "previous_name": None,
+            "changed": True,
+            "layer_type": "founding",
+            "pattern": region.name_metadata.get("pattern"),
+        }
+
+    faction = world.factions[faction_name]
+    prior_name = region.display_name or region.founding_name
+    original_namer_id = region.original_namer_faction_id
+    if original_namer_id == faction.internal_id:
+        region.display_name = region.founding_name
+        region.name_metadata["current_name_reason"] = "restoration"
+        _record_region_name_layer(
+            region,
+            layer_type="restoration",
+            name=region.display_name,
+            pattern="restore_founding",
+            faction_id=faction.internal_id,
+            faction_name=faction_name,
+            turn=getattr(world, "turn", 0),
+        )
+        return {
+            "name": region.display_name,
+            "previous_name": prior_name,
+            "changed": region.display_name != prior_name,
+            "layer_type": "restoration",
+            "pattern": "restore_founding",
+        }
+
+    existing_names = {
+        other_region.display_name.lower()
+        for other_region in world.regions.values()
+        if other_region is not region and other_region.display_name
+    }
+    chosen_name = prior_name
+    chosen_pattern = "preserved"
+    for candidate, pattern in _build_layered_conquest_candidates(world, faction, region, prior_name):
+        if candidate.lower() not in existing_names:
+            chosen_name = candidate
+            chosen_pattern = pattern
+            break
+
+    region.display_name = chosen_name
+    region.name_metadata["current_name_reason"] = reason
+    region.name_metadata["current_pattern"] = chosen_pattern
+    region.name_metadata["current_named_from"] = _get_naming_root_name(world, faction)
+    region.name_metadata["current_named_from_ethnicity"] = faction.primary_ethnicity
+    _record_region_name_layer(
+        region,
+        layer_type=reason,
+        name=chosen_name,
+        pattern=chosen_pattern,
+        faction_id=faction.internal_id,
+        faction_name=faction_name,
+        turn=getattr(world, "turn", 0),
+    )
+    return {
+        "name": chosen_name,
+        "previous_name": prior_name,
+        "changed": chosen_name != prior_name,
+        "layer_type": reason,
+        "pattern": chosen_pattern,
+    }

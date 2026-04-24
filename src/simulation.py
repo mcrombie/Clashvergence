@@ -1,5 +1,12 @@
 from src.agents import choose_action
 from src.actions import attack, develop, expand
+from src.calendar import (
+    SEASONAL_ECONOMY_SHARE,
+    SEASONAL_TIME_STEP_YEARS,
+    format_turn_label,
+    get_turn_season_name,
+    is_year_end,
+)
 from src.config import (
     EMPIRE_FREE_REGIONS,
     EMPIRE_SCALE_COST,
@@ -17,6 +24,7 @@ from src.resource_economy import (
 )
 from src.visibility import refresh_all_faction_visibility, refresh_faction_visibility
 from src.heartland import (
+    apply_language_contact_borrowing,
     get_region_surplus,
     refresh_administrative_state,
     record_region_history,
@@ -84,24 +92,40 @@ def get_faction_economy_snapshot(world):
     return snapshot
 
 
-def apply_turn_economy(world):
+def apply_turn_economy(world, *, share: float = 1.0):
     """Applies income and maintenance for each faction at end of turn."""
     economy_snapshot = get_faction_economy_snapshot(world)
 
     for faction_name, data in economy_snapshot.items():
         faction = world.factions[faction_name]
-        faction.treasury += data["base_income"]
-        faction.treasury -= data["empire_penalty"]
-        faction.treasury -= data["maintenance"]
+        base_income = round(float(data["base_income"]) * share, 3)
+        empire_penalty = round(float(data["empire_penalty"]) * share, 3)
+        effective_income = round(float(data["effective_income"]) * share, 3)
+        maintenance = round(float(data["maintenance"]) * share, 3)
+        net_income = round(effective_income - maintenance, 3)
+        nominal_income = round(float(data["nominal_income"]) * share, 3)
+
+        faction.treasury += base_income
+        faction.treasury -= empire_penalty
+        faction.treasury -= maintenance
+        data["base_income"] = base_income
+        data["nominal_income"] = nominal_income
+        data["empire_penalty"] = empire_penalty
+        data["effective_income"] = effective_income
+        data["maintenance"] = maintenance
+        data["net"] = net_income
 
     return economy_snapshot
 
 
 def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     """Runs one full turn of the simulation."""
+    current_turn = world.turn
+    year_end = is_year_end(current_turn)
+    season_name = get_turn_season_name(current_turn)
 
     if verbose:
-        print(f"\nTurn {world.turn + 1}")
+        print(f"\n{format_turn_label(current_turn)}")
 
     advance_trade_warfare_state(world)
     update_faction_resource_economy(world, advance_resources=True)
@@ -159,21 +183,23 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     resolve_unrest_events(world)
     update_faction_resource_economy(world, advance_resources=False)
     refresh_administrative_state(world)
-    economy_snapshot = apply_turn_economy(world)
-    apply_turn_food_economy(world)
-    update_region_integration(world)
+    economy_snapshot = apply_turn_economy(world, share=SEASONAL_ECONOMY_SHARE)
+    apply_turn_food_economy(world, season_name=season_name)
+    update_region_integration(world, time_step_years=SEASONAL_TIME_STEP_YEARS)
     refresh_administrative_state(world)
-    update_religious_legitimacy(world)
-    resolve_dynastic_succession(world)
-    update_region_populations(world)
     resolve_population_migration(world)
-    update_region_settlement_levels(world)
     update_faction_resource_economy(world, advance_resources=False)
-    update_rebel_faction_status(world)
-    update_faction_polity_tiers(world)
+    if year_end:
+        update_religious_legitimacy(world)
+        resolve_dynastic_succession(world)
+        update_region_populations(world)
+        update_region_settlement_levels(world)
+        update_rebel_faction_status(world)
+        update_faction_polity_tiers(world)
     refresh_administrative_state(world)
     update_relationships(world)
     apply_tributary_flows(world, economy_snapshot=economy_snapshot)
+    apply_language_contact_borrowing(world)
     update_faction_doctrines(world)
     refresh_all_faction_visibility(world)
     if verbose:

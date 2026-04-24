@@ -2,6 +2,7 @@ from src.diplomacy import initialize_relationships
 from src.doctrine import initialize_faction_doctrines
 from src.factions import create_factions, validate_map_factions
 from src.heartland import (
+    apply_language_contact_borrowing,
     estimate_region_population,
     estimate_region_population_from_resource_profile,
     initialize_dynastic_politics,
@@ -28,18 +29,24 @@ def create_world(
     map_name="seven_region_ring",
     num_factions=4,
     map_generation_config=None,
+    seed: str | None = None,
 ) -> WorldState:
+    resolved_map_generation_config = dict(map_generation_config or {})
+    if seed is not None and "seed" not in resolved_map_generation_config:
+        resolved_map_generation_config["seed"] = seed
+
     if is_generated_map_name(map_name):
         MAPS[map_name] = build_generated_map_definition(
             map_name,
             num_factions,
-            config=map_generation_config,
+            config=resolved_map_generation_config,
         )
     validate_map_factions(map_name, num_factions)
     map_definition = MAPS[map_name]
+    naming_seed = map_name if seed is None else f"{map_name}|{seed}"
     factions = create_factions(
         num_factions=num_factions,
-        naming_seed=map_name,
+        naming_seed=naming_seed,
     )
     owner_name_map = {
         faction.internal_id: faction_name
@@ -75,11 +82,16 @@ def create_world(
             if len(link) == 2
         ],
     )
+    world.random_seed = seed
     for faction_name, faction in factions.items():
         register_ethnicity(
             world,
             faction.primary_ethnicity or faction.culture_name,
-            language_family=faction.culture_name,
+            language_family=(
+                faction.identity.language_profile.family_name
+                if faction.identity is not None and faction.identity.language_profile.family_name
+                else faction.culture_name
+            ),
             origin_faction=faction_name,
             language_profile=faction.identity.language_profile if faction.identity is not None else None,
         )
@@ -127,6 +139,7 @@ def create_world(
     refresh_administrative_state(world)
     initialize_faction_visibility(world)
     initialize_relationships(world)
+    apply_language_contact_borrowing(world)
     initialize_region_history(world)
 
     return world

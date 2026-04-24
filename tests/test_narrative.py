@@ -417,7 +417,7 @@ class NarrativeTests(unittest.TestCase):
         chronicle = build_chronicle(world, max_key_events=1)
         turning_points_section = chronicle.split("Turning Points", 1)[1].split("Structural Drivers", 1)[0]
 
-        self.assertEqual(turning_points_section.count("On turn"), 1)
+        self.assertEqual(turning_points_section.count("On Year"), 1)
 
 
 if __name__ == "__main__":

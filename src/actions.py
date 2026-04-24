@@ -61,7 +61,7 @@ from src.resources import (
     RESOURCE_WILD_FOOD,
     format_resource_map,
 )
-from src.region_naming import assign_region_founding_name, format_region_reference
+from src.region_naming import apply_region_name_layer, assign_region_founding_name, format_region_reference
 from src.terrain import get_terrain_profile
 from src.visibility import faction_knows_region
 
@@ -1441,6 +1441,7 @@ def attack(faction_name, target_region_name, world):
         "trade_value_denied": round(float(target_region.trade_value_denied or 0.0), 3),
         "port_blockaded": False,
     }
+    rename_result = {}
     defender_faction = world.factions.get(defender_name)
     is_reintegration_attempt = (
         defender_faction is not None
@@ -1486,13 +1487,12 @@ def attack(faction_name, target_region_name, world):
                 target_region,
                 min(target_region.unrest, REBEL_REABSORPTION_UNREST),
             )
-        if not target_region.founding_name:
-            assign_region_founding_name(
-                world,
-                target_region_name,
-                faction_name,
-                is_homeland=False,
-            )
+        rename_result = apply_region_name_layer(
+            world,
+            target_region_name,
+            faction_name,
+            reason="conquest",
+        )
     else:
         population_loss = apply_region_population_loss(
             target_region,
@@ -1590,6 +1590,37 @@ def attack(faction_name, target_region_name, world):
         ],
         significance=score_components["success_chance"],
     ))
+
+    if succeeded and rename_result.get("changed"):
+        rename_type = str(rename_result.get("layer_type") or "conquest")
+        world.events.append(Event(
+            turn=world.turn,
+            type="region_rename",
+            faction=faction_name,
+            region=target_region_name,
+            details={
+                "defender": defender_name,
+                "old_name": rename_result.get("previous_name"),
+                "new_name": rename_result.get("name"),
+                "rename_type": rename_type,
+                "pattern": rename_result.get("pattern"),
+                "region_display_name": target_region.display_name,
+                "region_reference": format_region_reference(target_region, include_code=True),
+            },
+            context={
+                "owner_before": defender_name,
+            },
+            impact={
+                "owner_after": faction_name,
+                "renamed": True,
+            },
+            tags=[
+                "naming",
+                "rename",
+                rename_type,
+            ],
+            significance=1.2 if rename_type == "restoration" else 1.0,
+        ))
 
     return succeeded
 

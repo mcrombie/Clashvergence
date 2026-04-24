@@ -1,11 +1,21 @@
 import argparse
 import json
+import os
 from pathlib import Path
+import random
 
+from src.calendar import (
+    TURNS_PER_YEAR,
+    format_snapshot_date,
+    format_snapshot_label,
+    format_turn_label,
+    format_turn_span,
+)
 from src.ai_interpretation import (
     AI_INTERPRETATION_MODEL,
     build_ai_interpretation_summary,
     generate_ai_interpretation,
+    is_ai_interpretation_enabled,
 )
 from src.world import create_world
 from src.simulation import run_simulation
@@ -42,6 +52,10 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
     lines.append("")
     lines.append(f"Map: {map_name}")
     lines.append(f"Turns: {num_turns}")
+    lines.append(f"Calendar: {TURNS_PER_YEAR} turns per year (Spring, Summer, Autumn, Winter)")
+    lines.append(f"Duration: {format_turn_span(num_turns)}")
+    if getattr(world, "random_seed", None) is not None:
+        lines.append(f"Seed: {world.random_seed}")
     lines.append(f"Regions: {len(world.regions)}")
     lines.append(f"Factions: {len(world.factions)}")
     lines.append(f"Starting Population: {sum(region.population for region in world.regions.values())}")
@@ -71,6 +85,7 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
 
 def format_event(event, world):
     """Formats one simulation event for the results report."""
+    time_label = format_turn_label(event["turn"])
     region_reference = event.region
     faction_name = _get_faction_display_name(world, event.faction)
     counterpart_name = _get_faction_display_name(world, event.get("counterpart"))
@@ -83,7 +98,7 @@ def format_event(event, world):
 
     if event["type"] == "expand":
         return (
-            f"Turn {event['turn'] + 1}: {faction_name} expanded into {region_reference} "
+            f"{time_label}: {faction_name} expanded into {region_reference} "
             f"(score={event.get('score', 0)}, taxable={event.get('taxable_value', event.get('resources', 0))}, "
             f"neighbors={event.get('neighbors', 0)}, "
             f"unclaimed_neighbors={event.get('unclaimed_neighbors', 0)}, "
@@ -91,11 +106,11 @@ def format_event(event, world):
             f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
         )
 
-    if event["type"] == "invest":
+    if event["type"] in {"invest", "develop"}:
         project_type = event.get("project_type", "development").replace("_", " ")
         resource_focus = event.get("resource_focus")
         return (
-            f"Turn {event['turn'] + 1}: {faction_name} invested in {region_reference} "
+            f"{time_label}: {faction_name} invested in {region_reference} "
             f"(project={project_type}"
             f"{f', focus={resource_focus}' if resource_focus else ''}, "
             f"invest_amount={event.get('invest_amount', 0)}, "
@@ -106,7 +121,7 @@ def format_event(event, world):
         defender = _get_faction_display_name(world, event.get("defender")) if event.get("defender") else "Unknown"
         outcome = "captured" if event.get("success", False) else "failed against"
         return (
-            f"Turn {event['turn'] + 1}: {faction_name} attacked {defender} in {region_reference} "
+            f"{time_label}: {faction_name} attacked {defender} in {region_reference} "
             f"and {outcome} the region "
             f"(success_chance={event.get('success_chance', 0):.3f}, "
             f"attack_strength={event.get('attack_strength', 0)}, "
@@ -117,7 +132,7 @@ def format_event(event, world):
 
     if event["type"] == "income":
         return (
-            f"Turn {event['turn'] + 1}: {faction_name} collected base income "
+            f"{time_label}: {faction_name} collected base income "
             f"(base_income={event.get('base_income', event.get('income', 0))}, "
             f"owned_regions={event.get('owned_regions', 0)}, "
             f"treasury_after={event.get('treasury_after', 0)})"
@@ -125,7 +140,7 @@ def format_event(event, world):
 
     if event["type"] == "empire_scale":
         return (
-            f"Turn {event['turn'] + 1}: {faction_name} paid empire scale penalty "
+            f"{time_label}: {faction_name} paid empire scale penalty "
             f"(owned_regions={event.get('owned_regions', 0)}, "
             f"free_regions={event.get('empire_free_regions', 0)}, "
             f"scale_cost={event.get('empire_scale_cost', 0)}, "
@@ -136,7 +151,7 @@ def format_event(event, world):
 
     if event["type"] == "maintenance":
         return (
-            f"Turn {event['turn'] + 1}: {faction_name} paid maintenance "
+            f"{time_label}: {faction_name} paid maintenance "
             f"(maintenance={event.get('maintenance', 0)}, "
             f"owned_regions={event.get('owned_regions', 0)}, "
             f"net_income={event.get('net_income', 0)}, "
@@ -145,7 +160,7 @@ def format_event(event, world):
 
     if event["type"] == "unrest_disturbance":
         return (
-            f"Turn {event['turn'] + 1}: unrest disturbed {region_reference} under {faction_name} "
+            f"{time_label}: unrest disturbed {region_reference} under {faction_name} "
             f"(unrest={event.get('unrest', 0):.2f}, "
             f"duration={event.get('duration', 0)}, "
             f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
@@ -153,7 +168,7 @@ def format_event(event, world):
 
     if event["type"] == "unrest_crisis":
         return (
-            f"Turn {event['turn'] + 1}: crisis gripped {region_reference} under {faction_name} "
+            f"{time_label}: crisis gripped {region_reference} under {faction_name} "
             f"(unrest={event.get('unrest', 0):.2f}, "
             f"duration={event.get('duration', 0)}, "
             f"treasury_after={event.get('treasury_after', 0)}{terrain_text})"
@@ -161,7 +176,7 @@ def format_event(event, world):
 
     if event["type"] == "unrest_secession":
         return (
-            f"Turn {event['turn'] + 1}: {region_reference} seceded from {faction_name} "
+            f"{time_label}: {region_reference} seceded from {faction_name} "
             f"as {rebel_name} "
             f"(unrest={event.get('unrest', 0):.2f}, "
             f"new_resources={event.get('new_resources', 0)}{terrain_text})"
@@ -169,7 +184,7 @@ def format_event(event, world):
 
     if event["type"] == "rebel_independence":
         return (
-            f"Turn {event['turn'] + 1}: {faction_name} declared full independence "
+            f"{time_label}: {faction_name} declared full independence "
             f"from {origin_name} "
             f"(rebel_age={event.get('rebel_age', 0)}, "
             f"independence_score={event.get('independence_score', 0):.2f}, "
@@ -177,45 +192,56 @@ def format_event(event, world):
             f"treasury_after={event.get('treasury_after', 0)})"
         )
 
+    if event["type"] == "polity_advance":
+        return (
+            f"{time_label}: {faction_name} advanced from "
+            f"{event.get('old_polity_tier', 'lower order')} to {event.get('new_polity_tier', 'higher order')} "
+            f"as a {event.get('new_government_type', 'new government')} "
+            f"(population={event.get('population', 0)}, "
+            f"towns={event.get('town_regions', 0)}, "
+            f"cities={event.get('city_regions', 0)}, "
+            f"surplus={event.get('total_surplus', 0)})"
+        )
+
     if event["type"] == "diplomacy_rivalry":
         return (
-            f"Turn {event['turn'] + 1}: {faction_name} and {counterpart_name} "
+            f"{time_label}: {faction_name} and {counterpart_name} "
             f"became rivals (score={event.get('score', 0):.2f})"
         )
 
     if event["type"] == "diplomacy_pact":
         return (
-            f"Turn {event['turn'] + 1}: {faction_name} and {counterpart_name} "
+            f"{time_label}: {faction_name} and {counterpart_name} "
             f"entered a non-aggression pact (score={event.get('score', 0):.2f})"
         )
 
     if event["type"] == "diplomacy_alliance":
         return (
-            f"Turn {event['turn'] + 1}: {faction_name} and {counterpart_name} "
+            f"{time_label}: {faction_name} and {counterpart_name} "
             f"formed an alliance (score={event.get('score', 0):.2f})"
         )
 
     if event["type"] == "diplomacy_truce":
         return (
-            f"Turn {event['turn'] + 1}: {faction_name} and {counterpart_name} "
+            f"{time_label}: {faction_name} and {counterpart_name} "
             f"entered a truce for {event.get('duration', 0)} turn(s)"
         )
 
     if event["type"] == "diplomacy_truce_end":
         return (
-            f"Turn {event['turn'] + 1}: the truce between {faction_name} and "
+            f"{time_label}: the truce between {faction_name} and "
             f"{counterpart_name} expired "
             f"(new_status={event.get('new_status', 'neutral')}, score={event.get('score', 0):.2f})"
         )
 
     if event["type"] == "diplomacy_break":
         return (
-            f"Turn {event['turn'] + 1}: {faction_name} and {counterpart_name} "
+            f"{time_label}: {faction_name} and {counterpart_name} "
             f"broke their {event.get('previous_status', 'diplomatic')} relationship "
             f"(score={event.get('score', 0):.2f})"
         )
 
-    return f"Turn {event['turn'] + 1}: {event}"
+    return f"{time_label}: {event}"
 
 
 def build_results_report(world, map_name, num_turns, starting_treasuries):
@@ -236,21 +262,21 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
     treasury_lead = competition["largest_treasury_lead"]
     if treasury_lead["leader"] is not None:
         lines.append(
-            f"Largest treasury lead: turn {treasury_lead['turn']}, "
+            f"Largest treasury lead: {format_snapshot_date(treasury_lead['turn'])}, "
             f"{treasury_lead['leader']} by {treasury_lead['margin']} over {treasury_lead['runner_up']}"
         )
 
     region_lead = competition["largest_region_lead"]
     if region_lead["leader"] is not None:
         lines.append(
-            f"Largest region lead: turn {region_lead['turn']}, "
+            f"Largest region lead: {format_snapshot_date(region_lead['turn'])}, "
             f"{region_lead['leader']} by {region_lead['margin']} over {region_lead['runner_up']}"
         )
 
     runaway = competition["runaway"]
     if runaway["detected"]:
         lines.append(
-            f"Runaway: yes, {runaway['winner']} took an uncontested treasury lead for good on turn {runaway['start_turn']}."
+            f"Runaway: yes, {runaway['winner']} took an uncontested treasury lead for good by {format_snapshot_date(runaway['start_turn'])}."
         )
     else:
         lines.append("Runaway: no decisive permanent treasury lead.")
@@ -260,11 +286,11 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
         lines.append(
             f"Comeback: {'yes' if comeback['detected'] else 'no'}, "
             f"{comeback['winner']} faced a max treasury deficit of {comeback['max_deficit_overcome']} "
-            f"and trailed by {comeback['midpoint_deficit']} at midpoint turn {comeback['midpoint_turn']}."
+            f"and trailed by {comeback['midpoint_deficit']} at {format_snapshot_date(comeback['midpoint_turn'])}."
         )
 
     eliminated = [
-        f"{faction_name} on turn {data['turn']}"
+        f"{faction_name} by {format_snapshot_date(data['turn'])}"
         for faction_name, data in competition["eliminations"].items()
         if data["eliminated"]
     ]
@@ -317,7 +343,7 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
     lines.append("")
 
     for snapshot in get_metrics_log(world):
-        lines.append(f"Turn {snapshot['turn']}")
+        lines.append(format_snapshot_label(snapshot["turn"]))
         for faction_name, faction_metrics in snapshot["factions"].items():
             lines.append(
                 f"  {faction_name}: treasury={faction_metrics['treasury']}, "
@@ -366,6 +392,16 @@ def parse_args():
         help="Number of factions to include in the simulation.",
     )
     parser.add_argument(
+        "--seed",
+        help="Optional run seed for reproducible world generation, naming, and simulation outcomes.",
+    )
+    parser.add_argument(
+        "--ai-narrative",
+        choices=["auto", "on", "off"],
+        default="auto",
+        help="Whether to use the OpenAI API for interpretive narrative generation.",
+    )
+    parser.add_argument(
         "--map-lab",
         action="store_true",
         help="Write the standalone dynamic map generator UI and exit.",
@@ -405,7 +441,17 @@ def build_map_generation_overrides(args):
         value = getattr(args, attribute_name, None)
         if value is not None:
             overrides[config_name] = value
+    if "seed" not in overrides and getattr(args, "seed", None) is not None:
+        overrides["seed"] = args.seed
     return overrides or None
+
+
+def should_generate_ai_narrative(args) -> bool:
+    if args.ai_narrative == "on":
+        return True
+    if args.ai_narrative == "off":
+        return False
+    return is_ai_interpretation_enabled()
 
 
 def main():
@@ -418,13 +464,17 @@ def main():
     map_name = args.map_name
     num_turns = args.num_turns
     num_factions = args.num_factions
+    seed = args.seed
     map_generation_config = build_map_generation_overrides(args)
+    if seed is not None:
+        random.seed(seed)
 
     try:
         world = create_world(
             map_name=map_name,
             num_factions=num_factions,
             map_generation_config=map_generation_config,
+            seed=seed,
         )
     except ValueError as error:
         raise SystemExit(f"Error: {error}") from error
@@ -453,20 +503,40 @@ def main():
     with open(AI_INTERPRETIVE_INPUT_OUTPUT, "w", encoding="utf-8") as file:
         json.dump(ai_summary, file, indent=2, ensure_ascii=True)
 
-    ai_narrative = generate_ai_interpretation(ai_summary, strict=True)
-    ai_lines = [
-        "Interpretive Narrative",
-        "",
-        f"Model: {AI_INTERPRETATION_MODEL}",
-        "",
-        ai_narrative,
-    ]
-    with open(AI_INTERPRETIVE_NARRATIVE_OUTPUT, "w", encoding="utf-8") as file:
-        file.write("\n".join(ai_lines).rstrip() + "\n")
+    ai_narrative = None
+    ai_narrative_requested = should_generate_ai_narrative(args)
+    if ai_narrative_requested:
+        if not os.getenv("OPENAI_API_KEY"):
+            raise SystemExit(
+                "Error: AI narrative generation requires OPENAI_API_KEY when --ai-narrative is on."
+            )
+        ai_narrative = generate_ai_interpretation(
+            ai_summary,
+            strict=True,
+            enabled_override=True,
+        )
+        ai_lines = [
+            "Interpretive Narrative",
+            "",
+            f"Model: {AI_INTERPRETATION_MODEL}",
+            "",
+            ai_narrative,
+        ]
+        with open(AI_INTERPRETIVE_NARRATIVE_OUTPUT, "w", encoding="utf-8") as file:
+            file.write("\n".join(ai_lines).rstrip() + "\n")
 
     simulation_view_output = write_simulation_html(world)
     print(f"\nSimulation viewer written to {simulation_view_output}")
-    print(f"AI interpretive narrative written to {AI_INTERPRETIVE_NARRATIVE_OUTPUT}")
+    if ai_narrative is not None:
+        print(f"AI interpretive narrative written to {AI_INTERPRETIVE_NARRATIVE_OUTPUT}")
+    else:
+        if args.ai_narrative == "off":
+            print("AI interpretive narrative skipped because --ai-narrative is off.")
+        else:
+            print(
+                "AI interpretive narrative skipped because "
+                "CLASHVERGENCE_ENABLE_AI_INTERPRETATION is disabled or OPENAI_API_KEY is missing."
+            )
 
 
 if __name__ == "__main__":

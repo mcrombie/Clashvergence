@@ -50,12 +50,28 @@ class FactionNamingTests(unittest.TestCase):
         self.assertEqual(len(second_names), len(set(second_names)))
         self.assertNotEqual(first_names, second_names)
 
+    def test_world_creation_is_deterministic_for_same_explicit_seed(self):
+        first = create_world(map_name="thirteen_region_ring", num_factions=4, seed="repeatable-seed")
+        second = create_world(map_name="thirteen_region_ring", num_factions=4, seed="repeatable-seed")
+
+        self.assertEqual(list(first.factions), list(second.factions))
+        first_region_names = {name: region.display_name for name, region in first.regions.items()}
+        second_region_names = {name: region.display_name for name, region in second.regions.items()}
+        self.assertEqual(first_region_names, second_region_names)
+
+    def test_world_creation_varies_for_different_explicit_seeds(self):
+        first = create_world(map_name="thirteen_region_ring", num_factions=4, seed="seed-a")
+        second = create_world(map_name="thirteen_region_ring", num_factions=4, seed="seed-b")
+
+        self.assertNotEqual(list(first.factions), list(second.factions))
+
     def test_generated_schema_contains_future_facing_identity_fields(self):
         identities = generate_faction_identities(4, naming_seed="thirteen_region_ring")
 
         for index, identity in enumerate(identities, start=1):
             self.assertEqual(identity.internal_id, f"Faction{index}")
             self.assertTrue(identity.culture_name)
+            self.assertTrue(identity.language_profile.family_name)
             self.assertEqual(identity.polity_tier, "tribe")
             self.assertEqual(identity.government_form, "council")
             self.assertEqual(identity.government_type, "Tribe")
@@ -63,6 +79,32 @@ class FactionNamingTests(unittest.TestCase):
             self.assertTrue(identity.source_traditions)
             self.assertIn(identity.generation_method, {"curated_source_fusion", "ai_fused_sources"})
             self.assertTrue(identity.candidate_pool)
+            self.assertIn("settlement", identity.language_profile.lexical_roots)
+            self.assertTrue(identity.language_profile.lexical_roots["settlement"])
+            self.assertIn("dynasty", identity.language_profile.lexical_roots)
+
+    def test_world_specific_proto_language_families_are_shared_across_some_factions(self):
+        identities = generate_faction_identities(6, naming_seed="proto_family_case")
+
+        family_names = [identity.language_profile.family_name for identity in identities]
+        unique_families = set(family_names)
+
+        self.assertGreater(len(unique_families), 1)
+        self.assertLess(len(unique_families), len(identities))
+        for identity in identities:
+            self.assertIn(identity.language_profile.family_name, family_names)
+            self.assertTrue(identity.language_profile.onsets)
+            self.assertTrue(identity.language_profile.suffixes)
+            self.assertTrue(identity.language_profile.lexical_roots)
+
+    def test_world_specific_proto_language_families_vary_by_seed(self):
+        first = generate_faction_identities(6, naming_seed="proto_family_seed_a")
+        second = generate_faction_identities(6, naming_seed="proto_family_seed_b")
+
+        first_families = [identity.language_profile.family_name for identity in first]
+        second_families = [identity.language_profile.family_name for identity in second]
+
+        self.assertNotEqual(first_families, second_families)
 
     def test_legacy_government_labels_infer_structure(self):
         identity = FactionIdentity(

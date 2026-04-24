@@ -169,6 +169,7 @@ class LanguageProfile:
     middles: list[str] = field(default_factory=list)
     suffixes: list[str] = field(default_factory=list)
     seed_fragments: list[str] = field(default_factory=list)
+    lexical_roots: dict[str, list[str]] = field(default_factory=dict)
     style_notes: list[str] = field(default_factory=list)
 
 

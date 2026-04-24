@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import re
 
+from src.calendar import get_snapshot_season_name, get_snapshot_year
 from src.metrics import analyze_competition_metrics
 from src.narrative import (
     summarize_faction_epilogues,
@@ -144,9 +145,10 @@ No headings, no bullets, no JSON.
 """
 
 
-def is_ai_interpretation_enabled():
+def is_ai_interpretation_enabled(*, enabled_override: bool | None = None):
     """Returns whether AI interpretation is enabled and configured."""
-    return AI_INTERPRETATION_ENABLED and bool(os.getenv("OPENAI_API_KEY"))
+    enabled = AI_INTERPRETATION_ENABLED if enabled_override is None else enabled_override
+    return enabled and bool(os.getenv("OPENAI_API_KEY"))
 
 
 def _display_name(world, faction_name: str | None) -> str | None:
@@ -279,7 +281,9 @@ def _build_world_identity(world) -> dict:
 
 
 def _year_label(world_identity: dict, turn_one_based: int) -> str:
-    return f"Year {max(1, int(turn_one_based))} of the {world_identity['calendar_name']}"
+    year = get_snapshot_year(turn_one_based)
+    season = get_snapshot_season_name(turn_one_based)
+    return f"{season} of Year {year} in the {world_identity['calendar_name']}"
 
 
 def _faction_narrative_name(world, faction_name: str | None) -> str | None:
@@ -1005,7 +1009,7 @@ def build_ai_interpretation_summary(world, *, map_name: str | None = None, num_t
         "early_phase_years": f"{_year_label(world_identity, 1)} to {_year_label(world_identity, max(1, int((num_turns or world.turn) // 3)))}",
         "mid_phase_years": f"{_year_label(world_identity, max(1, int((num_turns or world.turn) // 3) + 1))} to {_year_label(world_identity, max(1, int((2 * (num_turns or world.turn)) // 3)))}",
         "late_phase_years": f"{_year_label(world_identity, max(1, int((2 * (num_turns or world.turn)) // 3) + 1))} to {_year_label(world_identity, max(1, int(num_turns or world.turn)))}",
-        "turn_to_year_note": "Treat each simulation turn as one year in the supplied reckoning unless the data specifically needs turn notation.",
+        "turn_to_year_note": "Treat each simulation turn as one season in the supplied reckoning: Spring, Summer, Autumn, then Winter. Four turns make one year.",
     }
 
     return {
@@ -1061,9 +1065,10 @@ def _generate_ai_paragraph(
     max_output_tokens: int,
     *,
     strict: bool = False,
+    enabled_override: bool | None = None,
 ) -> str | None:
     """Returns one AI-written paragraph for the provided summary and prompt."""
-    if not is_ai_interpretation_enabled():
+    if not is_ai_interpretation_enabled(enabled_override=enabled_override):
         if strict:
             raise RuntimeError(
                 "AI interpretation is not enabled. Set CLASHVERGENCE_ENABLE_AI_INTERPRETATION=1 and provide OPENAI_API_KEY."
@@ -1104,13 +1109,19 @@ def _generate_ai_paragraph(
         return None
 
 
-def generate_ai_interpretation(summary: dict, *, strict: bool = False) -> str | None:
+def generate_ai_interpretation(
+    summary: dict,
+    *,
+    strict: bool = False,
+    enabled_override: bool | None = None,
+) -> str | None:
     """Returns an AI-written interpretation paragraph for one compact summary."""
     return _generate_ai_paragraph(
         summary=summary,
         system_prompt=AI_INTERPRETATION_SYSTEM_PROMPT,
         max_output_tokens=AI_INTERPRETATION_MAX_OUTPUT_TOKENS,
         strict=strict,
+        enabled_override=enabled_override,
     )
 
 

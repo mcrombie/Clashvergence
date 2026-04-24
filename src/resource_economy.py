@@ -3,6 +3,10 @@ from __future__ import annotations
 from heapq import heappop, heappush
 from math import ceil
 
+from src.calendar import (
+    SEASONAL_FOOD_CONSUMPTION_SHARES,
+    SEASONAL_FOOD_PRODUCTION_SHARES,
+)
 from src.config import (
     ADMIN_MAINTENANCE_AUTONOMY_FACTOR,
     ADMIN_MAINTENANCE_EFFICIENCY_FACTOR,
@@ -3043,7 +3047,9 @@ def update_faction_resource_economy(
         )
 
 
-def apply_turn_food_economy(world: WorldState) -> None:
+def apply_turn_food_economy(world: WorldState, *, season_name: str = "Spring") -> None:
+    production_share = SEASONAL_FOOD_PRODUCTION_SHARES.get(season_name, 0.25)
+    consumption_share = SEASONAL_FOOD_CONSUMPTION_SHARES.get(season_name, 0.25)
     for region in world.regions.values():
         ensure_region_food_state(region)
         if region.owner is None:
@@ -3058,12 +3064,15 @@ def apply_turn_food_economy(world: WorldState) -> None:
             continue
 
         food_produced = round(
-            region.resource_output.get(RESOURCE_GRAIN, 0.0)
-            + region.resource_output.get(RESOURCE_LIVESTOCK, 0.0)
-            + region.resource_output.get(RESOURCE_WILD_FOOD, 0.0),
+            (
+                region.resource_output.get(RESOURCE_GRAIN, 0.0)
+                + region.resource_output.get(RESOURCE_LIVESTOCK, 0.0)
+                + region.resource_output.get(RESOURCE_WILD_FOOD, 0.0)
+            )
+            * production_share,
             3,
         )
-        food_demand = get_region_food_demand(region)
+        food_demand = get_region_food_demand(region) * consumption_share
         food_storage_capacity = get_region_food_storage_capacity(region)
         food_stored = min(region.food_stored, food_storage_capacity)
         spoilage_rate = get_region_food_spoilage_rate(region) + get_faction_salt_preservation_modifier(

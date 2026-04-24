@@ -28,6 +28,7 @@ from src.resource_economy import (
 from src.heartland import (
     REBEL_CONFLICT_CIVIL_WAR,
     REBEL_CONFLICT_SECESSION,
+    apply_language_contact_borrowing,
     apply_unrest_secession,
     estimate_region_population,
     evolve_faction_succession_politics,
@@ -50,6 +51,7 @@ from src.heartland import (
     resolve_dynastic_succession,
     resolve_population_migration,
     resolve_unrest_events,
+    register_ethnicity,
     register_religion,
     refresh_administrative_state,
     seed_region_ethnicity,
@@ -61,7 +63,7 @@ from src.heartland import (
     update_region_integration,
 )
 from src.metrics import build_turn_metrics
-from src.models import Faction, FactionIdentity, Region, RelationshipState, WorldState
+from src.models import Faction, FactionIdentity, LanguageProfile, Region, RelationshipState, WorldState
 from src.simulation_ui import build_simulation_snapshots, build_simulation_view_model
 from src.simulation import get_faction_economy_snapshot
 from src.world import create_world
@@ -730,6 +732,91 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertGreater(world.regions["B"].refugee_inflow, 0)
         self.assertGreater(world.factions["FactionB"].refugee_inflow, 0)
         self.assertIn("Alpha", world.regions["B"].ethnic_composition)
+
+    def test_language_contact_borrowing_adopts_neighbor_features(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B"],
+                    owner="FactionA",
+                    resources=3,
+                    population=120,
+                    ethnic_composition={"Alpha": 120},
+                ),
+                "B": Region(
+                    name="B",
+                    neighbors=["A"],
+                    owner="FactionB",
+                    resources=3,
+                    population=120,
+                    ethnic_composition={"Beta": 120},
+                ),
+            },
+            factions={
+                "FactionA": Faction(
+                    name="FactionA",
+                    primary_ethnicity="Alpha",
+                    identity=FactionIdentity(
+                        internal_id="FactionA",
+                        culture_name="Alphic",
+                        language_profile=LanguageProfile(
+                            family_name="AlphaFamily",
+                            onsets=["al"],
+                            middles=["a"],
+                            suffixes=["ar"],
+                            seed_fragments=["alp"],
+                            lexical_roots={"settlement": ["alar"], "market": ["alven"]},
+                            style_notes=["alpha base"],
+                        ),
+                    ),
+                ),
+                "FactionB": Faction(
+                    name="FactionB",
+                    primary_ethnicity="Beta",
+                    identity=FactionIdentity(
+                        internal_id="FactionB",
+                        culture_name="Betic",
+                        language_profile=LanguageProfile(
+                            family_name="BetaFamily",
+                            onsets=["zor"],
+                            middles=["io"],
+                            suffixes=["vek"],
+                            seed_fragments=["zorv"],
+                            lexical_roots={"settlement": ["zorvek"], "river": ["iovek"]},
+                            style_notes=["beta base"],
+                        ),
+                    ),
+                ),
+            },
+            relationships={
+                ("FactionA", "FactionB"): RelationshipState(score=42.0, status="alliance"),
+            },
+        )
+        register_ethnicity(
+            world,
+            "Alpha",
+            language_family="AlphaFamily",
+            language_profile=deepcopy(world.factions["FactionA"].identity.language_profile),
+        )
+        register_ethnicity(
+            world,
+            "Beta",
+            language_family="BetaFamily",
+            language_profile=deepcopy(world.factions["FactionB"].identity.language_profile),
+        )
+
+        apply_language_contact_borrowing(world)
+
+        alpha_profile = world.ethnicities["Alpha"].language_profile
+        self.assertIn("borrowed from BetaFamily", alpha_profile.style_notes)
+        self.assertIn("zor", alpha_profile.onsets)
+        self.assertIn("vek", alpha_profile.suffixes)
+        self.assertIn("zorvek", alpha_profile.lexical_roots["settlement"])
+        self.assertEqual(
+            world.factions["FactionA"].identity.language_profile.onsets,
+            alpha_profile.onsets,
+        )
 
     def test_metrics_and_snapshots_expose_migration_state(self):
         world = WorldState(
@@ -1647,6 +1734,15 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertEqual(world.ethnicities[rebel_faction.primary_ethnicity].parent_ethnicity, parent_ethnicity)
         self.assertTrue(world.ethnicities[rebel_faction.primary_ethnicity].language_profile.onsets)
         self.assertTrue(rebel_faction.identity.language_profile.seed_fragments)
+        parent_language_profile = world.ethnicities[parent_ethnicity].language_profile
+        successor_language_profile = world.ethnicities[rebel_faction.primary_ethnicity].language_profile
+        self.assertEqual(successor_language_profile.family_name, parent_language_profile.family_name)
+        self.assertIn("successor shifts:", successor_language_profile.style_notes[-1])
+        self.assertTrue(
+            successor_language_profile.onsets != parent_language_profile.onsets
+            or successor_language_profile.suffixes != parent_language_profile.suffixes
+            or successor_language_profile.seed_fragments != parent_language_profile.seed_fragments
+        )
         self.assertEqual(get_region_dominant_ethnicity(region), rebel_faction.primary_ethnicity)
         self.assertGreater(region.ethnic_composition.get(rebel_faction.primary_ethnicity, 0), 0)
         self.assertGreater(region.ethnic_composition.get(parent_ethnicity, 0), 0)
@@ -1680,6 +1776,14 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertEqual(len(world.ethnicities), ethnicity_count_before + 1)
         self.assertEqual(world.events[-1].details["successor_ethnicity"], rebel_faction.primary_ethnicity)
         self.assertEqual(world.ethnicities[rebel_faction.primary_ethnicity].parent_ethnicity, parent_ethnicity)
+        self.assertEqual(
+            world.ethnicities[rebel_faction.primary_ethnicity].language_profile.family_name,
+            world.ethnicities[parent_ethnicity].language_profile.family_name,
+        )
+        self.assertIn(
+            "successor shifts:",
+            world.ethnicities[rebel_faction.primary_ethnicity].language_profile.style_notes[-1],
+        )
         self.assertEqual(rebel_faction.culture_name, rebel_faction.primary_ethnicity)
         self.assertNotEqual(rebel_faction.display_name, parent_faction.display_name)
         self.assertIn(rebel_faction.primary_ethnicity, rebel_faction.display_name)

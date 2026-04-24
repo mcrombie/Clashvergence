@@ -1,3 +1,4 @@
+from src.calendar import format_turn_date, get_turn_season_name, get_turn_year
 from src.diplomacy import get_faction_diplomacy_summary
 from src.heartland import refresh_administrative_state
 from src.region_state import get_region_core_status
@@ -214,6 +215,9 @@ def build_turn_metrics(world, economy_snapshot=None):
 
     return {
         "turn": world.turn + 1,
+        "year": get_turn_year(world.turn),
+        "season": get_turn_season_name(world.turn),
+        "date_label": format_turn_date(world.turn),
         "factions": faction_metrics,
     }
 

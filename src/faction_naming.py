@@ -109,6 +109,53 @@ REAL_NAME_BLOCKLIST = sorted({
     for normalized in tradition["seed_names"]
 })
 
+WORLD_LANGUAGE_SHIFT_SETS = {
+    "bright_vowels": (("a", "e"), ("o", "u")),
+    "round_vowels": (("e", "i"), ("a", "o")),
+    "soften_velars": (("k", "h"), ("g", "gh")),
+    "soften_stops": (("t", "s"), ("d", "z")),
+    "liquid_shift": (("r", "l"),),
+    "nasal_endings": (("an", "en"), ("on", "un")),
+    "open_endings": (("nd", "na"), ("nt", "ne"), ("or", "ora")),
+    "trim_endings": (("ara", "ar"), ("ium", "im"), ("ush", "ur")),
+}
+
+SEMANTIC_ROOT_DOMAINS = (
+    "settlement",
+    "river",
+    "forest",
+    "hill",
+    "plain",
+    "marsh",
+    "sea",
+    "border",
+    "market",
+    "fort",
+    "sacred",
+    "sun",
+    "ancestor",
+    "ruler",
+    "dynasty",
+)
+
+SEMANTIC_ROOT_PATTERNS = {
+    "settlement": ("compact", "fragment_tail"),
+    "river": ("flowing", "compact"),
+    "forest": ("leafy", "compact"),
+    "hill": ("stone", "compact"),
+    "plain": ("open", "compact"),
+    "marsh": ("flowing", "fragment_tail"),
+    "sea": ("open", "fragment_tail"),
+    "border": ("hard", "compact"),
+    "market": ("compact", "open"),
+    "fort": ("hard", "fragment_tail"),
+    "sacred": ("open", "fragment_tail"),
+    "sun": ("open", "compact"),
+    "ancestor": ("fragment_tail", "compact"),
+    "ruler": ("hard", "compact"),
+    "dynasty": ("fragment_tail", "open"),
+}
+
 AI_FACTION_NAMING_SYSTEM_PROMPT = """You create one original alternative-history culture name inspired by ancient primary-source naming traditions.
 
 Rules:
@@ -277,10 +324,252 @@ def _generate_source_fused_candidate(index: int, naming_seed: str, attempt: int 
     return _tidy_candidate(candidate), [first_key, second_key], [seed_a, seed_b]
 
 
+def _normalize_family_count(num_factions: int) -> int:
+    if num_factions <= 1:
+        return 1
+    return max(2, min(num_factions, 2 + (num_factions // 3)))
+
+
+def _apply_replacements(value: str, replacements: tuple[tuple[str, str], ...]) -> str:
+    normalized = _normalize_name(value)
+    if not normalized:
+        return normalized
+    for source, target in replacements:
+        normalized = normalized.replace(source, target)
+    return _clean_letter_transitions(normalized)
+
+
+def _mutate_family_pool(
+    values: list[str],
+    replacements: tuple[tuple[str, str], ...],
+    *,
+    limit: int,
+    minimum_length: int,
+    maximum_length: int,
+) -> list[str]:
+    mutated: list[str] = []
+    for value in values:
+        changed = _apply_replacements(value, replacements)
+        if minimum_length <= len(changed) <= maximum_length:
+            mutated.append(changed)
+        normalized = _normalize_name(value)
+        if minimum_length <= len(normalized) <= maximum_length:
+            mutated.append(normalized)
+    return _dedupe_preserving_order(mutated)[:limit]
+
+
+def _build_semantic_root_token(
+    family: dict,
+    concept: str,
+    *,
+    variant_index: int,
+    naming_seed: str,
+) -> str:
+    rng = _stable_random(
+        f"{naming_seed}:semantic_root:{family['family_name']}:{concept}:{variant_index}"
+    )
+    onsets = family["onsets"] or ["al", "dar", "nor"]
+    middles = family["middles"] or ["a", "e", "ia"]
+    suffixes = family["suffixes"] or ["an", "ar", "or"]
+    fragments = family["seed_fragments"] or _extract_seed_fragments(family["family_name"])
+    pattern = rng.choice(SEMANTIC_ROOT_PATTERNS.get(concept, ("compact",)))
+    onset = rng.choice(onsets)
+    middle = rng.choice(middles)
+    suffix = rng.choice(suffixes)
+    fragment = rng.choice(fragments)
+
+    if pattern == "fragment_tail":
+        token = (
+            fragment[: max(2, min(4, len(fragment)))]
+            + middle
+            + suffix[-max(2, min(3, len(suffix))):]
+        )
+    elif pattern == "flowing":
+        token = onset[: max(2, min(3, len(onset)))] + middle + fragment[-max(2, min(4, len(fragment))):]
+    elif pattern == "leafy":
+        token = fragment[: max(2, min(3, len(fragment)))] + middle + suffix[: max(2, min(3, len(suffix)))]
+    elif pattern == "stone":
+        token = onset + fragment[max(1, len(fragment) // 3): max(3, len(fragment) // 3 + 3)]
+    elif pattern == "open":
+        token = onset[: max(1, min(2, len(onset)))] + middle + suffix
+    elif pattern == "hard":
+        token = onset + suffix
+    else:
+        token = onset[: max(2, min(3, len(onset)))] + middle + suffix[: max(2, min(3, len(suffix)))]
+
+    normalized = _clean_letter_transitions(token)
+    if len(normalized) < 3:
+        normalized = _clean_letter_transitions(normalized + suffix)
+    return normalized[:8]
+
+
+def _build_family_lexical_roots(family: dict, naming_seed: str) -> dict[str, list[str]]:
+    lexical_roots: dict[str, list[str]] = {}
+    for concept in SEMANTIC_ROOT_DOMAINS:
+        roots: list[str] = []
+        for variant_index in range(2):
+            token = _build_semantic_root_token(
+                family,
+                concept,
+                variant_index=variant_index,
+                naming_seed=naming_seed,
+            )
+            if token:
+                roots.append(token)
+        lexical_roots[concept] = _dedupe_preserving_order(roots)[:2]
+    return lexical_roots
+
+
+def _build_proto_language_family(
+    family_index: int,
+    naming_seed: str,
+    existing_family_names: list[str],
+) -> dict:
+    family_name, traditions, inspirations, candidate_pool = _generate_deterministic_culture_name(
+        index=family_index + 97,
+        naming_seed=f"{naming_seed}:proto_family",
+        existing_names=existing_family_names,
+    )
+    rng = _stable_random(f"{naming_seed}:proto_family:{family_index}:{family_name}")
+    shift_keys = sorted(WORLD_LANGUAGE_SHIFT_SETS)
+    first_shift = shift_keys[(family_index + rng.randint(0, len(shift_keys) - 1)) % len(shift_keys)]
+    second_shift = shift_keys[(family_index + 2 + rng.randint(0, len(shift_keys) - 1)) % len(shift_keys)]
+    if second_shift == first_shift:
+        second_shift = shift_keys[(shift_keys.index(first_shift) + 1) % len(shift_keys)]
+    selected_shift_keys = [first_shift, second_shift]
+    replacements = tuple(
+        pair
+        for shift_key in selected_shift_keys
+        for pair in WORLD_LANGUAGE_SHIFT_SETS[shift_key]
+    )
+
+    tradition_onsets: list[str] = []
+    tradition_middles: list[str] = []
+    tradition_suffixes: list[str] = []
+    tradition_seeds: list[str] = []
+    style_notes: list[str] = []
+    for tradition_key in traditions:
+        tradition = SOURCE_TRADITIONS[tradition_key]
+        tradition_onsets.extend(tradition["onsets"][:10])
+        tradition_middles.extend(tradition["middles"][:10])
+        tradition_suffixes.extend(tradition["suffixes"][:10])
+        tradition_seeds.extend(tradition["seed_names"][:8])
+        style_notes.append(tradition["label"])
+
+    family_fragments = _extract_seed_fragments(family_name)
+    family_onsets = _mutate_family_pool(
+        tradition_onsets + family_fragments,
+        replacements,
+        limit=14,
+        minimum_length=2,
+        maximum_length=5,
+    )
+    family_middles = _mutate_family_pool(
+        tradition_middles + family_fragments,
+        replacements,
+        limit=14,
+        minimum_length=1,
+        maximum_length=4,
+    )
+    family_suffixes = _mutate_family_pool(
+        tradition_suffixes + family_fragments,
+        replacements,
+        limit=14,
+        minimum_length=2,
+        maximum_length=5,
+    )
+    family_seed_fragments = _dedupe_preserving_order(
+        [
+            *_extract_seed_fragments(family_name),
+            *[_apply_replacements(seed_name, replacements) for seed_name in tradition_seeds],
+            *[_apply_replacements(seed_name, replacements) for seed_name in inspirations],
+            *[_apply_replacements(seed_name, replacements) for seed_name in candidate_pool[:4]],
+        ]
+    )[:18]
+    provisional_family = {
+        "family_name": family_name,
+        "onsets": family_onsets or ["al", "ar", "bel", "dar"],
+        "middles": family_middles or ["a", "e", "ia", "or"],
+        "suffixes": family_suffixes or ["an", "ar", "en", "or"],
+        "seed_fragments": family_seed_fragments or _extract_seed_fragments(family_name),
+    }
+
+    return {
+        "family_name": family_name,
+        "traditions": traditions,
+        "inspirations": inspirations,
+        "candidate_pool": candidate_pool[:8],
+        "onsets": provisional_family["onsets"],
+        "middles": provisional_family["middles"],
+        "suffixes": provisional_family["suffixes"],
+        "seed_fragments": provisional_family["seed_fragments"],
+        "lexical_roots": _build_family_lexical_roots(provisional_family, naming_seed),
+        "style_notes": style_notes[:4],
+        "shift_keys": selected_shift_keys,
+    }
+
+
+def _generate_world_language_families(num_factions: int, naming_seed: str) -> list[dict]:
+    family_count = _normalize_family_count(num_factions)
+    families: list[dict] = []
+    existing_family_names: list[str] = []
+    for family_index in range(family_count):
+        family = _build_proto_language_family(
+            family_index,
+            naming_seed,
+            existing_family_names,
+        )
+        families.append(family)
+        existing_family_names.append(family["family_name"])
+    return families
+
+
+def _get_assigned_language_family(index: int, families: list[dict], naming_seed: str) -> dict:
+    if not families:
+        raise ValueError("Expected at least one language family.")
+    if len(families) == 1:
+        return families[0]
+    rng = _stable_random(f"{naming_seed}:family_assignment:{index}")
+    base_position = (index - 1) % len(families)
+    offset = rng.randint(0, min(1, len(families) - 1))
+    return families[(base_position + offset) % len(families)]
+
+
+def _generate_family_candidate(
+    index: int,
+    naming_seed: str,
+    family: dict,
+    attempt: int = 0,
+) -> tuple[str, list[str], list[str]]:
+    rng = _stable_random(f"{naming_seed}:family_candidate:{family['family_name']}:{index}:{attempt}")
+    family_fragments = family["seed_fragments"] or _extract_seed_fragments(family["family_name"])
+    onset = rng.choice(family["onsets"])
+    middle = rng.choice(family["middles"])
+    suffix = rng.choice(family["suffixes"])
+    fragment_a = rng.choice(family_fragments)
+    fragment_b = rng.choice(family_fragments)
+    pattern = rng.choice(("family_root", "fragment_compound", "proto_echo", "softened_lineage"))
+
+    if pattern == "family_root":
+        candidate = onset + middle + suffix
+    elif pattern == "fragment_compound":
+        candidate = fragment_a[: rng.randint(2, len(fragment_a))] + middle + fragment_b[-max(2, min(4, len(fragment_b))):]
+    elif pattern == "proto_echo":
+        proto_root = _normalize_name(family["family_name"])
+        candidate = proto_root[: max(2, min(4, len(proto_root)))] + middle + suffix
+    else:
+        proto_root = _normalize_name(family["family_name"])
+        candidate = onset + proto_root[max(1, len(proto_root) // 3): max(3, len(proto_root) // 3 + 3)] + suffix
+
+    if rng.random() < 0.4:
+        candidate += rng.choice(["a", "e", "i", "o", "an", "en", "ar", "or"])
+
+    return _tidy_candidate(candidate), list(family["traditions"]), list(family["inspirations"])
+
+
 def _build_language_profile(
     culture_name: str,
-    traditions: list[str],
-    inspirations: list[str],
+    family: dict,
     candidate_pool: list[str],
 ) -> LanguageProfile:
     onsets: list[str] = []
@@ -289,14 +578,12 @@ def _build_language_profile(
     seed_fragments: list[str] = []
     style_notes: list[str] = []
 
-    for tradition_key in traditions:
-        tradition = SOURCE_TRADITIONS[tradition_key]
-        onsets.extend(tradition["onsets"][:8])
-        middles.extend(tradition["middles"][:8])
-        suffixes.extend(tradition["suffixes"][:8])
-        style_notes.append(tradition["label"])
+    onsets.extend(family["onsets"][:12])
+    middles.extend(family["middles"][:12])
+    suffixes.extend(family["suffixes"][:12])
+    style_notes.extend(family["style_notes"][:4])
 
-    for seed_name in inspirations + candidate_pool[:4] + [culture_name]:
+    for seed_name in family["inspirations"] + family["candidate_pool"][:4] + candidate_pool[:4] + [family["family_name"], culture_name]:
         seed_fragments.extend(_extract_seed_fragments(seed_name))
 
     normalized_culture = _normalize_name(culture_name)
@@ -304,12 +591,31 @@ def _build_language_profile(
         onsets.append(normalized_culture[:3])
         suffixes.append(normalized_culture[-3:])
 
+    lexical_roots = {
+        concept: _dedupe_preserving_order(
+            list(family.get("lexical_roots", {}).get(concept, []))
+        )[:2]
+        for concept in SEMANTIC_ROOT_DOMAINS
+    }
+    culture_fragments = _extract_seed_fragments(culture_name)
+    culture_extensions = {
+        "ruler": culture_fragments[:1],
+        "dynasty": culture_fragments[-1:],
+        "ancestor": culture_fragments[:1],
+        "settlement": culture_fragments[-1:],
+    }
+    for concept, extra_roots in culture_extensions.items():
+        lexical_roots[concept] = _dedupe_preserving_order(
+            lexical_roots.get(concept, []) + extra_roots
+        )[:3]
+
     return LanguageProfile(
-        family_name=culture_name,
+        family_name=family["family_name"],
         onsets=_dedupe_preserving_order(onsets)[:12],
         middles=_dedupe_preserving_order(middles)[:12],
         suffixes=_dedupe_preserving_order(suffixes)[:12],
         seed_fragments=_dedupe_preserving_order(seed_fragments)[:16],
+        lexical_roots=lexical_roots,
         style_notes=style_notes[:4],
     )
 
@@ -402,6 +708,41 @@ def _generate_deterministic_culture_name(index: int, naming_seed: str, existing_
     return fallback, fallback_traditions, fallback_inspirations, [fallback]
 
 
+def _generate_family_scoped_culture_name(
+    index: int,
+    naming_seed: str,
+    family: dict,
+    existing_names: list[str],
+) -> tuple[str, list[str], list[str], list[str]]:
+    blocked = REAL_NAME_BLOCKLIST + existing_names + [family["family_name"]]
+    candidates: list[tuple[float, str, list[str], list[str]]] = []
+
+    for attempt in range(48):
+        candidate, traditions, inspirations = _generate_family_candidate(
+            index,
+            naming_seed,
+            family,
+            attempt=attempt,
+        )
+        if _is_too_similar(candidate, blocked):
+            continue
+        candidates.append((
+            _score_candidate_quality(candidate),
+            candidate,
+            traditions,
+            inspirations,
+        ))
+
+    if candidates:
+        candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+        _best_score, best_candidate, traditions, inspirations = candidates[0]
+        candidate_pool = [candidate for _score, candidate, _traditions, _inspirations in candidates[:8]]
+        return best_candidate, traditions, inspirations, candidate_pool
+
+    fallback = _tidy_candidate(f"{family['family_name']}{chr(65 + (index - 1) % 26)}")
+    return fallback, list(family["traditions"]), list(family["inspirations"]), [fallback]
+
+
 def _validate_ai_candidate(candidate: str, blocked_names: list[str]) -> str | None:
     cleaned = re.sub(r"[^A-Za-z]", "", candidate or "")
     if not cleaned:
@@ -423,7 +764,16 @@ def _passes_ai_quality_gate(candidate: str, fallback_candidate: str) -> bool:
     return ai_score >= minimum_ai_score and ai_score >= relative_floor
 
 
-def _generate_ai_culture_name(index: int, naming_seed: str, blocked_names: list[str], candidate_pool: list[str], traditions: list[str], fallback_candidate: str) -> str | None:
+def _generate_ai_culture_name(
+    index: int,
+    naming_seed: str,
+    blocked_names: list[str],
+    candidate_pool: list[str],
+    traditions: list[str],
+    fallback_candidate: str,
+    *,
+    family: dict | None = None,
+) -> str | None:
     if not is_ai_faction_naming_enabled():
         return None
 
@@ -441,6 +791,8 @@ def _generate_ai_culture_name(index: int, naming_seed: str, blocked_names: list[
                 "faction_index": index,
                 "naming_seed": naming_seed,
                 "attempt": attempt + 1,
+                "language_family": family["family_name"] if family is not None else None,
+                "family_shift_profile": family["shift_keys"] if family is not None else [],
                 "traditions": [SOURCE_TRADITIONS[key]["label"] for key in traditions],
                 "candidate_pool": candidate_pool[:6],
                 "fallback_candidate": fallback_candidate,
@@ -476,11 +828,22 @@ def _generate_ai_culture_name(index: int, naming_seed: str, blocked_names: list[
     return None
 
 
-def generate_faction_identity(index: int, naming_seed: str = "default", existing_culture_names: list[str] | None = None) -> FactionIdentity:
+def generate_faction_identity(
+    index: int,
+    naming_seed: str = "default",
+    existing_culture_names: list[str] | None = None,
+    language_families: list[dict] | None = None,
+) -> FactionIdentity:
     existing_culture_names = existing_culture_names or []
-    culture_name, traditions, inspirations, candidate_pool = _generate_deterministic_culture_name(
+    assigned_family = _get_assigned_language_family(
+        index,
+        language_families or _generate_world_language_families(max(1, index), naming_seed),
+        naming_seed,
+    )
+    culture_name, traditions, inspirations, candidate_pool = _generate_family_scoped_culture_name(
         index=index,
         naming_seed=naming_seed,
+        family=assigned_family,
         existing_names=existing_culture_names,
     )
     blocked = REAL_NAME_BLOCKLIST + existing_culture_names
@@ -491,12 +854,12 @@ def generate_faction_identity(index: int, naming_seed: str = "default", existing
         candidate_pool=candidate_pool,
         traditions=traditions,
         fallback_candidate=culture_name,
+        family=assigned_family,
     )
     final_culture_name = ai_candidate or culture_name
     language_profile = _build_language_profile(
         final_culture_name,
-        traditions,
-        inspirations,
+        assigned_family,
         candidate_pool,
     )
     return FactionIdentity(
@@ -505,10 +868,10 @@ def generate_faction_identity(index: int, naming_seed: str = "default", existing
         polity_tier=DEFAULT_POLITY_TIER,
         government_form=DEFAULT_GOVERNMENT_FORM,
         language_profile=language_profile,
-        source_traditions=traditions,
+        source_traditions=list(assigned_family["traditions"]),
         generation_method="ai_fused_sources" if ai_candidate else "curated_source_fusion",
         ai_generated=bool(ai_candidate),
-        inspirations=inspirations,
+        inspirations=list(assigned_family["inspirations"]),
         candidate_pool=candidate_pool[:8],
     )
 
@@ -516,12 +879,14 @@ def generate_faction_identity(index: int, naming_seed: str = "default", existing
 def generate_faction_identities(num_factions: int, naming_seed: str = "default") -> list[FactionIdentity]:
     identities = []
     existing_culture_names: list[str] = []
+    language_families = _generate_world_language_families(num_factions, naming_seed)
 
     for index in range(1, num_factions + 1):
         identity = generate_faction_identity(
             index=index,
             naming_seed=naming_seed,
             existing_culture_names=existing_culture_names,
+            language_families=language_families,
         )
         identities.append(identity)
         existing_culture_names.append(identity.culture_name)

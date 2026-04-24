@@ -5,6 +5,15 @@ import json
 from collections import Counter
 from pathlib import Path
 
+from src.calendar import (
+    TURNS_PER_YEAR,
+    format_snapshot_date,
+    format_snapshot_label,
+    format_turn_date,
+    format_turn_label,
+    get_snapshot_season_name,
+    get_snapshot_year,
+)
 from src.event_analysis import (
     build_initial_opening_state,
     get_final_standings,
@@ -59,6 +68,26 @@ def _get_faction_display_name(world, faction_name: str | None) -> str:
     if faction is None:
         return faction_name
     return faction.display_name
+
+
+def summarize_region_name_layers(name_metadata: dict | None) -> list[str]:
+    layers = list((name_metadata or {}).get("name_layers", []))
+    summaries: list[str] = []
+    for layer in layers[-4:]:
+        name = layer.get("name")
+        layer_type = layer.get("type")
+        faction_name = layer.get("faction_name")
+        if not name or not layer_type:
+            continue
+        if layer_type == "founding":
+            summaries.append(f"Founded as {name} by {faction_name}.")
+        elif layer_type == "conquest":
+            summaries.append(f"Renamed to {name} under {faction_name}.")
+        elif layer_type == "restoration":
+            summaries.append(f"Restored as {name} by {faction_name}.")
+        else:
+            summaries.append(f"{name} ({layer_type})")
+    return summaries
 
 
 def _serialize_resource_map(resource_map):
@@ -162,6 +191,8 @@ def _build_region_resource_payload(region):
 def _serialize_event(event, world):
     event_data = event.to_dict()
     event_data["turn_display"] = event.turn + 1
+    event_data["date_label"] = format_turn_date(event.turn)
+    event_data["turn_label"] = format_turn_label(event.turn)
     event_data["faction_display_name"] = _get_faction_display_name(world, event.faction)
     event_data["counterpart_display_name"] = _get_faction_display_name(
         world,
@@ -223,6 +254,12 @@ def _get_event_title(event, world):
         if event.get("success", False):
             return f"{faction_name} captured {region_reference} from {defender}"
         return f"{faction_name} failed to take {region_reference} from {defender}"
+    if event.type == "region_rename":
+        old_name = event.get("old_name") or "the old name"
+        new_name = event.get("new_name") or "a new name"
+        if event.get("rename_type") == "restoration":
+            return f"{faction_name} restored the name {new_name}"
+        return f"{faction_name} renamed {old_name} as {new_name}"
     if event.type in {"develop", "invest"}:
         return f"{faction_name} developed {region_reference}"
     if event.type == "unrest_disturbance":
@@ -333,6 +370,7 @@ def _get_event_title(event, world):
 
 
 def _get_event_summary(event, world):
+    faction_name = _get_faction_display_name(world, event.faction)
     terrain_text = ""
     if event.region is not None and event.region in world.regions:
         terrain_text = f" Terrain: {format_terrain_label(world.regions[event.region].terrain_tags)}."
@@ -381,6 +419,21 @@ def _get_event_summary(event, world):
         if event.get("success", False):
             return f"Successful attack at {chance:.0%} displayed odds.{terrain_text}"
         return f"Attack failed at {chance:.0%} displayed odds.{terrain_text}"
+    if event.type == "region_rename":
+        old_name = event.get("old_name") or "the old name"
+        new_name = event.get("new_name") or "a new name"
+        rename_type = event.get("rename_type", "conquest")
+        region_reference = event.get("region_reference") or event.region or "the region"
+        if rename_type == "restoration":
+            return (
+                f"After reclaiming {region_reference}, {faction_name} restored the founding name {new_name}."
+                f"{terrain_text}"
+            )
+        defender = _get_faction_display_name(world, event.get("defender")) if event.get("defender") else "the previous rulers"
+        return (
+            f"After taking {region_reference} from {defender}, {faction_name} replaced {old_name} with {new_name}."
+            f"{terrain_text}"
+        )
     if event.type == "succession":
         succession_type = event.get("succession_type", "orderly")
         legitimacy = float(event.get("legitimacy", 0.0) or 0.0)
@@ -667,7 +720,7 @@ def build_simulation_snapshots(world):
             "display_name": initial_region_history.get(region_name, {}).get(
                 "display_name",
                 region.display_name if initial_state[region_name]["owner"] is not None else region.name,
-            ),
+            ) or (region.display_name if initial_state[region_name]["owner"] is not None else region.name),
             "founding_name": initial_region_history.get(region_name, {}).get(
                 "founding_name",
                 region.founding_name if initial_state[region_name]["owner"] is not None else "",
@@ -675,6 +728,13 @@ def build_simulation_snapshots(world):
             "original_namer_faction_id": initial_region_history.get(region_name, {}).get(
                 "original_namer_faction_id",
                 region.original_namer_faction_id if initial_state[region_name]["owner"] is not None else None,
+            ),
+            "name_metadata": dict(initial_region_history.get(region_name, {}).get(
+                "name_metadata",
+                region.name_metadata if initial_state[region_name]["owner"] is not None else {},
+            )),
+            "name_history_summary": summarize_region_name_layers(
+                initial_region_history.get(region_name, {}).get("name_metadata", region.name_metadata)
             ),
             "terrain_tags": list(region.terrain_tags),
             "terrain_label": format_terrain_label(region.terrain_tags),
@@ -765,6 +825,10 @@ def build_simulation_snapshots(world):
 
     snapshots = [{
         "turn": 0,
+        "year": 0,
+        "season": "Initial State",
+        "date_label": "Initial State",
+        "turn_label": "Initial State",
         "events": [],
         "metrics": None,
         "regions": {
@@ -787,6 +851,8 @@ def build_simulation_snapshots(world):
                 "display_name": region["display_name"],
                 "founding_name": region["founding_name"],
                 "original_namer_faction_id": region["original_namer_faction_id"],
+                "name_metadata": dict(region["name_metadata"]),
+                "name_history_summary": list(region["name_history_summary"]),
                 "terrain_tags": region["terrain_tags"],
                 "terrain_label": region["terrain_label"],
                 "climate": region["climate"],
@@ -1004,6 +1070,8 @@ def build_simulation_snapshots(world):
             region_state[region_name]["display_name"] = history_region["display_name"] or region_state[region_name]["display_name"]
             region_state[region_name]["founding_name"] = history_region["founding_name"]
             region_state[region_name]["original_namer_faction_id"] = history_region["original_namer_faction_id"]
+            region_state[region_name]["name_metadata"] = dict(history_region.get("name_metadata", region_state[region_name]["name_metadata"]))
+            region_state[region_name]["name_history_summary"] = summarize_region_name_layers(history_region.get("name_metadata"))
             region_state[region_name]["homeland_faction_id"] = history_region["homeland_faction_id"]
             region_state[region_name]["integrated_owner"] = history_region["integrated_owner"]
             region_state[region_name]["integration_score"] = history_region["integration_score"]
@@ -1018,6 +1086,10 @@ def build_simulation_snapshots(world):
         metrics = get_turn_metrics(world, turn_number)
         snapshots.append({
             "turn": turn_number,
+            "year": get_snapshot_year(turn_number),
+            "season": get_snapshot_season_name(turn_number),
+            "date_label": format_snapshot_date(turn_number),
+            "turn_label": format_snapshot_label(turn_number),
             "events": [_serialize_event(event, world) for event in turn_events],
             "metrics": metrics,
             "regions": {
@@ -1040,6 +1112,8 @@ def build_simulation_snapshots(world):
                     "display_name": region["display_name"],
                     "founding_name": region["founding_name"],
                     "original_namer_faction_id": region["original_namer_faction_id"],
+                    "name_metadata": dict(region["name_metadata"]),
+                    "name_history_summary": list(region["name_history_summary"]),
                     "terrain_tags": region["terrain_tags"],
                     "terrain_label": region["terrain_label"],
                     "climate": region["climate"],
@@ -1335,10 +1409,15 @@ def build_simulation_view_model(world):
         "map_name": world.map_name,
         "map_description": MAPS[world.map_name]["description"],
         "turns": world.turn,
+        "calendar": {
+            "turns_per_year": TURNS_PER_YEAR,
+            "season_names": ["Spring", "Summer", "Autumn", "Winter"],
+        },
         "regions": [
             {
                 "name": region_name,
                 "display_name": get_region_display_name(world.regions[region_name]),
+                "name_history_summary": summarize_region_name_layers(world.regions[region_name].name_metadata),
                 "population": world.regions[region_name].population,
                 "productive_capacity": get_region_productive_capacity(world.regions[region_name], world),
                 "population_pressure": get_region_population_pressure(world.regions[region_name]),
@@ -1374,6 +1453,7 @@ def build_simulation_view_model(world):
             {
                 "name": region_name,
                 "display_name": get_region_display_name(world.regions[region_name]),
+                "name_history_summary": summarize_region_name_layers(world.regions[region_name].name_metadata),
                 "population": world.regions[region_name].population,
                 "productive_capacity": get_region_productive_capacity(world.regions[region_name], world),
                 "population_pressure": get_region_population_pressure(world.regions[region_name]),
@@ -3052,6 +3132,9 @@ def render_simulation_html(world):
       const agitationText = (!agitators.length || agitationPressure <= 0)
         ? "None"
         : `${{agitators.map((factionName) => escapeHtml(getFactionDisplayName(factionName))).join(", ")}} (${{agitationPressure.toFixed(3)}})`;
+      const nameHistoryText = Array.isArray(regionSnapshot.name_history_summary) && regionSnapshot.name_history_summary.length
+        ? regionSnapshot.name_history_summary.map((line) => escapeHtml(line)).join("<br>")
+        : "No recorded renamings.";
 
       return {{
         regionName,
@@ -3060,6 +3143,7 @@ def render_simulation_html(world):
         ownerText,
         ownerColor,
         foundingText,
+        nameHistoryText,
         claimsText,
         agitationText,
       }};
@@ -4448,7 +4532,7 @@ def render_simulation_html(world):
 
       turnContext.innerHTML = `
         <div class="card-header">
-          <strong>${{turn === 0 ? "Initial State" : `Turn ${{turn}} Snapshot`}}</strong>
+          <strong>${{turn === 0 ? "Initial State" : snapshot.turn_label}}</strong>
           <span class="pill">Palette: ${{escapeHtml(getColorModeLabel())}}</span>
         </div>
         <p class="summary-copy">${{escapeHtml(contextText)}}</p>
@@ -4495,6 +4579,7 @@ def render_simulation_html(world):
         ownerText,
         ownerColor,
         foundingText,
+        nameHistoryText,
         claimsText,
         agitationText,
       }} = selected;
@@ -4823,6 +4908,7 @@ def render_simulation_html(world):
         ownerText,
         ownerColor,
         foundingText,
+        nameHistoryText,
         claimsText,
         agitationText,
       }} = selected;
@@ -4881,6 +4967,7 @@ def render_simulation_html(world):
                 ${{foundingText}} | ${{escapeHtml(regionSnapshot.settlement_level || staticRegion.settlement_level || "wild")}} settlement |
                 dominant ethnicity ${{escapeHtml(regionSnapshot.dominant_ethnicity || staticRegion.dominant_ethnicity || "None")}}.
               </p>
+              <div class="metric-line"><strong>Name strata:</strong><br>${{nameHistoryText}}</div>
               <div class="region-focus-kpis">
                 <div class="stat-chip">
                   <div class="stat-label">Taxable Value</div>
@@ -4906,7 +4993,7 @@ def render_simulation_html(world):
             </div>
             <article class="inspector-card region-focus-event-card">
               <h4 class="inspector-title">Current Turn Region Events</h4>
-              <div class="metric-line"><strong>Turn ${{snapshot.turn}}:</strong> only events directly recorded against this region are shown here.</div>
+              <div class="metric-line"><strong>${{snapshot.turn_label}}:</strong> only events directly recorded against this region are shown here.</div>
               <div class="region-event-list">${{relatedEventsMarkup}}</div>
             </article>
           </div>
@@ -5098,7 +5185,7 @@ def render_simulation_html(world):
             const shifted = prior && prior.doctrine_label !== entry.doctrine_label;
             return `
               <article class="event-item">
-                <strong>Turn ${{entry.turn}}</strong>
+                <strong>${{escapeHtml(entry.turn_label || `Turn ${{entry.turn}}`)}}</strong>
                 <div>${{formatDoctrineLabel(entry.doctrine_label)}}${{shifted ? " | doctrine shift" : ""}}</div>
                 <div class="event-meta">
                   Expansion ${{entry.expansion_posture.toFixed(2)}} / War ${{entry.war_posture.toFixed(2)}} / Development ${{entry.development_posture.toFixed(2)}} / Insularity ${{entry.insularity.toFixed(2)}}
@@ -5122,7 +5209,7 @@ def render_simulation_html(world):
               ${{realmMiniMapMarkup}}
             </div>
             <p class="region-portrait-caption">
-              Territorial footprint for ${{escapeHtml(faction.display_name || faction.name)}} on turn ${{snapshot.turn}}.
+              Territorial footprint for ${{escapeHtml(faction.display_name || faction.name)}} during ${{escapeHtml(snapshot.date_label || `Turn ${{snapshot.turn}}`)}}.
               Filled regions are currently inside the faction's realm.
             </p>
             <div class="summary-card" style="background:${{faction.color}}14; border-color:${{faction.color}}44;">
@@ -5167,7 +5254,7 @@ def render_simulation_html(world):
             </div>
             <article class="inspector-card region-focus-event-card">
               <h4 class="inspector-title">Current Turn Faction Events</h4>
-              <div class="metric-line"><strong>Turn ${{snapshot.turn}}:</strong> events involving this faction directly are shown here.</div>
+              <div class="metric-line"><strong>${{snapshot.turn_label}}:</strong> events involving this faction directly are shown here.</div>
               <div class="region-event-list">${{factionEventsMarkup}}</div>
             </article>
           </div>
@@ -5608,7 +5695,9 @@ def render_simulation_html(world):
       const snapshot = data.snapshots[turn];
       syncSelectedFactionToRegionOwner(snapshot);
       slider.value = String(turn);
-      readout.textContent = `Turn ${{turn}} of ${{data.turns}}`;
+      readout.textContent = turn === 0
+        ? "Initial State"
+        : `Turn ${{turn}} of ${{data.turns}} - ${{snapshot.date_label}}`;
       syncRunSummaryVisibility(turn);
       updateMap(snapshot);
       renderLegend(snapshot);

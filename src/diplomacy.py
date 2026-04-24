@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from itertools import combinations
 
+from src.calendar import SEASONAL_TIME_STEP_YEARS
 from src.config import (
     DIPLOMACY_ALLIANCE_ATTACK_PENALTY,
     DIPLOMACY_ALLIANCE_BREAK_THRESHOLD,
@@ -1008,7 +1009,7 @@ def update_relationships(world: WorldState) -> None:
         if not active_war and key not in conflict_pairs:
             if state.truce_turns_remaining > 0:
                 state.truce_turns_remaining -= 1
-            state.years_at_peace += 1
+            state.years_at_peace = round(state.years_at_peace + SEASONAL_TIME_STEP_YEARS, 3)
             peace_gain = (
                 DIPLOMACY_DISTANT_PEACE_GAIN
                 if shared_borders == 0
