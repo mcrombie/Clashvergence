@@ -14,6 +14,7 @@ from src.config import (
     REBEL_PROTO_ATTACK_UTILITY_PENALTY,
     REBEL_PROTO_INVEST_UTILITY_BONUS,
 )
+from src.doctrine import OPEN_TERRAIN_TAGS, ROUGH_TERRAIN_TAGS
 from src.resources import CAPACITY_FOOD_SECURITY, CAPACITY_METAL, CAPACITY_MOBILITY
 
 
@@ -27,6 +28,90 @@ def _normalize_expand_score(score):
 
 def _normalize_attack_score(score):
     return _clamp((score - 45) / 30, 0.0, 1.0)
+
+
+def _normalize_develop_score(score):
+    return _clamp(score / 12, 0.0, 1.0)
+
+
+def _get_owned_region_count(faction_name, world):
+    return sum(1 for region in world.regions.values() if region.owner == faction_name)
+
+
+def _get_expansion_personality(faction):
+    doctrine = faction.doctrine_profile
+    homeland_tags = set(faction.doctrine_state.homeland_terrain_tags or [])
+    open_homeland = sum(1 for tag in homeland_tags if tag in OPEN_TERRAIN_TAGS)
+    rough_homeland = sum(1 for tag in homeland_tags if tag in ROUGH_TERRAIN_TAGS)
+    terrain_count = max(1, open_homeland + rough_homeland)
+    open_ratio = open_homeland / terrain_count
+    rough_ratio = rough_homeland / terrain_count
+
+    climate = faction.doctrine_state.homeland_climate or "temperate"
+    climate_modifier = {
+        "steppe": 0.12,
+        "oceanic": 0.06,
+        "temperate": 0.03,
+        "tropical": -0.02,
+        "arid": -0.06,
+        "cold": -0.1,
+    }.get(climate, 0.0)
+    terrain_personality = 0.72 + (open_ratio * 0.42) - (rough_ratio * 0.32) + climate_modifier
+    doctrine_personality = (
+        0.72
+        + (doctrine.expansion_posture * 0.5)
+        - (doctrine.insularity * 0.36)
+        + (doctrine.war_posture * 0.12)
+        - (doctrine.development_posture * 0.08)
+    )
+    return _clamp(terrain_personality * doctrine_personality, 0.28, 1.45)
+
+
+def _get_frontier_pressure(
+    faction_name,
+    world,
+    *,
+    expandable_regions,
+    best_expand_score,
+):
+    if not expandable_regions:
+        return 0.0
+
+    faction = world.factions[faction_name]
+    owned_region_count = _get_owned_region_count(faction_name, world)
+    pressure = 0.0
+
+    if owned_region_count <= 1:
+        pressure += 0.18
+    elif owned_region_count <= 2:
+        pressure += 0.1
+
+    pressure += min(0.12, len(expandable_regions) * 0.018)
+    pressure += min(0.14, max(0.0, best_expand_score - 11.0) * 0.014)
+
+    if faction.treasury >= EXPANSION_COST:
+        pressure += 0.06
+    if faction.treasury >= EXPANSION_COST * 2:
+        pressure += 0.05
+
+    if faction.doctrine_state.expansions <= 0 and owned_region_count <= 2:
+        pressure += 0.06
+
+    pressure *= _get_expansion_personality(faction)
+
+    return _clamp(pressure, 0.0, 0.52)
+
+
+def _get_acute_development_need(faction):
+    shortages = faction.resource_shortages
+    return (
+        shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 0.45
+        + shortages.get(CAPACITY_MOBILITY, 0.0) * 0.3
+        + shortages.get(CAPACITY_METAL, 0.0) * 0.3
+        + faction.food_deficit * 0.35
+        + faction.trade_import_dependency * 0.45
+        + faction.trade_corridor_exposure * 0.4
+    )
 
 def score_expand_target(region_name, world):
     """Returns a numeric score representing the strategic value of expanding into a region."""
@@ -133,6 +218,13 @@ def choose_action(faction_name, world):
             world,
         )
 
+    frontier_pressure = _get_frontier_pressure(
+        faction_name,
+        world,
+        expandable_regions=expandable_regions,
+        best_expand_score=best_expand_score,
+    )
+
     if can_develop:
         best_develop_target = choose_develop_target(faction_name, world)
         best_develop_components = get_development_target_score_components(
@@ -167,10 +259,13 @@ def choose_action(faction_name, world):
         action_utilities["attack"] = attack_utility
 
     if can_expand:
+        expansion_personality = _get_expansion_personality(faction)
         expand_utility = (
             _normalize_expand_score(best_expand_score)
             * (0.72 + (doctrine.expansion_posture * 0.42))
+            * expansion_personality
             + ((1.0 - doctrine.insularity) * 0.08)
+            + frontier_pressure
         )
         if faction.treasury >= EXPANSION_COST * 2:
             expand_utility += 0.05
@@ -178,18 +273,10 @@ def choose_action(faction_name, world):
         action_utilities["expand"] = expand_utility
 
     if can_develop and best_develop_target is not None:
-        shortages = faction.resource_shortages
-        develop_need = (
-            shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 0.45
-            + shortages.get(CAPACITY_MOBILITY, 0.0) * 0.3
-            + shortages.get(CAPACITY_METAL, 0.0) * 0.3
-        )
-        develop_need += (
-            faction.trade_import_dependency * 0.45
-            + faction.trade_corridor_exposure * 0.4
-        )
+        acute_development_need = _get_acute_development_need(faction)
+        develop_need = acute_development_need
         if best_develop_components is not None:
-            develop_need += max(0.0, best_develop_components["score"] / 12.0)
+            develop_need += _normalize_develop_score(best_develop_components["score"])
         develop_utility = (
             develop_need * (0.4 + (doctrine.development_posture * 0.32))
             + (doctrine.insularity * 0.14)
@@ -197,6 +284,8 @@ def choose_action(faction_name, world):
         )
         if faction.treasury < EXPANSION_COST:
             develop_utility += 0.03
+        elif can_expand and acute_development_need < 0.45:
+            develop_utility -= frontier_pressure * 0.4
         if is_proto_state:
             develop_utility += REBEL_PROTO_INVEST_UTILITY_BONUS
         develop_utility += get_seasonal_action_modifier("develop", season_name)
