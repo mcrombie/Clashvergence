@@ -25,6 +25,83 @@ DEFAULT_SEED = 12345
 DEFAULT_OUTPUT = ROOT / "reports/balance_dashboard.txt"
 DEFAULT_INVALID_MAP_POLICY = "skip"
 DEFAULT_NUM_FACTIONS = 4
+DEAD_SYSTEM_ACTIVE_RATE_THRESHOLD = 0.05
+
+
+SYSTEM_DEFINITIONS = {
+    "expansion": {
+        "label": "Expansion",
+        "event_types": {"expand"},
+    },
+    "war": {
+        "label": "War",
+        "event_types": {"attack", "war_declared", "war_peace"},
+    },
+    "development": {
+        "label": "Development",
+        "event_types": {"develop", "invest"},
+    },
+    "polity": {
+        "label": "Polity Advancement",
+        "event_types": {"polity_advance"},
+    },
+    "diplomacy": {
+        "label": "Diplomacy",
+        "event_types": {
+            "diplomacy_alliance",
+            "diplomacy_break",
+            "diplomacy_pact",
+            "diplomacy_rivalry",
+            "diplomacy_tributary",
+            "diplomacy_tributary_break",
+            "diplomacy_truce",
+            "diplomacy_truce_end",
+            "war_declared",
+            "war_peace",
+        },
+    },
+    "trade_economy": {
+        "label": "Trade Economy",
+        "event_types": set(),
+    },
+    "trade_disruption": {
+        "label": "Trade Disruption",
+        "event_types": set(),
+    },
+    "administration": {
+        "label": "Administration",
+        "event_types": set(),
+    },
+    "unrest": {
+        "label": "Unrest",
+        "event_types": {
+            "regime_agitation",
+            "unrest_crisis",
+            "unrest_disturbance",
+            "unrest_secession",
+        },
+    },
+    "rebellion": {
+        "label": "Rebellion",
+        "event_types": {"rebel_independence", "unrest_secession"},
+    },
+    "migration": {
+        "label": "Migration",
+        "event_types": {"migration_wave", "refugee_wave"},
+    },
+    "religion": {
+        "label": "Religion",
+        "event_types": {"religious_reform"},
+    },
+    "succession": {
+        "label": "Succession",
+        "event_types": {"succession", "succession_crisis"},
+    },
+    "food_stress": {
+        "label": "Food Stress",
+        "event_types": set(),
+    },
+}
 
 
 def parse_args():
@@ -109,11 +186,128 @@ def build_phase_action_counts(world):
                         phase_counts[phase_name]["successful_attacks"] += 1
                 elif event.type == "expand":
                     phase_counts[phase_name]["expansions"] += 1
-                elif event.type == "invest":
+                elif event.type in {"develop", "invest"}:
                     phase_counts[phase_name]["investments"] += 1
                 break
 
     return phase_counts
+
+
+def _iter_faction_metric_rows(world):
+    for snapshot in world.metrics:
+        turn = int(snapshot.get("turn", 0) or 0)
+        for faction_metrics in snapshot.get("factions", {}).values():
+            yield turn, faction_metrics
+
+
+def _metric_system_signals(world):
+    signals = {
+        "administration": [],
+        "food_stress": [],
+        "migration": [],
+        "religion": [],
+        "succession": [],
+        "trade_disruption": [],
+        "trade_economy": [],
+    }
+
+    for turn, metrics in _iter_faction_metric_rows(world):
+        if (
+            float(metrics.get("trade_income", 0.0) or 0.0) > 0.01
+            or float(metrics.get("trade_transit_value", 0.0) or 0.0) > 0.01
+            or float(metrics.get("trade_foreign_income", 0.0) or 0.0) > 0.01
+            or float(metrics.get("trade_foreign_imported_flow", 0.0) or 0.0) > 0.01
+            or float(metrics.get("trade_import_dependency", 0.0) or 0.0) > 0.05
+        ):
+            signals["trade_economy"].append(turn)
+
+        if (
+            float(metrics.get("trade_warfare_damage", 0.0) or 0.0) > 0.01
+            or float(metrics.get("trade_blockade_losses", 0.0) or 0.0) > 0.01
+        ):
+            signals["trade_disruption"].append(turn)
+
+        if (
+            float(metrics.get("administrative_overextension", 0.0) or 0.0) > 0.05
+            or float(metrics.get("administrative_overextension_penalty", 0.0) or 0.0) > 0.01
+            or float(metrics.get("administrative_efficiency", 1.0) or 1.0) < 0.95
+        ):
+            signals["administration"].append(turn)
+
+        if (
+            float(metrics.get("food_deficit", 0.0) or 0.0) > 0.01
+            or float(metrics.get("food_shortage", 0.0) or 0.0) > 0.01
+            or float(metrics.get("food_balance", 0.0) or 0.0) < -0.01
+        ):
+            signals["food_stress"].append(turn)
+
+        if (
+            int(metrics.get("migration_inflow", 0) or 0) > 0
+            or int(metrics.get("migration_outflow", 0) or 0) > 0
+            or int(metrics.get("refugee_inflow", 0) or 0) > 0
+            or int(metrics.get("refugee_outflow", 0) or 0) > 0
+            or int(metrics.get("frontier_settlers", 0) or 0) > 0
+        ):
+            signals["migration"].append(turn)
+
+        if (
+            float(metrics.get("reform_pressure", 0.0) or 0.0) > 0.2
+            or float(metrics.get("religious_legitimacy", 0.5) or 0.5) < 0.42
+            or int(metrics.get("sacred_sites_controlled", 0) or 0)
+            != int(metrics.get("total_sacred_sites", 0) or 0)
+        ):
+            signals["religion"].append(turn)
+
+        if (
+            int(metrics.get("regency_turns", 0) or 0) > 0
+            or int(metrics.get("succession_crisis_turns", 0) or 0) > 0
+            or float(metrics.get("claimant_pressure", 0.0) or 0.0) > 0.2
+        ):
+            signals["succession"].append(turn)
+
+    return signals
+
+
+def build_system_activity(world):
+    metric_signals = _metric_system_signals(world)
+    activity = {}
+
+    for system_name, definition in SYSTEM_DEFINITIONS.items():
+        event_types = definition["event_types"]
+        matching_events = [
+            event
+            for event in world.events
+            if event.type in event_types
+        ]
+        if system_name == "trade_disruption":
+            matching_events = [
+                event
+                for event in world.events
+                if event.type == "attack"
+                and (
+                    event.get("trade_warfare_hit", False)
+                    or float(event.get("trade_warfare_pressure_added", 0.0) or 0.0) > 0.08
+                    or float(event.get("trade_blockade_added", 0.0) or 0.0) > 0.0
+                )
+            ]
+        event_count = len(matching_events)
+        signal_turns = [
+            event.turn + 1
+            for event in matching_events
+        ]
+
+        signal_turns.extend(metric_signals.get(system_name, []))
+        first_turn = min(signal_turns) if signal_turns else None
+
+        activity[system_name] = {
+            "label": definition["label"],
+            "event_count": event_count,
+            "metric_signal_count": len(metric_signals.get(system_name, [])),
+            "active": first_turn is not None,
+            "first_turn": first_turn,
+        }
+
+    return activity
 
 
 def summarize_setting(map_name, num_turns, runs, num_factions):
@@ -164,6 +358,15 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
         "secessions": [],
         "independence": [],
     }
+    system_activity = {
+        system_name: {
+            "event_counts": [],
+            "metric_signal_counts": [],
+            "active_runs": 0,
+            "first_turns": [],
+        }
+        for system_name in SYSTEM_DEFINITIONS
+    }
 
     for _ in range(runs):
         world = create_world(
@@ -174,6 +377,7 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
         final_regions = count_owned_regions(world)
         competition = analyze_competition_metrics(world)
         phase_counts = build_phase_action_counts(world)
+        run_system_activity = build_system_activity(world)
 
         final_treasuries = {
             faction_name: faction.treasury
@@ -210,6 +414,14 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
         for phase_name in phase_names:
             for action_name in phase_actions[phase_name]:
                 phase_actions[phase_name][action_name].append(phase_counts[phase_name][action_name])
+
+        for system_name, activity in run_system_activity.items():
+            system_activity[system_name]["event_counts"].append(activity["event_count"])
+            system_activity[system_name]["metric_signal_counts"].append(activity["metric_signal_count"])
+            if activity["active"]:
+                system_activity[system_name]["active_runs"] += 1
+            if activity["first_turn"] is not None:
+                system_activity[system_name]["first_turns"].append(activity["first_turn"])
 
         lead_changes.append(competition["lead_changes"])
         runaway_rates.append(1.0 if competition["runaway"]["detected"] else 0.0)
@@ -312,6 +524,30 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
             metric_name: mean(values) if values else 0.0
             for metric_name, values in diplomacy_event_counts.items()
         },
+        "system_activity": {
+            system_name: {
+                "label": SYSTEM_DEFINITIONS[system_name]["label"],
+                "average_events": mean(values["event_counts"]) if values["event_counts"] else 0.0,
+                "average_metric_signals": (
+                    mean(values["metric_signal_counts"])
+                    if values["metric_signal_counts"]
+                    else 0.0
+                ),
+                "active_rate": values["active_runs"] / runs,
+                "dead_run_rate": 1.0 - (values["active_runs"] / runs),
+                "average_first_turn": (
+                    mean(values["first_turns"])
+                    if values["first_turns"]
+                    else None
+                ),
+                "status": (
+                    "dead"
+                    if (values["active_runs"] / runs) < DEAD_SYSTEM_ACTIVE_RATE_THRESHOLD
+                    else "active"
+                ),
+            }
+            for system_name, values in system_activity.items()
+        },
     }
 
 
@@ -322,6 +558,7 @@ def format_setting_report(result):
     survival = result["survival"]
     pacing = result["pacing"]
     diplomacy = result["diplomacy"]
+    system_activity = result["system_activity"]
 
     lines.append(f"Map: {result['map_name']}")
     lines.append(f"Turns: {result['num_turns']}")
@@ -410,6 +647,37 @@ def format_setting_report(result):
         f"  Secessions={diplomacy['secessions']:.2f} | "
         f"Rebel independence={diplomacy['independence']:.2f}"
     )
+
+    lines.append("")
+    lines.append("System Activity")
+    lines.append(
+        f"{'System':<20} {'Status':<8} {'Active':>8} {'DeadRun':>8} "
+        f"{'Events':>8} {'Signals':>8} {'FirstTurn':>10}"
+    )
+    lines.append("-" * 82)
+    for system_name in SYSTEM_DEFINITIONS:
+        activity = system_activity[system_name]
+        first_turn = activity["average_first_turn"]
+        first_turn_text = f"{first_turn:.2f}" if first_turn is not None else "n/a"
+        lines.append(
+            f"{activity['label']:<20} "
+            f"{activity['status']:<8} "
+            f"{activity['active_rate']:>7.2%} "
+            f"{activity['dead_run_rate']:>7.2%} "
+            f"{activity['average_events']:>8.2f} "
+            f"{activity['average_metric_signals']:>8.2f} "
+            f"{first_turn_text:>10}"
+        )
+
+    dead_systems = [
+        activity["label"]
+        for activity in system_activity.values()
+        if activity["status"] == "dead"
+    ]
+    if dead_systems:
+        lines.append(f"  Dead or near-silent systems: {', '.join(dead_systems)}")
+    else:
+        lines.append("  Dead or near-silent systems: none")
 
     return "\n".join(lines)
 

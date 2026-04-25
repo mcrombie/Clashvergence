@@ -44,129 +44,118 @@ Testing should guard against broken state, crashes, and nonsense outputs. It sho
 
 ## Current Baseline
 
-The project already has a strong early foundation:
+The project has moved past the first economic and political scaffolding pass. It now includes:
 
 - map generation and multiple scenario layouts
 - terrain and climate
 - named factions with identities and governments
 - doctrine adaptation
-- expansion, attack, and investment behavior
-- income, maintenance, and empire-scale penalties
+- terrain/climate-shaped action selection
+- expansion, attack, and development behavior
+- specific regional resources and resource outputs
+- food production, storage, spoilage, shortage, and seasonal consumption
+- domesticable resource spread and resource development projects
+- roads, markets, storehouses, granaries, irrigation, pastures, logging camps, mines, and quarries
+- trade routing, bottlenecks, sea links, river links, foreign trade, trade warfare, and blockade losses
+- income, maintenance, administrative penalties, tribute, and empire-scale pressure
 - population, settlement, and integration
+- migration, refugees, and frontier settler movement
 - ethnicity and ethnic claims
 - unrest, secession, rebels, and proto-states
-- diplomacy and relationship states
+- diplomacy, relationship states, tributaries, war objectives, and peace terms
+- administrative capacity, tax capture, autonomy, reach, and overextension
+- religion, sacred sites, religious legitimacy, conversion pressure, and reform pressure
+- dynastic succession, rulers, heirs, regencies, claimant pressure, and succession crises
 - polity advancement and government-form modifiers
-- reporting, metrics, experiments, and an HTML viewer
+- reporting, metrics, dead-system observation, experiments, and an HTML viewer
 
-This is enough to move beyond a simple map-control toy and start building a deeper historical simulation.
+This is enough to treat the project less as a map-control toy and more as a layered historical simulation prototype. The next work should mostly deepen, connect, observe, and tune these systems before adding another large abstraction.
 
 ## Recommended Development Order
 
-### Phase 1: Specific Resources And Production
+### Phase 1: Observation And Pressure Tuning
 
 Priority: highest
 
-Why first:
+Why now:
 
-- The economy is still too abstract.
-- Later systems like trade, war, state formation, and technology need a real material base.
-- Specific resources make geography matter for reasons other than flat resource counts.
-
-Targets:
-
-- Add resource classes such as grain, timber, iron, copper, horses, salt, stone, spices, and textiles.
-- Let regions produce different baskets based on terrain and climate.
-- Separate subsistence resources from prestige or strategic resources.
-- Make some resources locally essential and others tradable luxuries or force multipliers.
-
-Good outcomes:
-
-- conquest becomes materially motivated
-- chokepoints and productive zones become legible
-- factions begin to differ structurally, not just doctrinally
-
-### Phase 2: Trade, Transport, And Market Access
-
-Priority: very high
-
-Why next:
-
-- Specific resources do not matter enough unless they can move.
-- Trade is what turns geography into a networked system.
-- This also creates interdependence, vulnerability, and non-military competition.
+- Many major systems now exist, but not all of them fire visibly in ordinary runs.
+- A simulation can look deep in code while behaving narrowly in practice.
+- The current priority is to detect dead systems, runaway loops, and overly universal action incentives.
 
 Targets:
 
-- overland and coastal transport costs
-- river and coast advantages
-- route disruption from war or unrest
-- local surplus and deficit
-- market access modifiers
-- strategic chokepoints
+- Use the balance dashboard's system-activity section to track active rate, dead-run rate, average event counts, metric signals, and first activation turn.
+- Keep tuning action selection so terrain and climate strongly shape faction personality.
+- Watch whether development, expansion, war, diplomacy, migration, religion, succession, unrest, and administration all matter at plausible horizons.
+- Tune only after repeated runs show a clear behavioral pattern.
 
 Good outcomes:
 
-- factions can become rich without conquering everything
-- wars can target routes rather than only territory
-- isolated empires behave differently from connected ones
+- plains, river, steppe, forest, highland, coast, and marsh societies behave differently
+- observable systems activate for understandable reasons
+- dead or near-silent systems are visible instead of hidden
+- dashboard findings lead to targeted changes rather than broad balancing
 
-### Phase 3: State Capacity And Administrative Extraction
+### Phase 2: Economic Deepening
 
 Priority: very high
 
 Why here:
 
-- Once wealth and trade exist, the next question is how much of that wealth states can actually extract.
-- This is the missing bridge between owning territory and governing it effectively.
+- The first resource/trade layer exists, but production chains are still shallow.
+- Material causality should continue to ground war, settlement, administration, and technology.
+- Existing resources should create sharper dependencies and strategic pressure.
 
 Targets:
 
-- tax efficiency
-- corruption or leakage
-- communications distance
-- frontier administrative burden
-- local autonomy and delegated rule
-- institutional capacity tied to polity tier and government form
+- Add additional resource classes only when they create new behavior, such as iron, spices, manufactured goods, or prestige materials.
+- Build production-chain dependencies rather than only adding more resource names.
+- Make shortages alter action choice, war aims, settlement growth, migration, and administrative stress.
+- Make strategic resources affect military projection, logistics, and diplomacy more legibly.
+- Use trade routes to create richer interdependence, vulnerability, and non-military competition.
 
 Good outcomes:
 
-- larger empires stop being powerful just because they are larger
+- conquest is materially motivated
+- productive zones and chokepoints are legible in reports and viewer state
+- factions differ structurally, not just cosmetically
+- trade dependence creates both wealth and risk
+
+### Phase 3: Political And Legitimacy Deepening
+
+Priority: very high
+
+Why here:
+
+- Administration, religion, succession, rebels, and migration exist but need stronger cross-pressure.
+- Internal fragmentation should matter as much as external conquest.
+- Legitimacy should become a visible political resource, not just a set of metrics.
+
+Targets:
+
+- Connect administrative overextension more strongly to unrest, tax capture, military projection, and integration.
+- Make religious mismatch, sacred sites, reform pressure, and clergy support affect diplomacy and internal cohesion.
+- Let succession crises, claimant pressure, and civil-war legitimacy shape war aims and secession patterns.
+- Make migration and refugee movement alter ethnic, religious, economic, and political maps over time.
+- Introduce urban specialization and city networks once migration and production pressure need them.
+
+Good outcomes:
+
 - weak states can own land they do not truly control
-- collapse becomes an administrative phenomenon, not just a military one
+- collapse can be administrative, religious, dynastic, demographic, or military
+- factions stop behaving like unitary rational actors
+- internal events produce coherent external consequences
 
-### Phase 4: Religion And Ideology
-
-Priority: high
-
-Why after state capacity:
-
-- Religion and ideology are strongest when they sit on top of real demographic and political structures.
-- If added too early, they risk becoming flavor modifiers instead of social forces.
-
-Targets:
-
-- belief systems with spread and persistence
-- tolerance versus exclusivity
-- legitimacy effects on rulers
-- sectarian or ideological unrest
-- alliance and rivalry patterns shaped by shared belief
-- reform movements and heterodox splinters
-
-Good outcomes:
-
-- legitimacy becomes more than treasury and territory
-- internal fragmentation becomes richer
-- diplomacy gains cultural and ideological depth
-
-### Phase 5: Technology As Diffusion
+### Phase 4: Technology As Diffusion
 
 Priority: high
 
-Why not earlier:
+Why now but not before:
 
-- Technology should rest on resources, trade, and institutions.
-- A game-style tech tree would pull the project toward strategy-game logic too early.
+- Technology should rest on resources, trade, density, stability, and institutions.
+- The project now has enough material and political substrate for diffusion to be meaningful.
+- A game-style tech tree would still pull the design toward strategy-game logic too early.
 
 Targets:
 
@@ -175,6 +164,7 @@ Targets:
 - military organization and logistics shifts
 - administrative and record-keeping advances
 - uneven adoption and regional lag
+- practical adoption costs tied to resources, state capacity, and social disruption
 
 Good outcomes:
 
@@ -182,52 +172,9 @@ Good outcomes:
 - backward peripheries and advanced cores can coexist
 - military and economic divergence becomes more believable
 
-### Phase 6: Migration, Assimilation, And Urbanization
+### Phase 5: Shocks And Long-Cycle Stressors
 
 Priority: medium-high
-
-Why here:
-
-- Once resources, trade, and legitimacy are stronger, population movement becomes much more meaningful.
-
-Targets:
-
-- refugee flight
-- settler expansion
-- labor migration toward productive regions
-- assimilation versus persistence
-- city attraction and regional specialization
-
-Good outcomes:
-
-- conquest has long-tail demographic consequences
-- urban centers become engines of change
-- ethnic maps evolve over time rather than staying mostly static
-
-### Phase 7: Elite Politics And Internal Power Blocs
-
-Priority: medium
-
-Why later:
-
-- Internal politics becomes more interesting once the economy, legitimacy, and state machinery are stronger.
-
-Targets:
-
-- court, army, clergy, merchant, and provincial elite blocs
-- succession pressure
-- reform coalitions
-- coups, palace struggles, and military autonomy
-
-Good outcomes:
-
-- factions stop behaving like unitary rational actors
-- policy instability becomes endogenous
-- civil conflict gains clearer internal causes
-
-### Phase 8: Shocks And Long-Cycle Stressors
-
-Priority: medium
 
 Targets:
 
@@ -236,12 +183,29 @@ Targets:
 - ecological degradation
 - climate anomalies
 - trade collapse
+- resource exhaustion or local environmental damage
 
 Good outcomes:
 
 - resilient versus brittle systems become clearer
 - world history gains punctuated disruption
 - complex recovery paths become possible
+
+### Phase 6: Future Game-Facing Layer
+
+Priority: deferred
+
+Targets:
+
+- player-facing controls that expose the same systems AI factions already use
+- scenario goals that emerge from simulation pressures rather than abstract victory conditions
+- UI affordances for inspection, forecasting, and constrained intervention
+
+Good outcomes:
+
+- player mode does not distort the simulation model
+- choices feel political and logistical rather than board-game symmetric
+- the same world model remains useful with or without a player
 
 ## Features To Defer On Purpose
 
@@ -277,35 +241,45 @@ This keeps development fast while still protecting simulation coherence.
 
 ## Practical Milestones
 
-### Milestone A: Economic Grounding
+### Milestone A: Observation Harness
 
-- introduce specific resources
-- make regional output depend on terrain and climate
-- update reports and viewer to expose resource composition
+- keep the dead-system dashboard current as new systems are added
+- add short, medium, and long seeded observation presets
+- track activation rates for expansion, war, diplomacy, trade disruption, administration, unrest, rebellion, migration, religion, succession, technology, and shocks
+- record whether terrain/climate personalities produce distinct strategies
 
-### Milestone B: Networked Geography
+### Milestone B: Action Pressure Passes
 
-- add trade routes and transport friction
-- make route control economically meaningful
-- expose trade dependency in metrics
+- tune action selection from observed behavior rather than flat target ratios
+- keep terrain and climate as strong personality inputs
+- make shortages, trade dependence, legitimacy, and overextension pull factions toward different choices
+- verify that insular, frontier, martial, developmental, and adaptive polities remain meaningfully different
 
-### Milestone C: Governing Capacity
+### Milestone C: Production Chains
 
-- model taxation, leakage, and administrative reach
-- connect unrest and integration more tightly to extractive capacity
-- make overextension a structural pressure
+- deepen resources from output baskets into dependencies
+- add only resources that create new pressure or new interpretation
+- connect strategic resources to military projection, trade leverage, and settlement development
+- expose production dependencies in reports and viewer state
 
-### Milestone D: Legitimacy Systems
+### Milestone D: Legitimacy And Internal Politics
 
-- add religion and ideology
-- tie them into unrest, diplomacy, and faction cohesion
-- support schism, reform, and suppression behavior
+- make religion, succession, and regime agitation more causally visible
+- connect legitimacy to diplomacy, unrest, administrative capture, and civil-war claims
+- support stronger religious schism, reform, suppression, and accommodation behavior
+- introduce elite blocs only when current legitimacy systems need more internal actors
 
 ### Milestone E: Diffusion And Transformation
 
 - add technology spread
-- add migration and urban concentration
+- deepen migration and urban concentration
 - let long-term world divergence emerge from the combined systems
+
+### Milestone F: Shocks And Resilience
+
+- add famine, disease, ecological, climate, and trade-collapse shocks
+- distinguish resilient states from brittle ones
+- let recovery paths differ by resources, state capacity, legitimacy, and trade access
 
 ## Ongoing Questions To Revisit
 
