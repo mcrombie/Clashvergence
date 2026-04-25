@@ -117,6 +117,20 @@ class FactionNamingTests(unittest.TestCase):
         self.assertEqual(identity.government_form, "monarchy")
         self.assertEqual(identity.display_name, "Valeri Kingdom")
 
+    def test_legacy_generic_state_label_resolves_to_specific_official_name(self):
+        identity = FactionIdentity(
+            internal_id="FactionX",
+            culture_name="Valeri",
+            government_type="State",
+            display_name="Valeri State",
+        )
+
+        self.assertEqual(identity.polity_tier, "state")
+        self.assertEqual(identity.government_form, "council")
+        self.assertEqual(identity.government_type, "Council Realm")
+        self.assertEqual(identity.display_name, "Valeri Council Realm")
+        self.assertNotIn(" State", identity.display_name)
+
     def test_generated_culture_names_do_not_copy_blocked_historical_names(self):
         identities = generate_faction_identities(12, naming_seed="historical_guardrails")
         normalized_blocklist = {name.lower() for name in REAL_NAME_BLOCKLIST}

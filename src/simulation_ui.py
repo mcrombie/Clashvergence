@@ -617,7 +617,7 @@ def _get_event_summary(event, world):
             + terrain_text
         )
     if event.type == "rebel_independence":
-        government_type = event.get("government_type", "State")
+        government_type = event.get("government_type", "Council Realm")
         if event.get("conflict_type") == "civil_war":
             return (
                 f"After surviving its fragile uprising, the claimant hardened into a rival {government_type.lower()} backed by the same broader people."
@@ -5423,8 +5423,8 @@ def render_simulation_html(world):
                     ? "Proto-state civil-war claimant"
                     : "Proto-state rebellion")
                 : (faction.rebel_conflict_type === "civil_war"
-                    ? `${{escapeHtml(faction.government_type || "State")}} claimant`
-                    : `${{escapeHtml(faction.government_type || "State")}} successor`))
+                    ? `${{escapeHtml(faction.government_type || "Council Realm")}} claimant`
+                    : `${{escapeHtml(faction.government_type || "Council Realm")}} successor`))
               + (faction.origin_faction ? ` from ${{escapeHtml(getFactionDisplayName(faction.origin_faction))}}` : "")
             )
           : "Established faction";

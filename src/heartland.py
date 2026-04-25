@@ -308,8 +308,8 @@ CIVIL_WAR_REGIME_LABELS = {
     ("chiefdom", "leader"): "Chieftaincy",
     ("chiefdom", "council"): "Council",
     ("chiefdom", "monarchy"): "Monarchy",
-    ("state", "council"): "Council State",
-    ("state", "assembly"): "Assembly State",
+    ("state", "council"): "Council Realm",
+    ("state", "assembly"): "Commonwealth",
     ("state", "monarchy"): "Kingdom",
     ("state", "republic"): "Republic",
     ("state", "oligarchy"): "Oligarchy",
@@ -2252,6 +2252,13 @@ def get_faction_settlement_profile(world: WorldState, faction_name: str) -> dict
         "rural_regions": 0,
         "town_regions": 0,
         "city_regions": 0,
+        "settled_regions": 0,
+        "core_regions": 0,
+        "mature_regions": 0,
+        "total_infrastructure": 0.0,
+        "total_road": 0.0,
+        "total_market": 0.0,
+        "total_administrative_support": 0.0,
     }
 
     for region in world.regions.values():
@@ -2260,6 +2267,12 @@ def get_faction_settlement_profile(world: WorldState, faction_name: str) -> dict
         profile["owned_regions"] += 1
         profile["population"] += region.population
         profile["total_surplus"] += get_region_surplus(region, world)
+        profile["total_infrastructure"] += region.infrastructure_level
+        profile["total_road"] += region.road_level
+        profile["total_market"] += region.market_level
+        profile["total_administrative_support"] += region.administrative_support
+        if get_region_core_status(region) in {"homeland", "core"}:
+            profile["core_regions"] += 1
         settlement_level = region.settlement_level
         if settlement_level == "city":
             profile["city_regions"] += 1
@@ -2269,8 +2282,23 @@ def get_faction_settlement_profile(world: WorldState, faction_name: str) -> dict
             profile["rural_regions"] += 1
         else:
             profile["wild_regions"] += 1
+        if settlement_level in {"rural", "town", "city"}:
+            profile["settled_regions"] += 1
+        if (
+            settlement_level in {"town", "city"}
+            and get_region_core_status(region) in {"homeland", "core"}
+        ):
+            profile["mature_regions"] += 1
 
     profile["total_surplus"] = round(profile["total_surplus"], 2)
+    owned_regions = max(1, int(profile["owned_regions"]))
+    profile["average_infrastructure"] = round(profile["total_infrastructure"] / owned_regions, 3)
+    profile["average_road"] = round(profile["total_road"] / owned_regions, 3)
+    profile["average_market"] = round(profile["total_market"] / owned_regions, 3)
+    profile["average_administrative_support"] = round(
+        profile["total_administrative_support"] / owned_regions,
+        3,
+    )
     return profile
 
 
@@ -2284,20 +2312,26 @@ def _qualifies_for_tribe(profile: dict[str, float | int]) -> bool:
 
 def _qualifies_for_chiefdom(profile: dict[str, float | int]) -> bool:
     return (
-        profile["owned_regions"] >= 2
-        and profile["population"] >= 250
-        and profile["total_surplus"] >= 2.5
+        profile["owned_regions"] >= 3
+        and profile["population"] >= 360
+        and profile["total_surplus"] >= 3.5
+        and profile["core_regions"] >= 1
         and (profile["town_regions"] + profile["city_regions"]) >= 1
     )
 
 
 def _qualifies_for_state(profile: dict[str, float | int]) -> bool:
     return (
-        profile["owned_regions"] >= 3
-        and profile["population"] >= 500
-        and profile["total_surplus"] >= 6.0
+        profile["owned_regions"] >= 5
+        and profile["population"] >= 900
+        and profile["total_surplus"] >= 10.0
         and profile["city_regions"] >= 1
-        and (profile["town_regions"] + profile["city_regions"]) >= 2
+        and (profile["town_regions"] + profile["city_regions"]) >= 3
+        and profile["core_regions"] >= 2
+        and profile["mature_regions"] >= 2
+        and profile["average_infrastructure"] >= 0.25
+        and profile["average_road"] >= 0.15
+        and profile["average_administrative_support"] >= 0.18
     )
 
 

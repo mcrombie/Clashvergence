@@ -42,6 +42,7 @@ from src.heartland import (
     initialize_faction_succession_state,
     initialize_religious_legitimacy,
     get_faction_ethnic_claims,
+    get_next_polity_tier,
     get_region_dominant_ethnicity,
     get_region_ethnic_claimants,
     get_region_ethnic_integration_multiplier,
@@ -60,6 +61,7 @@ from src.heartland import (
     update_religious_legitimacy,
     update_region_populations,
     update_rebel_faction_status,
+    update_faction_polity_tiers,
     update_region_integration,
 )
 from src.metrics import build_turn_metrics
@@ -563,6 +565,73 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertGreaterEqual(faction.succession.legitimacy, initial_legitimacy)
         self.assertGreaterEqual(faction.succession.heir_preparedness, initial_preparedness)
         self.assertGreaterEqual(faction.succession.heir_age, 18)
+
+    def test_state_tier_requires_mature_core_not_only_fast_growth(self):
+        fast_growth_profile = {
+            "owned_regions": 3,
+            "population": 620,
+            "total_surplus": 7.0,
+            "wild_regions": 0,
+            "rural_regions": 1,
+            "town_regions": 1,
+            "city_regions": 1,
+            "settled_regions": 3,
+            "core_regions": 1,
+            "mature_regions": 1,
+            "average_infrastructure": 0.18,
+            "average_road": 0.1,
+            "average_market": 0.08,
+            "average_administrative_support": 0.12,
+        }
+        mature_profile = {
+            **fast_growth_profile,
+            "owned_regions": 5,
+            "population": 940,
+            "total_surplus": 10.5,
+            "town_regions": 2,
+            "city_regions": 1,
+            "settled_regions": 5,
+            "core_regions": 2,
+            "mature_regions": 2,
+            "average_infrastructure": 0.3,
+            "average_road": 0.18,
+            "average_market": 0.12,
+            "average_administrative_support": 0.2,
+        }
+
+        self.assertEqual(get_next_polity_tier("chiefdom", fast_growth_profile), "chiefdom")
+        self.assertEqual(get_next_polity_tier("chiefdom", mature_profile), "state")
+
+    def test_polity_advancement_uses_non_generic_state_name(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        faction = world.factions[faction_name]
+        faction.identity.set_government_structure("chiefdom", "council", update_display_name=True)
+
+        owned = [region for region in world.regions.values() if region.owner == faction_name]
+        unowned = [region for region in world.regions.values() if region.owner is None]
+        for region in owned + unowned[:4]:
+            region.owner = faction_name
+            region.integrated_owner = faction_name
+            region.core_status = "core"
+            region.integration_score = 8.0
+            region.population = 190
+            region.settlement_level = "town"
+            region.infrastructure_level = 0.35
+            region.road_level = 0.25
+            region.market_level = 0.2
+            region.administrative_support = 0.24
+            region.unrest = 1.0
+            region.resource_monetized_value = 4.0
+        owned[0].settlement_level = "city"
+        owned[0].population = 360
+
+        update_faction_polity_tiers(world)
+
+        self.assertEqual(faction.polity_tier, "state")
+        self.assertEqual(faction.government_type, "Council Realm")
+        self.assertEqual(faction.display_name, f"{faction.culture_name} Council Realm")
+        self.assertNotIn(" State", faction.display_name)
 
     def test_republic_succession_avoids_regency_and_can_rotate_line(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)

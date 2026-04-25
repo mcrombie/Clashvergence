@@ -24,8 +24,8 @@ GOVERNMENT_TYPE_LABELS = {
     ("chiefdom", "leader"): "Chiefdom",
     ("chiefdom", "council"): "Chiefdom",
     ("chiefdom", "monarchy"): "Chiefdom",
-    ("state", "council"): "State",
-    ("state", "assembly"): "State",
+    ("state", "council"): "Council Realm",
+    ("state", "assembly"): "Commonwealth",
     ("state", "monarchy"): "Kingdom",
     ("state", "republic"): "Republic",
     ("state", "oligarchy"): "Oligarchy",
@@ -329,6 +329,13 @@ class FactionIdentity:
             self.polity_tier,
             self.government_form,
         )
+        if self.government_type == "State":
+            self.government_type = resolve_government_type(
+                self.polity_tier,
+                self.government_form,
+            )
+            if self.display_name == f"{self.culture_name} State":
+                self.display_name = ""
         if not self.government_type:
             self.government_type = resolve_government_type(
                 self.polity_tier,
