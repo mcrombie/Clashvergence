@@ -38,16 +38,18 @@ from src.resource_economy import (
     get_region_taxable_value,
     update_faction_resource_economy,
 )
-from src.heartland import (
-    apply_region_population_loss,
+from src.ethnicity import (
     factions_have_same_ethnicity_regime_tension,
     faction_has_ethnic_claim,
     get_region_dominant_ethnicity,
-    get_rebel_reclaim_bonus,
-    handle_region_owner_change,
-    set_region_unrest,
+)
+from src.integration import handle_region_owner_change
+from src.population import (
+    apply_region_population_loss,
     transfer_region_population,
 )
+from src.rebellion import get_rebel_reclaim_bonus
+from src.unrest import set_region_unrest
 from src.models import Event
 from src.resources import (
     CAPACITY_CONSTRUCTION,

@@ -334,7 +334,7 @@ def _get_ethnic_claim_pressure(world: WorldState, faction_a: str, faction_b: str
     ):
         return 0.0
 
-    from src.heartland import faction_has_ethnic_claim
+    from src.ethnicity import faction_has_ethnic_claim
 
     disputed_regions = 0
     for region in world.regions.values():
@@ -1210,7 +1210,7 @@ def seed_rebel_origin_relationship(
 
 
 def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[str, object]:
-    from src.heartland import faction_has_ethnic_claim
+    from src.ethnicity import faction_has_ethnic_claim
 
     counterpart_scores = []
     alliance_count = 0

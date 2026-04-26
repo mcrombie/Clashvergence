@@ -31,22 +31,24 @@ from src.map_visualization import (
 )
 from src.maps import MAPS
 from src.metrics import get_turn_metrics
-from src.resource_economy import get_region_taxable_value
-from src.heartland import (
+from src.ethnicity import (
     faction_has_ethnic_claim,
-    get_region_external_regime_agitation_modifier,
-    get_region_external_regime_agitators,
     get_faction_ethnic_claims,
     get_region_dominant_ethnicity,
-    get_region_dominant_religion,
     get_region_ethnic_claimants,
+    get_region_external_regime_agitation_modifier,
+    get_region_external_regime_agitators,
     get_region_owner_primary_ethnicity,
     get_region_ruling_ethnic_affinity,
+)
+from src.population import (
     get_region_population_pressure,
     get_region_productive_capacity,
     get_region_surplus,
     get_region_surplus_label,
 )
+from src.religion import get_region_dominant_religion
+from src.resource_economy import get_region_taxable_value
 from src.narrative import (
     get_phase_ranges,
     summarize_final_standings,

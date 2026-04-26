@@ -1,6 +1,6 @@
+from src.administration import refresh_administrative_state
 from src.calendar import format_turn_date, get_turn_season_name, get_turn_year
 from src.diplomacy import get_faction_diplomacy_summary
-from src.heartland import refresh_administrative_state
 from src.region_state import get_region_core_status
 
 

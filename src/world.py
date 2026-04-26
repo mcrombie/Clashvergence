@@ -1,19 +1,16 @@
+from src.administration import refresh_administrative_state
 from src.diplomacy import initialize_relationships
 from src.doctrine import initialize_faction_doctrines
+from src.ethnicity import apply_language_contact_borrowing, register_ethnicity, seed_region_ethnicity
 from src.factions import create_factions, validate_map_factions
-from src.heartland import (
-    apply_language_contact_borrowing,
+from src.integration import initialize_heartlands, initialize_region_history
+from src.population import (
     estimate_region_population,
     estimate_region_population_from_resource_profile,
-    initialize_dynastic_politics,
-    initialize_heartlands,
-    initialize_religious_legitimacy,
-    initialize_region_history,
-    refresh_administrative_state,
-    register_ethnicity,
-    seed_region_ethnicity,
     update_region_settlement_levels,
 )
+from src.religion import initialize_religious_legitimacy
+from src.succession import initialize_dynastic_politics
 from src.models import Region, WorldState
 from src.maps import MAPS
 from src.map_generator import build_generated_map_definition, is_generated_map_name
