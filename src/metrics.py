@@ -61,6 +61,8 @@ def build_turn_metrics(world, economy_snapshot=None):
         isolated_output = faction.resource_isolated_output or {}
         resource_shortages = faction.resource_shortages or {}
         derived_capacity = faction.derived_capacity or {}
+        produced_goods = faction.produced_goods or {}
+        production_chain_shortages = faction.production_chain_shortages or {}
         known_technologies = faction.known_technologies or {}
         institutional_technologies = faction.institutional_technologies or {}
 
@@ -222,6 +224,13 @@ def build_turn_metrics(world, economy_snapshot=None):
             "construction_shortage": round(resource_shortages.get("construction_capacity", 0.0), 3),
             "salt_shortage": round(resource_shortages.get("salt", 0.0), 3),
             "textiles_shortage": round(resource_shortages.get("textiles", 0.0), 3),
+            "tools_output": round(produced_goods.get("tools", 0.0), 3),
+            "urban_surplus_output": round(produced_goods.get("urban_surplus", 0.0), 3),
+            "tools_shortage": round(production_chain_shortages.get("tools", 0.0), 3),
+            "urban_surplus_shortage": round(
+                production_chain_shortages.get("urban_surplus", 0.0),
+                3,
+            ),
             "average_technology_presence": round(
                 sum(known_technologies.get(technology_key, 0.0) for technology_key in ALL_TECHNOLOGIES)
                 / max(1, len(ALL_TECHNOLOGIES)),

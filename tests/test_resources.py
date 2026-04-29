@@ -25,6 +25,10 @@ from src.heartland import (
 from src.metrics import build_turn_metrics
 from src.models import Faction, Region, RelationshipState, WorldState
 from src.resources import (
+    CAPACITY_CONSTRUCTION,
+    CAPACITY_METAL,
+    PRODUCED_GOOD_TOOLS,
+    PRODUCED_GOOD_URBAN_SURPLUS,
     RESOURCE_COPPER,
     RESOURCE_GRAIN,
     RESOURCE_HORSES,
@@ -232,6 +236,120 @@ class ResourceSystemTests(unittest.TestCase):
         self.assertIn("food_security", faction.derived_capacity)
         self.assertIn("metal_capacity", faction.resource_shortages)
         self.assertGreaterEqual(faction.derived_capacity["food_security"], 0.0)
+
+    def test_tools_chain_uses_copper_and_material_inputs(self):
+        copper_region = Region(
+            name="A",
+            neighbors=["B"],
+            owner="FactionA",
+            resources=2,
+            population=220,
+            terrain_tags=["highland"],
+            climate="temperate",
+            settlement_level="town",
+            infrastructure_level=1.1,
+            market_level=0.9,
+            road_level=0.6,
+            copper_mine_level=1.6,
+        )
+        timber_region = Region(
+            name="B",
+            neighbors=["A"],
+            owner="FactionA",
+            resources=2,
+            population=140,
+            terrain_tags=["forest"],
+            climate="temperate",
+            settlement_level="rural",
+            logging_camp_level=1.4,
+        )
+        world = WorldState(
+            regions={"A": copper_region, "B": timber_region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        world.regions["A"].resource_fixed_endowments[RESOURCE_COPPER] = 1.4
+        world.regions["B"].resource_wild_endowments[RESOURCE_TIMBER] = 1.1
+
+        update_faction_resource_economy(world)
+
+        faction = world.factions["FactionA"]
+        self.assertGreater(faction.produced_goods[PRODUCED_GOOD_TOOLS], 0.0)
+        self.assertGreater(
+            faction.derived_capacity[CAPACITY_CONSTRUCTION],
+            faction.resource_effective_access[RESOURCE_TIMBER]
+            + faction.resource_effective_access[RESOURCE_STONE],
+        )
+        self.assertGreater(
+            faction.derived_capacity[CAPACITY_METAL],
+            faction.resource_effective_access[RESOURCE_COPPER],
+        )
+
+    def test_urban_surplus_chain_uses_food_salt_and_town_population(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=180,
+            terrain_tags=["coast", "riverland"],
+            climate="oceanic",
+            settlement_level="town",
+            infrastructure_level=1.0,
+            market_level=1.1,
+            storehouse_level=0.8,
+            road_level=0.5,
+        )
+        seed_region_resource_profile(region)
+        region.resource_established[RESOURCE_GRAIN] = 0.85
+        region.resource_established[RESOURCE_LIVESTOCK] = 0.55
+        region.resource_fixed_endowments[RESOURCE_SALT] = 1.1
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+
+        update_faction_resource_economy(world)
+
+        faction = world.factions["FactionA"]
+        self.assertGreater(faction.produced_goods[PRODUCED_GOOD_URBAN_SURPLUS], 0.0)
+        self.assertIn(PRODUCED_GOOD_URBAN_SURPLUS, faction.production_chain_shortages)
+
+    def test_production_chain_shortages_track_missing_inputs(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=260,
+            terrain_tags=["highland"],
+            climate="cold",
+            settlement_level="city",
+            infrastructure_level=0.8,
+            market_level=0.8,
+        )
+        seed_region_resource_profile(region)
+        region.resource_established[RESOURCE_GRAIN] = 0.0
+        region.resource_established[RESOURCE_LIVESTOCK] = 0.0
+        region.resource_fixed_endowments[RESOURCE_COPPER] = 0.0
+        region.resource_wild_endowments[RESOURCE_TIMBER] = 0.0
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+
+        update_faction_resource_economy(world)
+
+        faction = world.factions["FactionA"]
+        self.assertGreater(
+            faction.production_chain_shortages[PRODUCED_GOOD_URBAN_SURPLUS],
+            0.0,
+        )
+        self.assertGreater(
+            faction.production_chain_shortages[PRODUCED_GOOD_TOOLS],
+            0.0,
+        )
 
     def test_granary_increases_faction_food_storage_capacity(self):
         region = Region(

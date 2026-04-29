@@ -13,6 +13,13 @@ RESOURCE_STONE = "stone"
 RESOURCE_SALT = "salt"
 RESOURCE_TEXTILES = "textiles"
 
+PRODUCED_GOOD_TOOLS = "tools"
+PRODUCED_GOOD_URBAN_SURPLUS = "urban_surplus"
+ALL_PRODUCED_GOODS = (
+    PRODUCED_GOOD_TOOLS,
+    PRODUCED_GOOD_URBAN_SURPLUS,
+)
+
 DOMESTICABLE_RESOURCES = (
     RESOURCE_GRAIN,
     RESOURCE_LIVESTOCK,
@@ -74,6 +81,8 @@ RESOURCE_LABELS = {
     RESOURCE_STONE: "Stone",
     RESOURCE_SALT: "Salt",
     RESOURCE_TEXTILES: "Textiles",
+    PRODUCED_GOOD_TOOLS: "Tools",
+    PRODUCED_GOOD_URBAN_SURPLUS: "Urban Surplus",
 }
 
 RESOURCE_VALUE_WEIGHTS = {
@@ -208,6 +217,10 @@ def build_empty_capacity_map() -> dict[str, float]:
     return {capacity_name: 0.0 for capacity_name in ALL_CAPACITIES}
 
 
+def build_empty_produced_goods_map() -> dict[str, float]:
+    return {good_name: 0.0 for good_name in ALL_PRODUCED_GOODS}
+
+
 def normalize_resource_map(resource_map: Mapping[str, float] | None) -> dict[str, float]:
     normalized = build_empty_resource_map()
     if resource_map is None:
@@ -223,6 +236,15 @@ def normalize_capacity_map(capacity_map: Mapping[str, float] | None) -> dict[str
         return normalized
     for capacity_name in ALL_CAPACITIES:
         normalized[capacity_name] = round(float(capacity_map.get(capacity_name, 0.0)), 3)
+    return normalized
+
+
+def normalize_produced_goods_map(goods_map: Mapping[str, float] | None) -> dict[str, float]:
+    normalized = build_empty_produced_goods_map()
+    if goods_map is None:
+        return normalized
+    for good_name in ALL_PRODUCED_GOODS:
+        normalized[good_name] = round(float(goods_map.get(good_name, 0.0)), 3)
     return normalized
 
 

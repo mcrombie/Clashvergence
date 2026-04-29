@@ -400,6 +400,8 @@ class Faction:
     resource_access: dict[str, float] = field(default_factory=dict)
     resource_shortages: dict[str, float] = field(default_factory=dict)
     derived_capacity: dict[str, float] = field(default_factory=dict)
+    produced_goods: dict[str, float] = field(default_factory=dict)
+    production_chain_shortages: dict[str, float] = field(default_factory=dict)
     food_stored: float = 0.0
     food_storage_capacity: float = 0.0
     food_produced: float = 0.0

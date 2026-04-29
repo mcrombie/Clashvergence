@@ -1404,9 +1404,14 @@ def build_simulation_view_model(world):
             "resource_gross_output": _serialize_resource_map(world.factions[faction_name].resource_gross_output),
             "resource_effective_access": _serialize_resource_map(world.factions[faction_name].resource_effective_access),
             "resource_isolated_output": _serialize_resource_map(world.factions[faction_name].resource_isolated_output),
+            "produced_goods": _serialize_resource_map(world.factions[faction_name].produced_goods),
             "resource_shortages": {
                 key: round(float(value), 3)
                 for key, value in (world.factions[faction_name].resource_shortages or {}).items()
+            },
+            "production_chain_shortages": {
+                key: round(float(value), 3)
+                for key, value in (world.factions[faction_name].production_chain_shortages or {}).items()
             },
             "derived_capacity": {
                 key: round(float(value), 3)
@@ -1436,6 +1441,7 @@ def build_simulation_view_model(world):
             "resource_access_summary": format_resource_map(world.factions[faction_name].resource_access, limit=5),
             "resource_gross_summary": format_resource_map(world.factions[faction_name].resource_gross_output, limit=5),
             "resource_isolated_summary": format_resource_map(world.factions[faction_name].resource_isolated_output, limit=5),
+            "produced_goods_summary": format_resource_map(world.factions[faction_name].produced_goods, limit=4),
             "known_technologies": normalize_technology_map(world.factions[faction_name].known_technologies),
             "institutional_technologies": normalize_technology_map(world.factions[faction_name].institutional_technologies),
             "technology_summary": format_technology_map(
@@ -1456,6 +1462,8 @@ def build_simulation_view_model(world):
                         ("Construction", world.factions[faction_name].resource_shortages.get("construction_capacity", 0.0)),
                         ("Salt", world.factions[faction_name].resource_shortages.get("salt", 0.0)),
                         ("Textiles", world.factions[faction_name].resource_shortages.get("textiles", 0.0)),
+                        ("Tools", world.factions[faction_name].production_chain_shortages.get("tools", 0.0)),
+                        ("Urban Surplus", world.factions[faction_name].production_chain_shortages.get("urban_surplus", 0.0)),
                     )
                     if value > 0
                 ]
@@ -5598,6 +5606,10 @@ def render_simulation_html(world):
                 <div class="detail-row">
                   <div class="detail-label">Isolated Output</div>
                   <div class="detail-value">${{escapeHtml(faction.resource_isolated_summary || "None")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Produced Goods</div>
+                  <div class="detail-value">${{escapeHtml(faction.produced_goods_summary || "None")}}</div>
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">Shortages</div>
