@@ -886,6 +886,8 @@ def _maybe_reform_state_religion(world: WorldState, faction_name: str) -> None:
 
 
 def update_religious_legitimacy(world: WorldState) -> None:
+    from src.urban import get_region_urban_effects
+
     for faction_name, faction in world.factions.items():
         official_religion = faction.religion.official_religion
         if not official_religion:
@@ -908,6 +910,10 @@ def update_religious_legitimacy(world: WorldState) -> None:
         faction.religion.total_sacred_sites = len(sacred_sites)
         sacred_ratio = sacred_controlled / max(1, len(sacred_sites))
         pilgrimage_income = 0.0
+        clergy_urban_support = sum(
+            get_region_urban_effects(region).get("clergy_support_bonus", 0.0)
+            for region in owned_regions
+        )
         for region in owned_regions:
             alignment = _get_region_religious_alignment(region, official_religion)
             mismatch = max(0.0, 1.0 - alignment - faction.religion.religious_tolerance)
@@ -940,7 +946,11 @@ def update_religious_legitimacy(world: WorldState) -> None:
                     )
                     _normalize_region_religious_composition(region)
             if region.sacred_religion == official_religion:
-                region.pilgrimage_value = round(region.shrine_level * RELIGION_PILGRIMAGE_PER_SHRINE, 3)
+                pilgrimage_factor = 1.0 + get_region_urban_effects(region).get("pilgrimage_factor", 0.0)
+                region.pilgrimage_value = round(
+                    region.shrine_level * RELIGION_PILGRIMAGE_PER_SHRINE * pilgrimage_factor,
+                    3,
+                )
                 pilgrimage_income += region.pilgrimage_value
         faction.religion.religious_legitimacy = round(
             _clamp(
@@ -959,6 +969,7 @@ def update_religious_legitimacy(world: WorldState) -> None:
             _clamp(
                 faction.religion.clergy_support
                 + ((sacred_ratio - 0.5) * 0.05)
+                + min(0.035, clergy_urban_support)
                 - (max(0.0, 0.6 - unity) * 0.04),
                 0.1,
                 0.95,

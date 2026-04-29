@@ -443,6 +443,8 @@ def _institutional_technology_pressure(
 
 
 def update_technology_diffusion(world: WorldState) -> None:
+    from src.urban import get_region_urban_effects
+
     for region in world.regions.values():
         ensure_region_technology_state(region)
     for faction in world.factions.values():
@@ -472,6 +474,7 @@ def update_technology_diffusion(world: WorldState) -> None:
                 + _trade_technology_pressure(world, region, technology_key)
                 + _institutional_technology_pressure(world, region, technology_key)
                 + density_factor * 0.006
+                + get_region_urban_effects(region).get("technology_pressure_bonus", 0.0)
             )
             pressure *= _clamp(0.65 + stability * 0.45, 0.25, 1.1)
             current_presence = region.technology_presence.get(technology_key, 0.0)

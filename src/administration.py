@@ -38,6 +38,7 @@ from src.technology import (
     get_region_institutional_technology,
     get_region_technology_adoption,
 )
+from src.urban import get_faction_urban_capacity_bonus, get_region_urban_effects
 
 
 def get_region_administrative_support(region: Region) -> float:
@@ -49,6 +50,7 @@ def get_region_administrative_support(region: Region) -> float:
     support += region.integration_score * ADMIN_SUPPORT_INTEGRATION_FACTOR
     support += get_region_technology_adoption(region, TECH_ROAD_ADMINISTRATION) * 0.05
     support += get_region_technology_adoption(region, TECH_TEMPLE_RECORDKEEPING) * 0.06
+    support += get_region_urban_effects(region).get("administrative_support_bonus", 0.0)
     status = get_region_core_status(region)
     if status == "homeland":
         support += 0.18
@@ -169,6 +171,7 @@ def refresh_administrative_state(world: WorldState) -> None:
             max(0.0, float(faction.derived_capacity.get("taxable_value", 0.0)))
             * ADMIN_TAXABLE_CAPACITY_FACTOR
         )
+        capacity *= 1.0 + get_faction_urban_capacity_bonus(world, faction_name)
         capacity *= (
             1.0
             + get_faction_institutional_technology(faction, TECH_TEMPLE_RECORDKEEPING) * 0.08

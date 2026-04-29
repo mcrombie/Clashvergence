@@ -60,6 +60,7 @@ from src.resources import format_resource_map
 from src.region_naming import format_region_reference, get_region_display_name
 from src.technology import format_technology_map, normalize_technology_map
 from src.terrain import format_terrain_label, get_seasonal_terrain_note
+from src.urban import format_urban_specialization
 
 
 SIMULATION_VIEWER_OUTPUT = Path("reports/simulation_view.html")
@@ -193,6 +194,10 @@ def _build_region_resource_payload(region):
         "technology_adoption": normalize_technology_map(region.technology_adoption),
         "technology_pressure": normalize_technology_map(region.technology_pressure),
         "technology_summary": format_technology_map(region.technology_adoption, limit=3),
+        "urban_specialization": region.urban_specialization,
+        "urban_specialization_label": format_urban_specialization(region.urban_specialization),
+        "urban_specialization_score": round(float(region.urban_specialization_score or 0.0), 3),
+        "urban_network_value": round(float(region.urban_network_value or 0.0), 3),
     }
 
 
@@ -1400,6 +1405,14 @@ def build_simulation_view_model(world):
             "ethnic_claims": get_faction_ethnic_claims(world, faction_name),
             "rebel_age": world.factions[faction_name].rebel_age,
             "independence_score": world.factions[faction_name].independence_score,
+            "capital_region": world.factions[faction_name].capital_region,
+            "capital_region_display": (
+                get_region_display_name(world.regions[world.factions[faction_name].capital_region])
+                if world.factions[faction_name].capital_region in world.regions
+                else "None"
+            ),
+            "urban_network_value": round(float(world.factions[faction_name].urban_network_value or 0.0), 3),
+            "urban_specialization_counts": dict(world.factions[faction_name].urban_specialization_counts or {}),
             "resource_access": _serialize_resource_map(world.factions[faction_name].resource_access),
             "resource_gross_output": _serialize_resource_map(world.factions[faction_name].resource_gross_output),
             "resource_effective_access": _serialize_resource_map(world.factions[faction_name].resource_effective_access),
@@ -1442,6 +1455,11 @@ def build_simulation_view_model(world):
             "resource_gross_summary": format_resource_map(world.factions[faction_name].resource_gross_output, limit=5),
             "resource_isolated_summary": format_resource_map(world.factions[faction_name].resource_isolated_output, limit=5),
             "produced_goods_summary": format_resource_map(world.factions[faction_name].produced_goods, limit=4),
+            "urban_specialization_summary": ", ".join(
+                f"{format_urban_specialization(role)} {count}"
+                for role, count in sorted((world.factions[faction_name].urban_specialization_counts or {}).items())
+                if role != "none" and count > 0
+            ) or "None",
             "known_technologies": normalize_technology_map(world.factions[faction_name].known_technologies),
             "institutional_technologies": normalize_technology_map(world.factions[faction_name].institutional_technologies),
             "technology_summary": format_technology_map(
@@ -4720,6 +4738,13 @@ def render_simulation_html(world):
               <div class="detail-value">${{escapeHtml(regionSnapshot.settlement_level || staticRegion.settlement_level || "wild")}}</div>
             </div>
             <div class="detail-row">
+              <div class="detail-label">Urban Role</div>
+              <div class="detail-value">
+                ${{escapeHtml(regionSnapshot.urban_specialization_label || staticRegion.urban_specialization_label || "None")}}
+                / Network ${{Number(regionSnapshot.urban_network_value ?? staticRegion.urban_network_value ?? 0).toFixed(2)}}
+              </div>
+            </div>
+            <div class="detail-row">
               <div class="detail-label">Dominant Ethnicity</div>
               <div class="detail-value">${{escapeHtml(regionSnapshot.dominant_ethnicity || staticRegion.dominant_ethnicity || "None")}}</div>
             </div>
@@ -5578,6 +5603,10 @@ def render_simulation_html(world):
                 <div class="detail-row">
                   <div class="detail-label">Realm Structure</div>
                   <div class="detail-value">H${{metrics.homeland_regions}} / C${{metrics.core_regions}} / F${{metrics.frontier_regions}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Urban Network</div>
+                  <div class="detail-value">${{escapeHtml(faction.capital_region_display || "None")}} / ${{Number(faction.urban_network_value || 0).toFixed(2)}} / ${{escapeHtml(faction.urban_specialization_summary || "None")}}</div>
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">Population</div>

@@ -281,6 +281,9 @@ class Region:
     technology_presence: dict[str, float] = field(default_factory=dict)
     technology_adoption: dict[str, float] = field(default_factory=dict)
     technology_pressure: dict[str, float] = field(default_factory=dict)
+    urban_specialization: str = "none"
+    urban_specialization_score: float = 0.0
+    urban_network_value: float = 0.0
     display_name: str = ""
     founding_name: str = ""
     original_namer_faction_id: str | None = None
@@ -431,6 +434,9 @@ class Faction:
     administrative_reach: float = 1.0
     administrative_overextension: float = 0.0
     administrative_overextension_penalty: float = 0.0
+    capital_region: str | None = None
+    urban_network_value: float = 0.0
+    urban_specialization_counts: dict[str, int] = field(default_factory=dict)
     known_technologies: dict[str, float] = field(default_factory=dict)
     institutional_technologies: dict[str, float] = field(default_factory=dict)
     known_regions: list[str] = field(default_factory=list)

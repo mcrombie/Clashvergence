@@ -12,6 +12,7 @@ from src.technology import (
     TECH_ROAD_ADMINISTRATION,
     TECH_TEMPLE_RECORDKEEPING,
 )
+from src.urban import ALL_URBAN_SPECIALIZATIONS, URBAN_NONE
 
 
 def get_turn_events(world, turn):
@@ -47,6 +48,11 @@ def build_turn_metrics(world, economy_snapshot=None):
         rural_regions = 0
         town_regions = 0
         city_regions = 0
+        urban_specialization_counts = {
+            role: 0
+            for role in ALL_URBAN_SPECIALIZATIONS
+            if role != URBAN_NONE
+        }
         economy_data = (economy_snapshot or {}).get(faction_name, {})
         income = economy_data.get("base_income", 0)
         nominal_income = economy_data.get("nominal_income", income)
@@ -94,6 +100,10 @@ def build_turn_metrics(world, economy_snapshot=None):
                 town_regions += 1
             elif settlement_level == "rural":
                 rural_regions += 1
+            urban_role = region.urban_specialization or URBAN_NONE
+            if urban_role != URBAN_NONE:
+                urban_specialization_counts.setdefault(urban_role, 0)
+                urban_specialization_counts[urban_role] += 1
             if total_population is None:
                 total_population = 0
             if "population" not in economy_data:
@@ -128,6 +138,17 @@ def build_turn_metrics(world, economy_snapshot=None):
             "rural_regions": rural_regions,
             "town_regions": town_regions,
             "city_regions": city_regions,
+            "capital_region": faction.capital_region,
+            "urban_network_value": round(float(faction.urban_network_value or 0.0), 3),
+            "urban_specialized_regions": sum(urban_specialization_counts.values()),
+            "capital_regions": urban_specialization_counts.get("capital", 0),
+            "craft_center_regions": urban_specialization_counts.get("craft_center", 0),
+            "port_city_regions": urban_specialization_counts.get("port_city", 0),
+            "temple_city_regions": urban_specialization_counts.get("temple_city", 0),
+            "frontier_fort_regions": urban_specialization_counts.get("frontier_fort", 0),
+            "mining_town_regions": urban_specialization_counts.get("mining_town", 0),
+            "scholarly_hub_regions": urban_specialization_counts.get("scholarly_hub", 0),
+            "market_town_regions": urban_specialization_counts.get("market_town", 0),
             "polity_tier": faction.polity_tier,
             "government_form": faction.government_form,
             "dynasty_name": faction.succession.dynasty_name,

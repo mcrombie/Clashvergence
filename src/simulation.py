@@ -40,6 +40,7 @@ from src.visibility import refresh_all_faction_visibility, refresh_faction_visib
 from src.metrics import record_turn_metrics
 from src.succession import resolve_dynastic_succession
 from src.technology import update_technology_diffusion
+from src.urban import update_urban_specializations
 from src.unrest import resolve_unrest_events
 
 
@@ -205,6 +206,7 @@ def _run_year_end_phase(world):
     resolve_dynastic_succession(world)
     update_region_populations(world)
     update_region_settlement_levels(world)
+    update_urban_specializations(world)
     update_rebel_faction_status(world)
     update_faction_polity_tiers(world)
 

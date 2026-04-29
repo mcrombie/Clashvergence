@@ -86,6 +86,7 @@ from src.technology import (
     get_region_institutional_technology,
     get_region_technology_adoption,
 )
+from src.urban import get_region_urban_effects
 
 
 RESOURCE_BASE_OUTPUT = {
@@ -497,6 +498,7 @@ def get_region_resource_development_factor(region: Region, resource_name: str) -
     pastoral_breeding = get_region_technology_adoption(region, TECH_PASTORAL_BREEDING)
     copper_working = get_region_technology_adoption(region, TECH_COPPER_WORKING)
     market_accounting = get_region_technology_adoption(region, TECH_MARKET_ACCOUNTING)
+    urban_effects = get_region_urban_effects(region)
     if resource_name == RESOURCE_GRAIN:
         return (
             RESOURCE_GRAIN_UNIRRIGATED_FACTOR
@@ -558,6 +560,7 @@ def get_region_resource_development_factor(region: Region, resource_name: str) -
             + (region.extractive_level * RESOURCE_EXTRACTIVE_SUPPORT_LEVEL_FACTOR)
             + (region.infrastructure_level * 0.12)
             + (copper_working * (0.18 if resource_name == RESOURCE_COPPER else 0.08))
+            + urban_effects.get("extraction_output_factor", 0.0)
         )
     return 0.95 + (region.infrastructure_level * 0.1)
 
@@ -817,6 +820,7 @@ def _get_region_foreign_trade_gateway_quality(region: Region) -> float:
     quality += min(0.12, region.storehouse_level * 0.1)
     quality += min(0.12, region.infrastructure_level * 0.08)
     quality += min(0.08, region.road_level * 0.06)
+    quality += min(0.08, get_region_urban_effects(region).get("trade_value_factor", 0.0) * 0.45)
     if region.population >= 180:
         quality += 0.04
     quality *= _clamp(1.0 - (float(region.resource_isolation_factor or 0.0) * 0.55), 0.35, 1.0)
@@ -2183,6 +2187,7 @@ def _apply_faction_trade_state(
             )
 
         trade_bonus = max(0.0, import_value + transit_value + hub_value)
+        trade_bonus *= 1.0 + get_region_urban_effects(region).get("trade_value_factor", 0.0)
         base_value = max(0.0, float(region.resource_monetized_value or 0.0))
         total_value = base_value + trade_bonus
         trade_value_denied = max(
@@ -2485,6 +2490,7 @@ def get_region_monetization_factor(
     )
     factor += min(0.14, float(distribution_state["factor"] or 0.0) * RESOURCE_MONETIZATION_ROUTE_FACTOR)
     factor += min(0.08, float(distribution_state["bottleneck"] or 0.0) * RESOURCE_MONETIZATION_BOTTLENECK_FACTOR)
+    factor += min(0.12, get_region_urban_effects(region).get("taxable_value_bonus", 0.0))
     factor -= min(0.18, region.unrest * 0.015)
     if region.unrest_event_level == "disturbance":
         factor -= 0.04
@@ -2942,6 +2948,10 @@ def _build_faction_produced_goods(
         faction_name,
         owned_regions,
     )
+    tools_role_factor = min(
+        0.35,
+        sum(get_region_urban_effects(region).get("tools_output_factor", 0.0) for region in owned_regions),
+    )
     material_input = (
         effective_access.get(RESOURCE_TIMBER, 0.0)
         + (effective_access.get(RESOURCE_STONE, 0.0) * 0.45)
@@ -2952,6 +2962,10 @@ def _build_faction_produced_goods(
             material_input * TOOLS_MATERIAL_INPUT_FACTOR,
         )
         * manufacturing_factor,
+        3,
+    )
+    produced_goods[PRODUCED_GOOD_TOOLS] = round(
+        produced_goods[PRODUCED_GOOD_TOOLS] * (1.0 + tools_role_factor),
         3,
     )
 
@@ -2981,12 +2995,20 @@ def _build_faction_produced_goods(
         0.35,
         1.8,
     )
+    urban_role_factor = min(
+        0.3,
+        sum(get_region_urban_effects(region).get("urban_surplus_factor", 0.0) for region in owned_regions),
+    )
     produced_goods[PRODUCED_GOOD_URBAN_SURPLUS] = round(
         min(
             urban_population_support,
             (food_input * URBAN_SURPLUS_FOOD_INPUT_FACTOR) + preservation_input,
         )
         * urban_infrastructure_factor,
+        3,
+    )
+    produced_goods[PRODUCED_GOOD_URBAN_SURPLUS] = round(
+        produced_goods[PRODUCED_GOOD_URBAN_SURPLUS] * (1.0 + urban_role_factor),
         3,
     )
     return normalize_produced_goods_map(produced_goods)
