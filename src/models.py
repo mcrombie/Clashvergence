@@ -163,6 +163,19 @@ class FactionReligionState:
 
 
 @dataclass
+class EliteBloc:
+    bloc_type: str
+    name: str
+    influence: float = 0.4
+    loyalty: float = 0.5
+    wealth: float = 0.3
+    militarization: float = 0.0
+    reform_pressure: float = 0.0
+    base_region: str | None = None
+    agenda: str = ""
+
+
+@dataclass
 class LanguageProfile:
     family_name: str = ""
     onsets: list[str] = field(default_factory=list)
@@ -437,6 +450,11 @@ class Faction:
     capital_region: str | None = None
     urban_network_value: float = 0.0
     urban_specialization_counts: dict[str, int] = field(default_factory=dict)
+    elite_blocs: list[EliteBloc] = field(default_factory=list)
+    elite_balance: dict[str, float] = field(default_factory=dict)
+    elite_unrest_pressure: float = 0.0
+    strongest_elite_bloc: str = ""
+    alienated_elite_bloc: str = ""
     known_technologies: dict[str, float] = field(default_factory=dict)
     institutional_technologies: dict[str, float] = field(default_factory=dict)
     known_regions: list[str] = field(default_factory=list)

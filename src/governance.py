@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from src.models import Faction
+from src.internal_politics import get_faction_elite_effects
 
 
 POLITY_TIER_MODIFIERS = {
@@ -130,7 +131,8 @@ def get_faction_government_form_modifiers(faction: Faction | None) -> dict[str, 
 def get_faction_income_modifier(faction: Faction | None) -> float:
     polity = get_faction_polity_modifiers(faction)
     form = get_faction_government_form_modifiers(faction)
-    return polity["income_factor"] * form["income_factor"]
+    elite_factor = get_faction_elite_effects(faction).get("trade_income_factor", 0.0) if faction is not None else 0.0
+    return polity["income_factor"] * form["income_factor"] * (1.0 + elite_factor)
 
 
 def get_faction_maintenance_modifier(faction: Faction | None) -> float:

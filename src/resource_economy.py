@@ -34,6 +34,7 @@ from src.governance import (
     get_faction_income_modifier,
     get_faction_maintenance_modifier,
 )
+from src.internal_politics import get_faction_elite_effects
 from src.models import Faction, Region, WorldState
 from src.region_state import (
     get_region_climate_affinity,
@@ -2188,6 +2189,8 @@ def _apply_faction_trade_state(
 
         trade_bonus = max(0.0, import_value + transit_value + hub_value)
         trade_bonus *= 1.0 + get_region_urban_effects(region).get("trade_value_factor", 0.0)
+        if region.owner in world.factions:
+            trade_bonus *= 1.0 + get_faction_elite_effects(world.factions[region.owner]).get("trade_income_factor", 0.0)
         base_value = max(0.0, float(region.resource_monetized_value or 0.0))
         total_value = base_value + trade_bonus
         trade_value_denied = max(
@@ -2952,6 +2955,7 @@ def _build_faction_produced_goods(
         0.35,
         sum(get_region_urban_effects(region).get("tools_output_factor", 0.0) for region in owned_regions),
     )
+    elite_effects = get_faction_elite_effects(faction)
     material_input = (
         effective_access.get(RESOURCE_TIMBER, 0.0)
         + (effective_access.get(RESOURCE_STONE, 0.0) * 0.45)
@@ -2965,7 +2969,8 @@ def _build_faction_produced_goods(
         3,
     )
     produced_goods[PRODUCED_GOOD_TOOLS] = round(
-        produced_goods[PRODUCED_GOOD_TOOLS] * (1.0 + tools_role_factor),
+        produced_goods[PRODUCED_GOOD_TOOLS]
+        * (1.0 + tools_role_factor + elite_effects.get("tools_output_factor", 0.0)),
         3,
     )
 
@@ -3008,7 +3013,8 @@ def _build_faction_produced_goods(
         3,
     )
     produced_goods[PRODUCED_GOOD_URBAN_SURPLUS] = round(
-        produced_goods[PRODUCED_GOOD_URBAN_SURPLUS] * (1.0 + urban_role_factor),
+        produced_goods[PRODUCED_GOOD_URBAN_SURPLUS]
+        * (1.0 + urban_role_factor + elite_effects.get("urban_surplus_factor", 0.0)),
         3,
     )
     return normalize_produced_goods_map(produced_goods)

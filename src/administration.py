@@ -29,6 +29,7 @@ from src.governance import (
     get_faction_administrative_capacity_modifier,
     get_faction_administrative_reach_modifier,
 )
+from src.internal_politics import get_faction_elite_effects
 from src.models import Region, WorldState
 from src.region_state import get_region_core_status
 from src.technology import (
@@ -172,6 +173,7 @@ def refresh_administrative_state(world: WorldState) -> None:
             * ADMIN_TAXABLE_CAPACITY_FACTOR
         )
         capacity *= 1.0 + get_faction_urban_capacity_bonus(world, faction_name)
+        capacity *= 1.0 + get_faction_elite_effects(faction).get("administrative_capacity_factor", 0.0)
         capacity *= (
             1.0
             + get_faction_institutional_technology(faction, TECH_TEMPLE_RECORDKEEPING) * 0.08
@@ -188,6 +190,8 @@ def refresh_administrative_state(world: WorldState) -> None:
                 * get_faction_administrative_reach_modifier(faction),
             ),
         )
+        reach *= 1.0 + get_faction_elite_effects(faction).get("administrative_reach_factor", 0.0)
+        reach = max(0.35, min(1.18, reach))
         overextension = max(0.0, load - capacity)
 
         faction.administrative_capacity = round(capacity, 3)

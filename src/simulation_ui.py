@@ -19,6 +19,7 @@ from src.event_analysis import (
     build_initial_opening_state,
     get_final_standings,
 )
+from src.internal_politics import get_faction_elite_summary
 from src.climate import format_climate_label
 from src.map_visualization import (
     build_map_layout,
@@ -1391,6 +1392,7 @@ def build_simulation_view_model(world):
             "claimant_pressure": round(float(world.factions[faction_name].succession.claimant_pressure or 0.0), 3),
             "last_succession_turn": world.factions[faction_name].succession.last_succession_turn,
             "last_succession_type": world.factions[faction_name].succession.last_succession_type,
+            **get_faction_elite_summary(world.factions[faction_name]),
             "official_religion": world.factions[faction_name].religion.official_religion,
             "religious_legitimacy": round(float(world.factions[faction_name].religion.religious_legitimacy or 0.0), 3),
             "clergy_support": round(float(world.factions[faction_name].religion.clergy_support or 0.0), 3),
@@ -5394,6 +5396,7 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Realm Structure:</strong> Homeland ${{metrics.homeland_regions}} / Core ${{metrics.core_regions}} / Frontier ${{metrics.frontier_regions}}</div>
             <div class="metric-line"><strong>Dynasty:</strong> ${{escapeHtml(dynastyName)}} | ruler ${{escapeHtml(rulerName)}} | heir ${{escapeHtml(heirName)}}</div>
             <div class="metric-line"><strong>Succession:</strong> legitimacy ${{(legitimacy * 100).toFixed(0)}}% | prestige ${{(prestige * 100).toFixed(0)}}% | regency ${{regencyTurns}} | crisis ${{successionCrisisTurns}} | claimant pressure ${{(claimantPressure * 100).toFixed(0)}}%</div>
+            <div class="metric-line"><strong>Elite Blocs:</strong> strongest ${{escapeHtml(metrics.strongest_elite_bloc_label || faction.strongest_elite_bloc_label || "None")}} | alienated ${{escapeHtml(metrics.alienated_elite_bloc_label || faction.alienated_elite_bloc_label || "None")}} | pressure ${{Number(metrics.elite_unrest_pressure || faction.elite_unrest_pressure || 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Religion:</strong> ${{escapeHtml(officialReligion)}} | sacred sites ${{sacredSitesControlled}} / ${{totalSacredSites}} | religious legitimacy ${{(religiousLegitimacy * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Cult Politics:</strong> clergy ${{(clergySupport * 100).toFixed(0)}}% | tolerance ${{(religiousTolerance * 100).toFixed(0)}}% | zeal ${{(religiousZeal * 100).toFixed(0)}}% | state cult ${{(stateCultStrength * 100).toFixed(0)}}% | reform pressure ${{(reformPressure * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Hierarchy:</strong> Overlord ${{escapeHtml(metrics.overlord || "None")}} | Top tributary ${{escapeHtml(metrics.top_tributary || "None")}} | Tributaries ${{Number(metrics.tributary_count || 0)}} (${{Number(metrics.vassal_count || 0)}} vassals)</div>

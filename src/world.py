@@ -4,6 +4,7 @@ from src.doctrine import initialize_faction_doctrines
 from src.ethnicity import apply_language_contact_borrowing, register_ethnicity, seed_region_ethnicity
 from src.factions import create_factions, validate_map_factions
 from src.integration import initialize_heartlands, initialize_region_history
+from src.internal_politics import initialize_elite_blocs
 from src.population import (
     estimate_region_population,
     estimate_region_population_from_resource_profile,
@@ -140,6 +141,7 @@ def create_world(
     initialize_faction_visibility(world)
     initialize_relationships(world)
     update_urban_specializations(world)
+    initialize_elite_blocs(world)
     apply_language_contact_borrowing(world)
     initialize_region_history(world)
 

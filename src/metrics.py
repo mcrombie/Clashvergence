@@ -1,6 +1,7 @@
 from src.administration import refresh_administrative_state
 from src.calendar import format_turn_date, get_turn_season_name, get_turn_year
 from src.diplomacy import get_faction_diplomacy_summary
+from src.internal_politics import ALL_ELITE_BLOCS, get_faction_elite_summary
 from src.region_state import get_region_core_status
 from src.technology import (
     ALL_TECHNOLOGIES,
@@ -71,6 +72,7 @@ def build_turn_metrics(world, economy_snapshot=None):
         production_chain_shortages = faction.production_chain_shortages or {}
         known_technologies = faction.known_technologies or {}
         institutional_technologies = faction.institutional_technologies or {}
+        elite_summary = get_faction_elite_summary(faction)
 
         for event in turn_events:
             if event.faction != faction_name:
@@ -165,6 +167,26 @@ def build_turn_metrics(world, economy_snapshot=None):
             "claimant_pressure": round(float(faction.succession.claimant_pressure or 0.0), 3),
             "last_succession_turn": faction.succession.last_succession_turn,
             "last_succession_type": faction.succession.last_succession_type,
+            "strongest_elite_bloc": elite_summary["strongest_elite_bloc"],
+            "strongest_elite_bloc_label": elite_summary["strongest_elite_bloc_label"],
+            "alienated_elite_bloc": elite_summary["alienated_elite_bloc"],
+            "alienated_elite_bloc_label": elite_summary["alienated_elite_bloc_label"],
+            "elite_unrest_pressure": elite_summary["elite_unrest_pressure"],
+            "elite_bloc_count": len(faction.elite_blocs),
+            **{
+                f"{bloc_type}_influence": round(
+                    next((bloc.influence for bloc in faction.elite_blocs if bloc.bloc_type == bloc_type), 0.0),
+                    3,
+                )
+                for bloc_type in ALL_ELITE_BLOCS
+            },
+            **{
+                f"{bloc_type}_loyalty": round(
+                    next((bloc.loyalty for bloc in faction.elite_blocs if bloc.bloc_type == bloc_type), 0.0),
+                    3,
+                )
+                for bloc_type in ALL_ELITE_BLOCS
+            },
             "official_religion": faction.religion.official_religion,
             "religious_legitimacy": round(float(faction.religion.religious_legitimacy or 0.0), 3),
             "clergy_support": round(float(faction.religion.clergy_support or 0.0), 3),

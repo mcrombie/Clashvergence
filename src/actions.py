@@ -44,6 +44,7 @@ from src.ethnicity import (
     get_region_dominant_ethnicity,
 )
 from src.integration import handle_region_owner_change
+from src.internal_politics import get_faction_elite_effects
 from src.population import (
     apply_region_population_loss,
     transfer_region_population,
@@ -988,6 +989,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         get_region_technology_adoption(region, TECH_ORGANIZED_LEVIES) * 3
         + get_region_institutional_technology(region, world, TECH_ORGANIZED_LEVIES) * 2
     ))
+    attacker_strength += int(round(attacker_strength * get_faction_elite_effects(attacker_faction).get("attack_strength_factor", 0.0)))
     season_name = get_turn_season_name(world.turn)
     seasonal_terrain_defense_bonus = get_seasonal_terrain_defense_bonus(region, season_name)
     seasonal_attack_strength_bonus = get_seasonal_attack_strength_bonus(season_name)

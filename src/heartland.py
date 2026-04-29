@@ -886,9 +886,11 @@ def _maybe_reform_state_religion(world: WorldState, faction_name: str) -> None:
 
 
 def update_religious_legitimacy(world: WorldState) -> None:
+    from src.internal_politics import get_faction_elite_effects
     from src.urban import get_region_urban_effects
 
     for faction_name, faction in world.factions.items():
+        elite_effects = get_faction_elite_effects(faction)
         official_religion = faction.religion.official_religion
         if not official_religion:
             homeland_region_name = faction.doctrine_state.homeland_region
@@ -959,6 +961,7 @@ def update_religious_legitimacy(world: WorldState) -> None:
                 + (sacred_ratio * RELIGION_SACRED_SITE_BONUS)
                 + (faction.religion.state_cult_strength * 0.06)
                 + (faction.religion.religious_zeal * 0.04)
+                + elite_effects.get("religious_legitimacy_factor", 0.0)
                 + 0.34,
                 0.15,
                 0.95,
@@ -970,6 +973,7 @@ def update_religious_legitimacy(world: WorldState) -> None:
                 faction.religion.clergy_support
                 + ((sacred_ratio - 0.5) * 0.05)
                 + min(0.035, clergy_urban_support)
+                + elite_effects.get("clergy_support_delta", 0.0)
                 - (max(0.0, 0.6 - unity) * 0.04),
                 0.1,
                 0.95,
@@ -3703,6 +3707,17 @@ def _update_faction_legitimacy(world: WorldState, faction_name: str) -> None:
     elif faction.government_form == "monarchy":
         claimant_pressure += max(0.0, 0.55 - float(succession.dynasty_prestige or 0.0)) * 0.08
     succession.claimant_pressure = round(_clamp(claimant_pressure, 0.0, 1.0), 3)
+    from src.internal_politics import get_faction_elite_effects
+
+    succession.claimant_pressure = round(
+        _clamp(
+            succession.claimant_pressure
+            + get_faction_elite_effects(faction).get("claimant_pressure", 0.0),
+            0.0,
+            1.0,
+        ),
+        3,
+    )
     succession.dynasty_prestige = round(
         _clamp(
             float(succession.dynasty_prestige or 0.0)
@@ -4090,6 +4105,8 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
 
 
 def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
+    from src.internal_politics import get_faction_elite_effects
+
     if region.owner is None or region.owner not in world.factions:
         return 0.0
     if region.homeland_faction_id == region.owner:
@@ -4129,6 +4146,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         - (float(owner_faction.religion.religious_tolerance or 0.0) * RELIGION_TOLERANCE_UNREST_REDUCTION),
     )
     administrative_pressure = float(region.administrative_autonomy or 0.0) * ADMIN_UNREST_AUTONOMY_FACTOR
+    elite_pressure = get_faction_elite_effects(owner_faction).get("unrest_pressure", 0.0)
     stability_divisor = max(0.5, get_faction_stability_modifier(owner_faction))
     pressure = (
         climate_pressure
@@ -4142,6 +4160,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         + succession_pressure
         + religion_pressure
         + administrative_pressure
+        + elite_pressure
     ) * get_seasonal_unrest_pressure_modifier(season_name)
     pressure *= get_seasonal_terrain_unrest_multiplier(region, season_name)
     return pressure / stability_divisor - UNREST_DECAY_PER_TURN
