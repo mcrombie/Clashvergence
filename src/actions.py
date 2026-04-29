@@ -70,6 +70,14 @@ from src.resources import (
 )
 from src.region_naming import apply_region_name_layer, assign_region_founding_name, format_region_reference
 from src.terrain import get_seasonal_terrain_defense_bonus, get_terrain_profile
+from src.technology import (
+    TECH_COPPER_WORKING,
+    TECH_ORGANIZED_LEVIES,
+    apply_development_technology_experience,
+    get_faction_institutional_technology,
+    get_region_institutional_technology,
+    get_region_technology_adoption,
+)
 from src.visibility import faction_knows_region
 
 
@@ -900,6 +908,10 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + staging_projection
         + doctrine_alignment["combat_modifier"]
     )
+    attacker_strength += int(round(
+        get_faction_institutional_technology(attacker_faction, TECH_ORGANIZED_LEVIES) * 4
+        + get_faction_institutional_technology(attacker_faction, TECH_COPPER_WORKING) * 2
+    ))
     rebel_reclaim_bonus = get_rebel_reclaim_bonus(
         faction_name,
         defender_name,
@@ -972,6 +984,10 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + terrain_profile["defense_modifier"]
         + core_defense_bonus
     )
+    defender_strength += int(round(
+        get_region_technology_adoption(region, TECH_ORGANIZED_LEVIES) * 3
+        + get_region_institutional_technology(region, world, TECH_ORGANIZED_LEVIES) * 2
+    ))
     season_name = get_turn_season_name(world.turn)
     seasonal_terrain_defense_bonus = get_seasonal_terrain_defense_bonus(region, season_name)
     seasonal_attack_strength_bonus = get_seasonal_attack_strength_bonus(season_name)
@@ -1025,6 +1041,14 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "diplomacy_status": diplomacy_status,
         "diplomacy_attack_modifier": diplomacy_attack_modifier,
         "resource_need_bonus": resource_need_bonus,
+        "attacker_organized_levies": round(
+            get_faction_institutional_technology(attacker_faction, TECH_ORGANIZED_LEVIES),
+            3,
+        ),
+        "defender_organized_levies": round(
+            get_region_technology_adoption(region, TECH_ORGANIZED_LEVIES),
+            3,
+        ),
         "trade_chokepoint_bonus": trade_chokepoint_bonus,
         "foreign_gateway_bonus": foreign_gateway_bonus,
         "active_war_bonus": active_war_bonus,
@@ -1803,6 +1827,11 @@ def develop(faction_name, target_region_name, world):
             },
         )
 
+    apply_development_technology_experience(
+        region,
+        str(project_type),
+        str(score_components["resource_focus"]),
+    )
     update_faction_resource_economy(world)
     taxable_after = get_region_taxable_value(region, world)
 

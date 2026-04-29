@@ -101,6 +101,10 @@ SYSTEM_DEFINITIONS = {
         "label": "Food Stress",
         "event_types": set(),
     },
+    "technology": {
+        "label": "Technology",
+        "event_types": {"technology_adoption", "technology_institutionalized"},
+    },
 }
 
 
@@ -209,6 +213,7 @@ def _metric_system_signals(world):
         "succession": [],
         "trade_disruption": [],
         "trade_economy": [],
+        "technology": [],
     }
 
     for turn, metrics in _iter_faction_metric_rows(world):
@@ -264,6 +269,12 @@ def _metric_system_signals(world):
             or float(metrics.get("claimant_pressure", 0.0) or 0.0) > 0.2
         ):
             signals["succession"].append(turn)
+
+        if (
+            float(metrics.get("average_technology_presence", 0.0) or 0.0) > 0.08
+            or float(metrics.get("average_institutional_technology", 0.0) or 0.0) > 0.04
+        ):
+            signals["technology"].append(turn)
 
     return signals
 
@@ -656,7 +667,17 @@ def format_setting_report(result):
     )
     lines.append("-" * 82)
     for system_name in SYSTEM_DEFINITIONS:
-        activity = system_activity[system_name]
+        activity = system_activity.get(system_name)
+        if activity is None:
+            activity = {
+                "label": SYSTEM_DEFINITIONS[system_name]["label"],
+                "average_events": 0.0,
+                "average_metric_signals": 0.0,
+                "active_rate": 0.0,
+                "dead_run_rate": 1.0,
+                "average_first_turn": None,
+                "status": "dead",
+            }
         first_turn = activity["average_first_turn"]
         first_turn_text = f"{first_turn:.2f}" if first_turn is not None else "n/a"
         lines.append(

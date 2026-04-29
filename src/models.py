@@ -278,6 +278,9 @@ class Region:
     shrine_level: float = 0.0
     pilgrimage_value: float = 0.0
     religious_unrest: float = 0.0
+    technology_presence: dict[str, float] = field(default_factory=dict)
+    technology_adoption: dict[str, float] = field(default_factory=dict)
+    technology_pressure: dict[str, float] = field(default_factory=dict)
     display_name: str = ""
     founding_name: str = ""
     original_namer_faction_id: str | None = None
@@ -426,6 +429,8 @@ class Faction:
     administrative_reach: float = 1.0
     administrative_overextension: float = 0.0
     administrative_overextension_penalty: float = 0.0
+    known_technologies: dict[str, float] = field(default_factory=dict)
+    institutional_technologies: dict[str, float] = field(default_factory=dict)
     known_regions: list[str] = field(default_factory=list)
     visible_regions: list[str] = field(default_factory=list)
     known_factions: list[str] = field(default_factory=list)

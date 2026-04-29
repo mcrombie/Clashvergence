@@ -31,6 +31,13 @@ from src.governance import (
 )
 from src.models import Region, WorldState
 from src.region_state import get_region_core_status
+from src.technology import (
+    TECH_ROAD_ADMINISTRATION,
+    TECH_TEMPLE_RECORDKEEPING,
+    get_faction_institutional_technology,
+    get_region_institutional_technology,
+    get_region_technology_adoption,
+)
 
 
 def get_region_administrative_support(region: Region) -> float:
@@ -40,6 +47,8 @@ def get_region_administrative_support(region: Region) -> float:
     support += region.market_level * ADMIN_SUPPORT_MARKET_FACTOR
     support += region.storehouse_level * ADMIN_SUPPORT_STOREHOUSE_FACTOR
     support += region.integration_score * ADMIN_SUPPORT_INTEGRATION_FACTOR
+    support += get_region_technology_adoption(region, TECH_ROAD_ADMINISTRATION) * 0.05
+    support += get_region_technology_adoption(region, TECH_TEMPLE_RECORDKEEPING) * 0.06
     status = get_region_core_status(region)
     if status == "homeland":
         support += 0.18
@@ -160,6 +169,11 @@ def refresh_administrative_state(world: WorldState) -> None:
             max(0.0, float(faction.derived_capacity.get("taxable_value", 0.0)))
             * ADMIN_TAXABLE_CAPACITY_FACTOR
         )
+        capacity *= (
+            1.0
+            + get_faction_institutional_technology(faction, TECH_TEMPLE_RECORDKEEPING) * 0.08
+            + get_faction_institutional_technology(faction, TECH_ROAD_ADMINISTRATION) * 0.05
+        )
 
         load = max(0.01, float(faction.administrative_load or 0.0))
         efficiency = max(0.45, min(1.15, capacity / load))
@@ -201,6 +215,11 @@ def refresh_administrative_state(world: WorldState) -> None:
                 + (region.administrative_support * 0.14)
                 - (autonomy * 0.16)
             )
+            tax_capture += get_region_institutional_technology(
+                region,
+                world,
+                TECH_TEMPLE_RECORDKEEPING,
+            ) * 0.035
             status = get_region_core_status(region)
             if status == "homeland":
                 tax_capture += 0.05

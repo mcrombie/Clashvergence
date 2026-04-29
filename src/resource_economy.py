@@ -72,6 +72,15 @@ from src.resources import (
     normalize_resource_map,
     seed_region_resource_profile,
 )
+from src.technology import (
+    TECH_COPPER_WORKING,
+    TECH_IRRIGATION_METHODS,
+    TECH_MARKET_ACCOUNTING,
+    TECH_PASTORAL_BREEDING,
+    TECH_ROAD_ADMINISTRATION,
+    get_region_institutional_technology,
+    get_region_technology_adoption,
+)
 
 
 RESOURCE_BASE_OUTPUT = {
@@ -465,12 +474,17 @@ def get_region_resource_climate_factor(region: Region, world: WorldState | None)
 
 
 def get_region_resource_development_factor(region: Region, resource_name: str) -> float:
+    irrigation_methods = get_region_technology_adoption(region, TECH_IRRIGATION_METHODS)
+    pastoral_breeding = get_region_technology_adoption(region, TECH_PASTORAL_BREEDING)
+    copper_working = get_region_technology_adoption(region, TECH_COPPER_WORKING)
+    market_accounting = get_region_technology_adoption(region, TECH_MARKET_ACCOUNTING)
     if resource_name == RESOURCE_GRAIN:
         return (
             RESOURCE_GRAIN_UNIRRIGATED_FACTOR
             + (region.irrigation_level * RESOURCE_GRAIN_IRRIGATION_LEVEL_FACTOR)
             + (region.agriculture_level * RESOURCE_GRAIN_SUPPORT_LEVEL_FACTOR)
             + (region.infrastructure_level * 0.08)
+            + (irrigation_methods * 0.14)
         )
     if resource_name == RESOURCE_LIVESTOCK:
         return (
@@ -478,6 +492,7 @@ def get_region_resource_development_factor(region: Region, resource_name: str) -
             + (region.pasture_level * RESOURCE_LIVESTOCK_PASTURE_LEVEL_FACTOR)
             + (region.pastoral_level * RESOURCE_LIVESTOCK_SUPPORT_LEVEL_FACTOR)
             + (region.infrastructure_level * 0.06)
+            + (pastoral_breeding * 0.12)
         )
     if resource_name == RESOURCE_HORSES:
         return (
@@ -485,6 +500,7 @@ def get_region_resource_development_factor(region: Region, resource_name: str) -
             + (region.pasture_level * RESOURCE_HORSE_PASTURE_LEVEL_FACTOR)
             + (region.pastoral_level * RESOURCE_HORSE_SUPPORT_LEVEL_FACTOR)
             + (region.infrastructure_level * 0.08)
+            + (pastoral_breeding * 0.16)
         )
     if resource_name == RESOURCE_TEXTILES:
         settlement_bonus = {
@@ -499,18 +515,21 @@ def get_region_resource_development_factor(region: Region, resource_name: str) -
             + (region.pastoral_level * RESOURCE_TEXTILE_FIBER_FACTOR)
             + (region.infrastructure_level * RESOURCE_TEXTILE_INFRASTRUCTURE_FACTOR)
             + settlement_bonus
+            + (market_accounting * 0.08)
         )
     if resource_name == RESOURCE_TIMBER:
         return (
             RESOURCE_TIMBER_UNDEVELOPED_FACTOR
             + (region.logging_camp_level * RESOURCE_TIMBER_LOGGING_LEVEL_FACTOR)
             + (region.infrastructure_level * 0.08)
+            + (copper_working * 0.04)
         )
     if resource_name == RESOURCE_SALT:
         return (
             RESOURCE_SALT_UNWORKED_FACTOR
             + (region.extractive_level * RESOURCE_EXTRACTIVE_SUPPORT_LEVEL_FACTOR)
             + (region.infrastructure_level * 0.1)
+            + (market_accounting * 0.04)
         )
     if resource_name in EXTRACTIVE_RESOURCES:
         site_level = get_region_extractive_site_level(region, resource_name)
@@ -519,6 +538,7 @@ def get_region_resource_development_factor(region: Region, resource_name: str) -
             + (site_level * RESOURCE_EXTRACTIVE_SITE_LEVEL_FACTOR)
             + (region.extractive_level * RESOURCE_EXTRACTIVE_SUPPORT_LEVEL_FACTOR)
             + (region.infrastructure_level * 0.12)
+            + (copper_working * (0.18 if resource_name == RESOURCE_COPPER else 0.08))
         )
     return 0.95 + (region.infrastructure_level * 0.1)
 
@@ -2258,6 +2278,11 @@ def get_region_internal_distribution_state(
     local_factor -= min(0.12, average_damage * 0.5)
     local_factor += min(0.12, region.infrastructure_level * 0.06)
     local_factor += min(0.14, region.storehouse_level * 0.06)
+    local_factor += min(
+        0.08,
+        get_region_technology_adoption(region, TECH_ROAD_ADMINISTRATION) * 0.055
+        + get_region_institutional_technology(region, world, TECH_ROAD_ADMINISTRATION) * 0.04,
+    )
     local_factor = _clamp(local_factor, 0.58, 1.02)
 
     route_cost = float(route_state.get("cost", 0.0) or 0.0)
@@ -2267,6 +2292,11 @@ def get_region_internal_distribution_state(
     else:
         path_factor = _clamp(1.02 - (route_cost * 0.11), 0.42, 0.96)
     bottleneck_factor = _clamp(0.5 + (route_bottleneck * 0.5), 0.48, 1.0)
+    bottleneck_factor += min(
+        0.04,
+        get_region_technology_adoption(region, TECH_ROAD_ADMINISTRATION) * 0.025
+        + get_region_institutional_technology(region, world, TECH_ROAD_ADMINISTRATION) * 0.02,
+    )
 
     factor = _clamp(local_factor * path_factor * bottleneck_factor, 0.28, 1.0)
     return {
@@ -2417,6 +2447,11 @@ def get_region_monetization_factor(
     factor += min(0.08, region.infrastructure_level * RESOURCE_MONETIZATION_INFRASTRUCTURE_FACTOR)
     factor += min(0.08, region.road_level * RESOURCE_MONETIZATION_ROAD_FACTOR)
     factor += min(0.06, region.storehouse_level * RESOURCE_MONETIZATION_STOREHOUSE_FACTOR)
+    factor += min(
+        0.11,
+        get_region_technology_adoption(region, TECH_MARKET_ACCOUNTING) * 0.07
+        + get_region_institutional_technology(region, world, TECH_MARKET_ACCOUNTING) * 0.05,
+    )
     if region.owner is not None:
         factor += min(0.1, region.integration_score * 0.01)
     status = get_region_core_status(region)

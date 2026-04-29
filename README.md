@@ -2,7 +2,7 @@
 
 Clashvergence is a simulation-first project about how polities grow, compete, consolidate, fragment, and adapt across a map. The goal is not to build a fair strategy game and then layer realism on top. The goal is to model interacting geopolitical and economic pressures first, then see what kinds of stories emerge and generate stylized histories.
 
-At its current stage, the simulation already supports territory expansion, war, development projects, specific resources, trade routing, food storage, population movement, settlement growth, climate and terrain effects, faction doctrine, diplomacy, ethnicity, unrest, secession, rebel proto-states, government forms, administrative capacity, religion, dynastic succession, polity advancement, narrative reporting, experiment dashboards, and an HTML turn-by-turn viewer.
+At its current stage, the simulation already supports territory expansion, war, development projects, specific resources, trade routing, food storage, population movement, settlement growth, climate and terrain effects, faction doctrine, diplomacy, ethnicity, unrest, secession, rebel proto-states, government forms, administrative capacity, religion, dynastic succession, polity advancement, practical technology diffusion, narrative reporting, experiment dashboards, and an HTML turn-by-turn viewer.
 
 This `README.md` describes the current project state.
 
@@ -17,7 +17,7 @@ The long-term direction is:
 
 ## Current Simulation Model
 
-Each run creates a world containing regions and factions. Regions track ownership, resource endowments, output, trade route state, food storage, population, terrain, climate, ethnic and religious composition, integration, settlement level, administrative state, migration pressure, and unrest. Factions track treasury, identity, doctrine, ethnicity, diplomacy, political structure, resource access, trade income, administrative capacity, religion, succession, and population movement.
+Each run creates a world containing regions and factions. Regions track ownership, resource endowments, output, trade route state, food storage, population, terrain, climate, ethnic and religious composition, technology presence and adoption, integration, settlement level, administrative state, migration pressure, and unrest. Factions track treasury, identity, doctrine, ethnicity, diplomacy, political structure, resource access, trade income, administrative capacity, religion, succession, institutionalized technologies, and population movement.
 
 Each turn currently follows a rough loop like this:
 
@@ -26,7 +26,7 @@ Each turn currently follows a rough loop like this:
 3. Resource production, trade routing, food storage, and administrative state are refreshed.
 4. Unrest events, secessions, rebel maturation, and migration are resolved.
 5. Income, empire-scale penalties, administrative penalties, tribute, and maintenance are applied.
-6. Integration, population, settlement levels, polity tiers, diplomacy, religion, succession, language contact, and doctrine are updated.
+6. Integration, technology diffusion, population, settlement levels, polity tiers, diplomacy, religion, succession, language contact, and doctrine are updated.
 7. Metrics and region history are recorded for analysis and visualization.
 
 ## Implemented Systems
@@ -49,6 +49,7 @@ Each turn currently follows a rough loop like this:
 - Administrative capacity, administrative reach, tax capture, autonomy, overextension, and administrative maintenance pressure.
 - Religion, sacred sites, religious legitimacy, religious unrest, conversion pressure, clergy support, tolerance, zeal, and reform pressure.
 - Dynastic succession, rulers, heirs, regencies, legitimacy, prestige, claimant pressure, and succession crises.
+- Practical technology diffusion through regional exposure, local adoption, and faction institutionalization, currently including irrigation methods, pastoral breeding, copper working, road administration, market accounting, organized levies, and temple recordkeeping.
 - Polity tiers and government forms that affect income, stability, and integration.
 - Event logs, chronicles, AI-assisted interpretive narrative input/output, metrics snapshots, balance dashboards, and dead-system observation.
 - HTML simulation viewer with turn playback, region/faction detail panels, trade overlays, migration/admin/religion/succession data, and doctrine timeline support.
@@ -58,7 +59,7 @@ Each turn currently follows a rough loop like this:
 These areas are still intentionally incomplete, shallow, or mostly observational:
 
 - Resource chains beyond the current regional-output and project system, such as iron, spices, manufactured goods, and stronger production dependencies.
-- Technology diffusion and production methods.
+- Technology beyond the current V1 practical-method layer, including deeper production methods, uneven eras of transformation, and stronger social disruption from adoption.
 - Ideology beyond religion and legitimacy politics.
 - Urban specialization, city networks, and more explicit labor or craft roles.
 - Elite internal politics beyond succession, claimants, clergy support, and regime agitation.
@@ -146,6 +147,6 @@ The next major priorities are:
 2. Tune pressure and action mix so terrain, climate, resources, trade, and legitimacy produce distinct strategies without flattening faction personality.
 3. Deepen production chains, strategic resources, and trade dependencies now that the first resource/trade layer exists.
 4. Deepen state capacity, legitimacy, religion, migration, and succession so they create more visible causal pressure.
-5. Add technology as diffusion through resources, trade, density, stability, and institutions rather than as a game-like tech tree.
+5. Observe and tune technology diffusion so trade, density, stability, resources, and institutions create visible divergence without becoming a game-like tech tree.
 
 More detailed sequencing and rationale live in [ROADMAP.md](./ROADMAP.md).

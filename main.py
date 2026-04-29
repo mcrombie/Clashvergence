@@ -215,6 +215,20 @@ def format_event(event, world):
             f"surplus={event.get('total_surplus', 0)})"
         )
 
+    if event["type"] == "technology_adoption":
+        return (
+            f"{time_label}: {region_reference} adopted {event.get('technology_label', 'a new method')} "
+            f"under {faction_name} "
+            f"(adoption={event.get('adoption', 0):.2f}{terrain_text}{seasonal_text})"
+        )
+
+    if event["type"] == "technology_institutionalized":
+        return (
+            f"{time_label}: {faction_name} institutionalized "
+            f"{event.get('technology_label', 'a new method')} "
+            f"(level={event.get('institutional_level', 0):.2f})"
+        )
+
     if event["type"] == "diplomacy_rivalry":
         return (
             f"{time_label}: {faction_name} and {counterpart_name} "
@@ -370,6 +384,8 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
                 f"effective_income={faction_metrics.get('effective_income', 0)}, "
                 f"maintenance={faction_metrics['maintenance']}, "
                 f"net={faction_metrics['net_income']}, "
+                f"tech_presence={faction_metrics.get('average_technology_presence', 0.0)}, "
+                f"tech_institutional={faction_metrics.get('average_institutional_technology', 0.0)}, "
                 f"doctrine={faction_metrics.get('doctrine_label', 'Unknown')}, "
                 f"homeland={faction_metrics.get('homeland_regions', 0)}, "
                 f"core={faction_metrics.get('core_regions', 0)}, "

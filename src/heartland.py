@@ -239,6 +239,10 @@ from src.terrain import (
     get_seasonal_terrain_unrest_multiplier,
     get_terrain_profile,
 )
+from src.technology import (
+    format_technology_map,
+    normalize_technology_map,
+)
 
 
 CONQUEST_INTEGRATION_SCORE = 1.0
@@ -4500,6 +4504,10 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "shrine_level": round(float(region.shrine_level or 0.0), 2),
             "pilgrimage_value": round(float(region.pilgrimage_value or 0.0), 3),
             "religious_unrest": round(float(region.religious_unrest or 0.0), 3),
+            "technology_presence": normalize_technology_map(region.technology_presence),
+            "technology_adoption": normalize_technology_map(region.technology_adoption),
+            "technology_pressure": normalize_technology_map(region.technology_pressure),
+            "technology_summary": format_technology_map(region.technology_adoption, limit=3),
             "ethnic_claimants": get_region_ethnic_claimants(region, world),
             "owner_primary_ethnicity": get_region_owner_primary_ethnicity(region, world),
             "owner_has_ethnic_claim": faction_has_ethnic_claim(world, region, region.owner),

@@ -58,6 +58,7 @@ from src.narrative import (
 )
 from src.resources import format_resource_map
 from src.region_naming import format_region_reference, get_region_display_name
+from src.technology import format_technology_map, normalize_technology_map
 from src.terrain import format_terrain_label, get_seasonal_terrain_note
 
 
@@ -188,6 +189,10 @@ def _build_region_resource_payload(region):
         "frontier_settler_inflow": int(region.frontier_settler_inflow or 0),
         "migration_pressure": round(float(region.migration_pressure or 0.0), 3),
         "migration_attraction": round(float(region.migration_attraction or 0.0), 3),
+        "technology_presence": normalize_technology_map(region.technology_presence),
+        "technology_adoption": normalize_technology_map(region.technology_adoption),
+        "technology_pressure": normalize_technology_map(region.technology_pressure),
+        "technology_summary": format_technology_map(region.technology_adoption, limit=3),
     }
 
 
@@ -843,6 +848,10 @@ def build_simulation_snapshots(world):
             "frontier_settler_inflow": initial_region_history.get(region_name, {}).get("frontier_settler_inflow", region.frontier_settler_inflow),
             "migration_pressure": initial_region_history.get(region_name, {}).get("migration_pressure", region.migration_pressure),
             "migration_attraction": initial_region_history.get(region_name, {}).get("migration_attraction", region.migration_attraction),
+            "technology_presence": dict(initial_region_history.get(region_name, {}).get("technology_presence", region.technology_presence)),
+            "technology_adoption": dict(initial_region_history.get(region_name, {}).get("technology_adoption", region.technology_adoption)),
+            "technology_pressure": dict(initial_region_history.get(region_name, {}).get("technology_pressure", region.technology_pressure)),
+            "technology_summary": initial_region_history.get(region_name, {}).get("technology_summary", format_technology_map(region.technology_adoption, limit=3)),
             "administrative_burden": initial_region_history.get(region_name, {}).get("administrative_burden", region.administrative_burden),
             "administrative_support": initial_region_history.get(region_name, {}).get("administrative_support", region.administrative_support),
             "administrative_distance": initial_region_history.get(region_name, {}).get("administrative_distance", region.administrative_distance),
@@ -960,6 +969,10 @@ def build_simulation_snapshots(world):
                 "frontier_settler_inflow": region["frontier_settler_inflow"],
                 "migration_pressure": region["migration_pressure"],
                 "migration_attraction": region["migration_attraction"],
+                "technology_presence": region.get("technology_presence", {}),
+                "technology_adoption": region.get("technology_adoption", {}),
+                "technology_pressure": region.get("technology_pressure", {}),
+                "technology_summary": region.get("technology_summary", "None"),
                 "administrative_burden": region["administrative_burden"],
                 "administrative_support": region["administrative_support"],
                 "administrative_distance": region["administrative_distance"],
@@ -1099,6 +1112,10 @@ def build_simulation_snapshots(world):
             region_state[region_name]["frontier_settler_inflow"] = history_region.get("frontier_settler_inflow", region_state[region_name]["frontier_settler_inflow"])
             region_state[region_name]["migration_pressure"] = history_region.get("migration_pressure", region_state[region_name]["migration_pressure"])
             region_state[region_name]["migration_attraction"] = history_region.get("migration_attraction", region_state[region_name]["migration_attraction"])
+            region_state[region_name]["technology_presence"] = history_region.get("technology_presence", region_state[region_name].get("technology_presence", {}))
+            region_state[region_name]["technology_adoption"] = history_region.get("technology_adoption", region_state[region_name].get("technology_adoption", {}))
+            region_state[region_name]["technology_pressure"] = history_region.get("technology_pressure", region_state[region_name].get("technology_pressure", {}))
+            region_state[region_name]["technology_summary"] = history_region.get("technology_summary", region_state[region_name].get("technology_summary", "None"))
             region_state[region_name]["administrative_burden"] = history_region.get("administrative_burden", region_state[region_name]["administrative_burden"])
             region_state[region_name]["administrative_support"] = history_region.get("administrative_support", region_state[region_name]["administrative_support"])
             region_state[region_name]["administrative_distance"] = history_region.get("administrative_distance", region_state[region_name]["administrative_distance"])
@@ -1226,6 +1243,10 @@ def build_simulation_snapshots(world):
                     "frontier_settler_inflow": region["frontier_settler_inflow"],
                     "migration_pressure": region["migration_pressure"],
                     "migration_attraction": region["migration_attraction"],
+                    "technology_presence": region.get("technology_presence", {}),
+                    "technology_adoption": region.get("technology_adoption", {}),
+                    "technology_pressure": region.get("technology_pressure", {}),
+                    "technology_summary": region.get("technology_summary", "None"),
                     "administrative_burden": region["administrative_burden"],
                     "administrative_support": region["administrative_support"],
                     "administrative_distance": region["administrative_distance"],
@@ -1415,6 +1436,12 @@ def build_simulation_view_model(world):
             "resource_access_summary": format_resource_map(world.factions[faction_name].resource_access, limit=5),
             "resource_gross_summary": format_resource_map(world.factions[faction_name].resource_gross_output, limit=5),
             "resource_isolated_summary": format_resource_map(world.factions[faction_name].resource_isolated_output, limit=5),
+            "known_technologies": normalize_technology_map(world.factions[faction_name].known_technologies),
+            "institutional_technologies": normalize_technology_map(world.factions[faction_name].institutional_technologies),
+            "technology_summary": format_technology_map(
+                world.factions[faction_name].institutional_technologies,
+                limit=4,
+            ),
             "food_store_summary": (
                 f"{world.factions[faction_name].food_stored:.1f} / "
                 f"{world.factions[faction_name].food_storage_capacity:.1f}"
@@ -5073,6 +5100,7 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Raw Flow:</strong> ${{escapeHtml(regionSnapshot.resource_output_summary || staticRegion.resource_output_summary || "None")}}</div>
             <div class="metric-line"><strong>Retained Flow:</strong> ${{escapeHtml(regionSnapshot.resource_retained_output_summary || staticRegion.resource_retained_output_summary || "None")}}</div>
             <div class="metric-line"><strong>Routed Flow:</strong> ${{escapeHtml(regionSnapshot.resource_routed_output_summary || staticRegion.resource_routed_output_summary || regionSnapshot.resource_output_summary || staticRegion.resource_output_summary || "None")}}</div>
+            <div class="metric-line"><strong>Technology:</strong> ${{escapeHtml(regionSnapshot.technology_summary || staticRegion.technology_summary || "None")}}</div>
             <div class="metric-line"><strong>Trade Layer:</strong> ${{escapeHtml(regionSnapshot.trade_route_role || staticRegion.trade_route_role || "local")}} | throughput ${{Number(regionSnapshot.trade_throughput ?? staticRegion.trade_throughput ?? 0).toFixed(2)}} | trade bonus ${{Number(regionSnapshot.trade_value_bonus ?? staticRegion.trade_value_bonus ?? 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Import / Transit:</strong> ${{Number(regionSnapshot.trade_import_value ?? staticRegion.trade_import_value ?? 0).toFixed(2)}} / ${{Number(regionSnapshot.trade_transit_value ?? staticRegion.trade_transit_value ?? 0).toFixed(2)}} | disruption ${{Number((regionSnapshot.trade_disruption_risk ?? staticRegion.trade_disruption_risk ?? 0) * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Trade Warfare:</strong> pressure ${{Number(regionSnapshot.trade_warfare_pressure ?? staticRegion.trade_warfare_pressure ?? 0).toFixed(2)}} for ${{Number(regionSnapshot.trade_warfare_turns ?? staticRegion.trade_warfare_turns ?? 0).toFixed(0)}} turn(s) | blockade ${{Number(regionSnapshot.trade_blockade_strength ?? staticRegion.trade_blockade_strength ?? 0).toFixed(2)}} for ${{Number(regionSnapshot.trade_blockade_turns ?? staticRegion.trade_blockade_turns ?? 0).toFixed(0)}} turn(s) | denied ${{Number(regionSnapshot.trade_value_denied ?? staticRegion.trade_value_denied ?? 0).toFixed(2)}}</div>

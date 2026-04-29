@@ -19,6 +19,7 @@ from src.resource_economy import (
     initialize_region_resources,
     update_faction_resource_economy,
 )
+from src.technology import initialize_technology_state
 from src.visibility import initialize_faction_visibility
 
 
@@ -134,6 +135,7 @@ def create_world(
     update_region_settlement_levels(world)
     update_faction_resource_economy(world)
     refresh_administrative_state(world)
+    initialize_technology_state(world)
     initialize_faction_visibility(world)
     initialize_relationships(world)
     apply_language_contact_borrowing(world)

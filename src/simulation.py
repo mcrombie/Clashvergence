@@ -39,6 +39,7 @@ from src.resource_economy import (
 from src.visibility import refresh_all_faction_visibility, refresh_faction_visibility
 from src.metrics import record_turn_metrics
 from src.succession import resolve_dynastic_succession
+from src.technology import update_technology_diffusion
 from src.unrest import resolve_unrest_events
 
 
@@ -192,6 +193,8 @@ def _run_post_action_phase(world, season_name):
     apply_turn_food_economy(world, season_name=season_name)
     update_region_integration(world, time_step_years=SEASONAL_TIME_STEP_YEARS)
     refresh_administrative_state(world)
+    update_technology_diffusion(world)
+    update_faction_resource_economy(world, advance_resources=False)
     resolve_population_migration(world)
     update_faction_resource_economy(world, advance_resources=False)
     return economy_snapshot

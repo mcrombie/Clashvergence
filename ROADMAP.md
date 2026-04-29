@@ -66,6 +66,7 @@ The project has moved past the first economic and political scaffolding pass. It
 - administrative capacity, tax capture, autonomy, reach, and overextension
 - religion, sacred sites, religious legitimacy, conversion pressure, and reform pressure
 - dynastic succession, rulers, heirs, regencies, claimant pressure, and succession crises
+- practical technology diffusion through regional exposure, local adoption, and faction institutionalization
 - polity advancement and government-form modifiers
 - reporting, metrics, dead-system observation, experiments, and an HTML viewer
 
@@ -151,19 +152,26 @@ Good outcomes:
 
 Priority: high
 
-Why now but not before:
+Current state:
 
-- Technology should rest on resources, trade, density, stability, and institutions.
-- The project now has enough material and political substrate for diffusion to be meaningful.
+- A V1 technology layer now exists.
+- It tracks regional presence, regional adoption, and faction institutionalization.
+- The first methods are irrigation methods, pastoral breeding, copper working, road administration, market accounting, organized levies, and temple recordkeeping.
+- Technology is influenced by trade, adjacency, density, resources, stability, and institutions, and it feeds back into production, logistics, administration, commerce, and war.
+
+Why continue:
+
+- The V1 layer needs observation and tuning to make divergence visible across longer runs.
+- Deeper production methods should rest on the current resource/trade/state substrate.
 - A game-style tech tree would still pull the design toward strategy-game logic too early.
 
 Targets:
 
-- technology spread through contact, trade, density, and stability
-- production and agricultural improvements
-- military organization and logistics shifts
-- administrative and record-keeping advances
-- uneven adoption and regional lag
+- observe technology spread through contact, trade, density, and stability
+- deepen production and agricultural improvements
+- deepen military organization and logistics shifts
+- deepen administrative and record-keeping advances
+- preserve uneven adoption and regional lag
 - practical adoption costs tied to resources, state capacity, and social disruption
 
 Good outcomes:

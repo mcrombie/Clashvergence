@@ -2,6 +2,16 @@ from src.administration import refresh_administrative_state
 from src.calendar import format_turn_date, get_turn_season_name, get_turn_year
 from src.diplomacy import get_faction_diplomacy_summary
 from src.region_state import get_region_core_status
+from src.technology import (
+    ALL_TECHNOLOGIES,
+    TECH_COPPER_WORKING,
+    TECH_IRRIGATION_METHODS,
+    TECH_MARKET_ACCOUNTING,
+    TECH_ORGANIZED_LEVIES,
+    TECH_PASTORAL_BREEDING,
+    TECH_ROAD_ADMINISTRATION,
+    TECH_TEMPLE_RECORDKEEPING,
+)
 
 
 def get_turn_events(world, turn):
@@ -51,6 +61,8 @@ def build_turn_metrics(world, economy_snapshot=None):
         isolated_output = faction.resource_isolated_output or {}
         resource_shortages = faction.resource_shortages or {}
         derived_capacity = faction.derived_capacity or {}
+        known_technologies = faction.known_technologies or {}
+        institutional_technologies = faction.institutional_technologies or {}
 
         for event in turn_events:
             if event.faction != faction_name:
@@ -210,6 +222,30 @@ def build_turn_metrics(world, economy_snapshot=None):
             "construction_shortage": round(resource_shortages.get("construction_capacity", 0.0), 3),
             "salt_shortage": round(resource_shortages.get("salt", 0.0), 3),
             "textiles_shortage": round(resource_shortages.get("textiles", 0.0), 3),
+            "average_technology_presence": round(
+                sum(known_technologies.get(technology_key, 0.0) for technology_key in ALL_TECHNOLOGIES)
+                / max(1, len(ALL_TECHNOLOGIES)),
+                3,
+            ),
+            "average_institutional_technology": round(
+                sum(institutional_technologies.get(technology_key, 0.0) for technology_key in ALL_TECHNOLOGIES)
+                / max(1, len(ALL_TECHNOLOGIES)),
+                3,
+            ),
+            "irrigation_methods": round(known_technologies.get(TECH_IRRIGATION_METHODS, 0.0), 3),
+            "pastoral_breeding": round(known_technologies.get(TECH_PASTORAL_BREEDING, 0.0), 3),
+            "copper_working": round(known_technologies.get(TECH_COPPER_WORKING, 0.0), 3),
+            "road_administration": round(known_technologies.get(TECH_ROAD_ADMINISTRATION, 0.0), 3),
+            "market_accounting": round(known_technologies.get(TECH_MARKET_ACCOUNTING, 0.0), 3),
+            "organized_levies": round(known_technologies.get(TECH_ORGANIZED_LEVIES, 0.0), 3),
+            "temple_recordkeeping": round(known_technologies.get(TECH_TEMPLE_RECORDKEEPING, 0.0), 3),
+            "institutional_irrigation_methods": round(institutional_technologies.get(TECH_IRRIGATION_METHODS, 0.0), 3),
+            "institutional_pastoral_breeding": round(institutional_technologies.get(TECH_PASTORAL_BREEDING, 0.0), 3),
+            "institutional_copper_working": round(institutional_technologies.get(TECH_COPPER_WORKING, 0.0), 3),
+            "institutional_road_administration": round(institutional_technologies.get(TECH_ROAD_ADMINISTRATION, 0.0), 3),
+            "institutional_market_accounting": round(institutional_technologies.get(TECH_MARKET_ACCOUNTING, 0.0), 3),
+            "institutional_organized_levies": round(institutional_technologies.get(TECH_ORGANIZED_LEVIES, 0.0), 3),
+            "institutional_temple_recordkeeping": round(institutional_technologies.get(TECH_TEMPLE_RECORDKEEPING, 0.0), 3),
             **get_faction_diplomacy_summary(world, faction_name),
         }
 
