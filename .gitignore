@@ -5,6 +5,8 @@ venv/
 __pycache__/
 .pytest_cache/
 reports/.pytest_cache/
+pytest-cache-files-*/
+reports/pytest-cache-files-*/
 *.pyc
 *.pyo
 
@@ -27,3 +29,13 @@ Thumbs.db
 # Reports getting too big
 reports/simulation_view.html
 /reports/
+
+# Release attachments generated locally
+/release-assets/
+
+# Generated visual exports
+*.gif
+
+# Local caches
+.mypy_cache/
+.ruff_cache/

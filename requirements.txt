@@ -1,0 +1,7 @@
+# Core Clashvergence currently uses only the Python standard library.
+#
+# Optional AI narrative and AI faction naming support:
+# openai>=1.0.0
+#
+# Optional debug GIF visualizer support:
+# matplotlib>=3.8.0
