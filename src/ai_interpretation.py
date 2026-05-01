@@ -80,7 +80,7 @@ Narrative architecture
   3 to 5 centerpiece episodes
   late settlement, exhaustion, or transformation
 - Use the phase event digest and centerpiece episodes as anchors.
-- Use the world identity, chronology, religion digest, succession digest, and vignette cues as primary raw material rather than treating them as optional flavor.
+- Use the world identity, chronology, religion digest, succession digest, faction political ideas, and vignette cues as primary raw material rather than treating them as optional flavor.
 - Linger on a few decisive scenes instead of summarizing every fact at the same altitude.
 - If many similar events occur, identify the pattern but then dramatize 2 or 3 representative cases with concrete names, turns, and stakes.
 - Include 2 to 4 short vignettes embedded naturally in the prose: a court scene, a shrine reform, a refugee road, a tributary submission, a contested succession, a frontier town, or similar moments grounded in the supplied data.
@@ -91,7 +91,7 @@ Narrative priorities
 3. Follow named factions across time. Show who rose, who fragmented, who endured, and who vanished.
 4. Use the event digest and elimination data heavily. Those are your best raw materials.
 5. Explain why the world changed, not just that it changed.
-6. Make religion and dynastic succession feel like lived political forces, not afterthoughts.
+6. Make religion, dynastic succession, and political ideas feel like lived political forces, not afterthoughts.
 
 Specificity requirements
 - Mention at least 10 concrete details from the data, such as named factions, turns, regions, rivalries, tributary settlements, secessions, migrations, reforms, eliminations, or faction epilogues.
@@ -104,6 +104,7 @@ Specificity requirements
 - If an elimination cascade appears, narrate it as a sequence with texture and consequence.
 - If religion data is present, describe cults, reforms, sacred geographies, clergy backing, or legitimacy struggles in concrete terms.
 - If succession data is present, describe dynasties, heirs, rival claimants, regencies, prestige, and court tension in concrete terms.
+- If ideology data is present, treat it as an emergent institutional current, not a modern party platform.
 - If a faction or doctrine has a narrative alias or gloss, prefer that phrasing over the most mechanical label.
 
 Style requirements
@@ -973,6 +974,10 @@ def build_ai_interpretation_summary(world, *, map_name: str | None = None, num_t
                 "government": faction.government_type,
                 "doctrine": faction.doctrine_label,
                 "doctrine_gloss": _doctrine_gloss(faction),
+                "ideology": faction.ideology.dominant_label,
+                "legitimacy_model": faction.ideology.legitimacy_model,
+                "ideology_cohesion": round(float(faction.ideology.cohesion or 0.0), 3),
+                "ideology_radicalism": round(float(faction.ideology.radicalism or 0.0), 3),
                 "ethnicity": faction.primary_ethnicity,
                 "is_rebel": bool(faction.is_rebel),
                 "origin_faction": faction.origin_faction,

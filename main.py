@@ -73,6 +73,7 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
             f"culture={faction.culture_name}, "
             f"ethnicity={faction.primary_ethnicity}, "
             f"government={faction.government_type}, "
+            f"ideology={faction.ideology.dominant_label}, "
             f"internal_id={faction.internal_id}, "
             f"traditions={tradition_labels}, "
             f"ai_generated={faction.identity.ai_generated if faction.identity else False}, "
@@ -260,6 +261,16 @@ def format_event(event, world):
             f"(new_status={event.get('new_status', 'neutral')}, score={event.get('score', 0):.2f})"
         )
 
+    if event["type"] == "ideology_shift":
+        return (
+            f"{time_label}: {faction_name} shifted from "
+            f"{event.get('previous_label', 'an older political current')} to "
+            f"{event.get('new_label', 'a new political current')} "
+            f"(cohesion={event.get('cohesion', 0):.2f}, "
+            f"radicalism={event.get('radicalism', 0):.2f}, "
+            f"legitimacy_model={event.get('legitimacy_model', 'customary')})"
+        )
+
     if event["type"] == "diplomacy_break":
         return (
             f"{time_label}: {faction_name} and {counterpart_name} "
@@ -386,6 +397,7 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
                 f"net={faction_metrics['net_income']}, "
                 f"tech_presence={faction_metrics.get('average_technology_presence', 0.0)}, "
                 f"tech_institutional={faction_metrics.get('average_institutional_technology', 0.0)}, "
+                f"ideology={faction_metrics.get('dominant_ideology_label', 'Customary Pluralism')}, "
                 f"doctrine={faction_metrics.get('doctrine_label', 'Unknown')}, "
                 f"homeland={faction_metrics.get('homeland_regions', 0)}, "
                 f"core={faction_metrics.get('core_regions', 0)}, "

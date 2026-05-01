@@ -2,6 +2,7 @@ from src.administration import refresh_administrative_state
 from src.calendar import format_turn_date, get_turn_season_name, get_turn_year
 from src.diplomacy import get_faction_diplomacy_summary
 from src.internal_politics import ALL_ELITE_BLOCS, get_faction_elite_summary
+from src.ideology import ALL_IDEOLOGIES, get_faction_ideology_summary
 from src.region_state import get_region_core_status
 from src.technology import (
     ALL_TECHNOLOGIES,
@@ -73,6 +74,7 @@ def build_turn_metrics(world, economy_snapshot=None):
         known_technologies = faction.known_technologies or {}
         institutional_technologies = faction.institutional_technologies or {}
         elite_summary = get_faction_elite_summary(faction)
+        ideology_summary = get_faction_ideology_summary(faction)
 
         for event in turn_events:
             if event.faction != faction_name:
@@ -186,6 +188,20 @@ def build_turn_metrics(world, economy_snapshot=None):
                     3,
                 )
                 for bloc_type in ALL_ELITE_BLOCS
+            },
+            "dominant_ideology": ideology_summary["dominant_ideology"],
+            "dominant_ideology_label": ideology_summary["dominant_ideology_label"],
+            "ideology_cohesion": ideology_summary["ideology_cohesion"],
+            "ideology_radicalism": ideology_summary["ideology_radicalism"],
+            "ideology_institutionalism": ideology_summary["ideology_institutionalism"],
+            "ideology_reform_pressure": ideology_summary["ideology_reform_pressure"],
+            "legitimacy_model": ideology_summary["legitimacy_model"],
+            **{
+                f"{ideology_key}_current": round(
+                    faction.ideology.currents.get(ideology_key, 0.0),
+                    3,
+                )
+                for ideology_key in ALL_IDEOLOGIES
             },
             "official_religion": faction.religion.official_religion,
             "religious_legitimacy": round(float(faction.religion.religious_legitimacy or 0.0), 3),

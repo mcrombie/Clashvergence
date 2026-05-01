@@ -38,6 +38,7 @@ Longer runs can generate very large report files. `reports/` is ignored by Git.
 - Religion, sacred sites, legitimacy, conversion pressure, reform pressure, and clergy support.
 - Dynastic succession with rulers, heirs, regencies, claimants, prestige, and crises.
 - Elite blocs and internal political pressure.
+- Emergent political ideology from institutions and social blocs, with legalist, civic, sacred, mercantile, imperial, reformist, frontier, lineage, and provincial-autonomy currents.
 - Practical technology diffusion through regional exposure, local adoption, and faction institutionalization.
 - Urban specialization, capital selection, and urban network value.
 - HTML turn-by-turn viewer with map playback, region/faction inspection, metrics, trade overlays, migration/admin/religion/succession data, and doctrine timelines.
@@ -55,7 +56,7 @@ Longer runs can generate very large report files. `reports/` is ignored by Git.
 - Ideology beyond religion and legitimacy politics is not yet modeled.
 - Urban specialization exists, but deeper city networks, labor roles, and craft specialization remain future work.
 - Large shocks such as famine, disease, ecological degradation, climate anomalies, and trade collapse are not yet fully modeled.
-- Internal politics exists but needs stronger feedback into diplomacy, revolt, administration, and collapse.
+- Internal politics and ideology now feed into diplomacy, revolt, administration, and collapse, but remain broad prototype systems rather than deep intellectual-history models.
 
 ## Optional AI Narrative
 

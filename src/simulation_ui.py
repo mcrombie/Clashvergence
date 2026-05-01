@@ -20,6 +20,7 @@ from src.event_analysis import (
     get_final_standings,
 )
 from src.internal_politics import get_faction_elite_summary
+from src.ideology import get_faction_ideology_summary
 from src.climate import format_climate_label
 from src.map_visualization import (
     build_map_layout,
@@ -355,6 +356,8 @@ def _get_event_title(event, world):
         return f"{faction_name} struggled through a succession crisis"
     if event.type == "religious_reform":
         return f"{faction_name} proclaimed a religious reform"
+    if event.type == "ideology_shift":
+        return f"{faction_name} turned toward {event.get('new_label', 'a new political current')}"
     if event.type == "diplomacy_rivalry":
         return f"{faction_name} and {counterpart_name} became rivals"
     if event.type == "diplomacy_pact":
@@ -506,6 +509,13 @@ def _get_event_summary(event, world):
         return (
             f"The ruling cult shifted from {event.get('old_religion', 'an older rite')} to "
             f"{event.get('new_religion', 'a reformed creed')}, reshaping legitimacy at the center."
+        )
+    if event.type == "ideology_shift":
+        return (
+            f"Political support reorganized from {event.get('previous_label', 'an older current')} "
+            f"toward {event.get('new_label', 'a new current')}, with cohesion at "
+            f"{float(event.get('cohesion', 0.0) or 0.0):.0%} and radicalism at "
+            f"{float(event.get('radicalism', 0.0) or 0.0):.0%}."
         )
     if event.type == "diplomacy_tributary":
         faction_name = _get_faction_display_name(world, event.faction)
@@ -1393,6 +1403,7 @@ def build_simulation_view_model(world):
             "last_succession_turn": world.factions[faction_name].succession.last_succession_turn,
             "last_succession_type": world.factions[faction_name].succession.last_succession_type,
             **get_faction_elite_summary(world.factions[faction_name]),
+            **get_faction_ideology_summary(world.factions[faction_name]),
             "official_religion": world.factions[faction_name].religion.official_religion,
             "religious_legitimacy": round(float(world.factions[faction_name].religion.religious_legitimacy or 0.0), 3),
             "clergy_support": round(float(world.factions[faction_name].religion.clergy_support or 0.0), 3),
@@ -5397,6 +5408,7 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Dynasty:</strong> ${{escapeHtml(dynastyName)}} | ruler ${{escapeHtml(rulerName)}} | heir ${{escapeHtml(heirName)}}</div>
             <div class="metric-line"><strong>Succession:</strong> legitimacy ${{(legitimacy * 100).toFixed(0)}}% | prestige ${{(prestige * 100).toFixed(0)}}% | regency ${{regencyTurns}} | crisis ${{successionCrisisTurns}} | claimant pressure ${{(claimantPressure * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Elite Blocs:</strong> strongest ${{escapeHtml(metrics.strongest_elite_bloc_label || faction.strongest_elite_bloc_label || "None")}} | alienated ${{escapeHtml(metrics.alienated_elite_bloc_label || faction.alienated_elite_bloc_label || "None")}} | pressure ${{Number(metrics.elite_unrest_pressure || faction.elite_unrest_pressure || 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Ideology:</strong> ${{escapeHtml(metrics.dominant_ideology_label || faction.dominant_ideology_label || "Customary Pluralism")}} | cohesion ${{Number((metrics.ideology_cohesion ?? faction.ideology_cohesion ?? 0) * 100).toFixed(0)}}% | radicalism ${{Number((metrics.ideology_radicalism ?? faction.ideology_radicalism ?? 0) * 100).toFixed(0)}}% | model ${{escapeHtml(metrics.legitimacy_model || faction.legitimacy_model || "customary")}}</div>
             <div class="metric-line"><strong>Religion:</strong> ${{escapeHtml(officialReligion)}} | sacred sites ${{sacredSitesControlled}} / ${{totalSacredSites}} | religious legitimacy ${{(religiousLegitimacy * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Cult Politics:</strong> clergy ${{(clergySupport * 100).toFixed(0)}}% | tolerance ${{(religiousTolerance * 100).toFixed(0)}}% | zeal ${{(religiousZeal * 100).toFixed(0)}}% | state cult ${{(stateCultStrength * 100).toFixed(0)}}% | reform pressure ${{(reformPressure * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Hierarchy:</strong> Overlord ${{escapeHtml(metrics.overlord || "None")}} | Top tributary ${{escapeHtml(metrics.top_tributary || "None")}} | Tributaries ${{Number(metrics.tributary_count || 0)}} (${{Number(metrics.vassal_count || 0)}} vassals)</div>

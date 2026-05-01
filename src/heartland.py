@@ -1418,8 +1418,11 @@ def factions_have_same_ethnicity_regime_tension(
     ):
         return False
 
+    from src.ideology import factions_have_ideological_regime_tension
+
     return (
         faction_a.government_form != faction_b.government_form
+        or factions_have_ideological_regime_tension(faction_a, faction_b)
         or (faction_a.rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR and faction_a.origin_faction == faction_b_name)
         or (faction_b.rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR and faction_b.origin_faction == faction_a_name)
     )
@@ -1502,8 +1505,11 @@ def get_regime_agitation_sponsor_factor(
     )
     war_bias = (sponsor.doctrine_profile.war_posture - 0.5) * REGIME_AGITATION_WAR_POSTURE_FACTOR
     insularity_bias = (0.5 - sponsor.doctrine_profile.insularity) * REGIME_AGITATION_INSULARITY_FACTOR
+    from src.ideology import get_faction_ideology_effects
+
+    ideology_bias = get_faction_ideology_effects(sponsor).get("regime_agitation_factor", 0.0)
     return _clamp(
-        1.0 + treasury_bonus + war_bias + insularity_bias,
+        1.0 + treasury_bonus + war_bias + insularity_bias + ideology_bias,
         REGIME_AGITATION_MIN_SPONSOR_FACTOR,
         REGIME_AGITATION_MAX_SPONSOR_FACTOR,
     )
@@ -3351,6 +3357,8 @@ def _get_civil_war_display_name(
 
 def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -> tuple[str, bool]:
     from src.doctrine import initialize_rebel_faction_doctrine
+    from src.ideology import update_ideologies
+    from src.internal_politics import update_elite_blocs
     from src.visibility import inherit_parent_visibility
 
     restored_faction_name = _find_extinct_ethnic_restoration_faction(
@@ -3365,6 +3373,8 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
             former_owner=former_owner,
             region_name=region.name,
         )
+        update_elite_blocs(world, emit_events=False)
+        update_ideologies(world, emit_events=False)
         return restored_faction_name, True
 
     rebel_name = _build_rebel_faction_name(world, region)
@@ -3436,6 +3446,8 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         extra_region_names=[region.name, *region.neighbors],
     )
     seed_rebel_origin_relationship(world, rebel_name, former_owner)
+    update_elite_blocs(world, emit_events=False)
+    update_ideologies(world, emit_events=False)
     return rebel_name, False
 
 
@@ -3708,11 +3720,13 @@ def _update_faction_legitimacy(world: WorldState, faction_name: str) -> None:
         claimant_pressure += max(0.0, 0.55 - float(succession.dynasty_prestige or 0.0)) * 0.08
     succession.claimant_pressure = round(_clamp(claimant_pressure, 0.0, 1.0), 3)
     from src.internal_politics import get_faction_elite_effects
+    from src.ideology import get_faction_ideology_effects
 
     succession.claimant_pressure = round(
         _clamp(
             succession.claimant_pressure
-            + get_faction_elite_effects(faction).get("claimant_pressure", 0.0),
+            + get_faction_elite_effects(faction).get("claimant_pressure", 0.0)
+            + get_faction_ideology_effects(faction).get("claimant_pressure", 0.0),
             0.0,
             1.0,
         ),
@@ -4106,6 +4120,7 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
 
 def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
     from src.internal_politics import get_faction_elite_effects
+    from src.ideology import get_faction_ideology_effects
 
     if region.owner is None or region.owner not in world.factions:
         return 0.0
@@ -4147,6 +4162,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
     )
     administrative_pressure = float(region.administrative_autonomy or 0.0) * ADMIN_UNREST_AUTONOMY_FACTOR
     elite_pressure = get_faction_elite_effects(owner_faction).get("unrest_pressure", 0.0)
+    ideology_pressure = get_faction_ideology_effects(owner_faction).get("unrest_pressure", 0.0)
     stability_divisor = max(0.5, get_faction_stability_modifier(owner_faction))
     pressure = (
         climate_pressure
@@ -4161,6 +4177,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         + religion_pressure
         + administrative_pressure
         + elite_pressure
+        + ideology_pressure
     ) * get_seasonal_unrest_pressure_modifier(season_name)
     pressure *= get_seasonal_terrain_unrest_multiplier(region, season_name)
     return pressure / stability_divisor - UNREST_DECAY_PER_TURN

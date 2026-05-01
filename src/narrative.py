@@ -31,6 +31,7 @@ MAJOR_EVENT_TYPES = {
     "diplomacy_tributary",
     "diplomacy_alliance",
     "diplomacy_rivalry",
+    "ideology_shift",
 }
 
 EVENT_TYPE_BASE_WEIGHTS = {
@@ -50,6 +51,7 @@ EVENT_TYPE_BASE_WEIGHTS = {
     "diplomacy_tributary": 2.6,
     "diplomacy_alliance": 2.2,
     "diplomacy_rivalry": 2.0,
+    "ideology_shift": 2.4,
     "unrest_crisis": 2.0,
     "unrest_disturbance": 1.4,
     "develop": 1.2,
@@ -76,6 +78,7 @@ EVENT_PRIORITY = {
             "diplomacy_tributary",
             "diplomacy_alliance",
             "diplomacy_rivalry",
+            "ideology_shift",
             "develop",
             "invest",
             "unrest_crisis",
@@ -93,7 +96,8 @@ DRIVER_ORDER = {
     "trade warfare": 5,
     "migration pressure": 6,
     "religious transformation": 7,
-    "diplomatic hierarchy": 8,
+    "political ideology": 8,
+    "diplomatic hierarchy": 9,
 }
 
 TURNING_POINT_TYPE_LIMITS = {
@@ -497,6 +501,11 @@ def _summarize_turning_point_event(world, event) -> str | None:
         claimant = _display_name(world, event.get("claimant_faction"))
         claimant_text = f"; claimant support crystallized around {claimant}" if claimant and claimant != "another faction" else ""
         return f"On {turn_text}, {actor} entered a succession crisis{claimant_text}."
+    if event.type == "ideology_shift":
+        return (
+            f"On {turn_text}, {actor} turned toward "
+            f"{event.get('new_label', 'a new political idea')}."
+        )
 
     if event.type == "succession":
         new_ruler = event.get("new_ruler")
@@ -684,6 +693,14 @@ def _build_driver_breakdown(world, standings: list[dict[str, Any]]) -> list[Narr
             f"helped stronger cores harden into lasting advantages."
         )
         drivers.append(NarrativeDriver("state-building", state_building_score, detail))
+
+    ideology_score = counts["ideology_shift"] * 2.1
+    if ideology_score > 0:
+        detail = (
+            f"Political ideas became explicit through "
+            f"{_count_noun(counts['ideology_shift'], 'ideological realignment')}."
+        )
+        drivers.append(NarrativeDriver("political ideology", ideology_score, detail))
 
     administrative_peak = _peak_metric_value(world, "administrative_overextension")
     strain_score = (

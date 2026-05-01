@@ -46,6 +46,7 @@ Each turn roughly follows this loop:
 - Religion, sacred sites, religious legitimacy, religious unrest, conversion pressure, clergy support, tolerance, zeal, and reform pressure.
 - Dynastic succession, rulers, heirs, regencies, legitimacy, prestige, claimant pressure, and succession crises.
 - Elite blocs and internal political pressure.
+- Emergent political ideologies, including legalism, civic republicanism, sacred kingship, merchant constitutionalism, imperial universalism, reform movements, military frontierism, lineage traditionalism, and anti-tax provincialism, derived from institutions and social blocs.
 - Practical technology diffusion through regional exposure, local adoption, and faction institutionalization.
 - Urban specialization, capital selection, and urban network value.
 - Event logs, chronicles, metrics snapshots, balance dashboards, dead-system observation, and an HTML turn-by-turn viewer.
@@ -181,7 +182,7 @@ These limitations are expected for v0.9.0:
 - The HTML viewer can become very large for long simulations.
 - Production chains are still shallow relative to the resource/trade framework.
 - Technology is a V1 practical-method diffusion layer, not a deep transformational history model.
-- Ideology beyond religion and legitimacy politics is not yet modeled.
+- Ideology is an early emergent layer. It now feeds back into administration, unrest, diplomacy, trade, integration, and military projection, but it is still intentionally broad rather than a detailed intellectual-history model.
 - Urban specialization exists, but deeper city networks and labor/craft roles remain future work.
 - Large shocks such as famine, disease, ecological degradation, climate anomalies, and trade collapse are not yet fully modeled.
 - Internal politics exists through succession, religion, claimants, and elite blocs, but still needs stronger causal feedback into diplomacy, revolt, and state capacity.

@@ -35,6 +35,7 @@ from src.governance import (
     get_faction_maintenance_modifier,
 )
 from src.internal_politics import get_faction_elite_effects
+from src.ideology import get_faction_ideology_effects
 from src.models import Faction, Region, WorldState
 from src.region_state import (
     get_region_climate_affinity,
@@ -2190,7 +2191,9 @@ def _apply_faction_trade_state(
         trade_bonus = max(0.0, import_value + transit_value + hub_value)
         trade_bonus *= 1.0 + get_region_urban_effects(region).get("trade_value_factor", 0.0)
         if region.owner in world.factions:
-            trade_bonus *= 1.0 + get_faction_elite_effects(world.factions[region.owner]).get("trade_income_factor", 0.0)
+            owner_faction = world.factions[region.owner]
+            trade_bonus *= 1.0 + get_faction_elite_effects(owner_faction).get("trade_income_factor", 0.0)
+            trade_bonus *= 1.0 + get_faction_ideology_effects(owner_faction).get("trade_income_factor", 0.0)
         base_value = max(0.0, float(region.resource_monetized_value or 0.0))
         total_value = base_value + trade_bonus
         trade_value_denied = max(

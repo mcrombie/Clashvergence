@@ -72,6 +72,7 @@ from src.config import (
 )
 from src.models import Event, RelationshipState, WarState, WorldState
 from src.visibility import faction_knows_faction
+from src.ideology import get_ideological_diplomacy_modifier
 
 REGIME_ACCORD_DIPLOMATIC_FORMS = {"council", "assembly", "republic"}
 
@@ -1028,6 +1029,10 @@ def update_relationships(world: WorldState) -> None:
             state.years_at_peace = 0
 
         doctrine_affinity = _get_doctrine_affinity(world, faction_a, faction_b)
+        ideology_affinity = get_ideological_diplomacy_modifier(
+            world.factions[faction_a],
+            world.factions[faction_b],
+        )
         runaway_modifier = _get_runaway_modifier(world, faction_a, faction_b)
         lineage_modifier = _get_lineage_modifier(world, faction_a, faction_b)
         ethnic_claim_pressure = _get_ethnic_claim_pressure(world, faction_a, faction_b)
@@ -1049,6 +1054,7 @@ def update_relationships(world: WorldState) -> None:
                 state.trust
                 + peace_modifier
                 + doctrine_affinity
+                + ideology_affinity
                 + runaway_modifier
                 + lineage_modifier
                 + regime_accommodation

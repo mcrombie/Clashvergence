@@ -163,6 +163,19 @@ class FactionReligionState:
 
 
 @dataclass
+class FactionIdeologyState:
+    dominant_ideology: str = "customary_pluralism"
+    dominant_label: str = "Customary Pluralism"
+    currents: dict[str, float] = field(default_factory=dict)
+    cohesion: float = 0.5
+    radicalism: float = 0.0
+    institutionalism: float = 0.0
+    reform_pressure: float = 0.0
+    legitimacy_model: str = "customary"
+    last_shift_turn: int | None = None
+
+
+@dataclass
 class EliteBloc:
     bloc_type: str
     name: str
@@ -403,6 +416,7 @@ class Faction:
     doctrine_profile: FactionDoctrineProfile = field(default_factory=FactionDoctrineProfile)
     succession: FactionSuccessionState = field(default_factory=FactionSuccessionState)
     religion: FactionReligionState = field(default_factory=FactionReligionState)
+    ideology: FactionIdeologyState = field(default_factory=FactionIdeologyState)
     primary_ethnicity: str | None = None
     is_rebel: bool = False
     origin_faction: str | None = None

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from src.models import Faction
 from src.internal_politics import get_faction_elite_effects
+from src.ideology import get_faction_ideology_effects
 
 
 POLITY_TIER_MODIFIERS = {
@@ -132,7 +133,8 @@ def get_faction_income_modifier(faction: Faction | None) -> float:
     polity = get_faction_polity_modifiers(faction)
     form = get_faction_government_form_modifiers(faction)
     elite_factor = get_faction_elite_effects(faction).get("trade_income_factor", 0.0) if faction is not None else 0.0
-    return polity["income_factor"] * form["income_factor"] * (1.0 + elite_factor)
+    ideology_factor = get_faction_ideology_effects(faction).get("income_factor", 0.0) if faction is not None else 0.0
+    return polity["income_factor"] * form["income_factor"] * (1.0 + elite_factor + ideology_factor)
 
 
 def get_faction_maintenance_modifier(faction: Faction | None) -> float:
@@ -143,27 +145,32 @@ def get_faction_maintenance_modifier(faction: Faction | None) -> float:
 def get_faction_integration_modifier(faction: Faction | None) -> float:
     polity = get_faction_polity_modifiers(faction)
     form = get_faction_government_form_modifiers(faction)
-    return polity["integration_factor"] * form["integration_factor"]
+    ideology_factor = get_faction_ideology_effects(faction).get("integration_factor", 0.0) if faction is not None else 0.0
+    return polity["integration_factor"] * form["integration_factor"] * (1.0 + ideology_factor)
 
 
 def get_faction_stability_modifier(faction: Faction | None) -> float:
     polity = get_faction_polity_modifiers(faction)
     form = get_faction_government_form_modifiers(faction)
-    return polity["stability_factor"] * form["stability_factor"]
+    ideology_factor = get_faction_ideology_effects(faction).get("stability_factor", 0.0) if faction is not None else 0.0
+    return polity["stability_factor"] * form["stability_factor"] * (1.0 + ideology_factor)
 
 
 def get_faction_administrative_capacity_modifier(faction: Faction | None) -> float:
     polity = get_faction_polity_modifiers(faction)
     form = get_faction_government_form_modifiers(faction)
-    return polity["administrative_capacity_factor"] * form["administrative_capacity_factor"]
+    ideology_factor = get_faction_ideology_effects(faction).get("administrative_capacity_factor", 0.0) if faction is not None else 0.0
+    return polity["administrative_capacity_factor"] * form["administrative_capacity_factor"] * (1.0 + ideology_factor)
 
 
 def get_faction_administrative_reach_modifier(faction: Faction | None) -> float:
     polity = get_faction_polity_modifiers(faction)
     form = get_faction_government_form_modifiers(faction)
-    return polity["administrative_reach_factor"] * form["administrative_reach_factor"]
+    ideology_factor = get_faction_ideology_effects(faction).get("administrative_reach_factor", 0.0) if faction is not None else 0.0
+    return polity["administrative_reach_factor"] * form["administrative_reach_factor"] * (1.0 + ideology_factor)
 
 
 def get_faction_realm_size_unrest_factor(faction: Faction | None) -> float:
     polity = get_faction_polity_modifiers(faction)
-    return polity["realm_size_unrest_factor"]
+    ideology_factor = get_faction_ideology_effects(faction).get("realm_size_unrest_factor", 1.0) if faction is not None else 1.0
+    return polity["realm_size_unrest_factor"] * ideology_factor

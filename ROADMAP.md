@@ -66,6 +66,7 @@ The project has moved past the first economic and political scaffolding pass. It
 - administrative capacity, tax capture, autonomy, reach, and overextension
 - religion, sacred sites, religious legitimacy, conversion pressure, and reform pressure
 - dynastic succession, rulers, heirs, regencies, claimant pressure, and succession crises
+- emergent political ideologies derived from institutions, elite blocs, trade, administration, religion, urbanization, and frontier strain
 - practical technology diffusion through regional exposure, local adoption, and faction institutionalization
 - polity advancement and government-form modifiers
 - reporting, metrics, dead-system observation, experiments, and an HTML viewer
@@ -136,7 +137,7 @@ Why here:
 Targets:
 
 - Connect administrative overextension more strongly to unrest, tax capture, military projection, and integration.
-- Make religious mismatch, sacred sites, reform pressure, and clergy support affect diplomacy and internal cohesion.
+- Make religious mismatch, sacred sites, reform pressure, clergy support, and emergent political ideologies affect diplomacy and internal cohesion.
 - Let succession crises, claimant pressure, and civil-war legitimacy shape war aims and secession patterns.
 - Make migration and refugee movement alter ethnic, religious, economic, and political maps over time.
 - Introduce urban specialization and city networks once migration and production pressure need them.

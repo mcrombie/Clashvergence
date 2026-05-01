@@ -19,6 +19,7 @@ from src.doctrine import update_faction_doctrines
 from src.ethnicity import apply_language_contact_borrowing
 from src.integration import record_region_history, update_region_integration
 from src.internal_politics import update_elite_blocs
+from src.ideology import update_ideologies
 from src.migration import resolve_population_migration
 from src.population import (
     get_region_surplus,
@@ -209,6 +210,7 @@ def _run_year_end_phase(world):
     update_region_settlement_levels(world)
     update_urban_specializations(world)
     update_elite_blocs(world)
+    update_ideologies(world)
     update_rebel_faction_status(world)
     update_faction_polity_tiers(world)
 
