@@ -195,6 +195,23 @@ def format_event(event, world):
             f"new_resources={event.get('new_resources', 0)}{terrain_text})"
         )
 
+    if event["type"] == "shock_population_loss":
+        return (
+            f"{time_label}: shock mortality reduced population in {region_reference} under {faction_name} "
+            f"(loss={event.get('population_loss', 0)}, "
+            f"famine={event.get('famine_intensity', 0):.2f}, "
+            f"epidemic={event.get('epidemic_intensity', 0):.2f}{terrain_text})"
+        )
+
+    if event["type"].startswith("shock_"):
+        shock_label = event.get("shock_label", event.get("shock_kind", "shock").replace("_", " ").title())
+        return (
+            f"{time_label}: {shock_label} affected {region_reference} under {faction_name} "
+            f"(intensity={event.get('intensity', 0):.2f}, "
+            f"phase={event.get('phase', 'onset')}, "
+            f"affected_regions={event.get('affected_region_count', 0)}{terrain_text}{seasonal_text})"
+        )
+
     if event["type"] == "rebel_independence":
         return (
             f"{time_label}: {faction_name} declared full independence "

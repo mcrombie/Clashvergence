@@ -79,6 +79,13 @@ from src.resources import (
     normalize_resource_map,
     seed_region_resource_profile,
 )
+from src.shocks import (
+    get_region_food_spoilage_shock_modifier,
+    get_region_resource_shock_factor,
+    get_region_trade_disruption_shock,
+    get_region_trade_shock_factor,
+    get_region_workforce_shock_factor,
+)
 from src.technology import (
     TECH_COPPER_WORKING,
     TECH_IRRIGATION_METHODS,
@@ -386,6 +393,16 @@ def ensure_region_resource_state(region: Region) -> None:
     region.trade_foreign_flow = round(max(0.0, float(region.trade_foreign_flow or 0.0)), 3)
     region.trade_foreign_value = round(max(0.0, float(region.trade_foreign_value or 0.0)), 3)
     region.trade_gateway_role = (region.trade_gateway_role or "none").strip().lower()
+    region.soil_health = round(_clamp(float(region.soil_health or 0.0), 0.0, 1.0), 3)
+    region.ecological_integrity = round(_clamp(float(region.ecological_integrity or 0.0), 0.0, 1.0), 3)
+    region.disease_burden = round(_clamp(float(region.disease_burden or 0.0), 0.0, 1.0), 3)
+    region.climate_anomaly = round(_clamp(float(region.climate_anomaly or 0.0), 0.0, 1.0), 3)
+    region.resource_depletion = round(_clamp(float(region.resource_depletion or 0.0), 0.0, 1.0), 3)
+    region.food_stress_turns = max(0, int(region.food_stress_turns or 0))
+    region.trade_stress_turns = max(0, int(region.trade_stress_turns or 0))
+    region.active_shock_kinds = list(dict.fromkeys(region.active_shock_kinds or []))
+    region.shock_exposure = round(_clamp(float(region.shock_exposure or 0.0), 0.0, 1.0), 3)
+    region.shock_resilience = round(_clamp(float(region.shock_resilience or 0.0), 0.0, 1.0), 3)
     region.administrative_burden = round(max(0.0, float(region.administrative_burden or 0.0)), 3)
     region.administrative_support = round(max(0.0, float(region.administrative_support or 0.0)), 3)
     region.administrative_distance = round(max(0.0, float(region.administrative_distance or 0.0)), 3)
@@ -452,6 +469,11 @@ def _ensure_faction_resource_state(faction: Faction) -> None:
     faction.trade_foreign_imported_flow = round(max(0.0, float(faction.trade_foreign_imported_flow or 0.0)), 3)
     faction.trade_warfare_damage = round(max(0.0, float(faction.trade_warfare_damage or 0.0)), 3)
     faction.trade_blockade_losses = round(max(0.0, float(faction.trade_blockade_losses or 0.0)), 3)
+    faction.shock_exposure = round(_clamp(float(faction.shock_exposure or 0.0), 0.0, 1.0), 3)
+    faction.shock_resilience = round(_clamp(float(faction.shock_resilience or 0.0), 0.0, 1.0), 3)
+    faction.famine_pressure = round(_clamp(float(faction.famine_pressure or 0.0), 0.0, 1.0), 3)
+    faction.epidemic_pressure = round(_clamp(float(faction.epidemic_pressure or 0.0), 0.0, 1.0), 3)
+    faction.trade_collapse_exposure = round(_clamp(float(faction.trade_collapse_exposure or 0.0), 0.0, 1.0), 3)
     faction.administrative_capacity = round(max(0.0, float(faction.administrative_capacity or 0.0)), 3)
     faction.administrative_load = round(max(0.0, float(faction.administrative_load or 0.0)), 3)
     faction.administrative_efficiency = round(_clamp(float(faction.administrative_efficiency or 1.0), 0.0, 2.0), 3)
@@ -460,7 +482,7 @@ def _ensure_faction_resource_state(faction: Faction) -> None:
     faction.administrative_overextension_penalty = round(max(0.0, float(faction.administrative_overextension_penalty or 0.0)), 3)
 
 
-def get_region_resource_workforce_factor(region: Region) -> float:
+def get_region_resource_workforce_factor(region: Region, world: WorldState | None = None) -> float:
     if region.population <= 0:
         return 0.2 if region.owner is None else 0.3
     settlement_bonus = {
@@ -470,7 +492,12 @@ def get_region_resource_workforce_factor(region: Region) -> float:
         "city": 0.22,
     }.get(region.settlement_level, 0.0)
     base = 0.2 if region.owner is None else 0.35
-    return _clamp(base + min(0.95, region.population / 180.0) + settlement_bonus, 0.2, 1.45)
+    return _clamp(
+        (base + min(0.95, region.population / 180.0) + settlement_bonus)
+        * get_region_workforce_shock_factor(region, world),
+        0.2,
+        1.45,
+    )
 
 
 def get_region_resource_integration_factor(region: Region) -> float:
@@ -809,7 +836,10 @@ def _is_port_trade_blockaded(
     )
 
 
-def _get_region_foreign_trade_gateway_quality(region: Region) -> float:
+def _get_region_foreign_trade_gateway_quality(
+    region: Region,
+    world: WorldState | None = None,
+) -> float:
     if region.owner is None:
         return 0.0
 
@@ -830,6 +860,7 @@ def _get_region_foreign_trade_gateway_quality(region: Region) -> float:
     quality *= _clamp(1.0 - (float(region.trade_disruption_risk or 0.0) * 0.45), 0.35, 1.0)
     quality *= _clamp(1.0 - (_get_region_trade_warfare_pressure(region) * 0.35), 0.3, 1.0)
     quality *= _clamp(1.0 - (_get_region_trade_blockade_strength(region) * 0.55), 0.22, 1.0)
+    quality *= get_region_trade_shock_factor(region, world)
     return round(_clamp(quality, 0.0, 1.0), 3)
 
 
@@ -870,7 +901,7 @@ def _get_foreign_trade_gateway_candidates(
     for region_name, region in world.regions.items():
         if region.owner != faction_a:
             continue
-        region_quality = _get_region_foreign_trade_gateway_quality(region)
+        region_quality = _get_region_foreign_trade_gateway_quality(region, world)
         if region_quality <= 0.0:
             continue
         for neighbor_name in region.neighbors:
@@ -881,7 +912,7 @@ def _get_foreign_trade_gateway_candidates(
             if edge in seen_land_edges:
                 continue
             seen_land_edges.add(edge)
-            neighbor_quality = _get_region_foreign_trade_gateway_quality(neighbor)
+            neighbor_quality = _get_region_foreign_trade_gateway_quality(neighbor, world)
             if neighbor_quality <= 0.0:
                 continue
             candidates.append({
@@ -922,8 +953,8 @@ def _get_foreign_trade_gateway_candidates(
             "mode": "sea_gateway",
             "score": round(
                 min(
-                    _get_region_foreign_trade_gateway_quality(a_region),
-                    _get_region_foreign_trade_gateway_quality(b_region),
+                    _get_region_foreign_trade_gateway_quality(a_region, world),
+                    _get_region_foreign_trade_gateway_quality(b_region, world),
                 ) * FOREIGN_TRADE_SEA_GATEWAY_FACTOR,
                 3,
             ),
@@ -955,8 +986,8 @@ def _get_foreign_trade_gateway_candidates(
             "mode": "river_gateway",
             "score": round(
                 min(
-                    _get_region_foreign_trade_gateway_quality(a_region),
-                    _get_region_foreign_trade_gateway_quality(b_region),
+                    _get_region_foreign_trade_gateway_quality(a_region, world),
+                    _get_region_foreign_trade_gateway_quality(b_region, world),
                 ) * FOREIGN_TRADE_RIVER_GATEWAY_FACTOR,
                 3,
             ),
@@ -2133,6 +2164,12 @@ def _apply_faction_trade_state(
             0.0,
             0.98,
         )
+        shock_trade_factor = get_region_trade_shock_factor(region, world)
+        disruption_risk = _clamp(
+            disruption_risk + get_region_trade_disruption_shock(region, world),
+            0.0,
+            0.98,
+        )
         children_count = len(children_by_region.get(region.name, []))
         route_role = _get_trade_route_role(
             region,
@@ -2156,6 +2193,7 @@ def _apply_faction_trade_state(
                     + min(0.12, depth * TRADE_IMPORT_DEPTH_FACTOR)
                 )
                 * (1.0 - (disruption_risk * 0.55))
+                * shock_trade_factor
             )
 
         transit_value = 0.0
@@ -2171,6 +2209,7 @@ def _apply_faction_trade_state(
                     + (region.market_level * TRADE_TRANSIT_MARKET_FACTOR)
                 )
                 * (1.0 - (disruption_risk * 0.45))
+                * shock_trade_factor
             )
 
         hub_value = 0.0
@@ -2186,6 +2225,7 @@ def _apply_faction_trade_state(
                     + (region.infrastructure_level * TRADE_HUB_INFRASTRUCTURE_FACTOR)
                 )
                 * (1.0 - (disruption_risk * 0.35))
+                * shock_trade_factor
             )
 
         trade_bonus = max(0.0, import_value + transit_value + hub_value)
@@ -2203,7 +2243,8 @@ def _apply_faction_trade_state(
                 * min(
                     0.85,
                     (trade_warfare_pressure * TRADE_WARFARE_DENIAL_FACTOR)
-                    + (blockade_strength * TRADE_BLOCKADE_DENIAL_FACTOR),
+                    + (blockade_strength * TRADE_BLOCKADE_DENIAL_FACTOR)
+                    + (1.0 - shock_trade_factor),
                 )
             ),
         )
@@ -2389,6 +2430,7 @@ def get_region_effective_resource_output(
         world,
         faction_route_map=faction_route_map,
     )
+    distribution_factor *= get_region_trade_shock_factor(region, world)
     effective_output = build_empty_resource_map()
     for resource_name, amount in retained_output.items():
         resource_specific_factor = distribution_factor
@@ -2574,7 +2616,7 @@ def refresh_region_resource_state(
 
 def get_region_resource_output(region: Region, world: WorldState | None = None) -> dict[str, float]:
     ensure_region_resource_state(region)
-    workforce_factor = get_region_resource_workforce_factor(region)
+    workforce_factor = get_region_resource_workforce_factor(region, world)
     integration_factor = get_region_resource_integration_factor(region)
     unrest_factor = get_region_resource_unrest_factor(region)
     climate_factor = get_region_resource_climate_factor(region, world)
@@ -2593,7 +2635,8 @@ def get_region_resource_output(region: Region, world: WorldState | None = None) 
             * get_region_resource_development_factor(region, resource_name)
             * integration_factor
             * unrest_factor
-            * climate_factor,
+            * climate_factor
+            * get_region_resource_shock_factor(region, world, resource_name),
             3,
         )
 
@@ -2606,7 +2649,8 @@ def get_region_resource_output(region: Region, world: WorldState | None = None) 
             * endowment
             * (0.5 + (workforce_factor * 0.55))
             * get_region_resource_development_factor(region, resource_name)
-            * unrest_factor,
+            * unrest_factor
+            * get_region_resource_shock_factor(region, world, resource_name),
             3,
         )
 
@@ -2620,7 +2664,8 @@ def get_region_resource_output(region: Region, world: WorldState | None = None) 
             * workforce_factor
             * get_region_resource_development_factor(region, resource_name)
             * integration_factor
-            * unrest_factor,
+            * unrest_factor
+            * get_region_resource_shock_factor(region, world, resource_name),
             3,
         )
 
@@ -3326,6 +3371,7 @@ def apply_turn_food_economy(world: WorldState, *, season_name: str = "Spring") -
             world,
             region.owner,
         )
+        spoilage_rate += get_region_food_spoilage_shock_modifier(region, world)
         spoilage_rate = _clamp(
             spoilage_rate,
             FOOD_STORAGE_MIN_SPOILAGE,

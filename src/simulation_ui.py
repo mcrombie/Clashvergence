@@ -60,6 +60,7 @@ from src.narrative import (
 )
 from src.resources import format_resource_map
 from src.region_naming import format_region_reference, get_region_display_name
+from src.shocks import get_region_shock_summary
 from src.technology import format_technology_map, normalize_technology_map
 from src.terrain import format_terrain_label, get_seasonal_terrain_note
 from src.urban import format_urban_specialization
@@ -180,6 +181,17 @@ def _build_region_resource_payload(region):
         "food_deficit": round(region.food_deficit, 3),
         "food_spoilage": round(region.food_spoilage, 3),
         "food_overflow": round(region.food_overflow, 3),
+        "soil_health": round(float(region.soil_health or 0.0), 3),
+        "ecological_integrity": round(float(region.ecological_integrity or 0.0), 3),
+        "disease_burden": round(float(region.disease_burden or 0.0), 3),
+        "climate_anomaly": round(float(region.climate_anomaly or 0.0), 3),
+        "resource_depletion": round(float(region.resource_depletion or 0.0), 3),
+        "food_stress_turns": int(region.food_stress_turns or 0),
+        "trade_stress_turns": int(region.trade_stress_turns or 0),
+        "active_shock_kinds": list(region.active_shock_kinds or []),
+        "shock_summary": get_region_shock_summary(region),
+        "shock_exposure": round(float(region.shock_exposure or 0.0), 3),
+        "shock_resilience": round(float(region.shock_resilience or 0.0), 3),
         "migration_inflow": int(region.migration_inflow or 0),
         "migration_outflow": int(region.migration_outflow or 0),
         "refugee_inflow": int(region.refugee_inflow or 0),
@@ -397,6 +409,11 @@ def _get_event_title(event, world):
         if destination:
             return f"{moved} refugees fled {region_reference} toward {destination}"
         return f"{moved} refugees fled {region_reference}"
+    if event.type == "shock_population_loss":
+        return f"Shock mortality reduced population in {region_reference}"
+    if event.type.startswith("shock_"):
+        shock_label = event.get("shock_label", event.get("shock_kind", "shock").replace("_", " ").title())
+        return f"{shock_label} struck {region_reference}"
     return f"{faction_name} acted"
 
 
@@ -420,6 +437,21 @@ def _get_event_summary(event, world):
             context=event_context,
         )
     seasonal_text = f" {seasonal_note}" if seasonal_note else ""
+
+    if event.type == "shock_population_loss":
+        return (
+            f"Famine and epidemic pressure caused {int(event.get('population_loss', 0) or 0)} deaths."
+            f" Famine intensity {float(event.get('famine_intensity', 0.0) or 0.0):.2f}; "
+            f"epidemic intensity {float(event.get('epidemic_intensity', 0.0) or 0.0):.2f}."
+            f"{terrain_text}{seasonal_text}"
+        )
+    if event.type.startswith("shock_"):
+        shock_label = event.get("shock_label", event.get("shock_kind", "shock").replace("_", " ").title())
+        return (
+            f"{shock_label} affected {int(event.get('affected_region_count', 0) or 0)} region(s) "
+            f"at intensity {float(event.get('intensity', 0.0) or 0.0):.2f}."
+            f"{terrain_text}{seasonal_text}"
+        )
 
     if event.type == "expand":
         return (
@@ -857,6 +889,17 @@ def build_simulation_snapshots(world):
             "food_deficit": initial_region_history.get(region_name, {}).get("food_deficit", region.food_deficit),
             "food_spoilage": initial_region_history.get(region_name, {}).get("food_spoilage", region.food_spoilage),
             "food_overflow": initial_region_history.get(region_name, {}).get("food_overflow", region.food_overflow),
+            "soil_health": initial_region_history.get(region_name, {}).get("soil_health", region.soil_health),
+            "ecological_integrity": initial_region_history.get(region_name, {}).get("ecological_integrity", region.ecological_integrity),
+            "disease_burden": initial_region_history.get(region_name, {}).get("disease_burden", region.disease_burden),
+            "climate_anomaly": initial_region_history.get(region_name, {}).get("climate_anomaly", region.climate_anomaly),
+            "resource_depletion": initial_region_history.get(region_name, {}).get("resource_depletion", region.resource_depletion),
+            "food_stress_turns": initial_region_history.get(region_name, {}).get("food_stress_turns", region.food_stress_turns),
+            "trade_stress_turns": initial_region_history.get(region_name, {}).get("trade_stress_turns", region.trade_stress_turns),
+            "active_shock_kinds": list(initial_region_history.get(region_name, {}).get("active_shock_kinds", region.active_shock_kinds)),
+            "shock_summary": initial_region_history.get(region_name, {}).get("shock_summary", get_region_shock_summary(region)),
+            "shock_exposure": initial_region_history.get(region_name, {}).get("shock_exposure", region.shock_exposure),
+            "shock_resilience": initial_region_history.get(region_name, {}).get("shock_resilience", region.shock_resilience),
             "migration_inflow": initial_region_history.get(region_name, {}).get("migration_inflow", region.migration_inflow),
             "migration_outflow": initial_region_history.get(region_name, {}).get("migration_outflow", region.migration_outflow),
             "refugee_inflow": initial_region_history.get(region_name, {}).get("refugee_inflow", region.refugee_inflow),
@@ -978,6 +1021,17 @@ def build_simulation_snapshots(world):
                 "food_deficit": region["food_deficit"],
                 "food_spoilage": region["food_spoilage"],
                 "food_overflow": region["food_overflow"],
+                "soil_health": region["soil_health"],
+                "ecological_integrity": region["ecological_integrity"],
+                "disease_burden": region["disease_burden"],
+                "climate_anomaly": region["climate_anomaly"],
+                "resource_depletion": region["resource_depletion"],
+                "food_stress_turns": region["food_stress_turns"],
+                "trade_stress_turns": region["trade_stress_turns"],
+                "active_shock_kinds": region["active_shock_kinds"],
+                "shock_summary": region["shock_summary"],
+                "shock_exposure": region["shock_exposure"],
+                "shock_resilience": region["shock_resilience"],
                 "migration_inflow": region["migration_inflow"],
                 "migration_outflow": region["migration_outflow"],
                 "refugee_inflow": region["refugee_inflow"],
@@ -1121,6 +1175,17 @@ def build_simulation_snapshots(world):
             region_state[region_name]["food_deficit"] = history_region.get("food_deficit", region_state[region_name]["food_deficit"])
             region_state[region_name]["food_spoilage"] = history_region.get("food_spoilage", region_state[region_name]["food_spoilage"])
             region_state[region_name]["food_overflow"] = history_region.get("food_overflow", region_state[region_name]["food_overflow"])
+            region_state[region_name]["soil_health"] = history_region.get("soil_health", region_state[region_name]["soil_health"])
+            region_state[region_name]["ecological_integrity"] = history_region.get("ecological_integrity", region_state[region_name]["ecological_integrity"])
+            region_state[region_name]["disease_burden"] = history_region.get("disease_burden", region_state[region_name]["disease_burden"])
+            region_state[region_name]["climate_anomaly"] = history_region.get("climate_anomaly", region_state[region_name]["climate_anomaly"])
+            region_state[region_name]["resource_depletion"] = history_region.get("resource_depletion", region_state[region_name]["resource_depletion"])
+            region_state[region_name]["food_stress_turns"] = history_region.get("food_stress_turns", region_state[region_name]["food_stress_turns"])
+            region_state[region_name]["trade_stress_turns"] = history_region.get("trade_stress_turns", region_state[region_name]["trade_stress_turns"])
+            region_state[region_name]["active_shock_kinds"] = list(history_region.get("active_shock_kinds", region_state[region_name]["active_shock_kinds"]))
+            region_state[region_name]["shock_summary"] = history_region.get("shock_summary", region_state[region_name]["shock_summary"])
+            region_state[region_name]["shock_exposure"] = history_region.get("shock_exposure", region_state[region_name]["shock_exposure"])
+            region_state[region_name]["shock_resilience"] = history_region.get("shock_resilience", region_state[region_name]["shock_resilience"])
             region_state[region_name]["migration_inflow"] = history_region.get("migration_inflow", region_state[region_name]["migration_inflow"])
             region_state[region_name]["migration_outflow"] = history_region.get("migration_outflow", region_state[region_name]["migration_outflow"])
             region_state[region_name]["refugee_inflow"] = history_region.get("refugee_inflow", region_state[region_name]["refugee_inflow"])
@@ -1252,6 +1317,17 @@ def build_simulation_snapshots(world):
                     "food_deficit": region["food_deficit"],
                     "food_spoilage": region["food_spoilage"],
                     "food_overflow": region["food_overflow"],
+                    "soil_health": region["soil_health"],
+                    "ecological_integrity": region["ecological_integrity"],
+                    "disease_burden": region["disease_burden"],
+                    "climate_anomaly": region["climate_anomaly"],
+                    "resource_depletion": region["resource_depletion"],
+                    "food_stress_turns": region["food_stress_turns"],
+                    "trade_stress_turns": region["trade_stress_turns"],
+                    "active_shock_kinds": region["active_shock_kinds"],
+                    "shock_summary": region["shock_summary"],
+                    "shock_exposure": region["shock_exposure"],
+                    "shock_resilience": region["shock_resilience"],
                     "migration_inflow": region["migration_inflow"],
                     "migration_outflow": region["migration_outflow"],
                     "refugee_inflow": region["refugee_inflow"],
@@ -1457,6 +1533,11 @@ def build_simulation_view_model(world):
             "trade_corridor_exposure": round(world.factions[faction_name].trade_corridor_exposure, 3),
             "trade_foreign_income": round(world.factions[faction_name].trade_foreign_income, 3),
             "trade_foreign_imported_flow": round(world.factions[faction_name].trade_foreign_imported_flow, 3),
+            "shock_exposure": round(float(world.factions[faction_name].shock_exposure or 0.0), 3),
+            "shock_resilience": round(float(world.factions[faction_name].shock_resilience or 0.0), 3),
+            "famine_pressure": round(float(world.factions[faction_name].famine_pressure or 0.0), 3),
+            "epidemic_pressure": round(float(world.factions[faction_name].epidemic_pressure or 0.0), 3),
+            "trade_collapse_exposure": round(float(world.factions[faction_name].trade_collapse_exposure or 0.0), 3),
             "tribute_income": round(world.factions[faction_name].tribute_income, 3),
             "tribute_paid": round(world.factions[faction_name].tribute_paid, 3),
             "migration_inflow": int(world.factions[faction_name].migration_inflow or 0),
@@ -3936,6 +4017,9 @@ def render_simulation_html(world):
       if (type === "attack") {{
         return {{ symbol: "⚔", className: "event-icon-attack", label: "Attack" }};
       }}
+      if (type && type.startsWith("shock_")) {{
+        return {{ symbol: "!", className: "event-icon-unrest", label: "Shock" }};
+      }}
       return {{ symbol: "•", className: "", label: "Event" }};
     }}
 
@@ -5174,6 +5258,8 @@ def render_simulation_html(world):
             </div>
             <div class="metric-line"><strong>Turn Flow:</strong> +${{Number(regionSnapshot.food_produced ?? staticRegion.food_produced ?? 0).toFixed(1)}} produced / -${{Number(regionSnapshot.food_consumption ?? staticRegion.food_consumption ?? 0).toFixed(1)}} consumed</div>
             <div class="metric-line"><strong>Outcome:</strong> Balance ${{Number(regionSnapshot.food_balance ?? staticRegion.food_balance ?? 0).toFixed(1)}} / Deficit ${{Number(regionSnapshot.food_deficit ?? staticRegion.food_deficit ?? 0).toFixed(1)}} / Waste ${{foodWaste.toFixed(1)}}</div>
+            <div class="metric-line"><strong>Long-Cycle Stress:</strong> ${{escapeHtml(regionSnapshot.shock_summary || staticRegion.shock_summary || "None")}} | exposure ${{Number(regionSnapshot.shock_exposure ?? staticRegion.shock_exposure ?? 0).toFixed(2)}} / resilience ${{Number(regionSnapshot.shock_resilience ?? staticRegion.shock_resilience ?? 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Ecology:</strong> soil ${{Number(regionSnapshot.soil_health ?? staticRegion.soil_health ?? 1).toFixed(2)}} / ecosystem ${{Number(regionSnapshot.ecological_integrity ?? staticRegion.ecological_integrity ?? 1).toFixed(2)}} / disease ${{Number(regionSnapshot.disease_burden ?? staticRegion.disease_burden ?? 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Productive Capacity:</strong> ${{Number(regionSnapshot.productive_capacity ?? staticRegion.productive_capacity ?? 0).toFixed(2)}} (${{escapeHtml(regionSnapshot.surplus_label || staticRegion.surplus_label || "stable")}})</div>
             <div class="metric-line"><strong>Migration:</strong> In ${{Number(regionSnapshot.migration_inflow ?? staticRegion.migration_inflow ?? 0).toFixed(0)}} / Out ${{Number(regionSnapshot.migration_outflow ?? staticRegion.migration_outflow ?? 0).toFixed(0)}} | Refugees ${{Number(regionSnapshot.refugee_inflow ?? staticRegion.refugee_inflow ?? 0).toFixed(0)}} in / ${{Number(regionSnapshot.refugee_outflow ?? staticRegion.refugee_outflow ?? 0).toFixed(0)}} out | Frontier settlers ${{Number(regionSnapshot.frontier_settler_inflow ?? staticRegion.frontier_settler_inflow ?? 0).toFixed(0)}}</div>
             <div class="metric-line"><strong>Migration Push / Pull:</strong> pressure ${{Number(regionSnapshot.migration_pressure ?? staticRegion.migration_pressure ?? 0).toFixed(2)}} / attraction ${{Number(regionSnapshot.migration_attraction ?? staticRegion.migration_attraction ?? 0).toFixed(2)}}</div>
@@ -5414,6 +5500,7 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Hierarchy:</strong> Overlord ${{escapeHtml(metrics.overlord || "None")}} | Top tributary ${{escapeHtml(metrics.top_tributary || "None")}} | Tributaries ${{Number(metrics.tributary_count || 0)}} (${{Number(metrics.vassal_count || 0)}} vassals)</div>
             <div class="metric-line"><strong>Food Stores:</strong> ${{Number(metrics.food_stored || 0).toFixed(1)}} / ${{Number(metrics.food_storage_capacity || 0).toFixed(1)}} | +${{Number(metrics.food_produced || 0).toFixed(1)}} / -${{Number(metrics.food_consumption || 0).toFixed(1)}}</div>
             <div class="metric-line"><strong>Food Pressure:</strong> Balance ${{Number(metrics.food_balance || 0).toFixed(1)}} / Deficit ${{Number(metrics.food_deficit || 0).toFixed(1)}} / Waste ${{Number((metrics.food_spoilage || 0) + (metrics.food_overflow || 0)).toFixed(1)}}</div>
+            <div class="metric-line"><strong>Shock Ecology:</strong> Exposure ${{Number(metrics.shock_exposure || faction.shock_exposure || 0).toFixed(2)}} / Resilience ${{Number(metrics.shock_resilience || faction.shock_resilience || 0).toFixed(2)}} | Famine ${{Number(metrics.famine_pressure || faction.famine_pressure || 0).toFixed(2)}} / Epidemic ${{Number(metrics.epidemic_pressure || faction.epidemic_pressure || 0).toFixed(2)}} / Trade Collapse ${{Number(metrics.trade_collapse_exposure || faction.trade_collapse_exposure || 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Migration:</strong> In ${{Number(metrics.migration_inflow || 0).toFixed(0)}} / Out ${{Number(metrics.migration_outflow || 0).toFixed(0)}} | Refugees ${{Number(metrics.refugee_inflow || 0).toFixed(0)}} in / ${{Number(metrics.refugee_outflow || 0).toFixed(0)}} out | Frontier settlers ${{Number(metrics.frontier_settlers || 0).toFixed(0)}}</div>
             <div class="metric-line"><strong>Administration:</strong> Capacity ${{Number(metrics.administrative_capacity || 0).toFixed(2)}} / Load ${{Number(metrics.administrative_load || 0).toFixed(2)}} | Efficiency ${{Number((metrics.administrative_efficiency || 0) * 100).toFixed(0)}}% | Reach ${{Number((metrics.administrative_reach || 0) * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Overextension:</strong> ${{Number(metrics.administrative_overextension || 0).toFixed(2)}} | Penalty ${{Number(metrics.administrative_overextension_penalty || 0).toFixed(2)}}</div>

@@ -101,6 +101,20 @@ SYSTEM_DEFINITIONS = {
         "label": "Food Stress",
         "event_types": set(),
     },
+    "long_cycle_shocks": {
+        "label": "Long-Cycle Shocks",
+        "event_types": {
+            "shock_climate_anomaly",
+            "shock_famine",
+            "shock_epidemic",
+            "shock_soil_exhaustion",
+            "shock_ecological_degradation",
+            "shock_resource_depletion",
+            "shock_trade_collapse",
+            "shock_population_loss",
+            "shock_recovery",
+        },
+    },
     "technology": {
         "label": "Technology",
         "event_types": {"technology_adoption", "technology_institutionalized"},
@@ -214,6 +228,7 @@ def _metric_system_signals(world):
         "trade_disruption": [],
         "trade_economy": [],
         "technology": [],
+        "long_cycle_shocks": [],
     }
 
     for turn, metrics in _iter_faction_metric_rows(world):
@@ -245,6 +260,14 @@ def _metric_system_signals(world):
             or float(metrics.get("food_balance", 0.0) or 0.0) < -0.01
         ):
             signals["food_stress"].append(turn)
+
+        if (
+            float(metrics.get("shock_exposure", 0.0) or 0.0) > 0.05
+            or float(metrics.get("famine_pressure", 0.0) or 0.0) > 0.02
+            or float(metrics.get("epidemic_pressure", 0.0) or 0.0) > 0.02
+            or float(metrics.get("trade_collapse_exposure", 0.0) or 0.0) > 0.02
+        ):
+            signals["long_cycle_shocks"].append(turn)
 
         if (
             int(metrics.get("migration_inflow", 0) or 0) > 0

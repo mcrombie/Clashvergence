@@ -233,6 +233,15 @@ from src.resources import (
     get_region_resource_summary,
     normalize_resource_map,
 )
+from src.shocks import (
+    get_region_active_shock_intensity,
+    get_region_migration_shock_attraction_penalty,
+    get_region_migration_shock_pressure,
+    get_region_shock_summary,
+    get_region_unrest_shock_pressure,
+    SHOCK_EPIDEMIC,
+    SHOCK_FAMINE,
+)
 from src.terrain import (
     get_seasonal_terrain_migration_attraction_multiplier,
     get_seasonal_terrain_migration_capacity_multiplier,
@@ -2454,6 +2463,11 @@ def update_region_populations(world: WorldState) -> None:
                     POPULATION_FOOD_SURPLUS_MAX_BONUS,
                     food_surplus_ratio * POPULATION_FOOD_SURPLUS_BONUS_FACTOR,
                 )
+            shock_growth_penalty = (
+                get_region_active_shock_intensity(world, region, SHOCK_FAMINE) * 0.018
+                + get_region_active_shock_intensity(world, region, SHOCK_EPIDEMIC) * 0.012
+            )
+            growth_factor -= min(0.035, shock_growth_penalty)
 
         change = int(round(region.population * growth_factor))
         if change == 0 and growth_factor > 0:
@@ -2501,6 +2515,7 @@ def _get_region_migration_pressure(region: Region, world: WorldState) -> float:
         + unrest_ratio * MIGRATION_PRESSURE_UNREST_FACTOR
         + surplus_pressure * MIGRATION_PRESSURE_SURPLUS_FACTOR
         + frontier_pressure * MIGRATION_PRESSURE_FRONTIER_FACTOR
+        + get_region_migration_shock_pressure(region, world)
     )
     pressure = base_pressure * get_seasonal_migration_pressure_modifier(season_name)
     if region.unrest_event_level == "crisis":
@@ -2543,6 +2558,7 @@ def _get_region_migration_attraction(region: Region, world: WorldState) -> float
         + development_bonus * MIGRATION_ATTRACTION_DEVELOPMENT_FACTOR
         + low_unrest * MIGRATION_ATTRACTION_LOW_UNREST_FACTOR
     )
+    attraction -= get_region_migration_shock_attraction_penalty(region, world)
     core_status = get_region_core_status(region)
     if core_status == "frontier":
         attraction += MIGRATION_ATTRACTION_FRONTIER_BONUS
@@ -2739,6 +2755,8 @@ def resolve_population_migration(world: WorldState) -> None:
             region.unrest_event_level == "crisis"
             or region.unrest >= MIGRATION_REFUGEE_SEVERE_UNREST
             or _get_food_deficit_ratio(region) >= 0.75
+            or get_region_active_shock_intensity(world, region, SHOCK_FAMINE) >= 0.58
+            or get_region_active_shock_intensity(world, region, SHOCK_EPIDEMIC) >= 0.7
         )
         movement_volume_modifier = refugee_flow_modifier if severe_displacement else migration_flow_modifier
         movable_population = int(round(region.population * migration_share * movement_volume_modifier))
@@ -4178,6 +4196,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         + administrative_pressure
         + elite_pressure
         + ideology_pressure
+        + get_region_unrest_shock_pressure(region, world)
     ) * get_seasonal_unrest_pressure_modifier(season_name)
     pressure *= get_seasonal_terrain_unrest_multiplier(region, season_name)
     return pressure / stability_divisor - UNREST_DECAY_PER_TURN
@@ -4526,6 +4545,17 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "food_deficit": round(region.food_deficit, 3),
             "food_spoilage": round(region.food_spoilage, 3),
             "food_overflow": round(region.food_overflow, 3),
+            "soil_health": round(float(region.soil_health or 0.0), 3),
+            "ecological_integrity": round(float(region.ecological_integrity or 0.0), 3),
+            "disease_burden": round(float(region.disease_burden or 0.0), 3),
+            "climate_anomaly": round(float(region.climate_anomaly or 0.0), 3),
+            "resource_depletion": round(float(region.resource_depletion or 0.0), 3),
+            "food_stress_turns": int(region.food_stress_turns or 0),
+            "trade_stress_turns": int(region.trade_stress_turns or 0),
+            "active_shock_kinds": list(region.active_shock_kinds or []),
+            "shock_summary": get_region_shock_summary(region),
+            "shock_exposure": round(float(region.shock_exposure or 0.0), 3),
+            "shock_resilience": round(float(region.shock_resilience or 0.0), 3),
             "migration_inflow": int(region.migration_inflow or 0),
             "migration_outflow": int(region.migration_outflow or 0),
             "refugee_inflow": int(region.refugee_inflow or 0),

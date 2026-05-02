@@ -285,6 +285,16 @@ class Region:
     food_deficit: float = 0.0
     food_spoilage: float = 0.0
     food_overflow: float = 0.0
+    soil_health: float = 1.0
+    ecological_integrity: float = 1.0
+    disease_burden: float = 0.0
+    climate_anomaly: float = 0.0
+    resource_depletion: float = 0.0
+    food_stress_turns: int = 0
+    trade_stress_turns: int = 0
+    active_shock_kinds: list[str] = field(default_factory=list)
+    shock_exposure: float = 0.0
+    shock_resilience: float = 0.0
     migration_inflow: int = 0
     migration_outflow: int = 0
     refugee_inflow: int = 0
@@ -448,6 +458,11 @@ class Faction:
     trade_foreign_imported_flow: float = 0.0
     trade_warfare_damage: float = 0.0
     trade_blockade_losses: float = 0.0
+    shock_exposure: float = 0.0
+    shock_resilience: float = 0.0
+    famine_pressure: float = 0.0
+    epidemic_pressure: float = 0.0
+    trade_collapse_exposure: float = 0.0
     tribute_income: float = 0.0
     tribute_paid: float = 0.0
     migration_inflow: int = 0
@@ -630,6 +645,21 @@ class WarState:
 
 
 @dataclass
+class ShockState:
+    id: str
+    kind: str
+    origin_region: str | None = None
+    affected_regions: list[str] = field(default_factory=list)
+    faction: str | None = None
+    started_turn: int = 0
+    duration_turns: int = 1
+    intensity: float = 0.0
+    phase: str = "onset"
+    drivers: dict[str, float] = field(default_factory=dict)
+    effects: dict[str, float] = field(default_factory=dict)
+
+
+@dataclass
 class WorldState:
     regions: dict[str, Region]
     factions: dict[str, Faction]
@@ -644,3 +674,5 @@ class WorldState:
     region_history: list[dict[str, dict[str, Any]]] = field(default_factory=list)
     relationships: dict[tuple[str, str], RelationshipState] = field(default_factory=dict)
     wars: dict[tuple[str, str], WarState] = field(default_factory=dict)
+    active_shocks: list[ShockState] = field(default_factory=list)
+    shock_history: list[ShockState] = field(default_factory=list)

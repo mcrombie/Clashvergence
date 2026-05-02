@@ -38,6 +38,13 @@ from src.resource_economy import (
     get_region_taxable_value,
     update_faction_resource_economy,
 )
+from src.shocks import (
+    apply_shock_population_losses,
+    refresh_long_cycle_shocks,
+    resolve_food_and_disease_shocks,
+    resolve_trade_network_shocks,
+    update_shock_rollups,
+)
 from src.visibility import refresh_all_faction_visibility, refresh_faction_visibility
 from src.metrics import record_turn_metrics
 from src.succession import resolve_dynastic_succession
@@ -136,7 +143,9 @@ def _build_turn_order(world, faction_order=None, randomize_order=True):
 
 def _run_turn_start_phase(world):
     advance_trade_warfare_state(world)
+    refresh_long_cycle_shocks(world)
     update_faction_resource_economy(world, advance_resources=True)
+    update_shock_rollups(world)
     refresh_administrative_state(world)
     refresh_all_faction_visibility(world)
 
@@ -194,12 +203,17 @@ def _run_post_action_phase(world, season_name):
         share=get_seasonal_economy_share(season_name),
     )
     apply_turn_food_economy(world, season_name=season_name)
+    resolve_food_and_disease_shocks(world)
+    apply_shock_population_losses(world)
     update_region_integration(world, time_step_years=SEASONAL_TIME_STEP_YEARS)
     refresh_administrative_state(world)
     update_technology_diffusion(world)
     update_faction_resource_economy(world, advance_resources=False)
+    resolve_trade_network_shocks(world)
+    update_faction_resource_economy(world, advance_resources=False)
     resolve_population_migration(world)
     update_faction_resource_economy(world, advance_resources=False)
+    update_shock_rollups(world)
     return economy_snapshot
 
 
