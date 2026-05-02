@@ -37,6 +37,10 @@ SYSTEM_DEFINITIONS = {
         "label": "War",
         "event_types": {"attack", "war_declared", "war_peace"},
     },
+    "military_institution": {
+        "label": "Military Institution",
+        "event_types": {"military_reform", "military_battle_losses"},
+    },
     "development": {
         "label": "Development",
         "event_types": {"develop", "invest"},
@@ -229,6 +233,7 @@ def _metric_system_signals(world):
         "trade_economy": [],
         "technology": [],
         "long_cycle_shocks": [],
+        "military_institution": [],
     }
 
     for turn, metrics in _iter_faction_metric_rows(world):
@@ -298,6 +303,15 @@ def _metric_system_signals(world):
             or float(metrics.get("average_institutional_technology", 0.0) or 0.0) > 0.04
         ):
             signals["technology"].append(turn)
+
+        if (
+            float(metrics.get("standing_forces", 0.0) or 0.0) > 0.1
+            or float(metrics.get("manpower_capacity", 0.0) or 0.0) > 0.1
+            or float(metrics.get("logistics_capacity", 0.0) or 0.0) > 0.1
+            or float(metrics.get("naval_power", 0.0) or 0.0) > 0.1
+            or float(metrics.get("military_reform_pressure", 0.0) or 0.0) > 0.05
+        ):
+            signals["military_institution"].append(turn)
 
     return signals
 

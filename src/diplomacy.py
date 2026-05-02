@@ -71,6 +71,7 @@ from src.config import (
     DIPLOMACY_VASSAL_TRIBUTE_SHARE,
 )
 from src.models import Event, RelationshipState, WarState, WorldState
+from src.military import refresh_military_state
 from src.visibility import faction_knows_faction
 from src.ideology import get_ideological_diplomacy_modifier
 
@@ -95,6 +96,7 @@ def _is_republican_form(government_form: str) -> bool:
 
 
 def _estimate_faction_power(world: WorldState, faction_name: str) -> float:
+    refresh_military_state(world, emit_events=False)
     faction = world.factions[faction_name]
     owned_regions = 0
     population = 0
@@ -107,7 +109,9 @@ def _estimate_faction_power(world: WorldState, faction_name: str) -> float:
         (owned_regions * 3.4)
         + (population / 110.0)
         + (max(0.0, float(faction.treasury)) * 0.45)
-        + (_get_polity_rank(faction.polity_tier) * 2.4),
+        + (_get_polity_rank(faction.polity_tier) * 2.4)
+        + (float(faction.force_projection or 0.0) * 0.18)
+        + (float(faction.military_readiness or 0.0) * 1.2),
         3,
     )
 

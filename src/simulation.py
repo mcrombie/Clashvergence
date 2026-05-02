@@ -21,6 +21,7 @@ from src.integration import record_region_history, update_region_integration
 from src.internal_politics import update_elite_blocs
 from src.ideology import update_ideologies
 from src.migration import resolve_population_migration
+from src.military import refresh_military_state
 from src.population import (
     get_region_surplus,
     update_faction_polity_tiers,
@@ -91,6 +92,7 @@ def get_faction_economy_snapshot(world):
                 snapshot[region.owner]["frontier_regions"] += 1
 
     for faction_name, data in snapshot.items():
+        data["maintenance"] += float(world.factions[faction_name].military_upkeep or 0.0)
         data["total_surplus"] = round(data["total_surplus"], 2)
         data["empire_penalty"] = max(
             0,
@@ -147,6 +149,7 @@ def _run_turn_start_phase(world):
     update_faction_resource_economy(world, advance_resources=True)
     update_shock_rollups(world)
     refresh_administrative_state(world)
+    refresh_military_state(world)
     refresh_all_faction_visibility(world)
 
 
@@ -186,15 +189,18 @@ def _run_faction_action_phase(world, turn_order, *, verbose=True):
     for faction_name in turn_order:
         update_faction_resource_economy(world, advance_resources=False)
         refresh_administrative_state(world)
+        refresh_military_state(world)
         refresh_faction_visibility(world, faction_name)
         _resolve_faction_action(world, faction_name, verbose=verbose)
         refresh_faction_visibility(world, faction_name)
         refresh_administrative_state(world)
+        refresh_military_state(world)
 
 
 def _run_post_action_phase(world, season_name):
     update_faction_resource_economy(world, advance_resources=False)
     refresh_administrative_state(world)
+    refresh_military_state(world)
     resolve_unrest_events(world)
     update_faction_resource_economy(world, advance_resources=False)
     refresh_administrative_state(world)
@@ -214,6 +220,7 @@ def _run_post_action_phase(world, season_name):
     resolve_population_migration(world)
     update_faction_resource_economy(world, advance_resources=False)
     update_shock_rollups(world)
+    refresh_military_state(world)
     return economy_snapshot
 
 
@@ -231,6 +238,7 @@ def _run_year_end_phase(world):
 
 def _run_diplomatic_update_phase(world, economy_snapshot):
     refresh_administrative_state(world)
+    refresh_military_state(world)
     update_relationships(world)
     apply_tributary_flows(world, economy_snapshot=economy_snapshot)
     apply_language_contact_borrowing(world)

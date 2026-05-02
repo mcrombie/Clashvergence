@@ -51,6 +51,7 @@ from src.population import (
 )
 from src.religion import get_region_dominant_religion
 from src.resource_economy import get_region_taxable_value
+from src.military import refresh_military_state
 from src.narrative import (
     get_phase_ranges,
     summarize_final_standings,
@@ -161,6 +162,12 @@ def _build_region_resource_payload(region):
         "resource_routed_output_summary": format_resource_map(region.resource_routed_output or region.resource_effective_output or region.resource_output, limit=3),
         "taxable_value": round(get_region_taxable_value(region), 3),
         "infrastructure_level": round(region.infrastructure_level, 2),
+        "fortification_level": round(float(region.fortification_level or 0.0), 2),
+        "garrison_strength": round(float(region.garrison_strength or 0.0), 2),
+        "logistics_node_level": round(float(region.logistics_node_level or 0.0), 2),
+        "naval_base_level": round(float(region.naval_base_level or 0.0), 2),
+        "military_damage": round(float(region.military_damage or 0.0), 3),
+        "last_military_project_turn": region.last_military_project_turn,
         "granary_level": round(region.granary_level, 2),
         "storehouse_level": round(region.storehouse_level, 2),
         "market_level": round(region.market_level, 2),
@@ -869,6 +876,11 @@ def build_simulation_snapshots(world):
             "resource_routed_output_summary": initial_region_history.get(region_name, {}).get("resource_routed_output_summary", _build_region_resource_payload(region)["resource_routed_output_summary"]),
             "taxable_value": initial_region_history.get(region_name, {}).get("taxable_value", _build_region_resource_payload(region)["taxable_value"]),
             "infrastructure_level": initial_region_history.get(region_name, {}).get("infrastructure_level", region.infrastructure_level),
+            "fortification_level": initial_region_history.get(region_name, {}).get("fortification_level", region.fortification_level),
+            "garrison_strength": initial_region_history.get(region_name, {}).get("garrison_strength", region.garrison_strength),
+            "logistics_node_level": initial_region_history.get(region_name, {}).get("logistics_node_level", region.logistics_node_level),
+            "naval_base_level": initial_region_history.get(region_name, {}).get("naval_base_level", region.naval_base_level),
+            "military_damage": initial_region_history.get(region_name, {}).get("military_damage", region.military_damage),
             "granary_level": initial_region_history.get(region_name, {}).get("granary_level", region.granary_level),
             "storehouse_level": initial_region_history.get(region_name, {}).get("storehouse_level", region.storehouse_level),
             "market_level": initial_region_history.get(region_name, {}).get("market_level", region.market_level),
@@ -1001,6 +1013,11 @@ def build_simulation_snapshots(world):
                 "resource_routed_output_summary": region["resource_routed_output_summary"],
                 "taxable_value": region["taxable_value"],
                 "infrastructure_level": region["infrastructure_level"],
+                "fortification_level": region["fortification_level"],
+                "garrison_strength": region["garrison_strength"],
+                "logistics_node_level": region["logistics_node_level"],
+                "naval_base_level": region["naval_base_level"],
+                "military_damage": region["military_damage"],
                 "granary_level": region["granary_level"],
                 "storehouse_level": region["storehouse_level"],
                 "market_level": region["market_level"],
@@ -1155,6 +1172,11 @@ def build_simulation_snapshots(world):
             region_state[region_name]["resource_routed_output_summary"] = history_region.get("resource_routed_output_summary", region_state[region_name]["resource_routed_output_summary"])
             region_state[region_name]["taxable_value"] = history_region.get("taxable_value", region_state[region_name]["taxable_value"])
             region_state[region_name]["infrastructure_level"] = history_region.get("infrastructure_level", region_state[region_name]["infrastructure_level"])
+            region_state[region_name]["fortification_level"] = history_region.get("fortification_level", region_state[region_name]["fortification_level"])
+            region_state[region_name]["garrison_strength"] = history_region.get("garrison_strength", region_state[region_name]["garrison_strength"])
+            region_state[region_name]["logistics_node_level"] = history_region.get("logistics_node_level", region_state[region_name]["logistics_node_level"])
+            region_state[region_name]["naval_base_level"] = history_region.get("naval_base_level", region_state[region_name]["naval_base_level"])
+            region_state[region_name]["military_damage"] = history_region.get("military_damage", region_state[region_name]["military_damage"])
             region_state[region_name]["granary_level"] = history_region.get("granary_level", region_state[region_name]["granary_level"])
             region_state[region_name]["storehouse_level"] = history_region.get("storehouse_level", region_state[region_name]["storehouse_level"])
             region_state[region_name]["market_level"] = history_region.get("market_level", region_state[region_name]["market_level"])
@@ -1297,6 +1319,11 @@ def build_simulation_snapshots(world):
                     "resource_routed_output_summary": region["resource_routed_output_summary"],
                     "taxable_value": region["taxable_value"],
                     "infrastructure_level": region["infrastructure_level"],
+                    "fortification_level": region["fortification_level"],
+                    "garrison_strength": region["garrison_strength"],
+                    "logistics_node_level": region["logistics_node_level"],
+                    "naval_base_level": region["naval_base_level"],
+                    "military_damage": region["military_damage"],
                     "granary_level": region["granary_level"],
                     "storehouse_level": region["storehouse_level"],
                     "market_level": region["market_level"],
@@ -1416,6 +1443,7 @@ def _atlas_region_sort_key(region_name):
 
 
 def build_simulation_view_model(world):
+    refresh_military_state(world, emit_events=False)
     positions = build_map_layout(MAPS[world.map_name]["regions"], width=900, height=900)
     edges = get_map_edges(MAPS[world.map_name]["regions"])
     atlas_geometry = None
@@ -1538,6 +1566,17 @@ def build_simulation_view_model(world):
             "famine_pressure": round(float(world.factions[faction_name].famine_pressure or 0.0), 3),
             "epidemic_pressure": round(float(world.factions[faction_name].epidemic_pressure or 0.0), 3),
             "trade_collapse_exposure": round(float(world.factions[faction_name].trade_collapse_exposure or 0.0), 3),
+            "manpower_pool": round(float(world.factions[faction_name].manpower_pool or 0.0), 3),
+            "manpower_capacity": round(float(world.factions[faction_name].manpower_capacity or 0.0), 3),
+            "standing_forces": round(float(world.factions[faction_name].standing_forces or 0.0), 3),
+            "army_quality": round(float(world.factions[faction_name].army_quality or 0.0), 3),
+            "military_readiness": round(float(world.factions[faction_name].military_readiness or 0.0), 3),
+            "logistics_capacity": round(float(world.factions[faction_name].logistics_capacity or 0.0), 3),
+            "naval_power": round(float(world.factions[faction_name].naval_power or 0.0), 3),
+            "force_projection": round(float(world.factions[faction_name].force_projection or 0.0), 3),
+            "military_tradition": round(float(world.factions[faction_name].military_tradition or 0.0), 3),
+            "military_reform_pressure": round(float(world.factions[faction_name].military_reform_pressure or 0.0), 3),
+            "military_upkeep": round(float(world.factions[faction_name].military_upkeep or 0.0), 3),
             "tribute_income": round(world.factions[faction_name].tribute_income, 3),
             "tribute_paid": round(world.factions[faction_name].tribute_paid, 3),
             "migration_inflow": int(world.factions[faction_name].migration_inflow or 0),
@@ -5234,6 +5273,7 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Trade Layer:</strong> ${{escapeHtml(regionSnapshot.trade_route_role || staticRegion.trade_route_role || "local")}} | throughput ${{Number(regionSnapshot.trade_throughput ?? staticRegion.trade_throughput ?? 0).toFixed(2)}} | trade bonus ${{Number(regionSnapshot.trade_value_bonus ?? staticRegion.trade_value_bonus ?? 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Import / Transit:</strong> ${{Number(regionSnapshot.trade_import_value ?? staticRegion.trade_import_value ?? 0).toFixed(2)}} / ${{Number(regionSnapshot.trade_transit_value ?? staticRegion.trade_transit_value ?? 0).toFixed(2)}} | disruption ${{Number((regionSnapshot.trade_disruption_risk ?? staticRegion.trade_disruption_risk ?? 0) * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Trade Warfare:</strong> pressure ${{Number(regionSnapshot.trade_warfare_pressure ?? staticRegion.trade_warfare_pressure ?? 0).toFixed(2)}} for ${{Number(regionSnapshot.trade_warfare_turns ?? staticRegion.trade_warfare_turns ?? 0).toFixed(0)}} turn(s) | blockade ${{Number(regionSnapshot.trade_blockade_strength ?? staticRegion.trade_blockade_strength ?? 0).toFixed(2)}} for ${{Number(regionSnapshot.trade_blockade_turns ?? staticRegion.trade_blockade_turns ?? 0).toFixed(0)}} turn(s) | denied ${{Number(regionSnapshot.trade_value_denied ?? staticRegion.trade_value_denied ?? 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Military Works:</strong> Fort ${{Number(regionSnapshot.fortification_level ?? staticRegion.fortification_level ?? 0).toFixed(2)}} / Garrison ${{Number(regionSnapshot.garrison_strength ?? staticRegion.garrison_strength ?? 0).toFixed(2)}} / Logistics ${{Number(regionSnapshot.logistics_node_level ?? staticRegion.logistics_node_level ?? 0).toFixed(2)}} / Naval Base ${{Number(regionSnapshot.naval_base_level ?? staticRegion.naval_base_level ?? 0).toFixed(2)}} | damage ${{Number(regionSnapshot.military_damage ?? staticRegion.military_damage ?? 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Foreign Gateway:</strong> ${{escapeHtml(regionSnapshot.trade_gateway_role || staticRegion.trade_gateway_role || "none")}}${{(regionSnapshot.trade_foreign_partner || staticRegion.trade_foreign_partner) ? ` with ${{escapeHtml(regionSnapshot.trade_foreign_partner || staticRegion.trade_foreign_partner)}}` : ""}}${{(regionSnapshot.trade_foreign_partner_region || staticRegion.trade_foreign_partner_region) ? ` via ${{escapeHtml(regionSnapshot.trade_foreign_partner_region || staticRegion.trade_foreign_partner_region)}}` : ""}} | flow ${{Number(regionSnapshot.trade_foreign_flow ?? staticRegion.trade_foreign_flow ?? 0).toFixed(2)}} | value ${{Number(regionSnapshot.trade_foreign_value ?? staticRegion.trade_foreign_value ?? 0).toFixed(2)}}</div>
           </article>
           <article class="inspector-card">
@@ -5501,6 +5541,7 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Food Stores:</strong> ${{Number(metrics.food_stored || 0).toFixed(1)}} / ${{Number(metrics.food_storage_capacity || 0).toFixed(1)}} | +${{Number(metrics.food_produced || 0).toFixed(1)}} / -${{Number(metrics.food_consumption || 0).toFixed(1)}}</div>
             <div class="metric-line"><strong>Food Pressure:</strong> Balance ${{Number(metrics.food_balance || 0).toFixed(1)}} / Deficit ${{Number(metrics.food_deficit || 0).toFixed(1)}} / Waste ${{Number((metrics.food_spoilage || 0) + (metrics.food_overflow || 0)).toFixed(1)}}</div>
             <div class="metric-line"><strong>Shock Ecology:</strong> Exposure ${{Number(metrics.shock_exposure || faction.shock_exposure || 0).toFixed(2)}} / Resilience ${{Number(metrics.shock_resilience || faction.shock_resilience || 0).toFixed(2)}} | Famine ${{Number(metrics.famine_pressure || faction.famine_pressure || 0).toFixed(2)}} / Epidemic ${{Number(metrics.epidemic_pressure || faction.epidemic_pressure || 0).toFixed(2)}} / Trade Collapse ${{Number(metrics.trade_collapse_exposure || faction.trade_collapse_exposure || 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Military Institution:</strong> Forces ${{Number(metrics.standing_forces || faction.standing_forces || 0).toFixed(1)}} / Manpower ${{Number(metrics.manpower_pool || faction.manpower_pool || 0).toFixed(1)}} of ${{Number(metrics.manpower_capacity || faction.manpower_capacity || 0).toFixed(1)}} | quality ${{Number(metrics.army_quality || faction.army_quality || 0).toFixed(2)}} / readiness ${{Number(metrics.military_readiness || faction.military_readiness || 0).toFixed(2)}} | logistics ${{Number(metrics.logistics_capacity || faction.logistics_capacity || 0).toFixed(1)}} / navy ${{Number(metrics.naval_power || faction.naval_power || 0).toFixed(1)}}</div>
             <div class="metric-line"><strong>Migration:</strong> In ${{Number(metrics.migration_inflow || 0).toFixed(0)}} / Out ${{Number(metrics.migration_outflow || 0).toFixed(0)}} | Refugees ${{Number(metrics.refugee_inflow || 0).toFixed(0)}} in / ${{Number(metrics.refugee_outflow || 0).toFixed(0)}} out | Frontier settlers ${{Number(metrics.frontier_settlers || 0).toFixed(0)}}</div>
             <div class="metric-line"><strong>Administration:</strong> Capacity ${{Number(metrics.administrative_capacity || 0).toFixed(2)}} / Load ${{Number(metrics.administrative_load || 0).toFixed(2)}} | Efficiency ${{Number((metrics.administrative_efficiency || 0) * 100).toFixed(0)}}% | Reach ${{Number((metrics.administrative_reach || 0) * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Overextension:</strong> ${{Number(metrics.administrative_overextension || 0).toFixed(2)}} | Penalty ${{Number(metrics.administrative_overextension_penalty || 0).toFixed(2)}}</div>

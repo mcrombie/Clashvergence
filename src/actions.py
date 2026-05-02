@@ -46,6 +46,15 @@ from src.ethnicity import (
 from src.integration import handle_region_owner_change
 from src.internal_politics import get_faction_elite_effects
 from src.ideology import get_faction_ideology_effects
+from src.military import (
+    MILITARY_PROJECT_TYPES,
+    apply_battle_military_losses,
+    apply_military_development_project,
+    get_attack_military_profile,
+    get_defense_military_profile,
+    get_military_project_score_options,
+    refresh_military_state,
+)
 from src.population import (
     apply_region_population_loss,
     transfer_region_population,
@@ -623,6 +632,7 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
             "resource_focus": "mixed",
         })
 
+    options.extend(get_military_project_score_options(world, faction_name, region))
     return options
 
 
@@ -759,7 +769,7 @@ def _choose_war_objective(
     return ("punitive_raid", "punitive raid")
 
 
-def _apply_trade_warfare_pressure(region, *, succeeded: bool) -> dict[str, float | bool | str]:
+def _apply_trade_warfare_pressure(region, *, succeeded: bool, naval_power: float = 0.0) -> dict[str, float | bool | str]:
     trade_role = region.trade_route_role or "local"
     gateway_role = region.trade_gateway_role or "none"
     throughput = float(region.trade_throughput or 0.0)
@@ -795,6 +805,7 @@ def _apply_trade_warfare_pressure(region, *, succeeded: bool) -> dict[str, float
         blockade_gain = 0.12 + min(0.18, throughput * 0.02) + min(0.1, foreign_flow * 0.05)
         if gateway_role == "sea_gateway":
             blockade_gain += 0.14
+        blockade_gain += min(0.18, max(0.0, naval_power) * 0.025)
         blockade_gain += 0.1 if succeeded else 0.04
 
     pressure_after = _clamp(
@@ -858,6 +869,7 @@ def get_treasury_concentration_multiplier(region_count):
 def get_attack_target_score_components(region_name, faction_name, world):
     """Returns a simple attack score and combat stats for an enemy region."""
 
+    refresh_military_state(world, emit_events=False)
     region = world.regions[region_name]
     terrain_profile = get_terrain_profile(region)
     doctrine_alignment = get_faction_region_alignment(
@@ -905,11 +917,18 @@ def get_attack_target_score_components(region_name, faction_name, world):
         ),
         default=0,
     )
+    military_attack = get_attack_military_profile(
+        world,
+        faction_name,
+        region,
+        staging_regions=staging_regions,
+    )
     attacker_strength = (
         attacker_deployable_treasury
         + staging_projection
         + doctrine_alignment["combat_modifier"]
     )
+    attacker_strength += int(round(float(military_attack["military_attack_bonus"])))
     attacker_strength += int(round(
         get_faction_institutional_technology(attacker_faction, TECH_ORGANIZED_LEVIES) * 4
         + get_faction_institutional_technology(attacker_faction, TECH_COPPER_WORKING) * 2
@@ -986,6 +1005,8 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + terrain_profile["defense_modifier"]
         + core_defense_bonus
     )
+    military_defense = get_defense_military_profile(world, defender_name, region)
+    defender_strength += int(round(float(military_defense["military_defense_bonus"])))
     defender_strength += int(round(
         get_region_technology_adoption(region, TECH_ORGANIZED_LEVIES) * 3
         + get_region_institutional_technology(region, world, TECH_ORGANIZED_LEVIES) * 2
@@ -1017,6 +1038,9 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + foreign_gateway_bonus
         + active_war_bonus
         + seasonal_attack_score_bonus
+        + int(round(float(military_attack["military_attack_bonus"]) * 1.2))
+        - int(round(float(military_defense["fortification_defense_bonus"]) * 0.55))
+        - int(round(float(military_attack["supply_risk"]) * 7.0))
     )
 
     return {
@@ -1033,6 +1057,8 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "staging_projection": staging_projection,
         "attacker_strength": attacker_strength,
         "defender_strength": defender_strength,
+        **military_attack,
+        **military_defense,
         "terrain_tags": terrain_profile["terrain_tags"],
         "terrain_label": terrain_profile["terrain_label"],
         "defense_modifier": terrain_profile["defense_modifier"],
@@ -1528,7 +1554,11 @@ def attack(faction_name, target_region_name, world):
                 RESOURCE_TIMBER: 0.05,
             },
         )
-        trade_warfare_effect = _apply_trade_warfare_pressure(target_region, succeeded=True)
+        trade_warfare_effect = _apply_trade_warfare_pressure(
+            target_region,
+            succeeded=True,
+            naval_power=float(score_components.get("attacker_naval_power", 0.0) or 0.0),
+        )
         set_region_unrest(target_region, target_region.unrest + 0.45 + (trade_warfare_effect["trade_warfare_pressure_added"] * 1.1))
         handle_region_owner_change(target_region, faction_name)
         if is_proto_reintegration_attempt:
@@ -1567,13 +1597,26 @@ def attack(faction_name, target_region_name, world):
                 RESOURCE_TIMBER: 0.03,
             },
         )
-        trade_warfare_effect = _apply_trade_warfare_pressure(target_region, succeeded=False)
+        trade_warfare_effect = _apply_trade_warfare_pressure(
+            target_region,
+            succeeded=False,
+            naval_power=float(score_components.get("attacker_naval_power", 0.0) or 0.0),
+        )
         set_region_unrest(target_region, target_region.unrest + 0.2 + (trade_warfare_effect["trade_warfare_pressure_added"] * 0.75))
         actual_failure_penalty = min(ATTACK_FAILURE_PENALTY, attacker.treasury)
         treasury_change -= actual_failure_penalty
         attacker.treasury -= actual_failure_penalty
 
-    world.events.append(Event(
+    military_losses = apply_battle_military_losses(
+        world,
+        faction_name,
+        defender_name,
+        target_region_name,
+        succeeded=succeeded,
+        score_components=score_components,
+    )
+
+    attack_event = Event(
         turn=world.turn,
         type="attack",
         faction=faction_name,
@@ -1605,6 +1648,28 @@ def attack(faction_name, target_region_name, world):
             "foreign_gateway_bonus": score_components["foreign_gateway_bonus"],
             "active_war_bonus": score_components.get("active_war_bonus", 0),
             "active_war_objective": score_components.get("active_war_objective"),
+            "military_attack_bonus": score_components.get("military_attack_bonus", 0.0),
+            "military_defense_bonus": score_components.get("military_defense_bonus", 0.0),
+            "attacker_army_quality": score_components.get("attacker_army_quality", 0.0),
+            "defender_army_quality": score_components.get("defender_army_quality", 0.0),
+            "attacker_readiness": score_components.get("attacker_readiness", 0.0),
+            "defender_readiness": score_components.get("defender_readiness", 0.0),
+            "attacker_manpower": score_components.get("attacker_manpower", 0.0),
+            "defender_manpower": score_components.get("defender_manpower", 0.0),
+            "attacker_standing_forces": score_components.get("attacker_standing_forces", 0.0),
+            "defender_standing_forces": score_components.get("defender_standing_forces", 0.0),
+            "attacker_logistics": score_components.get("attacker_logistics", 0.0),
+            "defender_logistics": score_components.get("defender_logistics", 0.0),
+            "logistics_modifier": score_components.get("logistics_modifier", 1.0),
+            "supply_risk": score_components.get("supply_risk", 0.0),
+            "manpower_commitment": score_components.get("manpower_commitment", 0.0),
+            "reserve_commitment": score_components.get("reserve_commitment", 0.0),
+            "defender_fortification": score_components.get("defender_fortification", 0.0),
+            "defender_garrison": score_components.get("defender_garrison", 0.0),
+            "fortification_defense_bonus": score_components.get("fortification_defense_bonus", 0),
+            "attacker_naval_power": score_components.get("attacker_naval_power", 0.0),
+            "naval_operation": score_components.get("naval_operation", False),
+            "naval_attack_bonus": score_components.get("naval_attack_bonus", 0.0),
             "war_objective": war_objective,
             "war_objective_label": war_objective_label,
             "war_target_region": target_region_name,
@@ -1614,6 +1679,7 @@ def attack(faction_name, target_region_name, world):
             "population_after": target_region.population,
             "population_loss": population_loss,
             **trade_warfare_effect,
+            **military_losses,
         },
         context={
             "treasury_before": treasury_before,
@@ -1635,10 +1701,13 @@ def attack(faction_name, target_region_name, world):
             "success" if succeeded else "failure",
             *(["trade_warfare"] if trade_warfare_effect["trade_warfare_hit"] else []),
             *(["blockade"] if trade_warfare_effect["port_blockaded"] else []),
+            *(["logistics"] if float(score_components.get("logistics_modifier", 1.0) or 1.0) >= 1.05 else []),
+            *(["fortification"] if float(score_components.get("fortification_defense_bonus", 0.0) or 0.0) > 0 else []),
+            *(["naval"] if score_components.get("naval_operation", False) else []),
             *(["reintegration"] if is_reintegration_attempt else []),
         ],
         significance=score_components["success_chance"],
-    ))
+    )
 
     if succeeded and rename_result.get("changed"):
         rename_type = str(rename_result.get("layer_type") or "conquest")
@@ -1670,6 +1739,8 @@ def attack(faction_name, target_region_name, world):
             ],
             significance=1.2 if rename_type == "restoration" else 1.0,
         ))
+
+    world.events.append(attack_event)
 
     return succeeded
 
@@ -1813,6 +1884,13 @@ def develop(faction_name, target_region_name, world):
             region.stone_quarry_level = round(min(1.8, region.stone_quarry_level + 0.28), 2)
         region.extractive_level = round(min(1.8, region.extractive_level + 0.18), 2)
         project_amount = 0.28
+    elif project_type in MILITARY_PROJECT_TYPES:
+        project_amount = apply_military_development_project(
+            world,
+            faction_name,
+            region,
+            str(project_type),
+        )
     else:
         region.infrastructure_level = round(min(1.8, region.infrastructure_level + 0.18), 2)
         if region.road_level > 0:
@@ -1820,6 +1898,8 @@ def develop(faction_name, target_region_name, world):
         project_amount = 0.22
 
     region.last_resource_project_turn = world.turn
+    if project_type in MILITARY_PROJECT_TYPES:
+        region.last_military_project_turn = world.turn
     if source_region_name is not None and source_region_name in world.regions:
         source_region = world.regions[source_region_name]
         source_region.last_resource_project_turn = world.turn

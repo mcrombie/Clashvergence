@@ -3,6 +3,7 @@ from src.calendar import format_turn_date, get_turn_season_name, get_turn_year
 from src.diplomacy import get_faction_diplomacy_summary
 from src.internal_politics import ALL_ELITE_BLOCS, get_faction_elite_summary
 from src.ideology import ALL_IDEOLOGIES, get_faction_ideology_summary
+from src.military import refresh_military_state
 from src.region_state import get_region_core_status
 from src.technology import (
     ALL_TECHNOLOGIES,
@@ -36,6 +37,7 @@ def get_owned_region_counts(world):
 def build_turn_metrics(world, economy_snapshot=None):
     """Builds a per-faction metrics snapshot for the just-completed turn."""
     refresh_administrative_state(world)
+    refresh_military_state(world, emit_events=False)
     turn_events = get_turn_events(world, world.turn)
     owned_region_counts = get_owned_region_counts(world)
     faction_metrics = {}
@@ -239,6 +241,17 @@ def build_turn_metrics(world, economy_snapshot=None):
             "famine_pressure": round(float(faction.famine_pressure or 0.0), 3),
             "epidemic_pressure": round(float(faction.epidemic_pressure or 0.0), 3),
             "trade_collapse_exposure": round(float(faction.trade_collapse_exposure or 0.0), 3),
+            "manpower_pool": round(float(faction.manpower_pool or 0.0), 3),
+            "manpower_capacity": round(float(faction.manpower_capacity or 0.0), 3),
+            "standing_forces": round(float(faction.standing_forces or 0.0), 3),
+            "army_quality": round(float(faction.army_quality or 0.0), 3),
+            "military_readiness": round(float(faction.military_readiness or 0.0), 3),
+            "logistics_capacity": round(float(faction.logistics_capacity or 0.0), 3),
+            "naval_power": round(float(faction.naval_power or 0.0), 3),
+            "force_projection": round(float(faction.force_projection or 0.0), 3),
+            "military_tradition": round(float(faction.military_tradition or 0.0), 3),
+            "military_reform_pressure": round(float(faction.military_reform_pressure or 0.0), 3),
+            "military_upkeep": round(float(faction.military_upkeep or 0.0), 3),
             "tribute_income": round(faction.tribute_income, 3),
             "tribute_paid": round(faction.tribute_paid, 3),
             "administrative_capacity": round(float(faction.administrative_capacity or 0.0), 3),

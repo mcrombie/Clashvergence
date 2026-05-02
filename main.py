@@ -139,8 +139,26 @@ def format_event(event, world):
             f"(success_chance={event.get('success_chance', 0):.3f}, "
             f"attack_strength={event.get('attack_strength', 0)}, "
             f"defense_strength={event.get('defense_strength', 0)}, "
+            f"logistics={event.get('logistics_modifier', 1.0):.2f}, "
+            f"fort={event.get('defender_fortification', 0):.2f}, "
+            f"manpower_loss={event.get('attacker_manpower_loss', 0):.2f}/{event.get('defender_manpower_loss', 0):.2f}, "
             f"core_status={event.get('core_status', 'frontier')}, "
             f"treasury_after={event.get('treasury_after', 0)}{terrain_text}{seasonal_text})"
+        )
+
+    if event["type"] == "military_battle_losses":
+        defender = _get_faction_display_name(world, event.get("defender")) if event.get("defender") else "Unknown"
+        return (
+            f"{time_label}: {faction_name} and {defender} absorbed battle losses in {region_reference} "
+            f"(attacker={event.get('attacker_manpower_loss', 0):.2f}, "
+            f"defender={event.get('defender_manpower_loss', 0):.2f})"
+        )
+
+    if event["type"] == "military_reform":
+        return (
+            f"{time_label}: {faction_name} improved its military institution "
+            f"(tradition={event.get('military_tradition', 0):.2f}, "
+            f"quality={event.get('army_quality', 0):.2f})"
         )
 
     if event["type"] == "income":
@@ -412,6 +430,11 @@ def build_results_report(world, map_name, num_turns, starting_treasuries):
                 f"effective_income={faction_metrics.get('effective_income', 0)}, "
                 f"maintenance={faction_metrics['maintenance']}, "
                 f"net={faction_metrics['net_income']}, "
+                f"forces={faction_metrics.get('standing_forces', 0.0)}, "
+                f"manpower={faction_metrics.get('manpower_pool', 0.0)}/{faction_metrics.get('manpower_capacity', 0.0)}, "
+                f"army_quality={faction_metrics.get('army_quality', 0.0)}, "
+                f"logistics={faction_metrics.get('logistics_capacity', 0.0)}, "
+                f"naval={faction_metrics.get('naval_power', 0.0)}, "
                 f"tech_presence={faction_metrics.get('average_technology_presence', 0.0)}, "
                 f"tech_institutional={faction_metrics.get('average_institutional_technology', 0.0)}, "
                 f"ideology={faction_metrics.get('dominant_ideology_label', 'Customary Pluralism')}, "
