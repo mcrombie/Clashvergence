@@ -70,6 +70,7 @@ The project has moved past the first economic and political scaffolding pass. It
 - practical technology diffusion through regional exposure, local adoption, and faction institutionalization
 - polity advancement and government-form modifiers
 - reporting, metrics, dead-system observation, experiments, and an HTML viewer
+- an experimental turn-by-turn interactive driver with limited-visibility CLI and browser player control
 
 This is enough to treat the project less as a map-control toy and more as a layered historical simulation prototype. The next work should mostly deepen, connect, observe, and tune these systems before adding another large abstraction.
 
@@ -200,9 +201,29 @@ Good outcomes:
 - world history gains punctuated disruption
 - complex recovery paths become possible
 
-### Phase 6: Future Game-Facing Layer
+### Phase 6: Game-Facing Layer
 
-Priority: deferred
+Priority: medium, simulation-constrained
+
+Current state:
+
+- The first `--game` CLI mode exists.
+- The first `--game-server` local browser mode exists.
+- A human can control one faction from legal `develop`, `expand`, `attack`, and `skip` options.
+- Other factions still use the existing AI action chooser.
+- Player snapshots are written incrementally as JSONL.
+- The player view is limited by faction visibility instead of exposing the omniscient world state.
+- The browser mode uses `GET /api/state` and `POST /api/action` on top of the same legal action API.
+- Game sessions write explicit `world_state.json` saves and can resume through `--resume --run-dir`.
+
+Near-term targets:
+
+- keep the legal action API as the only path for human action submission
+- expand the player view model without leaking hidden regions, exact enemy values, or unknown factions
+- harden the local web server's map inspection, action submission, and error states
+- harden save/load across longer runs, generated maps, and rebel-faction edge cases
+- add diplomacy and internal-policy player actions after regional actions feel stable
+- maintain an omniscient observer mode separately from the faction-limited player mode
 
 Targets:
 
@@ -290,12 +311,24 @@ This keeps development fast while still protecting simulation coherence.
 - distinguish resilient states from brittle ones
 - let recovery paths differ by resources, state capacity, legitimacy, and trade access
 
+### Milestone G: Interactive Faction Mode
+
+- keep `InteractiveRunOptions` and the interactive driver as the shared boundary for CLI and browser play
+- keep `RunSession` and incremental JSONL snapshots stable
+- make the current CLI game mode useful for short observation/play sessions
+- keep the local server on top of the same action, player-view, and driver APIs
+- improve the browser UI from proof of concept into a sturdier inspection surface
+- harden save/load until longer resumed runs are trustworthy
+- add diplomacy controls after regional actions, visibility, and turn pacing are solid
+- preserve the simulation-first principle by making human actions legal faction actions, not special powers
+
 ## Ongoing Questions To Revisit
 
 - What level of abstraction feels rich without becoming unmanageably detailed?
 - Which outputs are genuinely informative versus just noisy?
 - Which systems create new behavior and which only add modifiers?
 - Where does realism improve understanding, and where does it overcomplicate the model?
+- Where does player visibility create useful uncertainty, and where does it obscure the simulation too much?
 
 ## Success Criteria
 

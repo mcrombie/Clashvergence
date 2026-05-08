@@ -2810,6 +2810,13 @@ def render_simulation_html(world):
         <div class="playback-tab-panel hidden" id="faction-playback-panel">
           <div class="region-focus-layout" id="selected-faction-view"></div>
         </div>
+        <div class="playback-tab-panel hidden" id="doctrine-timeline">
+          <div class="section-header">
+            <h3 class="section-title">Doctrine Timeline</h3>
+            <div class="timeline-controls" id="doctrine-timeline-controls"></div>
+          </div>
+          <div class="summary-grid" id="doctrine-panel"></div>
+        </div>
         <div class="standings-bar" id="standings"></div>
       </div>
 
@@ -2848,6 +2855,8 @@ def render_simulation_html(world):
     const mapPlaybackPanel = document.getElementById("map-playback-panel");
     const regionPlaybackPanel = document.getElementById("region-playback-panel");
     const factionPlaybackPanel = document.getElementById("faction-playback-panel");
+    const doctrineTimelinePanel = document.getElementById("doctrine-timeline");
+    const doctrinePanel = document.getElementById("doctrine-panel");
     const viewToggle = document.getElementById("view-toggle");
     const terrainToggle = document.getElementById("terrain-toggle");
     const atlasBackgroundLayer = document.getElementById("atlas-background-layer");
@@ -3960,6 +3969,7 @@ def render_simulation_html(world):
       mapPlaybackPanel.classList.toggle("hidden", !showMapView);
       regionPlaybackPanel.classList.toggle("hidden", state.playbackTab !== "region");
       factionPlaybackPanel.classList.toggle("hidden", state.playbackTab !== "faction");
+      doctrineTimelinePanel.classList.toggle("hidden", state.playbackTab !== "doctrine");
       standings.classList.toggle("panel-hidden", !showMapView);
     }}
 
@@ -3974,6 +3984,7 @@ def render_simulation_html(world):
         <button type="button" class="${{state.playbackTab === "map" ? "secondary active" : "secondary"}}" id="playback-tab-map">Map View</button>
         <button type="button" class="${{state.playbackTab === "region" ? "secondary active" : "secondary"}}" id="playback-tab-region" ${{state.focusRegionName ? "" : "disabled"}}>${{selectedRegionLabel}}</button>
         <button type="button" class="${{state.playbackTab === "faction" ? "secondary active" : "secondary"}}" id="playback-tab-faction" ${{state.focusFactionName ? "" : "disabled"}}>${{selectedFactionLabel}}</button>
+        <button type="button" class="${{state.playbackTab === "doctrine" ? "secondary active" : "secondary"}}" id="playback-tab-doctrine">Doctrine Timeline</button>
       `;
       document.getElementById("playback-tab-map")?.addEventListener("click", () => {{
         state.playbackTab = "map";
@@ -3993,6 +4004,11 @@ def render_simulation_html(world):
           return;
         }}
         state.playbackTab = "faction";
+        syncPlaybackPanels();
+        renderPlaybackTabs();
+      }});
+      document.getElementById("playback-tab-doctrine")?.addEventListener("click", () => {{
+        state.playbackTab = "doctrine";
         syncPlaybackPanels();
         renderPlaybackTabs();
       }});
@@ -5966,6 +5982,7 @@ def render_simulation_html(world):
       renderStandings(snapshot);
       renderTurnContext(turn, snapshot);
       renderTurnEvents(snapshot);
+      renderDoctrinePanel(snapshot);
       renderPlaybackTabs();
       renderSelectedRegionView(snapshot);
       renderSelectedFactionView(snapshot);

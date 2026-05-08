@@ -26,6 +26,21 @@ from src.urban import update_urban_specializations
 from src.visibility import initialize_faction_visibility
 
 
+def _reset_owned_region_populations(world: WorldState) -> None:
+    for region in world.regions.values():
+        if region.owner is None:
+            region.population = 0
+            continue
+        region.population = estimate_region_population(
+            region.resources,
+            len(region.neighbors),
+            owner=region.owner,
+        )
+        primary_ethnicity = world.factions[region.owner].primary_ethnicity
+        if primary_ethnicity is not None:
+            seed_region_ethnicity(region, primary_ethnicity)
+
+
 def create_world(
     map_name="seven_region_ring",
     num_factions=4,
@@ -123,20 +138,15 @@ def create_world(
         homeland_assigned[region.owner] = owned_count + 1
 
     update_faction_resource_economy(world)
-    for region in world.regions.values():
-        if region.owner is None:
-            continue
-        region.population = estimate_region_population(
-            region.resources,
-            len(region.neighbors),
-            owner=region.owner,
-        )
-        primary_ethnicity = world.factions[region.owner].primary_ethnicity
-        if primary_ethnicity is not None:
-            seed_region_ethnicity(region, primary_ethnicity)
+    _reset_owned_region_populations(world)
     initialize_religious_legitimacy(world)
     update_region_settlement_levels(world)
     update_faction_resource_economy(world)
+    _reset_owned_region_populations(world)
+    update_region_settlement_levels(world)
+    update_faction_resource_economy(world)
+    _reset_owned_region_populations(world)
+    update_region_settlement_levels(world)
     refresh_administrative_state(world)
     initialize_technology_state(world)
     initialize_faction_visibility(world)

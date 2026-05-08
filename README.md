@@ -96,6 +96,74 @@ python main.py --map thirty_seven_region_ring --turns 250 --num-factions 4 --see
 
 Long runs can create very large HTML viewer files. Generated reports are intentionally ignored by Git.
 
+## Experimental Turn-By-Turn Game Mode
+
+Clashvergence now has early turn-by-turn game-mode foundations. They advance
+the same simulation one turn at a time, but let one human-controlled faction
+choose from legal visible actions while the other factions continue to use AI
+action selection.
+
+```powershell
+python main.py --game --map thirteen_region_ring --turns 10 --num-factions 4 --seed game-demo
+```
+
+For the local browser UI:
+
+```powershell
+python main.py --game-server --map thirteen_region_ring --num-factions 4 --seed game-demo
+```
+
+Open the printed local URL, usually:
+
+```text
+http://127.0.0.1:8765/
+```
+
+To control a specific faction, pass its faction key:
+
+```powershell
+python main.py --game-server --map thirteen_region_ring --num-factions 4 --seed game-demo --player-faction "Nolliand Tribe"
+```
+
+If `--player-faction` is omitted, the first generated faction is selected and
+printed. Both game modes use a limited faction view: owned regions are detailed,
+visible neighboring regions use estimates, and unknown regions/factions are not
+shown. Available choices currently cover `develop`, `expand`, `attack`, and
+`skip`.
+
+The CLI and browser modes both use the shared interactive driver in
+`src/interactive_driver.py`, so new sessions, resumed sessions, action
+validation, turn advancement, and state payloads follow the same path. The
+local server exposes that current proof-of-concept action API:
+
+- `GET /api/state`: current limited player view.
+- `POST /api/action` with `{"action_id": "skip"}` or another visible action id:
+  resolve one full simulation turn.
+
+Game-mode runs write incremental JSONL snapshots:
+
+- `reports/runs/<run-id>/config.json`
+- `reports/runs/<run-id>/world_state.json`
+- `reports/runs/<run-id>/snapshots.jsonl`
+- `reports/runs/<run-id>/events.jsonl`
+- `reports/runs/<run-id>/current_snapshot.json`
+
+To resume a game-mode run, pass the run directory:
+
+```powershell
+python main.py --game-server --resume --run-dir reports/runs/game-server-thirteen_region_ring-game-demo-Nolliand_Tribe
+```
+
+The CLI mode can resume the same saved world:
+
+```powershell
+python main.py --game --resume --run-dir reports/runs/game-thirteen_region_ring-game-demo-Nolliand_Tribe --turns 5
+```
+
+This is not a full strategy-game UI yet. It is a proof-of-concept driver for
+turn-by-turn play, limited visibility, and the action API that richer controls
+will build on.
+
 ## Map Generator
 
 To write the standalone map generator UI:
@@ -165,6 +233,12 @@ Current tests are most valuable when they protect simulation coherence:
 
 - `main.py`: CLI entry point for a single simulation run.
 - `src/`: Core simulation logic and viewer generation.
+- `src/interactive_driver.py`: Shared interactive-session driver for new/resumed games, legal action submission, and state payloads.
+- `src/session.py`: Incremental run/session helper for turn-by-turn snapshots.
+- `src/player_actions.py`: Legal player-facing action options and action application.
+- `src/player_view.py`: Limited-visibility player view model for game mode.
+- `src/game_server.py`: Local HTTP server and browser UI for experimental game mode.
+- `src/world_serialization.py`: Explicit world save/load support for resumable sessions.
 - `tests/`: Focused tests for core systems and invariants.
 - `experiments/`: Repeated-run analysis and dashboard scripts.
 - `examples/`: Suggested public demo commands and release examples.
@@ -176,7 +250,9 @@ Current tests are most valuable when they protect simulation coherence:
 
 These limitations are expected for v0.9.0:
 
-- Clashvergence is not a player-facing game yet.
+- Clashvergence is not a full player-facing game yet. The current `--game`
+  and `--game-server` modes are proof-of-concept interfaces for
+  limited-visibility turn control with resumable local saves.
 - The simulation is not tuned for faction symmetry, fairness, or short-term fun.
 - Output can be noisy, especially in long runs with many events.
 - The HTML viewer can become very large for long simulations.
@@ -209,5 +285,8 @@ The next major priorities after v0.9.0 are:
 3. Deepen production chains, strategic resources, and trade dependencies now that the first resource/trade layer exists.
 4. Deepen state capacity, legitimacy, religion, migration, succession, and elite politics so they create more visible causal pressure.
 5. Observe and tune technology diffusion so trade, density, stability, resources, and institutions create visible divergence without becoming a game-like tech tree.
+6. Grow the game-facing layer carefully: keep human controls on the same legal
+   action API as AI factions, preserve limited visibility, then deepen save/load,
+   diplomacy controls, richer affordances, and stronger browser inspection tools.
 
 More detailed sequencing and rationale live in [ROADMAP.md](./ROADMAP.md).

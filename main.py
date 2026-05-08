@@ -27,6 +27,15 @@ from src.map_generator_ui import write_map_generator_html
 from src.simulation_ui import write_simulation_html
 from src.region_naming import format_region_reference
 from src.terrain import format_terrain_label, get_seasonal_terrain_note
+from src.game_server import serve_game_session
+from src.interactive_driver import (
+    InteractiveRunOptions,
+    InteractiveSessionError,
+    create_interactive_session,
+    submit_player_action,
+)
+from src.player_actions import get_action_option, get_available_actions
+from src.player_view import build_player_view_model
 
 
 REPORTS_DIR = Path("reports")
@@ -486,6 +495,43 @@ def parse_args():
         action="store_true",
         help="Write the standalone dynamic map generator UI and exit.",
     )
+    parser.add_argument(
+        "--game",
+        action="store_true",
+        help="Run an interactive turn-by-turn CLI game with one human-controlled faction.",
+    )
+    parser.add_argument(
+        "--game-server",
+        action="store_true",
+        help="Run a local browser-based turn-by-turn game server.",
+    )
+    parser.add_argument(
+        "--player-faction",
+        help=(
+            "Faction key to control in --game or --game-server mode. If omitted, "
+            "the first generated faction is used and printed."
+        ),
+    )
+    parser.add_argument(
+        "--run-dir",
+        help="Optional output directory for incremental game/session snapshots.",
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume an existing --game or --game-server run from --run-dir.",
+    )
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host interface for --game-server.",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8765,
+        help="Port for --game-server. Use 0 to choose a free port.",
+    )
     parser.add_argument("--map-style", choices=["continent", "frontier", "basin", "archipelago", "highlands"])
     parser.add_argument("--map-seed")
     parser.add_argument("--map-regions", type=int)
@@ -539,6 +585,12 @@ def main():
     if args.map_lab:
         output_path = write_map_generator_html()
         print(f"Map generator UI written to {output_path}")
+        return
+    if args.game_server:
+        run_web_game(args)
+        return
+    if args.game:
+        run_cli_game(args)
         return
 
     map_name = args.map_name
@@ -617,6 +669,118 @@ def main():
                 "AI interpretive narrative skipped because "
                 "CLASHVERGENCE_ENABLE_AI_INTERPRETATION is disabled or OPENAI_API_KEY is missing."
             )
+
+
+def run_cli_game(args) -> None:
+    session, player_faction = _create_player_session_from_args(args, mode="game")
+
+    print(
+        f"Starting game mode as {session.world.factions[player_faction].display_name} "
+        f"({player_faction})."
+    )
+    print(f"Snapshots will be written to {session.run_dir}")
+
+    for _turn_index in range(args.num_turns):
+        view_model = build_player_view_model(session.world, player_faction)
+        _print_player_turn_summary(view_model)
+        selected_action = _prompt_for_player_action(session.world, player_faction)
+        if selected_action is None:
+            print("Exiting game mode.")
+            return
+        result = submit_player_action(session, selected_action.action_id, verbose=False)
+        print(
+            f"Advanced to turn {result.turn}; "
+            f"{result.event_count} event(s) recorded this turn."
+        )
+
+    print(f"Finished {args.num_turns} game turn(s). Latest snapshot: {session.run_dir / 'current_snapshot.json'}")
+
+
+def run_web_game(args) -> None:
+    session, player_faction = _create_player_session_from_args(args, mode="game-server")
+    print(
+        f"Starting browser game mode as "
+        f"{session.world.factions[player_faction].display_name} ({player_faction})."
+    )
+    serve_game_session(session, host=args.host, port=args.port)
+
+
+def _create_player_session_from_args(args, *, mode: str):
+    try:
+        session = create_interactive_session(
+            InteractiveRunOptions(
+                map_name=args.map_name,
+                num_factions=args.num_factions,
+                seed=args.seed,
+                mode=mode,
+                player_faction=args.player_faction,
+                run_dir=Path(args.run_dir) if args.run_dir else None,
+                resume=args.resume,
+                map_generation_config=build_map_generation_overrides(args),
+            )
+        )
+    except (FileNotFoundError, InteractiveSessionError, ValueError) as error:
+        raise SystemExit(f"Error: {error}") from error
+    player_faction = session.config.player_faction
+    if not player_faction:
+        raise SystemExit("Error: interactive session has no player faction.")
+    return session, player_faction
+
+
+def _print_player_turn_summary(view_model: dict) -> None:
+    faction = view_model["player_faction"]
+    print("")
+    print(view_model["turn_label"])
+    print(
+        f"{faction['display_name']}: treasury={faction['treasury']}, "
+        f"regions={faction['owned_region_count']}, population={faction['population']}, "
+        f"doctrine={faction['doctrine_label']}"
+    )
+    print(
+        "Visibility: "
+        f"{view_model['visibility']['visible_region_count']} visible / "
+        f"{view_model['visibility']['known_region_count']} known / "
+        f"{view_model['visibility']['total_region_count']} total regions"
+    )
+
+    visible_regions = [
+        region
+        for region in view_model["known_regions"]
+        if region["visibility"] in {"controlled", "visible"}
+    ][:8]
+    if visible_regions:
+        print("Visible regions:")
+        for region in visible_regions:
+            owner = region.get("owner") or "unknown"
+            detail = region.get("resource_estimate") or region.get("resources", "?")
+            print(
+                f"  {region['name']}: {region['display_name']} "
+                f"({region['visibility']}, owner={owner}, resources={detail})"
+            )
+
+
+def _prompt_for_player_action(world, player_faction: str):
+    options = get_available_actions(world, player_faction)
+    print("Available actions:")
+    for index, option in enumerate(options, start=1):
+        cost_text = f", cost={option.known_cost:g}" if option.known_cost else ""
+        print(
+            f"  {index}. {option.label} [{option.action_id}]"
+            f"{cost_text} - {option.visible_reason}"
+        )
+
+    while True:
+        choice = input("Choose action number/id, or q to quit: ").strip()
+        if choice.lower() in {"q", "quit", "exit"}:
+            return None
+        if choice.isdigit():
+            index = int(choice) - 1
+            if 0 <= index < len(options):
+                return options[index]
+        action = get_action_option(world, player_faction, choice)
+        if action is not None:
+            return action
+        print("That is not a legal visible action. Try again.")
 
 
 if __name__ == "__main__":

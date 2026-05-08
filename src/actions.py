@@ -80,7 +80,11 @@ from src.resources import (
     format_resource_map,
 )
 from src.region_naming import apply_region_name_layer, assign_region_founding_name, format_region_reference
-from src.terrain import get_seasonal_terrain_defense_bonus, get_terrain_profile
+from src.terrain import (
+    get_seasonal_terrain_attack_projection_modifier,
+    get_seasonal_terrain_defense_bonus,
+    get_terrain_profile,
+)
 from src.technology import (
     TECH_COPPER_WORKING,
     TECH_ORGANIZED_LEVIES,
@@ -912,6 +916,10 @@ def get_attack_target_score_components(region_name, faction_name, world):
                 staging_region,
                 world=world,
                 faction_name=faction_name,
+            )
+            + get_seasonal_terrain_attack_projection_modifier(
+                staging_region,
+                get_turn_season_name(world.turn),
             )
             for staging_region in staging_regions
         ),

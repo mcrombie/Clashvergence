@@ -48,6 +48,7 @@ from src.shocks import (
 )
 from src.visibility import refresh_all_faction_visibility, refresh_faction_visibility
 from src.metrics import record_turn_metrics
+from src.player_actions import ActionOption, apply_action_option
 from src.succession import resolve_dynastic_succession
 from src.technology import update_technology_diffusion
 from src.urban import update_urban_specializations
@@ -153,8 +154,21 @@ def _run_turn_start_phase(world):
     refresh_all_faction_visibility(world)
 
 
-def _resolve_faction_action(world, faction_name, *, verbose=True):
-    action_name, target_region_name = choose_action(faction_name, world)
+def _resolve_faction_action(world, faction_name, *, verbose=True, selected_action=None):
+    if isinstance(selected_action, ActionOption):
+        success = apply_action_option(world, faction_name, selected_action)
+        if verbose:
+            print(
+                f"{faction_name} chose {selected_action.label}"
+                if success
+                else f"{faction_name} chose {selected_action.label} with no direct change"
+            )
+        return
+
+    if selected_action is None:
+        action_name, target_region_name = choose_action(faction_name, world)
+    else:
+        action_name, target_region_name = selected_action
 
     if action_name == "expand":
         success = expand(faction_name, target_region_name, world)
@@ -185,13 +199,23 @@ def _resolve_faction_action(world, faction_name, *, verbose=True):
             print(f"{faction_name} skipped its turn")
 
 
-def _run_faction_action_phase(world, turn_order, *, verbose=True):
+def _run_faction_action_phase(world, turn_order, *, verbose=True, action_provider=None):
     for faction_name in turn_order:
         update_faction_resource_economy(world, advance_resources=False)
         refresh_administrative_state(world)
         refresh_military_state(world)
         refresh_faction_visibility(world, faction_name)
-        _resolve_faction_action(world, faction_name, verbose=verbose)
+        selected_action = (
+            action_provider(faction_name, world)
+            if action_provider is not None
+            else None
+        )
+        _resolve_faction_action(
+            world,
+            faction_name,
+            verbose=verbose,
+            selected_action=selected_action,
+        )
         refresh_faction_visibility(world, faction_name)
         refresh_administrative_state(world)
         refresh_military_state(world)
@@ -264,7 +288,13 @@ def _record_turn_observations(world, economy_snapshot):
     world.turn += 1
 
 
-def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
+def run_turn(
+    world,
+    faction_order=None,
+    randomize_order=True,
+    verbose=True,
+    action_provider=None,
+):
     """Runs one full turn of the simulation."""
     current_turn = world.turn
     season_name = get_turn_season_name(current_turn)
@@ -278,7 +308,12 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
         faction_order=faction_order,
         randomize_order=randomize_order,
     )
-    _run_faction_action_phase(world, turn_order, verbose=verbose)
+    _run_faction_action_phase(
+        world,
+        turn_order,
+        verbose=verbose,
+        action_provider=action_provider,
+    )
     economy_snapshot = _run_post_action_phase(world, season_name)
     if is_year_end(current_turn):
         _run_year_end_phase(world)
@@ -288,10 +323,15 @@ def run_turn(world, faction_order=None, randomize_order=True, verbose=True):
     _record_turn_observations(world, economy_snapshot)
 
 
-def run_simulation(world, num_turns, faction_order=None, verbose=True):
+def run_simulation(world, num_turns, faction_order=None, verbose=True, action_provider=None):
     """Runs the simulation for the given number of turns."""
 
     for _ in range(num_turns):
-        run_turn(world, faction_order=faction_order, verbose=verbose)
+        run_turn(
+            world,
+            faction_order=faction_order,
+            verbose=verbose,
+            action_provider=action_provider,
+        )
 
     return world

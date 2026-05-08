@@ -2699,11 +2699,12 @@ def get_region_taxable_value(
     faction_route_map: dict[str, RouteState] | None = None,
 ) -> float:
     trade_value_bonus = round(max(0.0, float(region.trade_value_bonus or 0.0)), 2)
+    legacy_value = float(region.resources) if region.resources > 0 else 0.0
     if region.resource_monetized_value > 0:
         base_value = float(region.resource_monetized_value) + trade_value_bonus
         if world is not None and region.owner in world.factions:
             base_value *= max(0.2, float(region.administrative_tax_capture or 1.0))
-        return round(base_value, 2)
+        return round(max(base_value, legacy_value), 2)
 
     if region.resources > 0 and world is None:
         return float(region.resources)
@@ -2735,6 +2736,8 @@ def get_region_taxable_value(
     )
     if world is not None and region.owner in world.factions:
         taxable_value *= max(0.2, float(region.administrative_tax_capture or 1.0))
+    if legacy_value:
+        taxable_value = max(taxable_value, legacy_value)
     return round(taxable_value, 2)
 
 
