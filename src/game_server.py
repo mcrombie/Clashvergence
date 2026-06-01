@@ -13,7 +13,9 @@ from src.interactive_driver import (
     build_interactive_state_payload,
     submit_player_action,
 )
+from src.player_view import build_observer_snapshot
 from src.session import RunSession
+from src.world_serialization import deserialize_world, serialize_world
 
 
 def build_game_state_payload(
@@ -78,18 +80,43 @@ class GameRequestHandler(BaseHTTPRequestHandler):
                 payload = build_game_state_payload(self.server.session)
             self._send_json(payload)
             return
+        if path == "/api/world":
+            with self.server.session_lock:
+                payload = build_observer_snapshot(self.server.session.world)
+                payload["ok"] = True
+            self._send_json(payload)
+            return
+        if path == "/api/save":
+            with self.server.session_lock:
+                payload = serialize_world(self.server.session.world)
+            self._send_json(payload)
+            return
         self._send_error_json(HTTPStatus.NOT_FOUND, "Unknown endpoint.")
 
     def do_POST(self) -> None:
         path = urlsplit(self.path).path
-        if path != "/api/action":
-            self._send_error_json(HTTPStatus.NOT_FOUND, "Unknown endpoint.")
-            return
 
         try:
             body = self._read_json_body()
         except ValueError as error:
             self._send_error_json(HTTPStatus.BAD_REQUEST, str(error))
+            return
+
+        if path == "/api/load":
+            try:
+                new_world = deserialize_world(body)
+            except (ValueError, KeyError, TypeError) as error:
+                self._send_error_json(HTTPStatus.BAD_REQUEST, str(error))
+                return
+            with self.server.session_lock:
+                self.server.session.world = new_world
+                payload = build_observer_snapshot(self.server.session.world)
+                payload["ok"] = True
+            self._send_json(payload)
+            return
+
+        if path != "/api/action":
+            self._send_error_json(HTTPStatus.NOT_FOUND, "Unknown endpoint.")
             return
 
         action_id = str(body.get("action_id") or "").strip()

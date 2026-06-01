@@ -4,6 +4,25 @@ import os
 from pathlib import Path
 import random
 
+from src.maps import MAPS as _MAPS
+
+
+def _inject_map_file(map_file_path: str) -> tuple[str, int]:
+    """
+    Load a Worldwright .cmap.json map definition and inject it into MAPS.
+    Returns (map_name, num_factions) derived from the file.
+    """
+    p = Path(map_file_path)
+    map_def = json.loads(p.read_text(encoding="utf-8"))
+    # Derive a stable map name from the filename (strip .cmap.json or .json)
+    stem = p.stem
+    if stem.endswith(".cmap"):
+        stem = stem[: -len(".cmap")]
+    map_name = f"worldwright_{stem}"
+    _MAPS[map_name] = map_def
+    num_factions = int(map_def.get("num_factions", 4))
+    return map_name, num_factions
+
 from src.calendar import (
     TURNS_PER_YEAR,
     format_snapshot_date,
@@ -468,6 +487,12 @@ def parse_args():
         help="Map name to simulate. Use generated_ring, generated_frontier, or generated_basin for dynamic maps.",
     )
     parser.add_argument(
+        "--map-file",
+        dest="map_file",
+        default=None,
+        help="Path to a Worldwright .cmap.json map definition. Overrides --map and --num-factions.",
+    )
+    parser.add_argument(
         "--turns",
         dest="num_turns",
         type=int,
@@ -582,6 +607,8 @@ def should_generate_ai_narrative(args) -> bool:
 
 def main():
     args = parse_args()
+    if args.map_file:
+        args.map_name, args.num_factions = _inject_map_file(args.map_file)
     if args.map_lab:
         output_path = write_map_generator_html()
         print(f"Map generator UI written to {output_path}")
