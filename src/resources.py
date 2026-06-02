@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from src.climate import get_climate_group, normalize_climate
+
 
 RESOURCE_GRAIN = "grain"
 RESOURCE_LIVESTOCK = "livestock"
@@ -176,31 +178,253 @@ TERRAIN_RESOURCE_PROFILES = {
     },
 }
 
-CLIMATE_RESOURCE_MODIFIERS = {
-    "temperate": {
+CLIMATE_GROUP_RESOURCE_MODIFIERS = {
+    "A": {
+        RESOURCE_GRAIN: 0.04,
+        RESOURCE_LIVESTOCK: -0.08,
+        RESOURCE_HORSES: -0.18,
+        RESOURCE_WILD_FOOD: 0.16,
+        RESOURCE_TIMBER: 0.18,
+        RESOURCE_SALT: -0.04,
+        RESOURCE_TEXTILES: 0.08,
+    },
+    "B": {
+        RESOURCE_GRAIN: -0.18,
+        RESOURCE_LIVESTOCK: -0.02,
+        RESOURCE_HORSES: 0.02,
+        RESOURCE_WILD_FOOD: -0.14,
+        RESOURCE_TIMBER: -0.16,
+        RESOURCE_STONE: 0.08,
+        RESOURCE_SALT: 0.14,
+        RESOURCE_TEXTILES: -0.05,
+    },
+    "C": {
         RESOURCE_GRAIN: 0.05,
         RESOURCE_LIVESTOCK: 0.04,
-        RESOURCE_WILD_FOOD: 0.05,
+        RESOURCE_WILD_FOOD: 0.06,
         RESOURCE_TIMBER: 0.05,
         RESOURCE_TEXTILES: 0.06,
     },
-    "oceanic": {
+    "D": {
+        RESOURCE_GRAIN: -0.06,
+        RESOURCE_LIVESTOCK: 0.05,
+        RESOURCE_HORSES: -0.04,
+        RESOURCE_WILD_FOOD: 0.04,
+        RESOURCE_TIMBER: 0.07,
+        RESOURCE_STONE: 0.03,
+        RESOURCE_SALT: 0.04,
+        RESOURCE_TEXTILES: -0.05,
+    },
+    "E": {
+        RESOURCE_GRAIN: -0.45,
+        RESOURCE_LIVESTOCK: -0.28,
+        RESOURCE_HORSES: -0.35,
+        RESOURCE_WILD_FOOD: -0.18,
+        RESOURCE_TIMBER: -0.18,
+        RESOURCE_STONE: 0.04,
+        RESOURCE_SALT: 0.02,
+        RESOURCE_TEXTILES: -0.25,
+    },
+}
+
+CLIMATE_RESOURCE_MODIFIERS = {
+    "Af": {
+        RESOURCE_GRAIN: 0.02,
+        RESOURCE_LIVESTOCK: -0.04,
+        RESOURCE_HORSES: -0.04,
+        RESOURCE_WILD_FOOD: 0.08,
+        RESOURCE_TIMBER: 0.06,
+        RESOURCE_TEXTILES: 0.04,
+    },
+    "Am": {
+        RESOURCE_GRAIN: 0.05,
+        RESOURCE_WILD_FOOD: 0.03,
+        RESOURCE_TIMBER: 0.04,
+        RESOURCE_TEXTILES: 0.02,
+    },
+    "Aw": {
+        RESOURCE_LIVESTOCK: 0.02,
+        RESOURCE_HORSES: -0.02,
+        RESOURCE_WILD_FOOD: -0.02,
+        RESOURCE_TIMBER: -0.02,
+    },
+    "BWh": {
+        RESOURCE_GRAIN: -0.12,
+        RESOURCE_LIVESTOCK: -0.08,
+        RESOURCE_HORSES: -0.08,
+        RESOURCE_WILD_FOOD: -0.08,
+        RESOURCE_TIMBER: -0.08,
+        RESOURCE_STONE: 0.04,
+        RESOURCE_SALT: 0.08,
+        RESOURCE_TEXTILES: -0.03,
+    },
+    "BWk": {
+        RESOURCE_GRAIN: -0.08,
+        RESOURCE_LIVESTOCK: -0.02,
+        RESOURCE_HORSES: -0.02,
+        RESOURCE_WILD_FOOD: -0.08,
+        RESOURCE_TIMBER: -0.06,
+        RESOURCE_STONE: 0.05,
+        RESOURCE_SALT: 0.08,
+        RESOURCE_TEXTILES: -0.04,
+    },
+    "BSh": {
+        RESOURCE_GRAIN: 0.02,
+        RESOURCE_LIVESTOCK: 0.12,
+        RESOURCE_HORSES: 0.1,
+        RESOURCE_SALT: 0.02,
+    },
+    "BSk": {
+        RESOURCE_GRAIN: 0.02,
+        RESOURCE_LIVESTOCK: 0.16,
+        RESOURCE_HORSES: 0.18,
+        RESOURCE_SALT: 0.03,
+        RESOURCE_TEXTILES: 0.02,
+    },
+    "Csa": {
+        RESOURCE_GRAIN: 0.03,
+        RESOURCE_LIVESTOCK: 0.02,
+        RESOURCE_WILD_FOOD: -0.04,
+        RESOURCE_TIMBER: -0.02,
+        RESOURCE_SALT: 0.04,
+        RESOURCE_TEXTILES: 0.02,
+    },
+    "Csb": {
+        RESOURCE_GRAIN: 0.04,
+        RESOURCE_LIVESTOCK: 0.02,
+        RESOURCE_SALT: 0.02,
+        RESOURCE_TEXTILES: 0.02,
+    },
+    "Csc": {
+        RESOURCE_GRAIN: -0.03,
+        RESOURCE_LIVESTOCK: 0.01,
+        RESOURCE_WILD_FOOD: 0.02,
+        RESOURCE_TIMBER: 0.02,
+    },
+    "Cwa": {
+        RESOURCE_GRAIN: 0.09,
+        RESOURCE_LIVESTOCK: 0.02,
+        RESOURCE_WILD_FOOD: 0.02,
+        RESOURCE_TIMBER: 0.02,
+        RESOURCE_TEXTILES: 0.04,
+    },
+    "Cwb": {
+        RESOURCE_GRAIN: 0.05,
+        RESOURCE_LIVESTOCK: 0.04,
+        RESOURCE_HORSES: -0.02,
+        RESOURCE_TEXTILES: 0.04,
+    },
+    "Cwc": {
+        RESOURCE_GRAIN: -0.04,
+        RESOURCE_WILD_FOOD: 0.02,
+        RESOURCE_TIMBER: 0.02,
+        RESOURCE_TEXTILES: -0.02,
+    },
+    "Cfa": {
+        RESOURCE_GRAIN: 0.07,
+        RESOURCE_LIVESTOCK: 0.03,
+        RESOURCE_WILD_FOOD: 0.04,
+        RESOURCE_TEXTILES: 0.05,
+    },
+    "Cfb": {
         RESOURCE_GRAIN: 0.08,
         RESOURCE_LIVESTOCK: 0.03,
-        RESOURCE_WILD_FOOD: 0.15,
-        RESOURCE_TIMBER: 0.08,
+        RESOURCE_WILD_FOOD: 0.09,
+        RESOURCE_TIMBER: 0.04,
         RESOURCE_SALT: 0.05,
-        RESOURCE_TEXTILES: 0.08,
+        RESOURCE_TEXTILES: 0.04,
     },
-    "cold": {
-        RESOURCE_GRAIN: -0.12,
-        RESOURCE_LIVESTOCK: 0.05,
-        RESOURCE_HORSES: -0.08,
+    "Cfc": {
+        RESOURCE_GRAIN: -0.06,
         RESOURCE_WILD_FOOD: 0.04,
-        RESOURCE_TIMBER: 0.05,
-        RESOURCE_STONE: 0.04,
-        RESOURCE_SALT: 0.06,
+        RESOURCE_TIMBER: 0.04,
+        RESOURCE_TEXTILES: -0.03,
+    },
+    "Dsa": {
+        RESOURCE_GRAIN: 0.0,
+        RESOURCE_LIVESTOCK: 0.02,
+        RESOURCE_WILD_FOOD: -0.04,
+        RESOURCE_SALT: 0.04,
+    },
+    "Dsb": {
+        RESOURCE_GRAIN: -0.02,
+        RESOURCE_LIVESTOCK: 0.02,
+        RESOURCE_WILD_FOOD: -0.04,
+        RESOURCE_SALT: 0.03,
+    },
+    "Dsc": {
+        RESOURCE_GRAIN: -0.12,
+        RESOURCE_LIVESTOCK: -0.02,
+        RESOURCE_HORSES: -0.06,
+        RESOURCE_TIMBER: 0.04,
+        RESOURCE_TEXTILES: -0.06,
+    },
+    "Dsd": {
+        RESOURCE_GRAIN: -0.18,
+        RESOURCE_LIVESTOCK: -0.06,
+        RESOURCE_HORSES: -0.1,
+        RESOURCE_TIMBER: 0.02,
         RESOURCE_TEXTILES: -0.08,
+    },
+    "Dwa": {
+        RESOURCE_GRAIN: 0.05,
+        RESOURCE_LIVESTOCK: 0.02,
+        RESOURCE_TEXTILES: 0.02,
+    },
+    "Dwb": {
+        RESOURCE_GRAIN: 0.0,
+        RESOURCE_LIVESTOCK: 0.02,
+        RESOURCE_TIMBER: 0.02,
+    },
+    "Dwc": {
+        RESOURCE_GRAIN: -0.1,
+        RESOURCE_LIVESTOCK: -0.02,
+        RESOURCE_HORSES: -0.06,
+        RESOURCE_TIMBER: 0.04,
+    },
+    "Dwd": {
+        RESOURCE_GRAIN: -0.16,
+        RESOURCE_LIVESTOCK: -0.06,
+        RESOURCE_HORSES: -0.1,
+        RESOURCE_TIMBER: 0.02,
+    },
+    "Dfa": {
+        RESOURCE_GRAIN: 0.06,
+        RESOURCE_LIVESTOCK: 0.02,
+        RESOURCE_TEXTILES: 0.02,
+    },
+    "Dfb": {
+        RESOURCE_GRAIN: -0.06,
+        RESOURCE_HORSES: -0.04,
+        RESOURCE_STONE: 0.01,
+        RESOURCE_SALT: 0.02,
+        RESOURCE_TEXTILES: -0.03,
+    },
+    "Dfc": {
+        RESOURCE_GRAIN: -0.12,
+        RESOURCE_LIVESTOCK: -0.02,
+        RESOURCE_HORSES: -0.06,
+        RESOURCE_TIMBER: 0.04,
+        RESOURCE_TEXTILES: -0.06,
+    },
+    "Dfd": {
+        RESOURCE_GRAIN: -0.18,
+        RESOURCE_LIVESTOCK: -0.06,
+        RESOURCE_HORSES: -0.1,
+        RESOURCE_TIMBER: 0.02,
+        RESOURCE_TEXTILES: -0.08,
+    },
+    "ET": {
+        RESOURCE_GRAIN: -0.06,
+        RESOURCE_LIVESTOCK: 0.04,
+        RESOURCE_WILD_FOOD: 0.04,
+    },
+    "EF": {
+        RESOURCE_GRAIN: -0.18,
+        RESOURCE_LIVESTOCK: -0.12,
+        RESOURCE_HORSES: -0.12,
+        RESOURCE_WILD_FOOD: -0.1,
+        RESOURCE_TIMBER: -0.08,
     },
 }
 
@@ -309,7 +533,11 @@ def _get_terrain_resource_values(terrain_tags: list[str]) -> dict[str, float]:
 
 def _apply_climate_modifiers(resource_values: dict[str, float], climate: str) -> dict[str, float]:
     adjusted = resource_values.copy()
-    for resource_name, modifier in CLIMATE_RESOURCE_MODIFIERS.get(climate, {}).items():
+    normalized_climate = normalize_climate(climate)
+    group = get_climate_group(normalized_climate)
+    for resource_name, modifier in CLIMATE_GROUP_RESOURCE_MODIFIERS.get(group, {}).items():
+        adjusted[resource_name] = adjusted.get(resource_name, 0.0) + modifier
+    for resource_name, modifier in CLIMATE_RESOURCE_MODIFIERS.get(normalized_climate, {}).items():
         adjusted[resource_name] = adjusted.get(resource_name, 0.0) + modifier
     return adjusted
 

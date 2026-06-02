@@ -577,7 +577,10 @@ def parse_args():
     parser.add_argument("--map-water", type=float)
     parser.add_argument("--map-rivers", type=int)
     parser.add_argument("--map-mountains", type=int)
-    parser.add_argument("--map-climate", choices=["temperate", "varied", "arid", "cold", "tropical"])
+    parser.add_argument(
+        "--map-climate",
+        help="Climate preset or Köppen code, such as varied, temperate, arid, Cfb, BSh, or Dfc.",
+    )
     parser.add_argument("--map-richness", type=float)
     parser.add_argument("--map-chokepoints", type=float)
     parser.add_argument("--map-diversity", type=float)

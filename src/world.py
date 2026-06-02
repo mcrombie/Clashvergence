@@ -1,4 +1,5 @@
 from src.administration import refresh_administrative_state
+from src.climate import normalize_climate
 from src.diplomacy import initialize_relationships
 from src.doctrine import initialize_faction_doctrines
 from src.ethnicity import apply_language_contact_borrowing, register_ethnicity, seed_region_ethnicity
@@ -105,7 +106,7 @@ def create_world(
             resources=region_data["resources"],
             population=0,
             terrain_tags=region_data.get("terrain_tags", ["plains"]),
-            climate=region_data.get("climate", "temperate"),
+            climate=normalize_climate(region_data.get("climate", "temperate")),
         )
 
     world = WorldState(

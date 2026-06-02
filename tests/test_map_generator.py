@@ -1,5 +1,6 @@
 import unittest
 
+from src.climate import normalize_climate
 from src.factions import validate_map_factions
 from src.map_generator import build_generated_map_definition, build_generation_config
 from src.map_visualization import build_map_layout
@@ -125,6 +126,26 @@ class DynamicMapGeneratorTests(unittest.TestCase):
         self.assertEqual(len(seen), len(regions))
         self.assertGreaterEqual(len(terrain_signatures), 4)
         self.assertGreaterEqual(len(climates), 2)
+        for climate in climates:
+            self.assertEqual(climate, normalize_climate(climate))
+
+    def test_generation_config_accepts_specific_koppen_climate_code(self):
+        config = build_generation_config(
+            "generated_world",
+            4,
+            {"climate": "BSh"},
+        )
+        definition = build_generated_map_definition(
+            "generated_world",
+            4,
+            config={"seed": "hot-steppe", "climate": "BSh"},
+        )
+
+        self.assertEqual(config.climate_mode, "BSh")
+        self.assertEqual(
+            {region["climate"] for region in definition["regions"].values()},
+            {"BSh"},
+        )
 
     def test_map_layout_uses_generated_region_positions(self):
         definition = build_generated_map_definition(

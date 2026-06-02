@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 
-from src.climate import format_climate_label, normalize_climate
+from src.climate import format_climate_label, get_climate_similarity, normalize_climate
 from src.region_state import get_region_core_status
 from src.models import Faction, FactionDoctrineProfile, WorldState
 from src.terrain import format_terrain_label, normalize_terrain_tags
@@ -82,11 +82,20 @@ def _get_terrain_mix_scores(experience: dict[str, float]) -> tuple[float, float]
 def _get_primary_climate_identity(experience: dict[str, float]) -> str:
     if not experience:
         return "Temperate"
+    normalized_experience = _normalize_climate_experience(experience)
     ranked = sorted(
-        experience.items(),
+        normalized_experience.items(),
         key=lambda item: (-item[1], item[0]),
     )
     return format_climate_label(ranked[0][0])
+
+
+def _normalize_climate_experience(experience: dict[str, float]) -> dict[str, float]:
+    normalized: dict[str, float] = {}
+    for climate, value in (experience or {}).items():
+        normalized_climate = normalize_climate(climate)
+        normalized[normalized_climate] = normalized.get(normalized_climate, 0.0) + float(value)
+    return normalized
 
 
 def _get_behavior_label(
@@ -253,7 +262,7 @@ def initialize_faction_doctrines(world: WorldState) -> None:
             world.regions[homeland_region].terrain_tags if homeland_region is not None else ["plains"]
         )
         homeland_climate = normalize_climate(
-            world.regions[homeland_region].climate if homeland_region is not None else "temperate"
+            world.regions[homeland_region].climate if homeland_region is not None else "Cfb"
         )
         faction.doctrine_state.homeland_region = homeland_region
         faction.doctrine_state.homeland_terrain_tags = homeland_tags
@@ -406,15 +415,21 @@ def get_faction_terrain_affinity(faction: Faction, terrain_tag: str) -> float:
 
 def get_faction_climate_affinity(faction: Faction, climate: str | None) -> float:
     normalized = normalize_climate(climate)
-    experience = faction.doctrine_state.climate_experience
+    experience = _normalize_climate_experience(faction.doctrine_state.climate_experience)
     if not experience:
         return 0.0
 
     top_score = max(experience.values())
     smoothing = HOMELAND_IMPRINT_WEIGHT * 0.25
-    base = experience.get(normalized, 0.0)
-    if normalized == faction.doctrine_state.homeland_climate:
-        base += smoothing
+    base = max(
+        value * get_climate_similarity(experienced_climate, normalized)
+        for experienced_climate, value in experience.items()
+    )
+    homeland_similarity = get_climate_similarity(
+        faction.doctrine_state.homeland_climate,
+        normalized,
+    )
+    base += smoothing if homeland_similarity >= 0.999 else smoothing * 0.35 * homeland_similarity
     return _clamp(base / (top_score + smoothing), 0.0, 1.0)
 
 
@@ -439,7 +454,8 @@ def get_faction_region_alignment(
         for tag in normalized
         if tag in faction.doctrine_state.homeland_terrain_tags
     )
-    climate_match = normalized_climate == faction.doctrine_state.homeland_climate
+    homeland_climate = normalize_climate(faction.doctrine_state.homeland_climate)
+    climate_match = normalized_climate == homeland_climate
 
     expansion_modifier = int(
         round(

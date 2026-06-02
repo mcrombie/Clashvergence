@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import random
 
+from src.climate import (
+    get_climate_anomaly_food_loss_factor,
+    get_climate_anomaly_vulnerability,
+)
 from src.models import Event, Faction, Region, ShockState, WorldState
 from src.resources import (
     EXTRACTIVE_RESOURCES,
@@ -410,28 +414,33 @@ def _maybe_generate_climate_anomalies(world: WorldState) -> None:
     for region in world.regions.values():
         if region.owner is None or _region_has_active_shock(world, region.name, SHOCK_CLIMATE_ANOMALY):
             continue
+        climate_vulnerability = get_climate_anomaly_vulnerability(region.climate)
         vulnerability = (
             (1.0 - get_region_shock_resilience(region, world)) * 0.12
             + max(0.0, 0.72 - region.soil_health) * 0.08
             + max(0.0, 0.7 - region.ecological_integrity) * 0.07
+            + climate_vulnerability
             + cadence_pressure
         )
         if random.random() >= _clamp(vulnerability, 0.0, 0.28):
             continue
         intensity = _clamp(0.22 + vulnerability + random.random() * 0.22, 0.16, 0.82)
         region.climate_anomaly = round(max(region.climate_anomaly, intensity), 3)
+        food_loss_factor = get_climate_anomaly_food_loss_factor(region.climate)
         start_shock(
             world,
             SHOCK_CLIMATE_ANOMALY,
             region.name,
             intensity=intensity,
             drivers={
+                "climate": region.climate,
+                "climate_vulnerability": round(climate_vulnerability, 3),
                 "vulnerability": round(vulnerability, 3),
                 "soil_health": region.soil_health,
                 "ecological_integrity": region.ecological_integrity,
             },
             effects={
-                "food_output_factor": round(1.0 - intensity * 0.34, 3),
+                "food_output_factor": round(1.0 - intensity * food_loss_factor, 3),
                 "spoilage_add": round(intensity * 0.018, 3),
             },
         )

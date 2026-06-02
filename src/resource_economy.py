@@ -7,6 +7,10 @@ from src.calendar import (
     SEASONAL_FOOD_CONSUMPTION_SHARES,
     SEASONAL_FOOD_PRODUCTION_SHARES,
 )
+from src.climate import (
+    get_climate_food_spoilage_modifier,
+    get_seasonal_climate_food_production_multiplier,
+)
 from src.config import (
     ADMIN_MAINTENANCE_AUTONOMY_FACTOR,
     ADMIN_MAINTENANCE_EFFICIENCY_FACTOR,
@@ -2917,9 +2921,9 @@ def get_region_food_spoilage_rate(region: Region) -> float:
         region.infrastructure_level * FOOD_STORAGE_INFRASTRUCTURE_SPOILAGE_REDUCTION
     ) - (
         region.granary_level * FOOD_STORAGE_GRANARY_SPOILAGE_REDUCTION
-    )
+    ) + get_climate_food_spoilage_modifier(region.climate)
     return round(
-        _clamp(spoilage_rate, FOOD_STORAGE_MIN_SPOILAGE, FOOD_STORAGE_BASE_SPOILAGE),
+        _clamp(spoilage_rate, FOOD_STORAGE_MIN_SPOILAGE, FOOD_STORAGE_BASE_SPOILAGE + 0.02),
         3,
     )
 
@@ -3364,7 +3368,8 @@ def apply_turn_food_economy(world: WorldState, *, season_name: str = "Spring") -
                 + region.resource_output.get(RESOURCE_LIVESTOCK, 0.0)
                 + region.resource_output.get(RESOURCE_WILD_FOOD, 0.0)
             )
-            * production_share,
+            * production_share
+            * get_seasonal_climate_food_production_multiplier(region.climate, season_name),
             3,
         )
         food_demand = get_region_food_demand(region) * consumption_share

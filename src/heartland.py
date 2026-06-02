@@ -13,6 +13,12 @@ from src.calendar import (
     get_seasonal_unrest_pressure_modifier,
     get_turn_season_name,
 )
+from src.climate import (
+    get_seasonal_climate_migration_attraction_multiplier,
+    get_seasonal_climate_migration_capacity_multiplier,
+    get_seasonal_climate_migration_pressure_multiplier,
+    get_seasonal_climate_unrest_multiplier,
+)
 from src.administration import (
     get_region_administrative_burden as _get_region_administrative_burden,
     get_region_administrative_distance as _get_region_administrative_distance,
@@ -615,7 +621,7 @@ def register_religion(
     parent_religion: str | None = None,
     doctrine: str = "",
     sacred_terrain_tags: list[str] | None = None,
-    sacred_climate: str = "temperate",
+    sacred_climate: str = "Cfb",
     reform_origin_turn: int | None = None,
 ) -> None:
     world.religions.setdefault(
@@ -722,7 +728,7 @@ def initialize_faction_religion_state(
             founding_faction=faction.name,
             doctrine=doctrine,
             sacred_terrain_tags=list(region.terrain_tags or []) if region is not None else [],
-            sacred_climate=region.climate if region is not None else "temperate",
+            sacred_climate=region.climate if region is not None else "Cfb",
         )
     faction.religion.official_religion = official_religion
     if claimant:
@@ -857,7 +863,7 @@ def _maybe_reform_state_religion(world: WorldState, faction_name: str) -> None:
         parent_religion=old_religion,
         doctrine=reform_doctrine,
         sacred_terrain_tags=list(homeland_region.terrain_tags or []) if homeland_region is not None else [],
-        sacred_climate=homeland_region.climate if homeland_region is not None else "temperate",
+        sacred_climate=homeland_region.climate if homeland_region is not None else "Cfb",
         reform_origin_turn=world.turn,
     )
     religion_state.official_religion = new_religion
@@ -2518,6 +2524,7 @@ def _get_region_migration_pressure(region: Region, world: WorldState) -> float:
         + get_region_migration_shock_pressure(region, world)
     )
     pressure = base_pressure * get_seasonal_migration_pressure_modifier(season_name)
+    pressure *= get_seasonal_climate_migration_pressure_multiplier(region.climate, season_name)
     if region.unrest_event_level == "crisis":
         pressure += MIGRATION_REFUGEE_CRISIS_BONUS
     elif region.unrest_event_level == "disturbance":
@@ -2569,6 +2576,7 @@ def _get_region_migration_attraction(region: Region, world: WorldState) -> float
     elif region.settlement_level == "town":
         attraction += MIGRATION_ATTRACTION_CITY_BONUS * 0.6
     attraction *= get_seasonal_migration_attraction_modifier(season_name)
+    attraction *= get_seasonal_climate_migration_attraction_multiplier(region.climate, season_name)
     attraction *= get_seasonal_terrain_migration_attraction_multiplier(region, season_name)
     return round(_clamp(attraction, 0.0, 1.5), 3)
 
@@ -2586,6 +2594,7 @@ def _get_region_migration_capacity(region: Region, world: WorldState) -> int:
     if get_region_core_status(region) == "frontier":
         capacity = int(round(capacity * 1.2))
     capacity = int(round(capacity * get_seasonal_migration_capacity_modifier(season_name)))
+    capacity = int(round(capacity * get_seasonal_climate_migration_capacity_multiplier(region.climate, season_name)))
     capacity = int(round(capacity * get_seasonal_terrain_migration_capacity_multiplier(region, season_name)))
     return max(8, capacity)
 
@@ -4198,6 +4207,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         + ideology_pressure
         + get_region_unrest_shock_pressure(region, world)
     ) * get_seasonal_unrest_pressure_modifier(season_name)
+    pressure *= get_seasonal_climate_unrest_multiplier(region.climate, season_name)
     pressure *= get_seasonal_terrain_unrest_multiplier(region, season_name)
     return pressure / stability_divisor - UNREST_DECAY_PER_TURN
 

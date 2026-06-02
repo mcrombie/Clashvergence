@@ -80,7 +80,7 @@ def infer_government_structure(government_type: str | None) -> tuple[str, str] |
 class FactionDoctrineState:
     homeland_region: str | None = None
     homeland_terrain_tags: list[str] = field(default_factory=list)
-    homeland_climate: str = "temperate"
+    homeland_climate: str = "Cfb"
     terrain_experience: dict[str, float] = field(default_factory=dict)
     climate_experience: dict[str, float] = field(default_factory=dict)
     turns_observed: int = 0
@@ -215,7 +215,7 @@ class Religion:
     parent_religion: str | None = None
     doctrine: str = ""
     sacred_terrain_tags: list[str] = field(default_factory=list)
-    sacred_climate: str = "temperate"
+    sacred_climate: str = "Cfb"
     reform_origin_turn: int | None = None
 
 
@@ -330,7 +330,7 @@ class Region:
     founding_name: str = ""
     original_namer_faction_id: str | None = None
     terrain_tags: list[str] = field(default_factory=list)
-    climate: str = "temperate"
+    climate: str = "Cfb"
     name_metadata: dict[str, Any] = field(default_factory=dict)
     homeland_faction_id: str | None = None
     integrated_owner: str | None = None

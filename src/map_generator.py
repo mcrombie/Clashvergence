@@ -6,6 +6,8 @@ import math
 import random
 from typing import Mapping
 
+from src.climate import classify_koppen_climate, is_supported_climate, normalize_climate
+
 
 GENERATED_MAP_NAMES = {
     "generated",
@@ -27,11 +29,15 @@ MAP_GENERATION_STYLES = (
 )
 
 CLIMATE_MODES = (
-    "temperate",
     "varied",
+    "temperate",
     "arid",
+    "steppe",
     "cold",
     "tropical",
+    "mediterranean",
+    "continental",
+    "polar",
 )
 
 START_STRATEGIES = (
@@ -174,7 +180,7 @@ def build_generation_config(
     }[style]
 
     climate_mode = str(overrides.get("climate_mode", overrides.get("climate")) or "varied")
-    if climate_mode not in CLIMATE_MODES:
+    if climate_mode not in CLIMATE_MODES and not is_supported_climate(climate_mode):
         climate_mode = "varied"
     start_strategy = str(overrides.get("start_strategy", overrides.get("starts")) or "balanced")
     if start_strategy not in START_STRATEGIES:
@@ -517,21 +523,97 @@ def _choose_climate(
     config: MapGenerationConfig,
 ) -> str:
     if config.climate_mode != "varied":
-        if config.climate_mode == "arid" and "riverland" in tags:
-            return "steppe"
-        return config.climate_mode
+        return _choose_fixed_climate(position, tags, config.climate_mode)
+
+    temperatures, precipitation = _build_monthly_climate(position, tags, config)
+    return classify_koppen_climate(temperatures, precipitation)
+
+
+def _choose_fixed_climate(
+    position: tuple[float, float],
+    tags: list[str],
+    climate_mode: str,
+) -> str:
     latitude = abs(position[1] - 0.5) * 2.0
-    if "highland" in tags and latitude > 0.35:
-        return "cold"
-    if latitude > 0.78:
-        return "cold"
-    if latitude < 0.22 and ("marsh" in tags or "forest" in tags):
-        return "tropical"
-    if "steppe" in tags:
-        return "steppe"
-    if "coast" in tags:
-        return "oceanic"
-    return "temperate"
+    if climate_mode == "arid":
+        return "BSk" if "riverland" in tags or "steppe" in tags else "BWh"
+    if climate_mode == "steppe":
+        return "BSh" if latitude < 0.42 else "BSk"
+    if climate_mode == "cold":
+        if "highland" in tags or latitude > 0.72:
+            return "Dfc"
+        return "Dfb"
+    if climate_mode == "tropical":
+        if "forest" in tags or "marsh" in tags:
+            return "Af"
+        return "Aw"
+    if climate_mode == "temperate":
+        return "Cfb" if "coast" in tags else "Cfa"
+    if climate_mode == "mediterranean":
+        return "Csa" if latitude < 0.52 else "Csb"
+    if climate_mode == "continental":
+        return "Dfa" if latitude < 0.58 else "Dfb"
+    if climate_mode == "polar":
+        return "EF" if "highland" in tags else "ET"
+    return normalize_climate(climate_mode)
+
+
+def _build_monthly_climate(
+    position: tuple[float, float],
+    tags: list[str],
+    config: MapGenerationConfig,
+) -> tuple[list[float], list[float]]:
+    latitude = abs(position[1] - 0.5) * 2.0
+    coastal = "coast" in tags
+    highland = "highland" in tags
+    hills = "hills" in tags
+    wetland = "marsh" in tags or "riverland" in tags
+    forest = "forest" in tags
+    steppe = "steppe" in tags
+    elevation_cooling = (8.0 if highland else 3.0 if hills else 0.0)
+    mean_temp = 27.0 - (latitude * 34.0) - elevation_cooling
+    if config.style == "highlands":
+        mean_temp -= 2.0
+    if coastal:
+        mean_temp += 1.0
+    annual_amplitude = 3.0 + (latitude * 19.0) + (0.0 if coastal else 4.0) + (2.0 if highland else 0.0)
+
+    base_precip = (
+        46.0
+        + (30.0 if coastal else 0.0)
+        + (36.0 if wetland else 0.0)
+        + (24.0 if forest else 0.0)
+        - (38.0 if steppe else 0.0)
+        - (12.0 if highland else 0.0)
+        - (latitude * 10.0)
+    )
+    if config.style == "basin":
+        base_precip += 12.0
+    elif config.style == "archipelago":
+        base_precip += 18.0
+    elif config.style == "frontier":
+        base_precip -= 6.0
+    base_precip = _clamp(base_precip, 6.0, 170.0)
+
+    temperatures = []
+    precipitation = []
+    for month in range(12):
+        summer_curve = (math.cos(((month - 6) / 12.0) * math.tau) + 1.0) / 2.0
+        winter_curve = (math.cos((month / 12.0) * math.tau) + 1.0) / 2.0
+        temperatures.append(round(mean_temp + ((summer_curve - 0.5) * annual_amplitude * 2.0), 2))
+
+        if latitude < 0.26:
+            rainfall_factor = 0.42 + (summer_curve * 1.28)
+            if forest or wetland:
+                rainfall_factor += 0.22
+        elif coastal and position[0] < 0.45 and 0.28 < latitude < 0.7:
+            rainfall_factor = 0.32 + (winter_curve * 1.34)
+        elif steppe:
+            rainfall_factor = 0.45 + (summer_curve * 0.55)
+        else:
+            rainfall_factor = 0.75 + (summer_curve * 0.32) + (winter_curve * 0.12)
+        precipitation.append(round(max(0.0, base_precip * rainfall_factor), 2))
+    return temperatures, precipitation
 
 
 def _assign_terrain_and_climate(

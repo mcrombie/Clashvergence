@@ -249,8 +249,15 @@ def render_map_generator_html() -> str:
           <option value="varied">Varied</option>
           <option value="temperate">Temperate</option>
           <option value="arid">Arid</option>
+          <option value="steppe">Steppe</option>
           <option value="cold">Cold</option>
           <option value="tropical">Tropical</option>
+          <option value="mediterranean">Mediterranean</option>
+          <option value="continental">Continental</option>
+          <option value="polar">Polar</option>
+          <option value="Cfb">Cfb Oceanic</option>
+          <option value="BSh">BSh Hot Steppe</option>
+          <option value="Dfc">Dfc Subarctic</option>
         </select>
       </div>
       <div class="control">
@@ -380,7 +387,7 @@ def render_map_generator_html() -> str:
           const ry = (cfg.style === "archipelago" ? 0.15 : 0.27) * scale + 0.04;
           const x = Math.min(0.95, Math.max(0.05, center.x + Math.cos(angle) * rx * ring * (0.86 + rng() * 0.32)));
           const y = Math.min(0.95, Math.max(0.05, center.y + Math.sin(angle) * ry * ring * (0.86 + rng() * 0.32)));
-          nodes.items.push({id: nodes.items.length, name: `W${nodes.items.length + 1}`, x, y, landmass, neighbors: [], tags: [], climate: "temperate", resources: 2, owner: null});
+          nodes.items.push({id: nodes.items.length, name: `W${nodes.items.length + 1}`, x, y, landmass, neighbors: [], tags: [], climate: "Cfb", resources: 2, owner: null});
         }
       });
       for (let landmass = 0; landmass < landmasses; landmass++) {
@@ -444,7 +451,7 @@ def render_map_generator_html() -> str:
         else tags.push("plains");
         n.tags = [...new Set(tags)];
         n.resources = Math.max(1, Math.min(5, Math.round((2 + (n.tags.includes("riverland") ? 1 : 0) + (n.tags.includes("coast") ? 0.4 : 0) + (n.tags.includes("hills") ? 0.3 : 0)) * cfg.richness + rng() - 0.5)));
-        n.climate = cfg.climate === "varied" ? (n.tags.includes("coast") ? "oceanic" : n.tags.includes("steppe") ? "steppe" : Math.abs(n.y - 0.5) > 0.38 ? "cold" : "temperate") : cfg.climate;
+        n.climate = chooseClimate(n, cfg);
       }
       const starts = [];
       for (let i = 0; i < cfg.factions; i++) {
@@ -456,6 +463,27 @@ def render_map_generator_html() -> str:
         starts.push(pick);
       }
       return nodes;
+    }
+
+    function chooseClimate(n, cfg) {
+      const latitude = Math.abs(n.y - 0.5) * 2;
+      if (cfg.climate !== "varied") {
+        if (cfg.climate === "temperate") return n.tags.includes("coast") ? "Cfb" : "Cfa";
+        if (cfg.climate === "arid") return n.tags.includes("riverland") || n.tags.includes("steppe") ? "BSk" : "BWh";
+        if (cfg.climate === "steppe") return latitude < 0.42 ? "BSh" : "BSk";
+        if (cfg.climate === "cold") return n.tags.includes("highland") || latitude > 0.72 ? "Dfc" : "Dfb";
+        if (cfg.climate === "tropical") return n.tags.includes("forest") || n.tags.includes("marsh") ? "Af" : "Aw";
+        if (cfg.climate === "mediterranean") return latitude < 0.52 ? "Csa" : "Csb";
+        if (cfg.climate === "continental") return latitude < 0.58 ? "Dfa" : "Dfb";
+        if (cfg.climate === "polar") return n.tags.includes("highland") ? "EF" : "ET";
+        return cfg.climate;
+      }
+      if (latitude < 0.22 && (n.tags.includes("marsh") || n.tags.includes("forest"))) return "Af";
+      if (n.tags.includes("steppe")) return latitude < 0.42 ? "BSh" : "BSk";
+      if (n.tags.includes("highland") && latitude > 0.35) return "Dfc";
+      if (latitude > 0.78) return "Dfc";
+      if (n.tags.includes("coast")) return n.x < 0.45 && latitude > 0.28 ? "Csb" : "Cfb";
+      return latitude > 0.48 ? "Dfb" : "Cfa";
     }
 
     function pointLineDistance(p, s) {

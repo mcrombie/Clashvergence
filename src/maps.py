@@ -6,7 +6,7 @@ def _copy_regions_with_terrain(
     terrain_lookup,
     climate_lookup=None,
     default_tags=("plains",),
-    default_climate="temperate",
+    default_climate="Cfb",
 ):
     copied = {}
     for region_name, region_data in regions.items():

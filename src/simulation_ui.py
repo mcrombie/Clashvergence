@@ -2930,12 +2930,42 @@ def render_simulation_html(world):
       plains: "#b8d879",
     }};
     const climateColors = {{
-      temperate: "#8ebf78",
+      Af: "#2f7d4f",
+      Am: "#3f9460",
+      Aw: "#66ad68",
+      BWh: "#d7a54d",
+      BWk: "#c4a15d",
+      BSh: "#d6c55f",
+      BSk: "#c7bc70",
+      Csa: "#b9c765",
+      Csb: "#a9c978",
+      Csc: "#9ec48d",
+      Cwa: "#72b86f",
+      Cwb: "#76b78e",
+      Cwc: "#7fb6a5",
+      Cfa: "#68b47a",
+      Cfb: "#5b90cc",
+      Cfc: "#7daed0",
+      Dsa: "#b8a26b",
+      Dsb: "#a9a978",
+      Dsc: "#9aa98e",
+      Dsd: "#8c9aa4",
+      Dwa: "#8fb66b",
+      Dwb: "#82ad80",
+      Dwc: "#7da7a1",
+      Dwd: "#8193b8",
+      Dfa: "#91b45f",
+      Dfb: "#9dc3d9",
+      Dfc: "#8db7d4",
+      Dfd: "#7f9fc4",
+      ET: "#b7cbd2",
+      EF: "#d7e3ea",
+      temperate: "#5b90cc",
       oceanic: "#5b90cc",
       cold: "#9dc3d9",
-      arid: "#d8b46a",
-      steppe: "#c9c06f",
-      tropical: "#4ea56d",
+      arid: "#d7a54d",
+      steppe: "#c7bc70",
+      tropical: "#66ad68",
     }};
     const unrestColors = {{
       calm: "#9fb4a5",
@@ -2957,7 +2987,7 @@ def render_simulation_html(world):
     }}
 
     function getClimateColor(climate) {{
-      return climateColors[climate || "temperate"] || climateColors.temperate;
+      return climateColors[climate || "Cfb"] || climateColors.Cfb;
     }}
 
     function getUnrestTier(regionSnapshot) {{

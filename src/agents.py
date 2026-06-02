@@ -8,6 +8,7 @@ from src.actions import (
     get_expandable_regions,
 )
 from src.calendar import get_seasonal_action_modifier, get_turn_season_name
+from src.climate import get_climate_expansion_modifier
 from src.config import (
     ATTACK_COST,
     EXPANSION_COST,
@@ -47,15 +48,7 @@ def _get_expansion_personality(faction):
     open_ratio = open_homeland / terrain_count
     rough_ratio = rough_homeland / terrain_count
 
-    climate = faction.doctrine_state.homeland_climate or "temperate"
-    climate_modifier = {
-        "steppe": 0.12,
-        "oceanic": 0.06,
-        "temperate": 0.03,
-        "tropical": -0.02,
-        "arid": -0.06,
-        "cold": -0.1,
-    }.get(climate, 0.0)
+    climate_modifier = get_climate_expansion_modifier(faction.doctrine_state.homeland_climate)
     terrain_personality = 0.72 + (open_ratio * 0.42) - (rough_ratio * 0.32) + climate_modifier
     doctrine_personality = (
         0.72
