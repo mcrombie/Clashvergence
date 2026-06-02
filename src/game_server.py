@@ -18,6 +18,9 @@ from src.session import RunSession
 from src.world_serialization import deserialize_world, serialize_world
 
 
+MAX_JSON_BODY_BYTES = 256 * 1024 * 1024
+
+
 def build_game_state_payload(
     session: RunSession,
     *,
@@ -153,7 +156,7 @@ class GameRequestHandler(BaseHTTPRequestHandler):
 
         if length <= 0:
             return {}
-        if length > 1_000_000:
+        if length > MAX_JSON_BODY_BYTES:
             raise ValueError("Request body is too large.")
 
         raw_body = self.rfile.read(length)

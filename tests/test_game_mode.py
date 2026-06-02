@@ -21,6 +21,7 @@ from src.session import (
     create_session_from_world,
     load_session,
 )
+from src.world_serialization import serialize_world
 from src.world import create_world
 
 
@@ -310,6 +311,66 @@ def test_game_server_state_and_action_endpoints():
         assert turn_payload["turn_result"]["player_action"]["action_id"] == "skip"
         assert turn_payload["state"]["turn"] == 1
         assert (scratch_path / "current_snapshot.json").exists()
+    finally:
+        if server is not None:
+            server.shutdown()
+            server.server_close()
+        if thread is not None:
+            thread.join(timeout=10)
+        if scratch_path.exists():
+            shutil.rmtree(scratch_path)
+
+
+def test_game_server_load_accepts_large_world_builder_save_payload():
+    scratch_path = Path("tests/.tmp_game_server_large_load")
+    if scratch_path.exists():
+        shutil.rmtree(scratch_path)
+
+    server = None
+    thread = None
+    try:
+        world = create_world(
+            map_name="thirteen_region_ring",
+            num_factions=4,
+            seed="game-server-large-load",
+        )
+        faction_name = next(iter(world.factions))
+        session = create_session_from_world(
+            RunConfig(
+                map_name="thirteen_region_ring",
+                num_factions=4,
+                seed="game-server-large-load",
+                mode="game-server",
+                player_faction=faction_name,
+            ),
+            world,
+            run_dir=scratch_path,
+        )
+        server = create_game_server(session, host="127.0.0.1", port=0)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        host, port = server.server_address
+
+        payload = serialize_world(world)
+        payload["metrics"] = [{"large_note": "x" * 1_100_000}]
+        raw_payload = json.dumps(payload)
+        assert len(raw_payload.encode("utf-8")) > 1_000_000
+
+        connection = http.client.HTTPConnection(host, port, timeout=120)
+        connection.request(
+            "POST",
+            "/api/load",
+            body=raw_payload,
+            headers={"Content-Type": "application/json"},
+        )
+        response = connection.getresponse()
+        load_payload = json.loads(response.read().decode("utf-8"))
+        connection.close()
+
+        assert response.status == 200
+        assert load_payload["ok"] is True
+        assert load_payload["turn"] == world.turn
+        assert len(load_payload["regions"]) == len(world.regions)
     finally:
         if server is not None:
             server.shutdown()

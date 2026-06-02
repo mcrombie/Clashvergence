@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import random
+import time
 
 from src.maps import MAPS as _MAPS
 
@@ -40,6 +41,7 @@ from src.ai_interpretation import (
 from src.world import create_world
 from src.simulation import run_simulation
 from src.narrative import build_chronicle
+from src.live_lore import write_live_lore
 from src.event_analysis import get_event_log
 from src.metrics import analyze_competition_metrics, get_metrics_log
 from src.map_generator_ui import write_map_generator_html
@@ -516,6 +518,17 @@ def parse_args():
         help="Whether to use the OpenAI API for interpretive narrative generation.",
     )
     parser.add_argument(
+        "--live-lore",
+        action="store_true",
+        help="Write an auto-refreshing lore reader while the simulation runs.",
+    )
+    parser.add_argument(
+        "--live-lore-delay",
+        type=float,
+        default=0.0,
+        help="Optional seconds to pause after each live lore update.",
+    )
+    parser.add_argument(
         "--map-lab",
         action="store_true",
         help="Write the standalone dynamic map generator UI and exit.",
@@ -642,7 +655,43 @@ def main():
         faction_name: faction.treasury
         for faction_name, faction in world.factions.items()
     }
-    world = run_simulation(world, num_turns=num_turns, verbose=False)
+    live_lore_enabled = args.live_lore or args.live_lore_delay > 0
+    live_lore_delay = max(0.0, float(args.live_lore_delay or 0.0))
+    live_lore_output = None
+    if live_lore_enabled:
+        live_lore_output = write_live_lore(
+            world,
+            map_name=map_name,
+            total_turns=num_turns,
+            status="running",
+        )
+        print(f"Live lore viewer written to {live_lore_output}")
+
+    def on_turn_complete(current_world):
+        if not live_lore_enabled:
+            return
+        write_live_lore(
+            current_world,
+            map_name=map_name,
+            total_turns=num_turns,
+            status="running",
+        )
+        if live_lore_delay > 0:
+            time.sleep(live_lore_delay)
+
+    world = run_simulation(
+        world,
+        num_turns=num_turns,
+        verbose=False,
+        turn_callback=on_turn_complete if live_lore_enabled else None,
+    )
+    if live_lore_enabled:
+        write_live_lore(
+            world,
+            map_name=map_name,
+            total_turns=num_turns,
+            status="complete",
+        )
     chronicle = build_chronicle(world)
     results = build_results_report(world, map_name, num_turns, starting_treasuries)
     print(results)
@@ -686,6 +735,8 @@ def main():
 
     simulation_view_output = write_simulation_html(world)
     print(f"\nSimulation viewer written to {simulation_view_output}")
+    if live_lore_output is not None:
+        print(f"Live lore reader written to {live_lore_output}")
     if ai_narrative is not None:
         print(f"AI interpretive narrative written to {AI_INTERPRETIVE_NARRATIVE_OUTPUT}")
     else:

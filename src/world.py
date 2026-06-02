@@ -63,6 +63,7 @@ def create_world(
     factions = create_factions(
         num_factions=num_factions,
         naming_seed=naming_seed,
+        language_family_overrides=map_definition.get("faction_language_families"),
     )
     owner_name_map = {
         faction.internal_id: faction_name

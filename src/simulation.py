@@ -323,7 +323,14 @@ def run_turn(
     _record_turn_observations(world, economy_snapshot)
 
 
-def run_simulation(world, num_turns, faction_order=None, verbose=True, action_provider=None):
+def run_simulation(
+    world,
+    num_turns,
+    faction_order=None,
+    verbose=True,
+    action_provider=None,
+    turn_callback=None,
+):
     """Runs the simulation for the given number of turns."""
 
     for _ in range(num_turns):
@@ -333,5 +340,7 @@ def run_simulation(world, num_turns, faction_order=None, verbose=True, action_pr
             verbose=verbose,
             action_provider=action_provider,
         )
+        if turn_callback is not None:
+            turn_callback(world)
 
     return world

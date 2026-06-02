@@ -5,6 +5,7 @@ import json
 import os
 import random
 import re
+from copy import deepcopy
 from dataclasses import asdict
 from difflib import SequenceMatcher
 
@@ -535,6 +536,56 @@ def _get_assigned_language_family(index: int, families: list[dict], naming_seed:
     return families[(base_position + offset) % len(families)]
 
 
+def _normalize_language_family_override(family: dict) -> dict:
+    normalized = deepcopy(family)
+    family_name = str(normalized.get("family_name") or "Custom").strip() or "Custom"
+    seed_fragments = normalized.get("seed_fragments") or _extract_seed_fragments(family_name)
+    raw_lexical_roots = normalized.get("lexical_roots")
+    if not isinstance(raw_lexical_roots, dict):
+        raw_lexical_roots = {}
+    normalized["family_name"] = family_name
+    normalized["traditions"] = list(normalized.get("traditions") or ["custom"])
+    normalized["inspirations"] = list(normalized.get("inspirations") or [family_name])
+    normalized["candidate_pool"] = list(normalized.get("candidate_pool") or [family_name])
+    normalized["onsets"] = list(normalized.get("onsets") or seed_fragments or ["al", "ar", "bel"])
+    normalized["middles"] = list(normalized.get("middles") or ["a", "e", "o"])
+    normalized["suffixes"] = list(normalized.get("suffixes") or ["an", "ar", "or"])
+    normalized["seed_fragments"] = list(seed_fragments or _extract_seed_fragments(family_name))
+    normalized["style_notes"] = list(normalized.get("style_notes") or [])
+    normalized["shift_keys"] = list(normalized.get("shift_keys") or [])
+    if normalized.get("default_culture_name"):
+        normalized["default_culture_name"] = str(normalized["default_culture_name"]).strip()
+    if normalized.get("default_display_name"):
+        normalized["default_display_name"] = str(normalized["default_display_name"]).strip()
+    normalized["lexical_roots"] = {
+        concept: list(raw_lexical_roots.get(concept, []))
+        for concept in SEMANTIC_ROOT_DOMAINS
+    }
+    return normalized
+
+
+def _get_language_family_override(
+    index: int,
+    language_family_overrides: dict[str, dict] | None,
+) -> dict | None:
+    if not language_family_overrides:
+        return None
+    family = language_family_overrides.get(get_faction_internal_id(index))
+    if family is None:
+        family = language_family_overrides.get(str(index))
+    if not isinstance(family, dict):
+        return None
+    return _normalize_language_family_override(family)
+
+
+def _get_family_default_culture_name(family: dict) -> str | None:
+    culture_name = family.get("default_culture_name") or family.get("culture_name")
+    if not culture_name:
+        return None
+    cleaned = re.sub(r"[^A-Za-z]", "", str(culture_name))
+    return cleaned.capitalize() if cleaned else None
+
+
 def _generate_family_candidate(
     index: int,
     naming_seed: str,
@@ -793,7 +844,10 @@ def _generate_ai_culture_name(
                 "attempt": attempt + 1,
                 "language_family": family["family_name"] if family is not None else None,
                 "family_shift_profile": family["shift_keys"] if family is not None else [],
-                "traditions": [SOURCE_TRADITIONS[key]["label"] for key in traditions],
+                "traditions": [
+                    SOURCE_TRADITIONS[key]["label"] if key in SOURCE_TRADITIONS else key
+                    for key in traditions
+                ],
                 "candidate_pool": candidate_pool[:6],
                 "fallback_candidate": fallback_candidate,
                 "blocked_names": blocked_names[:30],
@@ -801,6 +855,7 @@ def _generate_ai_culture_name(
                 "source_examples": {
                     key: SOURCE_TRADITIONS[key]["seed_names"][:6]
                     for key in traditions
+                    if key in SOURCE_TRADITIONS
                 },
             }
 
@@ -833,29 +888,41 @@ def generate_faction_identity(
     naming_seed: str = "default",
     existing_culture_names: list[str] | None = None,
     language_families: list[dict] | None = None,
+    language_family_override: dict | None = None,
 ) -> FactionIdentity:
     existing_culture_names = existing_culture_names or []
-    assigned_family = _get_assigned_language_family(
+    assigned_family = language_family_override or _get_assigned_language_family(
         index,
         language_families or _generate_world_language_families(max(1, index), naming_seed),
         naming_seed,
     )
-    culture_name, traditions, inspirations, candidate_pool = _generate_family_scoped_culture_name(
-        index=index,
-        naming_seed=naming_seed,
-        family=assigned_family,
-        existing_names=existing_culture_names,
-    )
+    default_culture_name = _get_family_default_culture_name(assigned_family)
+    if default_culture_name is not None:
+        culture_name = default_culture_name
+        traditions = list(assigned_family["traditions"])
+        inspirations = list(assigned_family["inspirations"])
+        candidate_pool = _dedupe_preserving_order(
+            [default_culture_name] + list(assigned_family["candidate_pool"])
+        )[:8]
+    else:
+        culture_name, traditions, inspirations, candidate_pool = _generate_family_scoped_culture_name(
+            index=index,
+            naming_seed=naming_seed,
+            family=assigned_family,
+            existing_names=existing_culture_names,
+        )
     blocked = REAL_NAME_BLOCKLIST + existing_culture_names
-    ai_candidate = _generate_ai_culture_name(
-        index=index,
-        naming_seed=naming_seed,
-        blocked_names=blocked,
-        candidate_pool=candidate_pool,
-        traditions=traditions,
-        fallback_candidate=culture_name,
-        family=assigned_family,
-    )
+    ai_candidate = None
+    if default_culture_name is None:
+        ai_candidate = _generate_ai_culture_name(
+            index=index,
+            naming_seed=naming_seed,
+            blocked_names=blocked,
+            candidate_pool=candidate_pool,
+            traditions=traditions,
+            fallback_candidate=culture_name,
+            family=assigned_family,
+        )
     final_culture_name = ai_candidate or culture_name
     language_profile = _build_language_profile(
         final_culture_name,
@@ -867,26 +934,42 @@ def generate_faction_identity(
         culture_name=final_culture_name,
         polity_tier=DEFAULT_POLITY_TIER,
         government_form=DEFAULT_GOVERNMENT_FORM,
+        display_name=str(assigned_family.get("default_display_name") or ""),
         language_profile=language_profile,
         source_traditions=list(assigned_family["traditions"]),
-        generation_method="ai_fused_sources" if ai_candidate else "curated_source_fusion",
+        generation_method=(
+            "ai_fused_sources"
+            if ai_candidate
+            else "map_language_family_override"
+            if default_culture_name is not None
+            else "curated_source_fusion"
+        ),
         ai_generated=bool(ai_candidate),
         inspirations=list(assigned_family["inspirations"]),
         candidate_pool=candidate_pool[:8],
     )
 
 
-def generate_faction_identities(num_factions: int, naming_seed: str = "default") -> list[FactionIdentity]:
+def generate_faction_identities(
+    num_factions: int,
+    naming_seed: str = "default",
+    language_family_overrides: dict[str, dict] | None = None,
+) -> list[FactionIdentity]:
     identities = []
     existing_culture_names: list[str] = []
     language_families = _generate_world_language_families(num_factions, naming_seed)
 
     for index in range(1, num_factions + 1):
+        language_family_override = _get_language_family_override(
+            index,
+            language_family_overrides,
+        )
         identity = generate_faction_identity(
             index=index,
             naming_seed=naming_seed,
             existing_culture_names=existing_culture_names,
             language_families=language_families,
+            language_family_override=language_family_override,
         )
         identities.append(identity)
         existing_culture_names.append(identity.culture_name)

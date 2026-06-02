@@ -5,9 +5,32 @@ import unittest
 from unittest.mock import patch
 
 from src.faction_naming import REAL_NAME_BLOCKLIST, generate_faction_identities
+from src.maps import MAPS
 from src.models import FactionIdentity
 from src.simulation import run_simulation
 from src.world import create_world
+
+
+def _build_test_language_overrides():
+    return {
+        "Faction1": {
+            "family_name": "Mittoli",
+            "traditions": ["azhoran", "mittoli"],
+            "inspirations": ["Azhora", "Mittolo", "Caeras"],
+            "candidate_pool": ["Caeloss", "Velith"],
+            "onsets": ["cael", "vel", "gal"],
+            "middles": ["a", "e", "o"],
+            "suffixes": ["oss", "ith", "om"],
+            "seed_fragments": ["azh", "cael", "gal", "mitt", "vel"],
+            "lexical_roots": {
+                "settlement": ["hom", "mitt"],
+                "river": ["cael", "nil"],
+                "dynasty": ["azh", "dael"],
+            },
+            "style_notes": ["Azhoran Mittoli test profile."],
+            "shift_keys": [],
+        }
+    }
 
 
 class _FakeResponse:
@@ -105,6 +128,69 @@ class FactionNamingTests(unittest.TestCase):
         second_families = [identity.language_profile.family_name for identity in second]
 
         self.assertNotEqual(first_families, second_families)
+
+    def test_language_family_overrides_seed_specific_factions(self):
+        identities = generate_faction_identities(
+            2,
+            naming_seed="override_case",
+            language_family_overrides=_build_test_language_overrides(),
+        )
+
+        self.assertEqual(identities[0].internal_id, "Faction1")
+        self.assertEqual(identities[0].language_profile.family_name, "Mittoli")
+        self.assertIn("mittoli", identities[0].source_traditions)
+        self.assertIn("hom", identities[0].language_profile.lexical_roots["settlement"])
+        self.assertIn("cael", identities[0].language_profile.lexical_roots["river"])
+        self.assertNotEqual(identities[1].language_profile.family_name, "Mittoli")
+
+    def test_language_family_overrides_can_pin_faction_culture_names(self):
+        overrides = {
+            "Faction1": {
+                **_build_test_language_overrides()["Faction1"],
+                "family_name": "Boueni",
+                "default_culture_name": "Boueni",
+                "traditions": ["azhoran", "boueni"],
+            }
+        }
+
+        identity = generate_faction_identities(
+            1,
+            naming_seed="standard_azhora_case",
+            language_family_overrides=overrides,
+        )[0]
+
+        self.assertEqual(identity.culture_name, "Boueni")
+        self.assertEqual(identity.display_name, "Boueni Tribe")
+        self.assertEqual(identity.language_profile.family_name, "Boueni")
+        self.assertEqual(identity.generation_method, "map_language_family_override")
+        self.assertFalse(identity.ai_generated)
+
+    def test_world_creation_uses_map_language_family_overrides(self):
+        map_name = "language_override_test_map"
+        MAPS[map_name] = {
+            "description": "test map with explicit language family overrides",
+            "num_factions": 1,
+            "faction_language_families": _build_test_language_overrides(),
+            "regions": {
+                "Homeland": {
+                    "neighbors": [],
+                    "owner": "Faction1",
+                    "resources": 2,
+                    "terrain_tags": ["plains"],
+                    "climate": "temperate",
+                }
+            },
+        }
+        try:
+            world = create_world(map_name=map_name, num_factions=1, seed="override-world")
+        finally:
+            MAPS.pop(map_name, None)
+
+        faction = next(iter(world.factions.values()))
+        ethnicity = world.ethnicities[faction.primary_ethnicity]
+        self.assertEqual(faction.identity.language_profile.family_name, "Mittoli")
+        self.assertEqual(ethnicity.language_profile.family_name, "Mittoli")
+        self.assertIn("hom", ethnicity.language_profile.lexical_roots["settlement"])
 
     def test_legacy_government_labels_infer_structure(self):
         identity = FactionIdentity(

@@ -22,8 +22,13 @@ def create_factions(
     num_factions=4,
     starting_treasury=DEFAULT_STARTING_TREASURY,
     naming_seed="default",
+    language_family_overrides=None,
 ):
-    identities = generate_faction_identities(num_factions, naming_seed=naming_seed)
+    identities = generate_faction_identities(
+        num_factions,
+        naming_seed=naming_seed,
+        language_family_overrides=language_family_overrides,
+    )
 
     factions = {}
     for index, identity in enumerate(identities, start=1):
