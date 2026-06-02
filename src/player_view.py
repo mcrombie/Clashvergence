@@ -4,6 +4,7 @@ from typing import Any
 
 from src.calendar import format_turn_label
 from src.diplomacy import get_relationship_status
+from src.faction_arrivals import is_faction_inactive
 from src.map_visualization import build_map_layout, get_map_edges
 from src.player_actions import get_available_actions
 from src.region_naming import format_region_reference
@@ -125,6 +126,7 @@ def build_observer_snapshot(world) -> dict[str, Any]:
                 "doctrine_label": faction.doctrine_label,
             }
             for faction_name, faction in sorted(world.factions.items())
+            if not is_faction_inactive(world, faction_name)
         ],
         "regions": [
             {

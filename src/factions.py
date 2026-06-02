@@ -55,14 +55,23 @@ def get_map_starting_region_counts(map_name):
 
 def validate_map_factions(map_name, num_factions):
     configured_factions = set(get_configured_faction_internal_ids(num_factions))
+    faction_arrivals = MAPS[map_name].get("faction_arrivals") or {}
+    arriving_factions = {
+        faction_name
+        for faction_name in faction_arrivals
+        if faction_name in configured_factions
+    }
     starting_region_counts = get_map_starting_region_counts(map_name)
     map_factions = set(starting_region_counts)
 
-    unsupported_map_factions = sorted(map_factions - configured_factions)
+    unsupported_map_factions = sorted(
+        (map_factions | set(faction_arrivals)) - configured_factions
+    )
     missing_configured_factions = sorted(
         faction_name
         for faction_name in configured_factions
         if starting_region_counts.get(faction_name, 0) == 0
+        and faction_name not in arriving_factions
     )
 
     problems = []

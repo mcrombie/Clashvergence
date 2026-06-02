@@ -17,6 +17,7 @@ from src.config import (
 from src.diplomacy import apply_tributary_flows, update_relationships
 from src.doctrine import update_faction_doctrines
 from src.ethnicity import apply_language_contact_borrowing
+from src.faction_arrivals import apply_due_faction_arrivals, get_active_faction_names
 from src.integration import record_region_history, update_region_integration
 from src.internal_politics import update_elite_blocs
 from src.ideology import update_ideologies
@@ -136,15 +137,21 @@ def apply_turn_economy(world, *, share: float = 1.0):
 
 def _build_turn_order(world, faction_order=None, randomize_order=True):
     if faction_order is None:
-        turn_order = list(world.factions.keys())
+        turn_order = get_active_faction_names(world)
     else:
-        turn_order = faction_order.copy()
+        active_factions = set(get_active_faction_names(world))
+        turn_order = [
+            faction_name
+            for faction_name in faction_order.copy()
+            if faction_name in active_factions
+        ]
     if randomize_order:
         random.shuffle(turn_order)
     return turn_order
 
 
 def _run_turn_start_phase(world):
+    apply_due_faction_arrivals(world)
     advance_trade_warfare_state(world)
     refresh_long_cycle_shocks(world)
     update_faction_resource_economy(world, advance_resources=True)

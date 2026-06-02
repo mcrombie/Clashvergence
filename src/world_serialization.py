@@ -73,6 +73,8 @@ def serialize_world(world: WorldState) -> dict[str, Any]:
         ],
         "active_shocks": [asdict(shock) for shock in world.active_shocks],
         "shock_history": [asdict(shock) for shock in world.shock_history],
+        "faction_arrivals": dict(getattr(world, "faction_arrivals", {})),
+        "inactive_factions": list(getattr(world, "inactive_factions", [])),
     }
 
 
@@ -122,6 +124,14 @@ def deserialize_world(payload: dict[str, Any]) -> WorldState:
         shock_history=[
             _build_dataclass(ShockState, shock_payload)
             for shock_payload in payload.get("shock_history", [])
+        ],
+        faction_arrivals={
+            str(faction_name): dict(arrival_payload or {})
+            for faction_name, arrival_payload in payload.get("faction_arrivals", {}).items()
+        },
+        inactive_factions=[
+            str(faction_name)
+            for faction_name in payload.get("inactive_factions", [])
         ],
     )
     world.random_seed = payload.get("random_seed")

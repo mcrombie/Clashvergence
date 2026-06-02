@@ -41,6 +41,20 @@ def _reset_owned_region_populations(world: WorldState) -> None:
             seed_region_ethnicity(region, primary_ethnicity)
 
 
+def _translate_faction_arrivals(map_definition: dict, owner_name_map: dict[str, str]) -> dict[str, dict]:
+    translated: dict[str, dict] = {}
+    for internal_id, arrival in (map_definition.get("faction_arrivals") or {}).items():
+        faction_name = owner_name_map.get(internal_id)
+        if faction_name is None:
+            continue
+        arrival_data = dict(arrival or {})
+        arrival_data["internal_id"] = internal_id
+        arrival_data["faction_name"] = faction_name
+        arrival_data["arrival_turn"] = int(arrival_data.get("arrival_turn", 0) or 0)
+        translated[faction_name] = arrival_data
+    return translated
+
+
 def create_world(
     map_name="seven_region_ring",
     num_factions=4,
@@ -69,15 +83,25 @@ def create_world(
         faction.internal_id: faction_name
         for faction_name, faction in factions.items()
     }
+    faction_arrivals = _translate_faction_arrivals(map_definition, owner_name_map)
+    inactive_factions = sorted(
+        faction_name
+        for faction_name, arrival in faction_arrivals.items()
+        if int(arrival.get("arrival_turn", 0) or 0) > 0
+    )
+    inactive_faction_set = set(inactive_factions)
     for faction_name, faction in factions.items():
         faction.primary_ethnicity = faction.culture_name
 
     regions = {}
     for region_name, region_data in map_definition["regions"].items():
+        owner = owner_name_map.get(region_data["owner"], region_data["owner"])
+        if owner in inactive_faction_set:
+            owner = None
         regions[region_name] = Region(
             name=region_name,
             neighbors=region_data["neighbors"],
-            owner=owner_name_map.get(region_data["owner"], region_data["owner"]),
+            owner=owner,
             resources=region_data["resources"],
             population=0,
             terrain_tags=region_data.get("terrain_tags", ["plains"]),
@@ -98,6 +122,8 @@ def create_world(
             for link in map_definition.get("river_links", [])
             if len(link) == 2
         ],
+        faction_arrivals=faction_arrivals,
+        inactive_factions=inactive_factions,
     )
     world.random_seed = seed
     for faction_name, faction in factions.items():

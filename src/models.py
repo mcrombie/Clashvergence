@@ -694,3 +694,5 @@ class WorldState:
     wars: dict[tuple[str, str], WarState] = field(default_factory=dict)
     active_shocks: list[ShockState] = field(default_factory=list)
     shock_history: list[ShockState] = field(default_factory=list)
+    faction_arrivals: dict[str, dict[str, Any]] = field(default_factory=dict)
+    inactive_factions: list[str] = field(default_factory=list)
