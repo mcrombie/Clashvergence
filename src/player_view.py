@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 from typing import Any
 
 from src.calendar import format_turn_label
@@ -107,26 +108,36 @@ def _serialize_player_map(world, known_region_names: set[str]) -> dict[str, Any]
 
 def build_observer_snapshot(world) -> dict[str, Any]:
     """Build a compact omniscient snapshot for incremental non-player runs."""
+    active_faction_names = [
+        faction_name
+        for faction_name in sorted(world.factions)
+        if not is_faction_inactive(world, faction_name)
+    ]
+    owned_regions_by_faction = Counter(
+        region.owner
+        for region in world.regions.values()
+        if region.owner is not None
+    )
+    owned_regions = sum(owned_regions_by_faction.values())
+    total_regions = len(world.regions)
+    recent_events = [event.to_dict() for event in world.events[-30:]]
+
     return {
         "turn": world.turn,
         "turn_label": format_turn_label(world.turn),
+        "summary": _serialize_observer_summary(
+            world,
+            active_faction_names=active_faction_names,
+            owned_regions=owned_regions,
+            total_regions=total_regions,
+        ),
         "factions": [
-            {
-                "name": faction_name,
-                "display_name": faction.display_name,
-                "treasury": round(float(faction.treasury), 3),
-                "owned_regions": sum(
-                    1 for region in world.regions.values() if region.owner == faction_name
-                ),
-                "population": sum(
-                    region.population
-                    for region in world.regions.values()
-                    if region.owner == faction_name
-                ),
-                "doctrine_label": faction.doctrine_label,
-            }
-            for faction_name, faction in sorted(world.factions.items())
-            if not is_faction_inactive(world, faction_name)
+            _serialize_observer_faction(
+                world,
+                faction_name,
+                owned_region_count=owned_regions_by_faction[faction_name],
+            )
+            for faction_name in active_faction_names
         ],
         "regions": [
             {
@@ -139,11 +150,234 @@ def build_observer_snapshot(world) -> dict[str, Any]:
             }
             for region in sorted(world.regions.values(), key=lambda item: item.name)
         ],
-        "recent_events": [
-            event.to_dict()
-            for event in world.events[-20:]
-        ],
+        "recent_events": recent_events,
+        "hot_regions": _serialize_hot_regions(world),
+        "active_wars": _serialize_active_wars(world),
+        "active_shocks": _serialize_active_shocks(world),
     }
+
+
+def _latest_metrics_for(world, faction_name: str) -> dict[str, Any]:
+    if not world.metrics:
+        return {}
+    latest = world.metrics[-1] or {}
+    factions = latest.get("factions", {}) if isinstance(latest, dict) else {}
+    return dict(factions.get(faction_name, {}) or {})
+
+
+def _metric(metrics: dict[str, Any], key: str, fallback: Any = 0) -> Any:
+    value = metrics.get(key, fallback)
+    return fallback if value is None else value
+
+
+def _round_float(value: Any, digits: int = 2) -> float:
+    try:
+        return round(float(value or 0.0), digits)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _serialize_observer_summary(
+    world,
+    *,
+    active_faction_names: list[str],
+    owned_regions: int,
+    total_regions: int,
+) -> dict[str, Any]:
+    relationships = Counter(state.status for state in world.relationships.values())
+    active_wars = [
+        war
+        for war in world.wars.values()
+        if war.active
+    ]
+    owned_region_values = [
+        region
+        for region in world.regions.values()
+        if region.owner is not None
+    ]
+    high_unrest_regions = [
+        region
+        for region in owned_region_values
+        if float(region.unrest or 0.0) >= 0.65
+    ]
+    current_turn_events = [
+        event
+        for event in world.events
+        if event.turn in {world.turn, world.turn - 1}
+    ]
+    return {
+        "active_factions": len(active_faction_names),
+        "successor_factions": sum(
+            1
+            for faction_name in active_faction_names
+            if world.factions[faction_name].is_rebel
+        ),
+        "owned_regions": owned_regions,
+        "unowned_regions": max(0, total_regions - owned_regions),
+        "total_regions": total_regions,
+        "total_population": sum(region.population for region in owned_region_values),
+        "total_treasury": _round_float(
+            sum(world.factions[faction_name].treasury for faction_name in active_faction_names)
+        ),
+        "average_unrest": _round_float(
+            sum(float(region.unrest or 0.0) for region in owned_region_values)
+            / max(1, len(owned_region_values)),
+            3,
+        ),
+        "high_unrest_regions": len(high_unrest_regions),
+        "active_wars": len(active_wars),
+        "active_shocks": len(world.active_shocks),
+        "alliances": relationships["alliance"],
+        "pacts": relationships["non_aggression_pact"],
+        "rivalries": relationships["rival"],
+        "tributaries": relationships["tributary"],
+        "total_events": len(world.events),
+        "recent_events": len(current_turn_events),
+    }
+
+
+def _serialize_observer_faction(
+    world,
+    faction_name: str,
+    *,
+    owned_region_count: int,
+) -> dict[str, Any]:
+    faction = world.factions[faction_name]
+    metrics = _latest_metrics_for(world, faction_name)
+    owned_population = sum(
+        region.population
+        for region in world.regions.values()
+        if region.owner == faction_name
+    )
+    return {
+        "name": faction_name,
+        "display_name": faction.display_name,
+        "treasury": _round_float(faction.treasury, 3),
+        "owned_regions": owned_region_count,
+        "population": owned_population,
+        "doctrine_label": faction.doctrine_label,
+        "government_type": faction.government_type,
+        "polity_tier": faction.polity_tier,
+        "culture_name": faction.culture_name,
+        "is_rebel": faction.is_rebel,
+        "origin_faction": faction.origin_faction,
+        "net_income": _round_float(_metric(metrics, "net_income", 0.0), 2),
+        "effective_income": _round_float(_metric(metrics, "effective_income", 0.0), 2),
+        "maintenance": _round_float(_metric(metrics, "maintenance", 0.0), 2),
+        "food_balance": _round_float(_metric(metrics, "food_balance", faction.food_balance), 2),
+        "food_stored": _round_float(_metric(metrics, "food_stored", faction.food_stored), 1),
+        "food_capacity": _round_float(
+            _metric(metrics, "food_storage_capacity", faction.food_storage_capacity),
+            1,
+        ),
+        "administrative_efficiency": _round_float(
+            _metric(metrics, "administrative_efficiency", faction.administrative_efficiency),
+            3,
+        ),
+        "administrative_overextension": _round_float(
+            _metric(metrics, "administrative_overextension", faction.administrative_overextension),
+            3,
+        ),
+        "military_readiness": _round_float(
+            _metric(metrics, "military_readiness", faction.military_readiness),
+            3,
+        ),
+        "army_quality": _round_float(_metric(metrics, "army_quality", faction.army_quality), 3),
+        "standing_forces": _round_float(
+            _metric(metrics, "standing_forces", faction.standing_forces),
+            1,
+        ),
+        "manpower_pool": _round_float(_metric(metrics, "manpower_pool", faction.manpower_pool), 1),
+        "shock_exposure": _round_float(_metric(metrics, "shock_exposure", faction.shock_exposure), 3),
+        "famine_pressure": _round_float(_metric(metrics, "famine_pressure", faction.famine_pressure), 3),
+        "trade_collapse_exposure": _round_float(
+            _metric(metrics, "trade_collapse_exposure", faction.trade_collapse_exposure),
+            3,
+        ),
+        "technology": _round_float(_metric(metrics, "average_technology_presence", 0.0), 3),
+        "institutional_technology": _round_float(
+            _metric(metrics, "average_institutional_technology", 0.0),
+            3,
+        ),
+        "ruler_name": _metric(metrics, "ruler_name", faction.succession.ruler_name),
+        "legitimacy": _round_float(_metric(metrics, "legitimacy", faction.succession.legitimacy), 3),
+        "top_ally": _metric(metrics, "top_ally", None),
+        "top_rival": _metric(metrics, "top_rival", None),
+        "overlord": _metric(metrics, "overlord", None),
+        "tributary_count": int(_metric(metrics, "tributary_count", 0) or 0),
+        "claim_dispute_count": int(_metric(metrics, "claim_dispute_count", 0) or 0),
+    }
+
+
+def _serialize_hot_regions(world) -> list[dict[str, Any]]:
+    hotspots = []
+    for region in world.regions.values():
+        if region.owner is None:
+            continue
+        pressure = (
+            float(region.unrest or 0.0) * 2.0
+            + float(region.trade_warfare_pressure or 0.0)
+            + abs(float(region.climate_anomaly or 0.0))
+            + float(region.food_deficit or 0.0) / 25.0
+            + float(region.shock_exposure or 0.0)
+        )
+        if pressure <= 0.05:
+            continue
+        hotspots.append(
+            {
+                "name": region.name,
+                "display_name": region.display_name or region.name,
+                "owner": region.owner,
+                "population": region.population,
+                "unrest": _round_float(region.unrest, 3),
+                "food_deficit": _round_float(region.food_deficit, 2),
+                "trade_warfare_pressure": _round_float(region.trade_warfare_pressure, 3),
+                "climate_anomaly": _round_float(region.climate_anomaly, 3),
+                "shock_exposure": _round_float(region.shock_exposure, 3),
+                "pressure": _round_float(pressure, 3),
+            }
+        )
+    return sorted(hotspots, key=lambda item: (-item["pressure"], item["display_name"]))[:8]
+
+
+def _serialize_active_wars(world) -> list[dict[str, Any]]:
+    wars = []
+    for pair, war in sorted(world.wars.items()):
+        if not war.active:
+            continue
+        first, second = pair
+        wars.append(
+            {
+                "factions": [first, second],
+                "aggressor": war.aggressor,
+                "defender": war.defender,
+                "objective": war.objective_label,
+                "target_region": war.target_region,
+                "turns_active": war.turns_active,
+                "attacks": war.total_attacks,
+                "war_exhaustion": _round_float(war.war_exhaustion, 3),
+                "score": _round_float(war.aggressor_score - war.defender_score, 2),
+            }
+        )
+    return sorted(wars, key=lambda item: (-item["turns_active"], item["aggressor"]))[:6]
+
+
+def _serialize_active_shocks(world) -> list[dict[str, Any]]:
+    return [
+        {
+            "kind": shock.kind,
+            "origin_region": shock.origin_region,
+            "faction": shock.faction,
+            "phase": shock.phase,
+            "intensity": _round_float(shock.intensity, 3),
+            "turns_remaining": max(0, shock.duration_turns - (world.turn - shock.started_turn)),
+            "affected_regions": len(shock.affected_regions),
+        }
+        for shock in sorted(
+            world.active_shocks,
+            key=lambda item: (-float(item.intensity or 0.0), item.kind),
+        )[:6]
+    ]
 
 
 def _serialize_player_faction(world, faction_name: str) -> dict[str, Any]:
