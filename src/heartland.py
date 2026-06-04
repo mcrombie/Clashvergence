@@ -3194,13 +3194,35 @@ def _split_successor_ethnicity_in_regions(
 
 
 def _build_rebel_faction_name(world: WorldState, region: Region) -> str:
-    base_name = _normalize_rebel_name_seed(f"{region.ui_name} Rebels")
+    region_name = _get_authored_region_name(region) or region.ui_name
+    base_name = _normalize_rebel_name_seed(f"{region_name} Rebels")
     candidate = base_name
     suffix = 2
     while candidate in world.factions:
         candidate = f"{base_name} {suffix}"
         suffix += 1
     return candidate
+
+
+def _get_authored_region_name(region: Region) -> str | None:
+    metadata = region.name_metadata if isinstance(region.name_metadata, dict) else {}
+    authored_name = str(metadata.get("authored_name") or "").strip()
+    if authored_name:
+        return _normalize_rebel_name_seed(authored_name)
+
+    if metadata.get("source") in {"map_definition", "world_builder"} or metadata.get("authored") is True:
+        candidate = region.display_name or region.founding_name or region.name
+        if candidate:
+            return _normalize_rebel_name_seed(candidate)
+
+    return None
+
+
+def _get_rebel_regional_successor_name(world: WorldState, faction: Faction) -> str | None:
+    homeland_region = faction.doctrine_state.homeland_region
+    if not homeland_region or homeland_region not in world.regions:
+        return None
+    return _get_authored_region_name(world.regions[homeland_region])
 
 
 def _next_dynamic_internal_id(world: WorldState) -> str:
@@ -3422,7 +3444,7 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         generation_method = "civil_war_claimant"
     else:
         polity_tier, government_form = "state", "council"
-        culture_name = _normalize_rebel_name_seed(region.ui_name)
+        culture_name = _get_authored_region_name(region) or _normalize_rebel_name_seed(region.ui_name)
         generation_method = "rebel_secession"
     rebel_identity = FactionIdentity(
         internal_id=_next_dynamic_internal_id(world),
@@ -3596,6 +3618,11 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
     successor_language_profile = None
     successor_population = 0
     parent_population = 0
+    regional_successor_name = (
+        _get_rebel_regional_successor_name(world, faction)
+        if conflict_type == REBEL_CONFLICT_SECESSION
+        else None
+    )
     if parent_ethnicity is not None:
         parent_language_profile = (
             deepcopy(world.ethnicities[parent_ethnicity].language_profile)
@@ -3659,7 +3686,11 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
                 faction.identity.government_type,
             )
         else:
-            if successor_ethnicity is not None:
+            if regional_successor_name is not None:
+                faction.identity.culture_name = regional_successor_name
+                if successor_language_profile is not None:
+                    faction.identity.language_profile = deepcopy(successor_language_profile)
+            elif successor_ethnicity is not None:
                 faction.identity.culture_name = successor_ethnicity
                 faction.identity.language_profile = deepcopy(successor_language_profile)
             faction.identity.set_government_structure(
@@ -3667,7 +3698,7 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
                 "council",
                 government_type=REBEL_MATURE_GOVERNMENT_TYPE,
             )
-            faction.identity.display_name = faction.identity.culture_name
+            faction.identity.display_name = regional_successor_name or faction.identity.culture_name
 
     world.events.append(Event(
         turn=world.turn,
@@ -3682,6 +3713,7 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
             "government_type": faction.government_type,
             "parent_ethnicity": parent_ethnicity,
             "successor_ethnicity": successor_ethnicity,
+            "regional_successor_name": regional_successor_name,
             "successor_population": successor_population,
             "parent_population": parent_population,
         },

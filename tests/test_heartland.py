@@ -2044,6 +2044,34 @@ class HeartlandSystemTests(unittest.TestCase):
             treasury_before + REBEL_INDEPENDENCE_TREASURY_BONUS,
         )
 
+    def test_authored_region_rebel_matures_into_region_named_successor(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4)
+        faction_name = next(iter(world.factions))
+        region = world.regions["M"]
+        region.display_name = "Endevor"
+        region.founding_name = "Endevor"
+        region.name_metadata = {
+            "source": "map_definition",
+            "authored_name": "Endevor",
+        }
+        parent_ethnicity = world.factions[faction_name].primary_ethnicity
+
+        rebel_name, _region = self._spawn_rebel_from_region(world, faction_name)
+        rebel_faction = world.factions[rebel_name]
+        self.assertEqual(rebel_name, "Endevor Rebels")
+        self.assertEqual(rebel_faction.display_name, "Endevor Rebels")
+        self.assertEqual(rebel_faction.culture_name, "Endevor")
+
+        rebel_faction.independence_score = REBEL_FULL_INDEPENDENCE_THRESHOLD - 0.2
+        update_rebel_faction_status(world)
+
+        self.assertEqual(world.events[-1].type, "rebel_independence")
+        self.assertEqual(world.events[-1].details["regional_successor_name"], "Endevor")
+        self.assertFalse(rebel_faction.proto_state)
+        self.assertNotEqual(rebel_faction.primary_ethnicity, parent_ethnicity)
+        self.assertEqual(rebel_faction.display_name, "Endevor")
+        self.assertEqual(rebel_faction.culture_name, "Endevor")
+
     def test_proto_civil_war_matures_into_rival_regime_with_successor_ethnicity(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))

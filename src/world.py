@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from src.administration import refresh_administrative_state
 from src.climate import normalize_climate
 from src.diplomacy import initialize_relationships
@@ -56,6 +58,37 @@ def _translate_faction_arrivals(map_definition: dict, owner_name_map: dict[str, 
     return translated
 
 
+def _get_authored_region_name_fields(region_data: dict) -> tuple[str, str, dict]:
+    display_name = str(
+        region_data.get("display_name")
+        or region_data.get("name")
+        or region_data.get("founding_name")
+        or ""
+    ).strip()
+    founding_name = str(region_data.get("founding_name") or display_name).strip()
+    name_metadata = deepcopy(region_data.get("name_metadata") or {})
+
+    if display_name:
+        name_metadata.setdefault("source", "map_definition")
+        name_metadata.setdefault("authored_name", display_name)
+        name_metadata.setdefault("current_name_reason", "authored")
+        name_metadata.setdefault(
+            "name_layers",
+            [
+                {
+                    "type": "authored",
+                    "name": display_name,
+                    "pattern": "map_definition",
+                    "faction_id": None,
+                    "faction_name": None,
+                    "turn": 0,
+                }
+            ],
+        )
+
+    return display_name, founding_name, name_metadata
+
+
 def create_world(
     map_name="seven_region_ring",
     num_factions=4,
@@ -99,14 +132,19 @@ def create_world(
         owner = owner_name_map.get(region_data["owner"], region_data["owner"])
         if owner in inactive_faction_set:
             owner = None
+        display_name, founding_name, name_metadata = _get_authored_region_name_fields(region_data)
         regions[region_name] = Region(
             name=region_name,
             neighbors=region_data["neighbors"],
             owner=owner,
             resources=region_data["resources"],
             population=0,
+            display_name=display_name,
+            founding_name=founding_name,
+            original_namer_faction_id=region_data.get("original_namer_faction_id"),
             terrain_tags=region_data.get("terrain_tags", ["plains"]),
             climate=normalize_climate(region_data.get("climate", "temperate")),
+            name_metadata=name_metadata,
         )
 
     world = WorldState(

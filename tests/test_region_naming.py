@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from src.heartland import register_ethnicity
+from src.maps import MAPS
 from src.models import LanguageProfile
 from src.actions import attack, expand, get_attackable_regions
 from src.narrative import summarize_place_name_strata
@@ -11,6 +12,34 @@ from src.region_naming import apply_region_name_layer, assign_region_founding_na
 
 
 class RegionNamingTests(unittest.TestCase):
+    def test_map_authored_region_name_is_preserved_on_world_creation(self):
+        map_name = "_authored_region_name_test"
+        MAPS[map_name] = {
+            "regions": {
+                "R1": {
+                    "neighbors": [],
+                    "owner": "Faction1",
+                    "resources": 3,
+                    "display_name": "Endevor",
+                    "founding_name": "Endevor",
+                    "terrain_tags": ["hills"],
+                    "climate": "Cfb",
+                }
+            },
+            "sea_links": [],
+            "river_links": [],
+        }
+        try:
+            world = create_world(map_name=map_name, num_factions=1, seed="authored-region")
+        finally:
+            del MAPS[map_name]
+
+        region = world.regions["R1"]
+        self.assertEqual(region.display_name, "Endevor")
+        self.assertEqual(region.founding_name, "Endevor")
+        self.assertEqual(region.name_metadata["authored_name"], "Endevor")
+        self.assertEqual(region.name_metadata["current_name_reason"], "authored")
+
     def test_starting_regions_receive_homeland_display_names(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
 
