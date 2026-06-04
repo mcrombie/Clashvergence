@@ -213,6 +213,23 @@ Example balance dashboard run:
 python experiments/experiment_balance_dashboard.py --maps thirty_seven_region_ring --turns 20 --runs 10 --num-factions 4
 ```
 
+Example Azhora calibration run:
+
+```powershell
+python experiments/experiment_azhora_calibration.py --runs 25 --turns 120
+```
+
+The Azhora calibration script translates the current world-builder Azhora map
+when available, runs many seeded histories, and writes:
+
+```text
+reports/azhora_calibration_report.txt
+reports/azhora_calibration_report.json
+```
+
+Use it to compare dominant families, contested regions, successor-state rates,
+system activity, and seeds worth inspecting in the full viewer.
+
 ## Running Tests
 
 Use `python -m pytest`, since `pytest` may not be on `PATH` in every shell:

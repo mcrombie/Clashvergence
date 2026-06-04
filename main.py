@@ -10,7 +10,7 @@ from src.maps import MAPS as _MAPS
 
 def _inject_map_file(map_file_path: str) -> tuple[str, int]:
     """
-    Load a Worldwright .cmap.json map definition and inject it into MAPS.
+    Load a world-builder .cmap.json map definition and inject it into MAPS.
     Returns (map_name, num_factions) derived from the file.
     """
     p = Path(map_file_path)
@@ -492,7 +492,7 @@ def parse_args():
         "--map-file",
         dest="map_file",
         default=None,
-        help="Path to a Worldwright .cmap.json map definition. Overrides --map and --num-factions.",
+        help="Path to a world-builder .cmap.json map definition. Overrides --map and --num-factions.",
     )
     parser.add_argument(
         "--turns",
