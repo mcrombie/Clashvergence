@@ -57,6 +57,7 @@ from src.interactive_driver import (
 )
 from src.player_actions import get_action_option, get_available_actions
 from src.player_view import build_player_view_model
+from src.session import RunConfig, create_session_from_world
 
 
 REPORTS_DIR = Path("reports")
@@ -544,10 +545,15 @@ def parse_args():
         help="Run a local browser-based turn-by-turn game server.",
     )
     parser.add_argument(
+        "--observer-server",
+        action="store_true",
+        help="Run a local observer server where every faction is controlled by the AI.",
+    )
+    parser.add_argument(
         "--player-faction",
         help=(
             "Faction key to control in --game or --game-server mode. If omitted, "
-            "the first generated faction is used and printed."
+            "the first generated faction is used. Use --observer-server for no player faction."
         ),
     )
     parser.add_argument(
@@ -628,6 +634,9 @@ def main():
     if args.map_lab:
         output_path = write_map_generator_html()
         print(f"Map generator UI written to {output_path}")
+        return
+    if args.observer_server:
+        run_observer_server(args)
         return
     if args.game_server:
         run_web_game(args)
@@ -783,6 +792,31 @@ def run_web_game(args) -> None:
         f"Starting browser game mode as "
         f"{session.world.factions[player_faction].display_name} ({player_faction})."
     )
+    serve_game_session(session, host=args.host, port=args.port)
+
+
+def run_observer_server(args) -> None:
+    seed = args.seed
+    if seed is not None:
+        random.seed(seed)
+    world = create_world(
+        map_name=args.map_name,
+        num_factions=args.num_factions,
+        map_generation_config=build_map_generation_overrides(args),
+        seed=seed,
+    )
+    session = create_session_from_world(
+        RunConfig(
+            map_name=args.map_name,
+            num_factions=args.num_factions,
+            seed=seed,
+            mode="observer-server",
+            player_faction=None,
+        ),
+        world,
+        run_dir=Path(args.run_dir) if args.run_dir else None,
+    )
+    print("Starting observer server; all factions are AI-controlled.")
     serve_game_session(session, host=args.host, port=args.port)
 
 

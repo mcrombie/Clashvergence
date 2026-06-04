@@ -14,7 +14,7 @@ from src.interactive_driver import (
     submit_player_action,
 )
 from src.player_view import build_observer_snapshot
-from src.session import RunSession
+from src.session import RunSession, advance_one_turn
 from src.world_serialization import deserialize_world, serialize_world
 
 
@@ -115,6 +115,13 @@ class GameRequestHandler(BaseHTTPRequestHandler):
                 self.server.session.world = new_world
                 payload = build_observer_snapshot(self.server.session.world)
                 payload["ok"] = True
+            self._send_json(payload)
+            return
+
+        if path == "/api/advance":
+            with self.server.session_lock:
+                turn_result = advance_one_turn(self.server.session, verbose=False)
+                payload = build_game_state_payload(self.server.session, turn_result=turn_result)
             self._send_json(payload)
             return
 

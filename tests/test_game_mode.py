@@ -321,6 +321,72 @@ def test_game_server_state_and_action_endpoints():
             shutil.rmtree(scratch_path)
 
 
+def test_game_server_observer_advance_endpoint_uses_ai_turn():
+    scratch_path = Path("tests/.tmp_observer_server")
+    if scratch_path.exists():
+        shutil.rmtree(scratch_path)
+
+    server = None
+    thread = None
+    try:
+        world = create_world(
+            map_name="thirteen_region_ring",
+            num_factions=4,
+            seed="observer-server",
+        )
+        session = create_session_from_world(
+            RunConfig(
+                map_name="thirteen_region_ring",
+                num_factions=4,
+                seed="observer-server",
+                mode="observer-server",
+                player_faction=None,
+            ),
+            world,
+            run_dir=scratch_path,
+        )
+        server = create_game_server(session, host="127.0.0.1", port=0)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        host, port = server.server_address
+
+        connection = http.client.HTTPConnection(host, port, timeout=120)
+        connection.request("GET", "/api/state")
+        response = connection.getresponse()
+        state_payload = json.loads(response.read().decode("utf-8"))
+
+        assert response.status == 200
+        assert state_payload["ok"] is True
+        assert state_payload["config"]["player_faction"] is None
+        assert "summary" in state_payload["state"]
+        assert "available_actions" not in state_payload["state"]
+
+        connection.request(
+            "POST",
+            "/api/advance",
+            body=json.dumps({}),
+            headers={"Content-Type": "application/json"},
+        )
+        response = connection.getresponse()
+        turn_payload = json.loads(response.read().decode("utf-8"))
+        connection.close()
+
+        assert response.status == 200
+        assert turn_payload["ok"] is True
+        assert turn_payload["turn_result"]["turn"] == 1
+        assert turn_payload["turn_result"]["player_action"] is None
+        assert turn_payload["state"]["turn"] == 1
+        assert (scratch_path / "current_snapshot.json").exists()
+    finally:
+        if server is not None:
+            server.shutdown()
+            server.server_close()
+        if thread is not None:
+            thread.join(timeout=10)
+        if scratch_path.exists():
+            shutil.rmtree(scratch_path)
+
+
 def test_game_server_load_accepts_large_world_builder_save_payload():
     scratch_path = Path("tests/.tmp_game_server_large_load")
     if scratch_path.exists():
