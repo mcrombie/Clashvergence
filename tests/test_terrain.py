@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from src.actions import (
     get_attack_target_score_components,
@@ -113,10 +114,10 @@ class TerrainSystemTests(unittest.TestCase):
         world.regions["D"].owner = defender_name
         world.regions["D"].terrain_tags = ["riverland", "plains"]
 
-        world.turn = 0  # Spring
-        spring_score = get_attack_target_score_components("D", attacker_name, world)
-        world.turn = 2  # Autumn
-        autumn_score = get_attack_target_score_components("D", attacker_name, world)
+        with patch("src.actions.get_annual_dominant_season", return_value="Spring"):
+            spring_score = get_attack_target_score_components("D", attacker_name, world)
+        with patch("src.actions.get_annual_dominant_season", return_value="Autumn"):
+            autumn_score = get_attack_target_score_components("D", attacker_name, world)
 
         self.assertGreater(spring_score["seasonal_terrain_defense_bonus"], autumn_score["seasonal_terrain_defense_bonus"])
         self.assertGreater(spring_score["defender_strength"], autumn_score["defender_strength"])

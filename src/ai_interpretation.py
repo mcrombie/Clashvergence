@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 import re
 
-from src.calendar import get_snapshot_season_name, get_snapshot_year
+from src.calendar import get_snapshot_year
 from src.metrics import analyze_competition_metrics
 from src.narrative import (
     summarize_faction_epilogues,
@@ -283,8 +283,7 @@ def _build_world_identity(world) -> dict:
 
 def _year_label(world_identity: dict, turn_one_based: int) -> str:
     year = get_snapshot_year(turn_one_based)
-    season = get_snapshot_season_name(turn_one_based)
-    return f"{season} of Year {year} in the {world_identity['calendar_name']}"
+    return f"Year {year} in the {world_identity['calendar_name']}"
 
 
 def _faction_narrative_name(world, faction_name: str | None) -> str | None:
@@ -1014,7 +1013,7 @@ def build_ai_interpretation_summary(world, *, map_name: str | None = None, num_t
         "early_phase_years": f"{_year_label(world_identity, 1)} to {_year_label(world_identity, max(1, int((num_turns or world.turn) // 3)))}",
         "mid_phase_years": f"{_year_label(world_identity, max(1, int((num_turns or world.turn) // 3) + 1))} to {_year_label(world_identity, max(1, int((2 * (num_turns or world.turn)) // 3)))}",
         "late_phase_years": f"{_year_label(world_identity, max(1, int((2 * (num_turns or world.turn)) // 3) + 1))} to {_year_label(world_identity, max(1, int(num_turns or world.turn)))}",
-        "turn_to_year_note": "Treat each simulation turn as one season in the supplied reckoning: Spring, Summer, Autumn, then Winter. Four turns make one year.",
+        "turn_to_year_note": "Treat each simulation turn as one full year. Seasonal details describe regional annual character rather than separate world turns.",
     }
 
     return {

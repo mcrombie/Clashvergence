@@ -1,93 +1,77 @@
+from __future__ import annotations
+
+import random
+from typing import Any
+
+
 SEASON_NAMES = ("Spring", "Summer", "Autumn", "Winter")
-TURNS_PER_YEAR = 4
-SEASONAL_ECONOMY_SHARE = 1.0 / TURNS_PER_YEAR
-SEASONAL_ECONOMY_SHARES = {
-    "Spring": 0.22,
-    "Summer": 0.24,
-    "Autumn": 0.31,
-    "Winter": 0.23,
-}
-SEASONAL_FOOD_PRODUCTION_SHARES = {
-    "Spring": 0.22,
-    "Summer": 0.31,
-    "Autumn": 0.35,
-    "Winter": 0.12,
-}
-SEASONAL_FOOD_CONSUMPTION_SHARES = {
-    "Spring": 0.24,
-    "Summer": 0.24,
-    "Autumn": 0.25,
-    "Winter": 0.27,
-}
+TURNS_PER_YEAR = 1
 SEASONAL_TIME_STEP_YEARS = 1.0 / TURNS_PER_YEAR
-SEASONAL_ACTION_UTILITY_MODIFIERS = {
-    "attack": {
-        "Spring": 0.06,
-        "Summer": 0.10,
-        "Autumn": -0.02,
-        "Winter": -0.18,
-    },
-    "expand": {
-        "Spring": 0.04,
-        "Summer": 0.06,
-        "Autumn": -0.01,
-        "Winter": -0.10,
-    },
-    "develop": {
-        "Spring": -0.01,
-        "Summer": -0.03,
-        "Autumn": 0.08,
-        "Winter": 0.11,
-    },
+
+ANNUAL_CAMPAIGN_MODIFIERS = {
+    "Spring": 0.5,
+    "Summer": 1.0,
+    "Autumn": 0.2,
+    "Winter": -0.5,
 }
-SEASONAL_ATTACK_STRENGTH_BONUSES = {
-    "Spring": 1.0,
-    "Summer": 2.0,
-    "Autumn": -1.0,
-    "Winter": -4.0,
+
+ANNUAL_FOOD_VARIANCE = {
+    "Spring": 0.0,
+    "Summer": 0.05,
+    "Autumn": 0.10,
+    "Winter": -0.18,
 }
-SEASONAL_ATTACK_SCORE_BONUSES = {
-    "Spring": 3,
-    "Summer": 5,
-    "Autumn": -2,
-    "Winter": -10,
+
+DEFAULT_ANNUAL_SEASON_WEIGHTS = {
+    "Spring": 0.30,
+    "Summer": 0.30,
+    "Autumn": 0.30,
+    "Winter": 0.10,
 }
-SEASONAL_UNREST_PRESSURE_MODIFIERS = {
-    "Spring": 1.08,
-    "Summer": 0.98,
-    "Autumn": 0.88,
-    "Winter": 1.10,
+
+CLIMATE_ANNUAL_SEASON_WEIGHTS = {
+    "tropical": {"Spring": 0.28, "Summer": 0.34, "Autumn": 0.38, "Winter": 0.0},
+    "arid": {"Spring": 0.22, "Summer": 0.42, "Autumn": 0.30, "Winter": 0.06},
+    "temperate": {"Spring": 0.34, "Summer": 0.24, "Autumn": 0.34, "Winter": 0.08},
+    "continental": {"Spring": 0.22, "Summer": 0.28, "Autumn": 0.22, "Winter": 0.28},
+    "polar": {"Spring": 0.10, "Summer": 0.18, "Autumn": 0.12, "Winter": 0.60},
 }
-SEASONAL_MIGRATION_PRESSURE_MODIFIERS = {
-    "Spring": 1.12,
-    "Summer": 1.02,
-    "Autumn": 0.92,
-    "Winter": 0.78,
-}
-SEASONAL_MIGRATION_ATTRACTION_MODIFIERS = {
-    "Spring": 1.03,
-    "Summer": 1.01,
-    "Autumn": 1.06,
-    "Winter": 0.90,
-}
-SEASONAL_MIGRATION_CAPACITY_MODIFIERS = {
-    "Spring": 1.08,
-    "Summer": 1.03,
-    "Autumn": 1.00,
-    "Winter": 0.82,
-}
-SEASONAL_MIGRATION_FLOW_MODIFIERS = {
-    "Spring": 1.10,
-    "Summer": 1.03,
-    "Autumn": 0.94,
-    "Winter": 0.72,
-}
-SEASONAL_REFUGEE_FLOW_MODIFIERS = {
-    "Spring": 1.02,
-    "Summer": 1.00,
-    "Autumn": 0.97,
-    "Winter": 0.88,
-}
+
+
+def _climate_band(climate: str | None) -> str:
+    normalized = (climate or "").strip()
+    if not normalized:
+        return "temperate"
+    first = normalized[0].upper()
+    if first == "A":
+        return "tropical"
+    if first == "B":
+        return "arid"
+    if first == "C":
+        return "temperate"
+    if first == "D":
+        return "continental"
+    if first == "E":
+        return "polar"
+    legacy = normalized.lower()
+    if legacy in {"tropical", "jungle"}:
+        return "tropical"
+    if legacy in {"arid", "desert", "steppe"}:
+        return "arid"
+    if legacy in {"cold", "subarctic"}:
+        return "continental"
+    if legacy in {"polar", "tundra"}:
+        return "polar"
+    return "temperate"
+
+
+def _weighted_season_choice(weights: dict[str, float], *, seed: str) -> str:
+    rng = random.Random(seed)
+    seasons = [season for season in SEASON_NAMES if weights.get(season, 0.0) > 0]
+    if not seasons:
+        return "Spring"
+    season_weights = [weights[season] for season in seasons]
+    return rng.choices(seasons, weights=season_weights, k=1)[0]
 
 
 def get_turn_year(zero_based_turn: int) -> int:
@@ -95,19 +79,50 @@ def get_turn_year(zero_based_turn: int) -> int:
 
 
 def get_turn_season_index(zero_based_turn: int) -> int:
-    return max(0, zero_based_turn) % TURNS_PER_YEAR
+    return max(0, zero_based_turn) % len(SEASON_NAMES)
 
 
 def get_turn_season_name(zero_based_turn: int) -> str:
     return SEASON_NAMES[get_turn_season_index(zero_based_turn)]
 
 
+def get_annual_dominant_season(
+    region: Any | None = None,
+    world: Any | None = None,
+    *,
+    turn: int | None = None,
+) -> str:
+    climate = getattr(region, "climate", None)
+    weights = CLIMATE_ANNUAL_SEASON_WEIGHTS.get(
+        _climate_band(climate),
+        DEFAULT_ANNUAL_SEASON_WEIGHTS,
+    )
+    resolved_turn = world.turn if turn is None and world is not None else (turn or 0)
+    seed_parts = [
+        str(getattr(world, "random_seed", None) or getattr(world, "map_name", "") or "world"),
+        str(resolved_turn),
+        str(getattr(region, "name", None) or "world"),
+        str(climate or ""),
+    ]
+    return _weighted_season_choice(weights, seed="|".join(seed_parts))
+
+
+def get_annual_campaign_modifier(dominant_season: str) -> float:
+    """Military campaign effectiveness for this year."""
+    return ANNUAL_CAMPAIGN_MODIFIERS.get(dominant_season, 0.0)
+
+
+def get_annual_food_variance(dominant_season: str) -> float:
+    """Fractional adjustment to annual food production."""
+    return ANNUAL_FOOD_VARIANCE.get(dominant_season, 0.0)
+
+
 def is_year_end(zero_based_turn: int) -> bool:
-    return get_turn_season_index(zero_based_turn) == (TURNS_PER_YEAR - 1)
+    return True
 
 
 def format_turn_date(zero_based_turn: int) -> str:
-    return f"Year {get_turn_year(zero_based_turn)}, {get_turn_season_name(zero_based_turn)}"
+    return f"Year {get_turn_year(zero_based_turn)}"
 
 
 def format_turn_label(zero_based_turn: int) -> str:
@@ -131,52 +146,5 @@ def format_snapshot_label(one_based_turn: int) -> str:
 
 
 def format_turn_span(turn_count: int) -> str:
-    if turn_count <= 0:
-        return "0 seasons"
-    years, seasons = divmod(turn_count, TURNS_PER_YEAR)
-    parts: list[str] = []
-    if years:
-        parts.append(f"{years} year" + ("" if years == 1 else "s"))
-    if seasons:
-        parts.append(f"{seasons} season" + ("" if seasons == 1 else "s"))
-    return " and ".join(parts) if parts else "0 seasons"
-
-
-def get_seasonal_economy_share(season_name: str) -> float:
-    return SEASONAL_ECONOMY_SHARES.get(season_name, SEASONAL_ECONOMY_SHARE)
-
-
-def get_seasonal_action_modifier(action_name: str, season_name: str) -> float:
-    return SEASONAL_ACTION_UTILITY_MODIFIERS.get(action_name, {}).get(season_name, 0.0)
-
-
-def get_seasonal_attack_strength_bonus(season_name: str) -> float:
-    return SEASONAL_ATTACK_STRENGTH_BONUSES.get(season_name, 0.0)
-
-
-def get_seasonal_attack_score_bonus(season_name: str) -> int:
-    return SEASONAL_ATTACK_SCORE_BONUSES.get(season_name, 0)
-
-
-def get_seasonal_unrest_pressure_modifier(season_name: str) -> float:
-    return SEASONAL_UNREST_PRESSURE_MODIFIERS.get(season_name, 1.0)
-
-
-def get_seasonal_migration_pressure_modifier(season_name: str) -> float:
-    return SEASONAL_MIGRATION_PRESSURE_MODIFIERS.get(season_name, 1.0)
-
-
-def get_seasonal_migration_attraction_modifier(season_name: str) -> float:
-    return SEASONAL_MIGRATION_ATTRACTION_MODIFIERS.get(season_name, 1.0)
-
-
-def get_seasonal_migration_capacity_modifier(season_name: str) -> float:
-    return SEASONAL_MIGRATION_CAPACITY_MODIFIERS.get(season_name, 1.0)
-
-
-def get_seasonal_migration_flow_modifier(season_name: str) -> float:
-    return SEASONAL_MIGRATION_FLOW_MODIFIERS.get(season_name, 1.0)
-
-
-def get_seasonal_refugee_flow_modifier(season_name: str) -> float:
-    return SEASONAL_REFUGEE_FLOW_MODIFIERS.get(season_name, 1.0)
+    years = max(0, turn_count)
+    return f"{years} year" + ("" if years == 1 else "s")

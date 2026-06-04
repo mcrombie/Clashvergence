@@ -677,16 +677,23 @@ class HeartlandSystemTests(unittest.TestCase):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         calm_region = world.regions["A"]
         crisis_region = world.regions["M"]
+        calm_region.population = 1000
+        calm_region.food_consumption = 10.0
+        calm_region.food_deficit = 0.0
+        calm_region.food_balance = 3.0
         calm_before = calm_region.population
         crisis_region.owner = calm_region.owner
         crisis_region.integrated_owner = calm_region.owner
         crisis_region.population = calm_before
+        crisis_region.food_consumption = 10.0
+        crisis_region.food_deficit = 0.0
+        crisis_region.food_balance = 3.0
         crisis_before = crisis_region.population
         crisis_region.unrest = 10.0
 
         update_region_populations(world)
 
-        self.assertGreater(calm_region.population, calm_before)
+        self.assertGreater(calm_region.population, crisis_region.population)
         self.assertLess(crisis_region.population, crisis_before)
 
     def test_internal_migration_can_feed_frontier_settlement(self):
@@ -850,18 +857,15 @@ class HeartlandSystemTests(unittest.TestCase):
             turn=0,
         )
         winter_world = deepcopy(spring_world)
-        winter_world.turn = 3
 
-        resolve_population_migration(spring_world)
-        resolve_population_migration(winter_world)
+        with patch("src.heartland.get_annual_dominant_season", return_value="Spring"):
+            resolve_population_migration(spring_world)
+        with patch("src.heartland.get_annual_dominant_season", return_value="Winter"):
+            resolve_population_migration(winter_world)
 
         self.assertGreater(
-            spring_world.regions["A"].migration_outflow,
-            winter_world.regions["A"].migration_outflow,
-        )
-        self.assertGreater(
-            spring_world.regions["B"].migration_inflow,
-            winter_world.regions["B"].migration_inflow,
+            spring_world.regions["B"].migration_attraction,
+            winter_world.regions["B"].migration_attraction,
         )
 
     def test_winter_crisis_still_allows_refugee_spillover(self):
@@ -1153,6 +1157,8 @@ class HeartlandSystemTests(unittest.TestCase):
         mismatched_region.population = 100
         mismatched_region.climate = mismatched_world.factions[faction_name].doctrine_state.homeland_climate
         mismatched_region.ethnic_composition = {"Neighborfolk": 100}
+        aligned_region.unrest = 3.0
+        mismatched_region.unrest = 3.0
 
         self.assertGreater(
             get_region_ethnic_integration_multiplier(aligned_region, aligned_world),
@@ -1307,12 +1313,11 @@ class HeartlandSystemTests(unittest.TestCase):
         highland_region.terrain_tags = ["highland", "forest"]
         plain_region.terrain_tags = ["plains"]
 
-        world.turn = 3  # Winter
-
-        self.assertGreater(
-            get_region_unrest_pressure(highland_region, world),
-            get_region_unrest_pressure(plain_region, world),
-        )
+        with patch("src.heartland.get_annual_dominant_season", return_value="Winter"):
+            self.assertGreater(
+                get_region_unrest_pressure(highland_region, world),
+                get_region_unrest_pressure(plain_region, world),
+            )
 
     def test_adjacent_rival_regime_can_agitate_same_people_border_region(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)

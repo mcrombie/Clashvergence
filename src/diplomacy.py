@@ -580,7 +580,6 @@ def _start_or_update_war_from_attack(
     score_delta = _get_war_score_delta(event)
     side_is_aggressor = event.faction == war.aggressor
     war.total_attacks += 1
-    war.turns_active += 1 if new_war else 0
     war.last_attack_turn = world.turn
     war.war_exhaustion = round(war.war_exhaustion + 0.22 + (0.08 if event.get("success", False) else 0.03), 3)
     if event.get("success", False):

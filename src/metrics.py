@@ -1,5 +1,5 @@
 from src.administration import refresh_administrative_state
-from src.calendar import format_turn_date, get_turn_season_name, get_turn_year
+from src.calendar import format_turn_date, get_turn_year
 from src.diplomacy import get_faction_diplomacy_summary
 from src.internal_politics import ALL_ELITE_BLOCS, get_faction_elite_summary
 from src.ideology import ALL_IDEOLOGIES, get_faction_ideology_summary
@@ -338,7 +338,7 @@ def build_turn_metrics(world, economy_snapshot=None):
     return {
         "turn": world.turn + 1,
         "year": get_turn_year(world.turn),
-        "season": get_turn_season_name(world.turn),
+        "season": "Annual",
         "date_label": format_turn_date(world.turn),
         "factions": faction_metrics,
     }

@@ -5,13 +5,7 @@ import random
 import re
 
 from src.calendar import (
-    get_seasonal_migration_attraction_modifier,
-    get_seasonal_migration_capacity_modifier,
-    get_seasonal_migration_flow_modifier,
-    get_seasonal_migration_pressure_modifier,
-    get_seasonal_refugee_flow_modifier,
-    get_seasonal_unrest_pressure_modifier,
-    get_turn_season_name,
+    get_annual_dominant_season,
 )
 from src.climate import (
     get_seasonal_climate_migration_attraction_multiplier,
@@ -2512,7 +2506,7 @@ def _get_food_surplus_ratio(region: Region) -> float:
 def _get_region_migration_pressure(region: Region, world: WorldState) -> float:
     if region.owner is None or region.population < MIGRATION_MIN_SOURCE_POPULATION:
         return 0.0
-    season_name = get_turn_season_name(world.turn)
+    season_name = get_annual_dominant_season(region, world)
     unrest_ratio = _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
     surplus_pressure = _clamp(max(0.0, -get_region_surplus(region, world)) / 3.0, 0.0, 1.0)
     frontier_pressure = 1.0 if get_region_core_status(region) == "frontier" else 0.0
@@ -2523,7 +2517,7 @@ def _get_region_migration_pressure(region: Region, world: WorldState) -> float:
         + frontier_pressure * MIGRATION_PRESSURE_FRONTIER_FACTOR
         + get_region_migration_shock_pressure(region, world)
     )
-    pressure = base_pressure * get_seasonal_migration_pressure_modifier(season_name)
+    pressure = base_pressure
     pressure *= get_seasonal_climate_migration_pressure_multiplier(region.climate, season_name)
     if region.unrest_event_level == "crisis":
         pressure += MIGRATION_REFUGEE_CRISIS_BONUS
@@ -2535,7 +2529,7 @@ def _get_region_migration_pressure(region: Region, world: WorldState) -> float:
 def _get_region_migration_attraction(region: Region, world: WorldState) -> float:
     if region.owner is None or region.population <= 0:
         return 0.0
-    season_name = get_turn_season_name(world.turn)
+    season_name = get_annual_dominant_season(region, world)
     low_unrest = 1.0 - _clamp(region.unrest / UNREST_MAX, 0.0, 1.0)
     surplus_bonus = _clamp(max(0.0, get_region_surplus(region, world)) / 3.5, 0.0, 1.0)
     food_bonus = _get_food_surplus_ratio(region)
@@ -2575,7 +2569,6 @@ def _get_region_migration_attraction(region: Region, world: WorldState) -> float
         attraction += MIGRATION_ATTRACTION_CITY_BONUS
     elif region.settlement_level == "town":
         attraction += MIGRATION_ATTRACTION_CITY_BONUS * 0.6
-    attraction *= get_seasonal_migration_attraction_modifier(season_name)
     attraction *= get_seasonal_climate_migration_attraction_multiplier(region.climate, season_name)
     attraction *= get_seasonal_terrain_migration_attraction_multiplier(region, season_name)
     return round(_clamp(attraction, 0.0, 1.5), 3)
@@ -2584,7 +2577,7 @@ def _get_region_migration_attraction(region: Region, world: WorldState) -> float
 def _get_region_migration_capacity(region: Region, world: WorldState) -> int:
     if region.owner is None or region.population <= 0:
         return 0
-    season_name = get_turn_season_name(world.turn)
+    season_name = get_annual_dominant_season(region, world)
     food_headroom = max(0.0, float(region.food_storage_capacity or 0.0) - float(region.food_stored or 0.0))
     capacity = (
         max(14, int(round(region.population * 0.11)))
@@ -2593,7 +2586,6 @@ def _get_region_migration_capacity(region: Region, world: WorldState) -> int:
     )
     if get_region_core_status(region) == "frontier":
         capacity = int(round(capacity * 1.2))
-    capacity = int(round(capacity * get_seasonal_migration_capacity_modifier(season_name)))
     capacity = int(round(capacity * get_seasonal_climate_migration_capacity_multiplier(region.climate, season_name)))
     capacity = int(round(capacity * get_seasonal_terrain_migration_capacity_multiplier(region, season_name)))
     return max(8, capacity)
@@ -2745,9 +2737,8 @@ def resolve_population_migration(world: WorldState) -> None:
     _reset_migration_state(world)
     if not world.regions:
         return
-    season_name = get_turn_season_name(world.turn)
-    migration_flow_modifier = get_seasonal_migration_flow_modifier(season_name)
-    refugee_flow_modifier = get_seasonal_refugee_flow_modifier(season_name)
+    migration_flow_modifier = 1.0
+    refugee_flow_modifier = 1.0
 
     source_regions: list[tuple[Region, int, int]] = []
     for region in world.regions.values():
@@ -4186,7 +4177,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
     if region.homeland_faction_id == region.owner:
         return -UNREST_DECAY_PER_TURN
 
-    season_name = get_turn_season_name(world.turn)
+    season_name = get_annual_dominant_season(region, world)
     owner_faction = world.factions[region.owner]
     climate_affinity = get_region_climate_affinity(region, world)
     climate_pressure = (1.0 - climate_affinity) * UNREST_CLIMATE_PRESSURE_FACTOR
@@ -4238,7 +4229,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         + elite_pressure
         + ideology_pressure
         + get_region_unrest_shock_pressure(region, world)
-    ) * get_seasonal_unrest_pressure_modifier(season_name)
+    )
     pressure *= get_seasonal_climate_unrest_multiplier(region.climate, season_name)
     pressure *= get_seasonal_terrain_unrest_multiplier(region, season_name)
     return pressure / stability_divisor - UNREST_DECAY_PER_TURN

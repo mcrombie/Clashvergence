@@ -30,7 +30,7 @@ from src.calendar import (
     format_snapshot_label,
     format_turn_label,
     format_turn_span,
-    get_turn_season_name,
+    get_annual_dominant_season,
 )
 from src.ai_interpretation import (
     AI_INTERPRETATION_MODEL,
@@ -84,7 +84,7 @@ def build_simulation_setup(world, map_name, num_turns, starting_treasuries):
     lines.append("")
     lines.append(f"Map: {map_name}")
     lines.append(f"Turns: {num_turns}")
-    lines.append(f"Calendar: {TURNS_PER_YEAR} turns per year (Spring, Summer, Autumn, Winter)")
+    lines.append(f"Calendar: {TURNS_PER_YEAR} turn per year; seasons describe annual regional character")
     lines.append(f"Duration: {format_turn_span(num_turns)}")
     if getattr(world, "random_seed", None) is not None:
         lines.append(f"Seed: {world.random_seed}")
@@ -137,7 +137,8 @@ def format_event(event, world):
             event_context = "migration"
         elif event["type"] in {"unrest_disturbance", "unrest_crisis", "regime_agitation"}:
             event_context = "unrest"
-        seasonal_note = get_seasonal_terrain_note(region.terrain_tags, get_turn_season_name(event["turn"]), context=event_context)
+        dominant_season = get_annual_dominant_season(region, world, turn=event["turn"])
+        seasonal_note = get_seasonal_terrain_note(region.terrain_tags, dominant_season, context=event_context)
         seasonal_text = f", seasonal_note={seasonal_note}" if seasonal_note else ""
 
     if event["type"] == "expand":

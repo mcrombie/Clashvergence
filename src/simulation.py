@@ -6,8 +6,6 @@ from src.actions import attack, develop, expand
 from src.calendar import (
     SEASONAL_TIME_STEP_YEARS,
     format_turn_label,
-    get_seasonal_economy_share,
-    get_turn_season_name,
     is_year_end,
 )
 from src.config import (
@@ -228,18 +226,15 @@ def _run_faction_action_phase(world, turn_order, *, verbose=True, action_provide
         refresh_military_state(world)
 
 
-def _run_post_action_phase(world, season_name):
+def _run_post_action_phase(world):
     update_faction_resource_economy(world, advance_resources=False)
     refresh_administrative_state(world)
     refresh_military_state(world)
     resolve_unrest_events(world)
     update_faction_resource_economy(world, advance_resources=False)
     refresh_administrative_state(world)
-    economy_snapshot = apply_turn_economy(
-        world,
-        share=get_seasonal_economy_share(season_name),
-    )
-    apply_turn_food_economy(world, season_name=season_name)
+    economy_snapshot = apply_turn_economy(world)
+    apply_turn_food_economy(world)
     resolve_food_and_disease_shocks(world)
     apply_shock_population_losses(world)
     update_region_integration(world, time_step_years=SEASONAL_TIME_STEP_YEARS)
@@ -304,7 +299,6 @@ def run_turn(
 ):
     """Runs one full turn of the simulation."""
     current_turn = world.turn
-    season_name = get_turn_season_name(current_turn)
 
     if verbose:
         print(f"\n{format_turn_label(current_turn)}")
@@ -321,7 +315,7 @@ def run_turn(
         verbose=verbose,
         action_provider=action_provider,
     )
-    economy_snapshot = _run_post_action_phase(world, season_name)
+    economy_snapshot = _run_post_action_phase(world)
     if is_year_end(current_turn):
         _run_year_end_phase(world)
     _run_diplomatic_update_phase(world, economy_snapshot)

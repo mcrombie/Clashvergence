@@ -11,9 +11,8 @@ from src.calendar import (
     format_snapshot_label,
     format_turn_date,
     format_turn_label,
-    get_snapshot_season_name,
+    get_annual_dominant_season,
     get_snapshot_year,
-    get_turn_season_name,
 )
 from src.event_analysis import (
     build_initial_opening_state,
@@ -227,7 +226,6 @@ def _serialize_event(event, world):
     event_data["turn_display"] = event.turn + 1
     event_data["date_label"] = format_turn_date(event.turn)
     event_data["turn_label"] = format_turn_label(event.turn)
-    event_season = get_turn_season_name(event.turn)
     event_data["faction_display_name"] = _get_faction_display_name(world, event.faction)
     event_data["counterpart_display_name"] = _get_faction_display_name(
         world,
@@ -256,6 +254,7 @@ def _serialize_event(event, world):
             event_context = "migration"
         elif event.type in {"unrest_disturbance", "unrest_crisis", "unrest_secession", "regime_agitation"}:
             event_context = "unrest"
+        event_season = get_annual_dominant_season(region, world, turn=event.turn)
         event_data["seasonal_terrain_note"] = get_seasonal_terrain_note(
             region.terrain_tags,
             event_season,
@@ -438,9 +437,10 @@ def _get_event_summary(event, world):
             event_context = "migration"
         elif event.type in {"unrest_disturbance", "unrest_crisis", "regime_agitation"}:
             event_context = "unrest"
+        event_season = get_annual_dominant_season(region, world, turn=event.turn)
         seasonal_note = get_seasonal_terrain_note(
             region.terrain_tags,
-            get_turn_season_name(event.turn),
+            event_season,
             context=event_context,
         )
     seasonal_text = f" {seasonal_note}" if seasonal_note else ""
@@ -1244,7 +1244,7 @@ def build_simulation_snapshots(world):
         snapshots.append({
             "turn": turn_number,
             "year": get_snapshot_year(turn_number),
-            "season": get_snapshot_season_name(turn_number),
+            "season": "Annual",
             "date_label": format_snapshot_date(turn_number),
             "turn_label": format_snapshot_label(turn_number),
             "events": [_serialize_event(event, world) for event in turn_events],
@@ -1275,7 +1275,11 @@ def build_simulation_snapshots(world):
                     "terrain_label": region["terrain_label"],
                     "seasonal_terrain_note": get_seasonal_terrain_note(
                         region["terrain_tags"],
-                        get_snapshot_season_name(turn_number),
+                        get_annual_dominant_season(
+                            world.regions.get(region_name),
+                            world,
+                            turn=max(0, turn_number - 1),
+                        ),
                         context="general",
                     ),
                     "climate": region["climate"],
@@ -1639,7 +1643,7 @@ def build_simulation_view_model(world):
         "turns": world.turn,
         "calendar": {
             "turns_per_year": TURNS_PER_YEAR,
-            "season_names": ["Spring", "Summer", "Autumn", "Winter"],
+            "season_names": ["Annual"],
         },
         "regions": [
             {

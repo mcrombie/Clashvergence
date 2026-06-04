@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from src.faction_arrivals import is_faction_inactive
 from src.maps import MAPS
@@ -60,13 +61,15 @@ class FactionArrivalTests(unittest.TestCase):
                 [faction["name"] for faction in build_observer_snapshot(world)["factions"]],
             )
 
-            run_turn(world, randomize_order=False, verbose=False)
+            with patch("src.simulation.choose_action", return_value=("skip", None)):
+                run_turn(world, randomize_order=False, verbose=False)
             self.assertTrue(is_faction_inactive(world, arrival_name))
             self.assertEqual(world.regions["Colony Gate"].owner, native_name)
 
             serialized = serialize_world(world)
             world = deserialize_world(serialized)
-            run_turn(world, randomize_order=False, verbose=False)
+            with patch("src.simulation.choose_action", return_value=("skip", None)):
+                run_turn(world, randomize_order=False, verbose=False)
 
             self.assertFalse(is_faction_inactive(world, arrival_name))
             self.assertEqual(world.regions["Colony Gate"].owner, arrival_name)

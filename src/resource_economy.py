@@ -4,12 +4,11 @@ from heapq import heappop, heappush
 from math import ceil
 
 from src.calendar import (
-    SEASONAL_FOOD_CONSUMPTION_SHARES,
-    SEASONAL_FOOD_PRODUCTION_SHARES,
+    get_annual_dominant_season,
+    get_annual_food_variance,
 )
 from src.climate import (
     get_climate_food_spoilage_modifier,
-    get_seasonal_climate_food_production_multiplier,
 )
 from src.config import (
     ADMIN_MAINTENANCE_AUTONOMY_FACTOR,
@@ -3346,9 +3345,13 @@ def update_faction_resource_economy(
         )
 
 
-def apply_turn_food_economy(world: WorldState, *, season_name: str = "Spring") -> None:
-    production_share = SEASONAL_FOOD_PRODUCTION_SHARES.get(season_name, 0.25)
-    consumption_share = SEASONAL_FOOD_CONSUMPTION_SHARES.get(season_name, 0.25)
+def apply_turn_food_economy(
+    world: WorldState,
+    *,
+    dominant_season: str | None = None,
+    season_name: str | None = None,
+) -> None:
+    resolved_world_season = dominant_season or season_name
     for region in world.regions.values():
         ensure_region_food_state(region)
         if region.owner is None:
@@ -3362,17 +3365,18 @@ def apply_turn_food_economy(world: WorldState, *, season_name: str = "Spring") -
             region.food_overflow = 0.0
             continue
 
+        resolved_region_season = resolved_world_season or get_annual_dominant_season(region, world)
+        production_variance = 1.0 + get_annual_food_variance(resolved_region_season)
         food_produced = round(
             (
                 region.resource_output.get(RESOURCE_GRAIN, 0.0)
                 + region.resource_output.get(RESOURCE_LIVESTOCK, 0.0)
                 + region.resource_output.get(RESOURCE_WILD_FOOD, 0.0)
             )
-            * production_share
-            * get_seasonal_climate_food_production_multiplier(region.climate, season_name),
+            * production_variance,
             3,
         )
-        food_demand = get_region_food_demand(region) * consumption_share
+        food_demand = get_region_food_demand(region)
         food_storage_capacity = get_region_food_storage_capacity(region)
         food_stored = min(region.food_stored, food_storage_capacity)
         spoilage_rate = get_region_food_spoilage_rate(region) + get_faction_salt_preservation_modifier(

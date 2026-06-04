@@ -1,9 +1,8 @@
 import random
 
 from src.calendar import (
-    get_seasonal_attack_score_bonus,
-    get_seasonal_attack_strength_bonus,
-    get_turn_season_name,
+    get_annual_campaign_modifier,
+    get_annual_dominant_season,
 )
 from src.diplomacy import get_attack_diplomacy_modifier, get_relationship_status
 from src.config import (
@@ -919,7 +918,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
             )
             + get_seasonal_terrain_attack_projection_modifier(
                 staging_region,
-                get_turn_season_name(world.turn),
+                get_annual_dominant_season(staging_region, world),
             )
             for staging_region in staging_regions
         ),
@@ -1024,10 +1023,11 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + get_faction_ideology_effects(attacker_faction).get("attack_strength_factor", 0.0)
     )
     attacker_strength += int(round(attacker_strength * attack_strength_factor))
-    season_name = get_turn_season_name(world.turn)
+    season_name = get_annual_dominant_season(region, world)
+    annual_campaign_modifier = get_annual_campaign_modifier(season_name)
     seasonal_terrain_defense_bonus = get_seasonal_terrain_defense_bonus(region, season_name)
-    seasonal_attack_strength_bonus = get_seasonal_attack_strength_bonus(season_name)
-    seasonal_attack_score_bonus = get_seasonal_attack_score_bonus(season_name)
+    seasonal_attack_strength_bonus = annual_campaign_modifier * 4
+    seasonal_attack_score_bonus = int(round(annual_campaign_modifier * 8))
     defender_strength += seasonal_terrain_defense_bonus
     attacker_strength += seasonal_attack_strength_bonus
     success_chance = 0.5 + (
