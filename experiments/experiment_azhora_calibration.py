@@ -19,6 +19,7 @@ if str(ROOT) not in sys.path:
 
 from experiments.experiment_balance_dashboard import (  # noqa: E402
     SYSTEM_DEFINITIONS,
+    build_dual_track_observability,
     build_system_activity,
 )
 from src.maps import MAPS  # noqa: E402
@@ -322,6 +323,7 @@ def run_one(map_name: str, num_factions: int, turns: int, seed: str) -> dict[str
     }
     event_counts = Counter(event.type for event in world.events)
     system_activity = build_system_activity(world)
+    dual_track_observability = build_dual_track_observability(world)
     competition = analyze_competition_metrics(world)
     region_changes = _count_region_owner_changes(world, starting_labels)
 
@@ -360,6 +362,7 @@ def run_one(map_name: str, num_factions: int, turns: int, seed: str) -> dict[str
         "family_final": family_final,
         "event_counts": event_counts,
         "system_activity": system_activity,
+        "dual_track_actions": dual_track_observability,
         "competition": competition,
         "region_changes": region_changes,
         "final_faction_count": len(world.factions),
@@ -419,6 +422,22 @@ def summarize_runs(
         "final_factions": [],
         "successor_factions": [],
     }
+    dual_track_totals = {
+        "qualifying_turns": 0,
+        "both_track_turns": 0,
+        "bloc_competition_delta_sum": 0.0,
+        "bloc_competition_delta_samples": 0,
+        "military_action_count": 0,
+        "military_dominant_action_count": 0,
+        "track_split_by_faction_size": {
+            bucket: {
+                "samples": 0,
+                "military_track_rate_numerator": 0.0,
+                "admin_track_rate_numerator": 0.0,
+            }
+            for bucket in ("1-3", "4-7", "8+")
+        },
+    }
 
     notable = {
         "most_secessions": None,
@@ -474,6 +493,20 @@ def summarize_runs(
                 slot["active_runs"] += 1
             if activity["first_turn"] is not None:
                 slot["first_turns"].append(activity["first_turn"])
+
+        dual_track = result["dual_track_actions"]
+        dual_track_totals["qualifying_turns"] += dual_track["qualifying_turns"]
+        dual_track_totals["both_track_turns"] += dual_track["both_track_turns"]
+        dual_track_totals["bloc_competition_delta_sum"] += dual_track["bloc_competition_delta_sum"]
+        dual_track_totals["bloc_competition_delta_samples"] += dual_track["bloc_competition_delta_samples"]
+        dual_track_totals["military_action_count"] += dual_track["military_action_count"]
+        dual_track_totals["military_dominant_action_count"] += dual_track["military_dominant_action_count"]
+        for bucket, values in dual_track["track_split_by_faction_size"].items():
+            target = dual_track_totals["track_split_by_faction_size"][bucket]
+            samples = values["samples"]
+            target["samples"] += samples
+            target["military_track_rate_numerator"] += values["military_track_rate"] * samples
+            target["admin_track_rate_numerator"] += values["admin_track_rate"] * samples
 
         competition = result["competition"]
         health_lists["lead_changes"].append(competition["lead_changes"])
@@ -531,6 +564,22 @@ def summarize_runs(
         event_type: event_totals[event_type] / runs if runs else 0.0
         for event_type in sorted(POLITICAL_EVENT_TYPES | set(event_totals))
     }
+    track_split_summary = {}
+    for bucket, values in dual_track_totals["track_split_by_faction_size"].items():
+        samples = values["samples"]
+        track_split_summary[bucket] = {
+            "samples": samples,
+            "military_track_rate": (
+                values["military_track_rate_numerator"] / samples
+                if samples
+                else 0.0
+            ),
+            "admin_track_rate": (
+                values["admin_track_rate_numerator"] / samples
+                if samples
+                else 0.0
+            ),
+        }
 
     return {
         "map_name": map_name,
@@ -542,6 +591,31 @@ def summarize_runs(
         "regions": region_summary,
         "systems": system_summary,
         "events": political_average,
+        "dual_track_actions": {
+            "qualifying_turns": dual_track_totals["qualifying_turns"],
+            "both_track_turns": dual_track_totals["both_track_turns"],
+            "dual_track_activation_rate": (
+                dual_track_totals["both_track_turns"]
+                / dual_track_totals["qualifying_turns"]
+                if dual_track_totals["qualifying_turns"]
+                else 0.0
+            ),
+            "bloc_competition_delta": (
+                dual_track_totals["bloc_competition_delta_sum"]
+                / dual_track_totals["bloc_competition_delta_samples"]
+                if dual_track_totals["bloc_competition_delta_samples"]
+                else 0.0
+            ),
+            "military_action_count": dual_track_totals["military_action_count"],
+            "military_dominant_action_count": dual_track_totals["military_dominant_action_count"],
+            "dominant_bloc_action_alignment": (
+                dual_track_totals["military_dominant_action_count"]
+                / dual_track_totals["military_action_count"]
+                if dual_track_totals["military_action_count"]
+                else 0.0
+            ),
+            "track_split_by_faction_size": track_split_summary,
+        },
         "health": {
             "average_lead_changes": mean(health_lists["lead_changes"]) if runs else 0.0,
             "runaway_rate": mean(health_lists["runaway"]) if runs else 0.0,
@@ -676,6 +750,30 @@ def format_report(summary: dict[str, Any]) -> str:
         f"  Avg final factions: {_format_float(health['average_final_factions'])}"
         f" | Avg successor factions: {_format_float(health['average_successor_factions'])}"
     )
+    lines.append("")
+
+    dual_track = summary.get("dual_track_actions", {})
+    lines.append("Dual-Track Actions")
+    lines.append(
+        f"  Activation: {_format_percent(dual_track.get('dual_track_activation_rate', 0.0))}"
+        f" ({int(dual_track.get('both_track_turns', 0))}/"
+        f"{int(dual_track.get('qualifying_turns', 0))} qualifying faction-turns)"
+    )
+    lines.append(
+        f"  Avg bloc utility delta: {_format_float(dual_track.get('bloc_competition_delta', 0.0), 4)}"
+        f" | Military-action dominant-bloc alignment: "
+        f"{_format_percent(dual_track.get('dominant_bloc_action_alignment', 0.0))}"
+    )
+    track_split = dual_track.get("track_split_by_faction_size", {})
+    if track_split:
+        lines.append(
+            "  Track split by size: "
+            + " | ".join(
+                f"{bucket}: mil {_format_percent(track_split.get(bucket, {}).get('military_track_rate', 0.0))}/"
+                f"admin {_format_percent(track_split.get(bucket, {}).get('admin_track_rate', 0.0))}"
+                for bucket in ("1-3", "4-7", "8+")
+            )
+        )
     lines.append("")
 
     lines.append("Most Contested Regions")

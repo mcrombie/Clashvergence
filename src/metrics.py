@@ -1,7 +1,13 @@
 from src.administration import refresh_administrative_state
 from src.calendar import format_turn_date, get_turn_year
+from src.config import DUAL_TRACK_ADMIN_EFFICIENCY_THRESHOLD, DUAL_TRACK_MIN_REGIONS
 from src.diplomacy import get_faction_diplomacy_summary
-from src.internal_politics import ALL_ELITE_BLOCS, get_faction_elite_summary
+from src.internal_politics import (
+    ALL_ELITE_BLOCS,
+    BLOC_PREFERRED_TRACK,
+    get_bloc_action_biases,
+    get_faction_elite_summary,
+)
 from src.ideology import ALL_IDEOLOGIES, get_faction_ideology_summary
 from src.military import refresh_military_state
 from src.region_state import get_region_core_status
@@ -77,6 +83,11 @@ def build_turn_metrics(world, economy_snapshot=None):
         institutional_technologies = faction.institutional_technologies or {}
         elite_summary = get_faction_elite_summary(faction)
         ideology_summary = get_faction_ideology_summary(faction)
+        bloc_action_biases = get_bloc_action_biases(faction)
+        bloc_bias_abs = (
+            sum(abs(value) for value in bloc_action_biases.values())
+            / max(1, len(bloc_action_biases))
+        )
 
         for event in turn_events:
             if event.faction != faction_name:
@@ -115,6 +126,15 @@ def build_turn_metrics(world, economy_snapshot=None):
             if "population" not in economy_data:
                 total_population += region.population
 
+        military_track_used = bool(getattr(faction, "military_track_used", False) or attacks or expansions)
+        admin_track_used = bool(getattr(faction, "admin_track_used", False) or developments)
+        dual_track_qualified = bool(
+            not faction.proto_state
+            and owned_region_counts[faction_name] >= DUAL_TRACK_MIN_REGIONS
+            and float(faction.administrative_efficiency or 1.0) >= DUAL_TRACK_ADMIN_EFFICIENCY_THRESHOLD
+        )
+        dominant_bloc_track = BLOC_PREFERRED_TRACK.get(faction.strongest_elite_bloc, "")
+
         faction_metrics[faction_name] = {
             "treasury": faction.treasury,
             "regions": owned_region_counts[faction_name],
@@ -124,6 +144,15 @@ def build_turn_metrics(world, economy_snapshot=None):
             "expansions": expansions,
             "developments": developments,
             "investments": developments,
+            "military_track_used": military_track_used,
+            "admin_track_used": admin_track_used,
+            "dual_track_qualified": dual_track_qualified,
+            "dual_track_both_tracks_used": bool(dual_track_qualified and military_track_used and admin_track_used),
+            "bloc_action_bias_abs": round(bloc_bias_abs, 4),
+            "dominant_bloc_track": dominant_bloc_track,
+            "dominant_bloc_military_alignment": bool(
+                dominant_bloc_track == "military" and military_track_used
+            ),
             "income": income,
             "nominal_income": nominal_income,
             "empire_penalty": empire_penalty,

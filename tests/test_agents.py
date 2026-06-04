@@ -1,6 +1,6 @@
 import unittest
 
-from src.agents import choose_action
+from src.agents import choose_action, choose_actions, get_available_tracks
 from src.doctrine import HOMELAND_IMPRINT_WEIGHT, compute_faction_doctrine_profile
 from src.models import Faction, Region, WorldState
 from src.resource_economy import update_faction_resource_economy
@@ -148,6 +148,76 @@ class AgentActionChoiceTests(unittest.TestCase):
 
         self.assertEqual(action_name, "develop")
         self.assertEqual(target_region, "A")
+
+    def test_dual_track_faction_can_pair_military_and_development_actions(self):
+        world = WorldState(
+            regions={
+                "A": Region(
+                    name="A",
+                    neighbors=["B", "E"],
+                    owner="FactionA",
+                    resources=5,
+                    population=320,
+                    terrain_tags=["riverland", "plains"],
+                    climate="temperate",
+                    settlement_level="town",
+                    market_level=0.4,
+                    homeland_faction_id="FactionA",
+                    integration_score=10.0,
+                ),
+                "B": Region(name="B", neighbors=["A", "C"], owner="FactionA", resources=3, population=180),
+                "C": Region(name="C", neighbors=["B", "D"], owner="FactionA", resources=3, population=180),
+                "D": Region(name="D", neighbors=["C"], owner="FactionA", resources=3, population=180),
+                "E": Region(name="E", neighbors=["A"], owner=None, resources=4, population=130),
+            },
+            factions={"FactionA": Faction(name="FactionA", treasury=8)},
+        )
+        _seed_resources(world)
+        _set_homeland_doctrine(world, "FactionA", ["riverland", "plains"])
+        world.factions["FactionA"].administrative_efficiency = 0.8
+
+        military_available, admin_available = get_available_tracks("FactionA", world)
+        actions = choose_actions("FactionA", world)
+
+        self.assertTrue(military_available)
+        self.assertTrue(admin_available)
+        self.assertEqual(len(actions), 2)
+        self.assertIn(actions[0][0], {"attack", "expand"})
+        self.assertEqual(actions[1][0], "develop")
+
+    def test_dual_track_requires_admin_efficiency_gate(self):
+        world = WorldState(
+            regions={
+                f"R{index}": Region(
+                    name=f"R{index}",
+                    neighbors=["E"] if index == 0 else [],
+                    owner="FactionA",
+                    resources=3,
+                    population=160,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                )
+                for index in range(4)
+            }
+            | {
+                "E": Region(
+                    name="E",
+                    neighbors=["R0"],
+                    owner=None,
+                    resources=4,
+                    population=120,
+                    terrain_tags=["plains"],
+                    climate="temperate",
+                )
+            },
+            factions={"FactionA": Faction(name="FactionA", treasury=8)},
+        )
+        _seed_resources(world)
+        _set_homeland_doctrine(world, "FactionA", ["plains"])
+        world.factions["FactionA"].administrative_efficiency = 0.3
+
+        self.assertEqual(get_available_tracks("FactionA", world), (True, False))
+        self.assertLessEqual(len(choose_actions("FactionA", world)), 1)
 
 
 if __name__ == "__main__":

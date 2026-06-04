@@ -1,7 +1,7 @@
 import random
 
 from src.administration import refresh_administrative_state
-from src.agents import choose_action
+from src.agents import choose_action, choose_actions
 from src.actions import attack, develop, expand
 from src.calendar import (
     SEASONAL_TIME_STEP_YEARS,
@@ -175,6 +175,16 @@ def _resolve_faction_action(world, faction_name, *, verbose=True, selected_actio
     else:
         action_name, target_region_name = selected_action
 
+    _execute_single_action(
+        world,
+        faction_name,
+        action_name,
+        target_region_name,
+        verbose=verbose,
+    )
+
+
+def _execute_single_action(world, faction_name, action_name, target_region_name, *, verbose=True):
     if action_name == "expand":
         success = expand(faction_name, target_region_name, world)
         if verbose:
@@ -210,17 +220,33 @@ def _run_faction_action_phase(world, turn_order, *, verbose=True, action_provide
         refresh_administrative_state(world)
         refresh_military_state(world)
         refresh_faction_visibility(world, faction_name)
-        selected_action = (
-            action_provider(faction_name, world)
-            if action_provider is not None
-            else None
-        )
-        _resolve_faction_action(
-            world,
-            faction_name,
-            verbose=verbose,
-            selected_action=selected_action,
-        )
+        faction = world.factions[faction_name]
+        faction.military_track_used = False
+        faction.admin_track_used = False
+        if action_provider is not None:
+            selected_action = action_provider(faction_name, world)
+            _resolve_faction_action(
+                world,
+                faction_name,
+                verbose=verbose,
+                selected_action=selected_action,
+            )
+        else:
+            actions = choose_actions(faction_name, world)
+            if not actions and verbose:
+                print(f"{faction_name} skipped its turn")
+            for action_name, target_region_name in actions:
+                _execute_single_action(
+                    world,
+                    faction_name,
+                    action_name,
+                    target_region_name,
+                    verbose=verbose,
+                )
+                if action_name in {"expand", "attack"}:
+                    faction.military_track_used = True
+                elif action_name in {"develop", "invest"}:
+                    faction.admin_track_used = True
         refresh_faction_visibility(world, faction_name)
         refresh_administrative_state(world)
         refresh_military_state(world)

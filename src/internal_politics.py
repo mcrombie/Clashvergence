@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+from src.config import (
+    BLOC_ALIENATION_LOYALTY_THRESHOLD,
+    BLOC_COMPETITION_ALIENATION_PENALTY,
+    BLOC_COMPETITION_MAX_BIAS,
+    BLOC_COMPETITION_MIN_EFFECTIVE_POWER,
+)
 from src.models import EliteBloc, Event, Faction, Region, WorldState
 from src.region_state import get_region_core_status
 from src.resources import PRODUCED_GOOD_TOOLS, PRODUCED_GOOD_URBAN_SURPLUS
@@ -52,6 +58,31 @@ ELITE_BLOC_AGENDAS = {
     BLOC_TRIBAL_LINEAGES: "customary rights and kin authority",
     BLOC_GUILDS: "craft privileges and protected workshops",
     BLOC_URBAN_COMMONS: "food security, taxes, and civic stability",
+}
+
+BLOC_PREFERRED_TRACK = {
+    BLOC_MILITARY_ELITES: "military",
+    BLOC_NOBLES: "military",
+    BLOC_TRIBAL_LINEAGES: "military",
+    BLOC_MERCHANT_HOUSES: "admin",
+    BLOC_GUILDS: "admin",
+    BLOC_URBAN_COMMONS: "admin",
+    BLOC_PRIESTHOOD: "admin",
+    BLOC_PROVINCIAL_GOVERNORS: "admin",
+}
+
+BLOC_MILITARY_ATTACK_BIAS = {
+    BLOC_MILITARY_ELITES: 0.70,
+    BLOC_NOBLES: 0.35,
+    BLOC_TRIBAL_LINEAGES: 0.55,
+}
+
+BLOC_ADMIN_PROJECT_BIAS = {
+    BLOC_MERCHANT_HOUSES: "trade",
+    BLOC_GUILDS: "production",
+    BLOC_PRIESTHOOD: "religious",
+    BLOC_PROVINCIAL_GOVERNORS: "frontier",
+    BLOC_URBAN_COMMONS: "food",
 }
 
 ELITE_BLOC_EVENT_THRESHOLD = 0.68
@@ -446,6 +477,68 @@ def get_bloc(faction: Faction, bloc_type: str) -> EliteBloc | None:
         if bloc.bloc_type == bloc_type:
             return bloc
     return None
+
+
+def get_bloc_action_biases(faction: Faction) -> dict[str, float]:
+    """Return action utility nudges produced by elite-bloc competition."""
+    biases = {"attack": 0.0, "expand": 0.0, "develop": 0.0}
+
+    military_power = 0.0
+    admin_power = 0.0
+    attack_weight = 0.0
+    expand_weight = 0.0
+
+    for bloc in faction.elite_blocs:
+        effective_power = float(bloc.influence or 0.0) * float(bloc.loyalty or 0.0)
+        if effective_power < BLOC_COMPETITION_MIN_EFFECTIVE_POWER:
+            continue
+
+        preferred_track = BLOC_PREFERRED_TRACK.get(bloc.bloc_type)
+        if preferred_track == "military":
+            military_power += effective_power
+            attack_bias = BLOC_MILITARY_ATTACK_BIAS.get(bloc.bloc_type, 0.5)
+            attack_weight += effective_power * attack_bias
+            expand_weight += effective_power * (1.0 - attack_bias)
+        elif preferred_track == "admin":
+            admin_power += effective_power
+
+    total_power = military_power + admin_power
+    if total_power < BLOC_COMPETITION_MIN_EFFECTIVE_POWER:
+        return biases
+
+    military_share = military_power / total_power
+    admin_share = admin_power / total_power
+    if military_power > 0:
+        biases["attack"] = (
+            military_share
+            * (attack_weight / military_power)
+            * BLOC_COMPETITION_MAX_BIAS
+        )
+        biases["expand"] = (
+            military_share
+            * (expand_weight / military_power)
+            * BLOC_COMPETITION_MAX_BIAS
+        )
+    biases["develop"] = admin_share * BLOC_COMPETITION_MAX_BIAS
+
+    alienated = faction.alienated_elite_bloc
+    if alienated:
+        alienated_bloc = get_bloc(faction, alienated)
+        if (
+            alienated_bloc is not None
+            and float(alienated_bloc.loyalty or 0.0) < BLOC_ALIENATION_LOYALTY_THRESHOLD
+        ):
+            preferred_track = BLOC_PREFERRED_TRACK.get(alienated, "")
+            if preferred_track == "military":
+                biases["attack"] -= BLOC_COMPETITION_ALIENATION_PENALTY
+                biases["expand"] -= BLOC_COMPETITION_ALIENATION_PENALTY * 0.6
+            elif preferred_track == "admin":
+                biases["develop"] -= BLOC_COMPETITION_ALIENATION_PENALTY
+
+    return {
+        action_name: round(value, 4)
+        for action_name, value in biases.items()
+    }
 
 
 def _signed_support(bloc: EliteBloc | None) -> float:

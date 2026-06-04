@@ -507,6 +507,8 @@ class Faction:
     known_regions: list[str] = field(default_factory=list)
     visible_regions: list[str] = field(default_factory=list)
     known_factions: list[str] = field(default_factory=list)
+    military_track_used: bool = False
+    admin_track_used: bool = False
 
     def __post_init__(self):
         if self.starting_treasury == 0:

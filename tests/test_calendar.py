@@ -48,7 +48,7 @@ class SeasonalCadenceTests(unittest.TestCase):
     def test_slow_systems_resolve_once_per_annual_turn(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4, seed="calendar-cadence")
 
-        with patch("src.simulation.choose_action", return_value=("skip", None)), \
+        with patch("src.simulation.choose_actions", return_value=[]), \
             patch("src.simulation.update_religious_legitimacy") as religious_mock, \
             patch("src.simulation.resolve_dynastic_succession") as succession_mock, \
             patch("src.simulation.update_region_populations") as population_mock, \
@@ -68,7 +68,7 @@ class SeasonalCadenceTests(unittest.TestCase):
     def test_snapshots_and_event_format_include_calendar_labels(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4, seed="calendar-ui")
         world.regions["M"].terrain_tags = ["highland", "forest"]
-        with patch("src.simulation.choose_action", return_value=("skip", None)):
+        with patch("src.simulation.choose_actions", return_value=[]):
             for _ in range(4):
                 run_turn(world, randomize_order=False, verbose=False)
 

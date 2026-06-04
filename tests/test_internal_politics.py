@@ -3,11 +3,13 @@ import unittest
 from src.internal_politics import (
     BLOC_GUILDS,
     BLOC_MERCHANT_HOUSES,
+    BLOC_MILITARY_ELITES,
     BLOC_NOBLES,
     BLOC_PRIESTHOOD,
     BLOC_PROVINCIAL_GOVERNORS,
     BLOC_URBAN_COMMONS,
     get_bloc,
+    get_bloc_action_biases,
     get_faction_elite_effects,
     initialize_elite_blocs,
     update_elite_blocs,
@@ -113,6 +115,46 @@ class InternalPoliticsTests(unittest.TestCase):
 
         self.assertGreater(effects["claimant_pressure"], 0.0)
         self.assertGreater(effects["unrest_pressure"], 0.0)
+
+    def test_bloc_action_biases_follow_military_and_admin_votes(self):
+        faction = Faction(name="FactionA")
+        faction.elite_blocs = [
+            EliteBloc(
+                bloc_type=BLOC_MILITARY_ELITES,
+                name="FactionA Captains",
+                influence=0.8,
+                loyalty=0.9,
+            ),
+            EliteBloc(
+                bloc_type=BLOC_MERCHANT_HOUSES,
+                name="FactionA Merchants",
+                influence=0.4,
+                loyalty=0.8,
+            ),
+        ]
+
+        biases = get_bloc_action_biases(faction)
+
+        self.assertGreater(biases["attack"], biases["expand"])
+        self.assertGreater(biases["develop"], 0.0)
+
+    def test_alienated_admin_bloc_penalizes_development_bias(self):
+        faction = Faction(name="FactionA")
+        faction.elite_blocs = [
+            EliteBloc(
+                bloc_type=BLOC_MERCHANT_HOUSES,
+                name="FactionA Merchants",
+                influence=0.8,
+                loyalty=0.2,
+            )
+        ]
+        faction.alienated_elite_bloc = BLOC_MERCHANT_HOUSES
+
+        biases = get_bloc_action_biases(faction)
+        faction.alienated_elite_bloc = ""
+        unalienated_biases = get_bloc_action_biases(faction)
+
+        self.assertLess(biases["develop"], unalienated_biases["develop"])
 
     def test_loyal_guilds_boost_tools_output(self):
         workshop = Region(

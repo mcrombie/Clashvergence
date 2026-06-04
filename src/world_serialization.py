@@ -41,7 +41,7 @@ def serialize_world(world: WorldState) -> dict[str, Any]:
             for name, region in world.regions.items()
         },
         "factions": {
-            name: asdict(faction)
+            name: _serialize_faction(faction)
             for name, faction in world.factions.items()
         },
         "ethnicities": {
@@ -76,6 +76,13 @@ def serialize_world(world: WorldState) -> dict[str, Any]:
         "faction_arrivals": dict(getattr(world, "faction_arrivals", {})),
         "inactive_factions": list(getattr(world, "inactive_factions", [])),
     }
+
+
+def _serialize_faction(faction: Faction) -> dict[str, Any]:
+    data = asdict(faction)
+    data.pop("military_track_used", None)
+    data.pop("admin_track_used", None)
+    return data
 
 
 def deserialize_world(payload: dict[str, Any]) -> WorldState:

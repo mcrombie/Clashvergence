@@ -358,6 +358,78 @@ def build_system_activity(world):
     return activity
 
 
+def _track_size_bucket(region_count: int) -> str:
+    if region_count <= 3:
+        return "1-3"
+    if region_count <= 7:
+        return "4-7"
+    return "8+"
+
+
+def build_dual_track_observability(world):
+    qualifying_turns = 0
+    both_track_turns = 0
+    bias_total = 0.0
+    bias_samples = 0
+    military_action_count = 0
+    military_dominant_action_count = 0
+    size_buckets = {
+        bucket: {
+            "samples": 0,
+            "military_track_uses": 0,
+            "admin_track_uses": 0,
+        }
+        for bucket in ("1-3", "4-7", "8+")
+    }
+
+    for _turn, metrics in _iter_faction_metric_rows(world):
+        region_count = int(metrics.get("regions", 0) or 0)
+        military_used = bool(metrics.get("military_track_used", False))
+        admin_used = bool(metrics.get("admin_track_used", False))
+        bucket = _track_size_bucket(region_count)
+        size_buckets[bucket]["samples"] += 1
+        size_buckets[bucket]["military_track_uses"] += int(military_used)
+        size_buckets[bucket]["admin_track_uses"] += int(admin_used)
+
+        if metrics.get("dual_track_qualified", False):
+            qualifying_turns += 1
+            both_track_turns += int(metrics.get("dual_track_both_tracks_used", False))
+
+        bias_total += float(metrics.get("bloc_action_bias_abs", 0.0) or 0.0)
+        bias_samples += 1
+
+        row_military_actions = int(metrics.get("attacks", 0) or 0) + int(metrics.get("expansions", 0) or 0)
+        military_action_count += row_military_actions
+        if metrics.get("dominant_bloc_track") == "military":
+            military_dominant_action_count += row_military_actions
+
+    track_split_by_faction_size = {}
+    for bucket, values in size_buckets.items():
+        samples = values["samples"]
+        track_split_by_faction_size[bucket] = {
+            "samples": samples,
+            "military_track_rate": values["military_track_uses"] / samples if samples else 0.0,
+            "admin_track_rate": values["admin_track_uses"] / samples if samples else 0.0,
+        }
+
+    return {
+        "qualifying_turns": qualifying_turns,
+        "both_track_turns": both_track_turns,
+        "dual_track_activation_rate": both_track_turns / qualifying_turns if qualifying_turns else 0.0,
+        "bloc_competition_delta": bias_total / bias_samples if bias_samples else 0.0,
+        "bloc_competition_delta_sum": bias_total,
+        "bloc_competition_delta_samples": bias_samples,
+        "military_action_count": military_action_count,
+        "military_dominant_action_count": military_dominant_action_count,
+        "dominant_bloc_action_alignment": (
+            military_dominant_action_count / military_action_count
+            if military_action_count
+            else 0.0
+        ),
+        "track_split_by_faction_size": track_split_by_faction_size,
+    }
+
+
 def summarize_setting(map_name, num_turns, runs, num_factions):
     template_world = create_world(
         map_name=map_name,
@@ -415,6 +487,22 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
         }
         for system_name in SYSTEM_DEFINITIONS
     }
+    dual_track_totals = {
+        "qualifying_turns": 0,
+        "both_track_turns": 0,
+        "bloc_competition_delta_sum": 0.0,
+        "bloc_competition_delta_samples": 0,
+        "military_action_count": 0,
+        "military_dominant_action_count": 0,
+        "track_split_by_faction_size": {
+            bucket: {
+                "samples": 0,
+                "military_track_rate_numerator": 0.0,
+                "admin_track_rate_numerator": 0.0,
+            }
+            for bucket in ("1-3", "4-7", "8+")
+        },
+    }
 
     for _ in range(runs):
         world = create_world(
@@ -426,6 +514,7 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
         competition = analyze_competition_metrics(world)
         phase_counts = build_phase_action_counts(world)
         run_system_activity = build_system_activity(world)
+        run_dual_track = build_dual_track_observability(world)
 
         final_treasuries = {
             faction_name: faction.treasury
@@ -471,6 +560,19 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
             if activity["first_turn"] is not None:
                 system_activity[system_name]["first_turns"].append(activity["first_turn"])
 
+        dual_track_totals["qualifying_turns"] += run_dual_track["qualifying_turns"]
+        dual_track_totals["both_track_turns"] += run_dual_track["both_track_turns"]
+        dual_track_totals["bloc_competition_delta_sum"] += run_dual_track["bloc_competition_delta_sum"]
+        dual_track_totals["bloc_competition_delta_samples"] += run_dual_track["bloc_competition_delta_samples"]
+        dual_track_totals["military_action_count"] += run_dual_track["military_action_count"]
+        dual_track_totals["military_dominant_action_count"] += run_dual_track["military_dominant_action_count"]
+        for bucket, values in run_dual_track["track_split_by_faction_size"].items():
+            target = dual_track_totals["track_split_by_faction_size"][bucket]
+            samples = values["samples"]
+            target["samples"] += samples
+            target["military_track_rate_numerator"] += values["military_track_rate"] * samples
+            target["admin_track_rate_numerator"] += values["admin_track_rate"] * samples
+
         lead_changes.append(competition["lead_changes"])
         runaway_rates.append(1.0 if competition["runaway"]["detected"] else 0.0)
         if competition["runaway"]["start_turn"] is not None:
@@ -513,6 +615,22 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
         faction_name: shared_firsts[faction_name] / runs
         for faction_name in faction_names
     }
+    track_split_summary = {}
+    for bucket, values in dual_track_totals["track_split_by_faction_size"].items():
+        samples = values["samples"]
+        track_split_summary[bucket] = {
+            "samples": samples,
+            "military_track_rate": (
+                values["military_track_rate_numerator"] / samples
+                if samples
+                else 0.0
+            ),
+            "admin_track_rate": (
+                values["admin_track_rate_numerator"] / samples
+                if samples
+                else 0.0
+            ),
+        }
 
     return {
         "map_name": map_name,
@@ -596,6 +714,31 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
             }
             for system_name, values in system_activity.items()
         },
+        "dual_track_actions": {
+            "qualifying_turns": dual_track_totals["qualifying_turns"],
+            "both_track_turns": dual_track_totals["both_track_turns"],
+            "dual_track_activation_rate": (
+                dual_track_totals["both_track_turns"]
+                / dual_track_totals["qualifying_turns"]
+                if dual_track_totals["qualifying_turns"]
+                else 0.0
+            ),
+            "bloc_competition_delta": (
+                dual_track_totals["bloc_competition_delta_sum"]
+                / dual_track_totals["bloc_competition_delta_samples"]
+                if dual_track_totals["bloc_competition_delta_samples"]
+                else 0.0
+            ),
+            "military_action_count": dual_track_totals["military_action_count"],
+            "military_dominant_action_count": dual_track_totals["military_dominant_action_count"],
+            "dominant_bloc_action_alignment": (
+                dual_track_totals["military_dominant_action_count"]
+                / dual_track_totals["military_action_count"]
+                if dual_track_totals["military_action_count"]
+                else 0.0
+            ),
+            "track_split_by_faction_size": track_split_summary,
+        },
     }
 
 
@@ -607,11 +750,12 @@ def format_setting_report(result):
     pacing = result["pacing"]
     diplomacy = result["diplomacy"]
     system_activity = result["system_activity"]
+    dual_track = result.get("dual_track_actions", {})
 
     lines.append(f"Map: {result['map_name']}")
     lines.append(f"Turns: {result['num_turns']}")
     lines.append(f"Simulations: {result['runs']}")
-    lines.append("Decision Model: doctrine only")
+    lines.append("Decision Model: dual-track actions + bloc competition")
     lines.append("")
     lines.append("Outcome Balance")
     lines.append(
@@ -697,6 +841,29 @@ def format_setting_report(result):
     )
 
     lines.append("")
+    lines.append("Dual-Track Actions")
+    lines.append(
+        f"  Activation: {dual_track.get('dual_track_activation_rate', 0.0):.2%} "
+        f"({int(dual_track.get('both_track_turns', 0))}/"
+        f"{int(dual_track.get('qualifying_turns', 0))} qualifying faction-turns)"
+    )
+    lines.append(
+        f"  Avg bloc utility delta: {dual_track.get('bloc_competition_delta', 0.0):.4f} | "
+        f"Military-action dominant-bloc alignment: "
+        f"{dual_track.get('dominant_bloc_action_alignment', 0.0):.2%}"
+    )
+    track_split = dual_track.get("track_split_by_faction_size", {})
+    if track_split:
+        split_parts = []
+        for bucket in ("1-3", "4-7", "8+"):
+            values = track_split.get(bucket, {})
+            split_parts.append(
+                f"{bucket}: mil {values.get('military_track_rate', 0.0):.0%}/"
+                f"admin {values.get('admin_track_rate', 0.0):.0%}"
+            )
+        lines.append("  Track split by size: " + " | ".join(split_parts))
+
+    lines.append("")
     lines.append("System Activity")
     lines.append(
         f"{'System':<20} {'Status':<8} {'Active':>8} {'DeadRun':>8} "
@@ -745,7 +912,7 @@ def build_report(results, skipped_maps, seed):
     lines.append("Balance Dashboard Report")
     lines.append("")
     lines.append(f"Seed: {seed}")
-    lines.append("Legacy strategy bias: removed")
+    lines.append("Decision model: dual-track actions + bloc competition")
     lines.append("")
 
     for index, result in enumerate(results):

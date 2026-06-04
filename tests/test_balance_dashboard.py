@@ -1,6 +1,7 @@
 import unittest
 
 from experiments.experiment_balance_dashboard import (
+    build_dual_track_observability,
     build_phase_action_counts,
     build_system_activity,
     format_setting_report,
@@ -82,6 +83,58 @@ class BalanceDashboardObservationTests(unittest.TestCase):
         self.assertTrue(activity["succession"]["active"])
         self.assertTrue(activity["food_stress"]["active"])
         self.assertEqual(activity["trade_economy"]["first_turn"], 1)
+
+    def test_dual_track_observability_aggregates_metric_rows(self):
+        world = WorldState(
+            regions={},
+            factions={"FactionA": Faction(name="FactionA")},
+            metrics=[
+                {
+                    "turn": 1,
+                    "factions": {
+                        "FactionA": {
+                            "regions": 5,
+                            "attacks": 1,
+                            "expansions": 0,
+                            "military_track_used": True,
+                            "admin_track_used": True,
+                            "dual_track_qualified": True,
+                            "dual_track_both_tracks_used": True,
+                            "bloc_action_bias_abs": 0.08,
+                            "dominant_bloc_track": "military",
+                        }
+                    },
+                },
+                {
+                    "turn": 2,
+                    "factions": {
+                        "FactionA": {
+                            "regions": 2,
+                            "attacks": 0,
+                            "expansions": 0,
+                            "military_track_used": False,
+                            "admin_track_used": True,
+                            "dual_track_qualified": False,
+                            "dual_track_both_tracks_used": False,
+                            "bloc_action_bias_abs": 0.04,
+                            "dominant_bloc_track": "admin",
+                        }
+                    },
+                },
+            ],
+        )
+
+        observability = build_dual_track_observability(world)
+
+        self.assertEqual(observability["qualifying_turns"], 1)
+        self.assertEqual(observability["both_track_turns"], 1)
+        self.assertEqual(observability["dual_track_activation_rate"], 1.0)
+        self.assertAlmostEqual(observability["bloc_competition_delta"], 0.06)
+        self.assertEqual(observability["dominant_bloc_action_alignment"], 1.0)
+        self.assertEqual(
+            observability["track_split_by_faction_size"]["4-7"]["admin_track_rate"],
+            1.0,
+        )
 
     def test_setting_report_includes_system_activity_section(self):
         result = {
@@ -266,6 +319,7 @@ class BalanceDashboardObservationTests(unittest.TestCase):
         report = format_setting_report(result)
 
         self.assertIn("System Activity", report)
+        self.assertIn("Dual-Track Actions", report)
         self.assertIn("Expansion", report)
         self.assertIn("Dead or near-silent systems", report)
         self.assertIn("War", report)
