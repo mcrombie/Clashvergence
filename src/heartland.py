@@ -2903,6 +2903,25 @@ def _normalize_rebel_name_seed(value: str) -> str:
     return re.sub(r"\s+", " ", value or "").strip()
 
 
+DIRECTIONAL_REGION_PREFIX_PATTERN = re.compile(
+    r"^(?:"
+    r"north[-\s]+eastern|north[-\s]+western|south[-\s]+eastern|south[-\s]+western|"
+    r"north[-\s]+east|north[-\s]+west|south[-\s]+east|south[-\s]+west|"
+    r"northeastern|northwestern|southeastern|southwestern|"
+    r"northeast|northwest|southeast|southwest|"
+    r"northern|southern|eastern|western|"
+    r"north|south|east|west"
+    r")\s+",
+    re.IGNORECASE,
+)
+
+
+def _strip_directional_region_prefix(value: str) -> str:
+    normalized = _normalize_rebel_name_seed(value)
+    stripped = DIRECTIONAL_REGION_PREFIX_PATTERN.sub("", normalized, count=1).strip()
+    return stripped or normalized
+
+
 def _letters_only(value: str) -> str:
     return "".join(character for character in (value or "") if character.isalpha())
 
@@ -3185,7 +3204,7 @@ def _split_successor_ethnicity_in_regions(
 
 
 def _build_rebel_faction_name(world: WorldState, region: Region) -> str:
-    region_name = _get_authored_region_name(region) or region.ui_name
+    region_name = _get_rebel_region_name_root(region)
     base_name = _normalize_rebel_name_seed(f"{region_name} Rebels")
     candidate = base_name
     suffix = 2
@@ -3195,16 +3214,20 @@ def _build_rebel_faction_name(world: WorldState, region: Region) -> str:
     return candidate
 
 
+def _get_rebel_region_name_root(region: Region) -> str:
+    return _get_authored_region_name(region) or _strip_directional_region_prefix(region.ui_name)
+
+
 def _get_authored_region_name(region: Region) -> str | None:
     metadata = region.name_metadata if isinstance(region.name_metadata, dict) else {}
     authored_name = str(metadata.get("authored_name") or "").strip()
     if authored_name:
-        return _normalize_rebel_name_seed(authored_name)
+        return _strip_directional_region_prefix(authored_name)
 
     if metadata.get("source") in {"map_definition", "world_builder"} or metadata.get("authored") is True:
         candidate = region.display_name or region.founding_name or region.name
         if candidate:
-            return _normalize_rebel_name_seed(candidate)
+            return _strip_directional_region_prefix(candidate)
 
     return None
 
@@ -3435,7 +3458,7 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         generation_method = "civil_war_claimant"
     else:
         polity_tier, government_form = "state", "council"
-        culture_name = _get_authored_region_name(region) or _normalize_rebel_name_seed(region.ui_name)
+        culture_name = _get_rebel_region_name_root(region)
         generation_method = "rebel_secession"
     rebel_identity = FactionIdentity(
         internal_id=_next_dynamic_internal_id(world),

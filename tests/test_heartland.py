@@ -2077,6 +2077,33 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertEqual(rebel_faction.display_name, "Endevor")
         self.assertEqual(rebel_faction.culture_name, "Endevor")
 
+    def test_directional_authored_region_rebel_uses_place_name_without_direction(self):
+        for authored_region_name in ("North Lond", "South Lond"):
+            with self.subTest(authored_region_name=authored_region_name):
+                world = create_world(map_name="thirteen_region_ring", num_factions=4)
+                faction_name = next(iter(world.factions))
+                region = world.regions["M"]
+                region.display_name = authored_region_name
+                region.founding_name = authored_region_name
+                region.name_metadata = {
+                    "source": "map_definition",
+                    "authored_name": authored_region_name,
+                }
+
+                rebel_name, _region = self._spawn_rebel_from_region(world, faction_name)
+                rebel_faction = world.factions[rebel_name]
+                self.assertEqual(rebel_name, "Lond Rebels")
+                self.assertEqual(rebel_faction.display_name, "Lond Rebels")
+                self.assertEqual(rebel_faction.culture_name, "Lond")
+
+                rebel_faction.independence_score = REBEL_FULL_INDEPENDENCE_THRESHOLD - 0.2
+                update_rebel_faction_status(world)
+
+                self.assertEqual(world.events[-1].type, "rebel_independence")
+                self.assertEqual(world.events[-1].details["regional_successor_name"], "Lond")
+                self.assertEqual(rebel_faction.display_name, "Lond")
+                self.assertEqual(rebel_faction.culture_name, "Lond")
+
     def test_proto_civil_war_matures_into_rival_regime_with_successor_ethnicity(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
