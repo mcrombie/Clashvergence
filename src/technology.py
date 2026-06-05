@@ -23,6 +23,7 @@ TECH_ROAD_ADMINISTRATION = "road_administration"
 TECH_MARKET_ACCOUNTING = "market_accounting"
 TECH_ORGANIZED_LEVIES = "organized_levies"
 TECH_TEMPLE_RECORDKEEPING = "temple_recordkeeping"
+TECH_SEAFARING = "seafaring"
 
 
 @dataclass(frozen=True)
@@ -75,6 +76,12 @@ TECHNOLOGY_DEFINITIONS = {
         label="Temple Recordkeeping",
         category="institutions",
         description="Sacred archives, tribute lists, and ritual calendars.",
+    ),
+    TECH_SEAFARING: TechnologyDefinition(
+        key=TECH_SEAFARING,
+        label="Seafaring",
+        category="transport",
+        description="Boatbuilding, pilotage, harbor routines, and maritime supply.",
     ),
 }
 
@@ -279,6 +286,24 @@ def _resource_readiness(region: Region, technology_key: str) -> float:
             0.0,
             1.0,
         )
+    if technology_key == TECH_SEAFARING:
+        coastal_bonus = 0.28 if "coast" in region.terrain_tags else 0.0
+        sea_route_bonus = 0.16 if region.resource_route_mode == "sea" else 0.0
+        gateway_bonus = 0.22 if region.trade_gateway_role == "sea_gateway" else 0.0
+        return _clamp(
+            coastal_bonus
+            + sea_route_bonus
+            + gateway_bonus
+            + region.naval_base_level * 0.24
+            + region.market_level * 0.12
+            + region.storehouse_level * 0.06
+            + region.infrastructure_level * 0.05
+            + min(0.18, float(region.trade_foreign_flow or 0.0) * 0.035)
+            + min(0.14, float(region.trade_throughput or 0.0) * 0.01)
+            + region.resource_wild_endowments.get(RESOURCE_TIMBER, 0.0) * 0.08,
+            0.0,
+            1.0,
+        )
     return 0.0
 
 
@@ -292,6 +317,13 @@ def _intrinsic_seed(region: Region, technology_key: str) -> float:
         readiness += 0.1
     if technology_key == TECH_MARKET_ACCOUNTING and region.trade_gateway_role != "none":
         readiness += 0.08
+    if technology_key == TECH_SEAFARING:
+        if "coast" in region.terrain_tags:
+            readiness += 0.14
+        if region.resource_route_mode == "sea" or region.trade_gateway_role == "sea_gateway":
+            readiness += 0.1
+        if region.naval_base_level > 0:
+            readiness += min(0.08, region.naval_base_level * 0.04)
     return _clamp(readiness * 0.34, 0.0, 0.38)
 
 
@@ -426,6 +458,11 @@ def _trade_technology_pressure(
     if region.trade_route_parent in world.regions:
         parent = world.regions[region.trade_route_parent]
         pressure += parent.technology_adoption.get(technology_key, 0.0) * 0.012
+    if technology_key == TECH_SEAFARING:
+        if region.resource_route_mode == "sea":
+            pressure += 0.012
+        if region.trade_gateway_role == "sea_gateway":
+            pressure += 0.018
     return pressure
 
 
@@ -547,18 +584,35 @@ def apply_development_technology_experience(
         "expand_market": TECH_MARKET_ACCOUNTING,
         "build_storehouse": TECH_MARKET_ACCOUNTING,
         "expand_storehouse": TECH_MARKET_ACCOUNTING,
+        "build_naval_base": TECH_SEAFARING,
     }
     technology_key = project_technology_map.get(project_type)
-    if technology_key is None:
-        return
+    if technology_key is not None:
+        _apply_technology_experience(region, technology_key, presence_gain=0.08)
+
+    maritime_project = (
+        project_type in {"build_market", "expand_market", "build_storehouse", "expand_storehouse", "build_road_station", "improve_road"}
+        and ("coast" in region.terrain_tags or region.resource_route_mode == "sea" or region.trade_gateway_role == "sea_gateway")
+    )
+    if maritime_project:
+        _apply_technology_experience(region, TECH_SEAFARING, presence_gain=0.045, adoption_floor=0.018)
+
+
+def _apply_technology_experience(
+    region: Region,
+    technology_key: str,
+    *,
+    presence_gain: float,
+    adoption_floor: float = 0.025,
+) -> None:
     readiness = _resource_readiness(region, technology_key)
     region.technology_presence[technology_key] = round(
-        _clamp(region.technology_presence.get(technology_key, 0.0) + 0.08, 0.0, 1.0),
+        _clamp(region.technology_presence.get(technology_key, 0.0) + presence_gain, 0.0, 1.0),
         3,
     )
     region.technology_adoption[technology_key] = round(
         _clamp(
-            region.technology_adoption.get(technology_key, 0.0) + max(0.025, readiness * 0.06),
+            region.technology_adoption.get(technology_key, 0.0) + max(adoption_floor, readiness * 0.06),
             0.0,
             1.0,
         ),

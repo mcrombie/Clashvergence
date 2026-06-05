@@ -10,6 +10,7 @@ from src.internal_politics import (
 )
 from src.ideology import ALL_IDEOLOGIES, get_faction_ideology_summary
 from src.military import refresh_military_state
+from src.movement import get_faction_seafaring_level, get_maritime_reachable_region_names
 from src.region_state import get_region_core_status
 from src.technology import (
     ALL_TECHNOLOGIES,
@@ -19,6 +20,7 @@ from src.technology import (
     TECH_ORGANIZED_LEVIES,
     TECH_PASTORAL_BREEDING,
     TECH_ROAD_ADMINISTRATION,
+    TECH_SEAFARING,
     TECH_TEMPLE_RECORDKEEPING,
 )
 from src.urban import ALL_URBAN_SPECIALIZATIONS, URBAN_NONE
@@ -52,6 +54,8 @@ def build_turn_metrics(world, economy_snapshot=None):
         attacks = 0
         expansions = 0
         developments = 0
+        maritime_attacks = 0
+        maritime_expansions = 0
         homeland_regions = 0
         core_regions = 0
         frontier_regions = 0
@@ -95,8 +99,12 @@ def build_turn_metrics(world, economy_snapshot=None):
 
             if event.type == "attack":
                 attacks += 1
+                if event.details.get("maritime_operation"):
+                    maritime_attacks += 1
             elif event.type == "expand":
                 expansions += 1
+                if event.details.get("maritime_operation"):
+                    maritime_expansions += 1
             elif event.type in {"develop", "invest"}:
                 developments += 1
 
@@ -134,6 +142,16 @@ def build_turn_metrics(world, economy_snapshot=None):
             and float(faction.administrative_efficiency or 1.0) >= DUAL_TRACK_ADMIN_EFFICIENCY_THRESHOLD
         )
         dominant_bloc_track = BLOC_PREFERRED_TRACK.get(faction.strongest_elite_bloc, "")
+        maritime_expansion_reach = len(get_maritime_reachable_region_names(
+            world,
+            faction_name,
+            purpose="expand",
+        ))
+        maritime_attack_reach = len(get_maritime_reachable_region_names(
+            world,
+            faction_name,
+            purpose="attack",
+        ))
 
         faction_metrics[faction_name] = {
             "treasury": faction.treasury,
@@ -142,6 +160,11 @@ def build_turn_metrics(world, economy_snapshot=None):
             "total_surplus": round(total_surplus, 2),
             "attacks": attacks,
             "expansions": expansions,
+            "maritime_attacks": maritime_attacks,
+            "maritime_expansions": maritime_expansions,
+            "maritime_actions": maritime_attacks + maritime_expansions,
+            "maritime_expansion_reach": maritime_expansion_reach,
+            "maritime_attack_reach": maritime_attack_reach,
             "developments": developments,
             "investments": developments,
             "military_track_used": military_track_used,
@@ -277,6 +300,7 @@ def build_turn_metrics(world, economy_snapshot=None):
             "military_readiness": round(float(faction.military_readiness or 0.0), 3),
             "logistics_capacity": round(float(faction.logistics_capacity or 0.0), 3),
             "naval_power": round(float(faction.naval_power or 0.0), 3),
+            "seafaring_level": round(get_faction_seafaring_level(world, faction_name), 3),
             "force_projection": round(float(faction.force_projection or 0.0), 3),
             "military_tradition": round(float(faction.military_tradition or 0.0), 3),
             "military_reform_pressure": round(float(faction.military_reform_pressure or 0.0), 3),
@@ -354,6 +378,7 @@ def build_turn_metrics(world, economy_snapshot=None):
             "market_accounting": round(known_technologies.get(TECH_MARKET_ACCOUNTING, 0.0), 3),
             "organized_levies": round(known_technologies.get(TECH_ORGANIZED_LEVIES, 0.0), 3),
             "temple_recordkeeping": round(known_technologies.get(TECH_TEMPLE_RECORDKEEPING, 0.0), 3),
+            "seafaring": round(known_technologies.get(TECH_SEAFARING, 0.0), 3),
             "institutional_irrigation_methods": round(institutional_technologies.get(TECH_IRRIGATION_METHODS, 0.0), 3),
             "institutional_pastoral_breeding": round(institutional_technologies.get(TECH_PASTORAL_BREEDING, 0.0), 3),
             "institutional_copper_working": round(institutional_technologies.get(TECH_COPPER_WORKING, 0.0), 3),
@@ -361,6 +386,7 @@ def build_turn_metrics(world, economy_snapshot=None):
             "institutional_market_accounting": round(institutional_technologies.get(TECH_MARKET_ACCOUNTING, 0.0), 3),
             "institutional_organized_levies": round(institutional_technologies.get(TECH_ORGANIZED_LEVIES, 0.0), 3),
             "institutional_temple_recordkeeping": round(institutional_technologies.get(TECH_TEMPLE_RECORDKEEPING, 0.0), 3),
+            "institutional_seafaring": round(institutional_technologies.get(TECH_SEAFARING, 0.0), 3),
             **get_faction_diplomacy_summary(world, faction_name),
         }
 

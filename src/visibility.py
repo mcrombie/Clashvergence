@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from src.models import WorldState
+from src.movement import get_maritime_reachable_region_names
 
 
 def _normalize_faction_name_list(faction_names: list[str] | set[str] | tuple[str, ...], world: WorldState) -> list[str]:
@@ -129,6 +130,14 @@ def refresh_faction_visibility(world: WorldState, faction_name: str) -> list[str
     visible_regions = get_faction_owned_regions(world, faction_name)
     for region_name in tuple(visible_regions):
         visible_regions.update(world.regions[region_name].neighbors)
+    visible_regions.update(
+        get_maritime_reachable_region_names(
+            world,
+            faction_name,
+            purpose="contact",
+            prefer_land=False,
+        )
+    )
 
     faction.visible_regions = _normalize_region_name_list(visible_regions, world)
     reveal_regions_for_faction(world, faction_name, faction.visible_regions)

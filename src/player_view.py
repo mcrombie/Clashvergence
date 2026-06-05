@@ -282,6 +282,7 @@ def _serialize_observer_faction(
             _metric(metrics, "military_readiness", faction.military_readiness),
             3,
         ),
+        "naval_power": _round_float(_metric(metrics, "naval_power", faction.naval_power), 3),
         "army_quality": _round_float(_metric(metrics, "army_quality", faction.army_quality), 3),
         "standing_forces": _round_float(
             _metric(metrics, "standing_forces", faction.standing_forces),
@@ -299,6 +300,9 @@ def _serialize_observer_faction(
             _metric(metrics, "average_institutional_technology", 0.0),
             3,
         ),
+        "seafaring": _round_float(_metric(metrics, "seafaring_level", 0.0), 3),
+        "maritime_expansion_reach": int(_metric(metrics, "maritime_expansion_reach", 0) or 0),
+        "maritime_attack_reach": int(_metric(metrics, "maritime_attack_reach", 0) or 0),
         "ruler_name": _metric(metrics, "ruler_name", faction.succession.ruler_name),
         "legitimacy": _round_float(_metric(metrics, "legitimacy", faction.succession.legitimacy), 3),
         "top_ally": _metric(metrics, "top_ally", None),

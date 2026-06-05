@@ -13,6 +13,10 @@ from src.config import (
     ATTACK_SUCCESS_STRENGTH_FACTOR,
     DIPLOMACY_ETHNIC_CLAIM_ATTACK_BONUS,
     EXPANSION_COST,
+    MARITIME_ATTACK_SCORE_PENALTY,
+    MARITIME_ATTACK_STRENGTH_PENALTY,
+    MARITIME_EXPANSION_POPULATION_TRANSFER_FACTOR,
+    MARITIME_EXPANSION_SCORE_PENALTY,
     MIN_TREASURY_CONCENTRATION,
     POPULATION_ATTACK_FAILURE_LOSS,
     POPULATION_ATTACK_SUCCESS_LOSS,
@@ -54,6 +58,11 @@ from src.military import (
     get_military_project_score_options,
     refresh_military_state,
 )
+from src.movement import (
+    get_maritime_reachable_region_names,
+    get_maritime_route,
+    has_land_connection,
+)
 from src.population import (
     apply_region_population_loss,
     transfer_region_population,
@@ -87,6 +96,7 @@ from src.terrain import (
 from src.technology import (
     TECH_COPPER_WORKING,
     TECH_ORGANIZED_LEVIES,
+    TECH_SEAFARING,
     apply_development_technology_experience,
     get_faction_institutional_technology,
     get_region_institutional_technology,
@@ -122,6 +132,16 @@ def get_expandable_regions(faction_name, world):
             if neighbor.owner is None:
                 expandable_regions.add(neighbor_name)
 
+    for region_name in get_maritime_reachable_region_names(
+        world,
+        faction_name,
+        purpose="expand",
+    ):
+        if not faction_knows_region(world, faction_name, region_name):
+            continue
+        if world.regions[region_name].owner is None:
+            expandable_regions.add(region_name)
+
     return sorted(expandable_regions)
 
 
@@ -145,6 +165,22 @@ def get_attackable_regions(faction_name, world):
                 not in {"alliance", "truce"}
             ):
                 attackable_regions.add(neighbor_name)
+
+    for region_name in get_maritime_reachable_region_names(
+        world,
+        faction_name,
+        purpose="attack",
+    ):
+        if not faction_knows_region(world, faction_name, region_name):
+            continue
+        neighbor = world.regions[region_name]
+        if (
+            neighbor.owner is not None
+            and neighbor.owner != faction_name
+            and get_relationship_status(world, faction_name, neighbor.owner)
+            not in {"alliance", "truce"}
+        ):
+            attackable_regions.add(region_name)
 
     return sorted(attackable_regions)
 
@@ -899,11 +935,23 @@ def get_attack_target_score_components(region_name, faction_name, world):
     defender_deployable_treasury = int(
         round(defender_faction_state.treasury * defender_treasury_multiplier)
     )
-    staging_regions = [
+    land_staging_regions = [
         world.regions[neighbor_name]
         for neighbor_name in region.neighbors
         if world.regions[neighbor_name].owner == faction_name
     ]
+    maritime_route = None
+    staging_regions = list(land_staging_regions)
+    if not land_staging_regions:
+        maritime_route = get_maritime_route(
+            world,
+            faction_name,
+            region_name,
+            purpose="attack",
+        )
+        source_region_name = str(maritime_route.get("source_region")) if maritime_route else None
+        if source_region_name in world.regions:
+            staging_regions.append(world.regions[source_region_name])
     staging_resources = max(
         (_get_region_strategic_value(staging_region, world) for staging_region in staging_regions),
         default=0.0,
@@ -930,6 +978,19 @@ def get_attack_target_score_components(region_name, faction_name, world):
         region,
         staging_regions=staging_regions,
     )
+    maritime_attack_penalty = 0
+    if maritime_route is not None:
+        naval_offset = min(2.0, float(military_attack.get("attacker_naval_power", 0.0) or 0.0) * 0.12)
+        threshold_gap = max(
+            0.0,
+            0.72 - float(maritime_route.get("seafaring_level", 0.0) or 0.0),
+        )
+        maritime_attack_penalty = int(round(max(
+            1.0,
+            MARITIME_ATTACK_STRENGTH_PENALTY
+            + threshold_gap * 4.0
+            - naval_offset,
+        )))
     attacker_strength = (
         attacker_deployable_treasury
         + staging_projection
@@ -940,6 +1001,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         get_faction_institutional_technology(attacker_faction, TECH_ORGANIZED_LEVIES) * 4
         + get_faction_institutional_technology(attacker_faction, TECH_COPPER_WORKING) * 2
     ))
+    attacker_strength -= maritime_attack_penalty
     rebel_reclaim_bonus = get_rebel_reclaim_bonus(
         faction_name,
         defender_name,
@@ -1049,6 +1111,12 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + int(round(float(military_attack["military_attack_bonus"]) * 1.2))
         - int(round(float(military_defense["fortification_defense_bonus"]) * 0.55))
         - int(round(float(military_attack["supply_risk"]) * 7.0))
+        - (
+            MARITIME_ATTACK_SCORE_PENALTY
+            + int(round(maritime_attack_penalty * 1.5))
+            if maritime_route is not None
+            else 0
+        )
     )
 
     return {
@@ -1063,6 +1131,19 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "defender_deployable_treasury": defender_deployable_treasury,
         "staging_resources": staging_resources,
         "staging_projection": staging_projection,
+        "connection_mode": "sea" if maritime_route is not None else "land",
+        "maritime_operation": maritime_route is not None,
+        "maritime_route_source": (
+            str(maritime_route.get("source_region"))
+            if maritime_route is not None
+            else None
+        ),
+        "seafaring_level": (
+            round(float(maritime_route.get("seafaring_level", 0.0)), 3)
+            if maritime_route is not None
+            else round(get_faction_institutional_technology(attacker_faction, TECH_SEAFARING), 3)
+        ),
+        "maritime_attack_penalty": maritime_attack_penalty,
         "attacker_strength": attacker_strength,
         "defender_strength": defender_strength,
         **military_attack,
@@ -1126,6 +1207,29 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         if neighbor.owner is None:
             unclaimed_neighbors += 1
 
+    land_connection = (
+        has_land_connection(world, faction_name, region_name)
+        if faction_name is not None
+        else True
+    )
+    maritime_route = (
+        get_maritime_route(
+            world,
+            faction_name,
+            region_name,
+            purpose="expand",
+        )
+        if faction_name is not None and not land_connection
+        else None
+    )
+    maritime_modifier = 0.0
+    if maritime_route is not None:
+        maritime_modifier -= MARITIME_EXPANSION_SCORE_PENALTY
+        if region.trade_gateway_role == "sea_gateway" or region.resource_route_mode == "sea":
+            maritime_modifier += 0.8
+        if "coast" in region.terrain_tags:
+            maritime_modifier += 0.4
+
     resource_need_bonus = (
         _get_region_resource_interest(region, faction_name, world)
         if faction_name is not None
@@ -1142,6 +1246,7 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         + (doctrine_alignment["expansion_modifier"] if doctrine_alignment is not None else 0)
         + (doctrine_alignment["economic_modifier"] if doctrine_alignment is not None else 0)
         + resource_need_bonus
+        + maritime_modifier
     )
 
     return {
@@ -1170,6 +1275,19 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         ),
         "core_status": region_core_status,
         "resource_need_bonus": resource_need_bonus,
+        "connection_mode": "sea" if maritime_route is not None else "land",
+        "maritime_operation": maritime_route is not None,
+        "maritime_route_source": (
+            str(maritime_route.get("source_region"))
+            if maritime_route is not None
+            else None
+        ),
+        "seafaring_level": (
+            round(float(maritime_route.get("seafaring_level", 0.0)), 3)
+            if maritime_route is not None
+            else 0.0
+        ),
+        "maritime_expansion_modifier": round(maritime_modifier, 2),
         "score": score,
     }
 
@@ -1178,6 +1296,9 @@ def get_expand_event_tags(score_components):
     """Returns interpretation tags for an expansion event."""
     tags = ["expansion", "territory_gain"]
 
+    if score_components.get("maritime_operation"):
+        tags.append("maritime")
+        tags.append("sea_expansion")
     if score_components["score"] >= 13:
         tags.append("high_value")
     if score_components["unclaimed_neighbors"] >= 2:
@@ -1264,6 +1385,8 @@ def has_unique_lead(world, faction_name):
 
 def get_expand_strategic_role(score_components, expand_tags):
     """Returns a simple interpreted strategic role for an expansion."""
+    if "sea_expansion" in expand_tags:
+        return "maritime_frontier"
     if "pivotal" in expand_tags:
         return "junction"
     if "frontier" in expand_tags:
@@ -1305,6 +1428,8 @@ def get_momentum_effect(rank_change, expand_tags, importance_tier, future_expans
 
 def get_summary_reason(score_components, strategic_role, importance_tier):
     """Returns a one-line reason for why the target mattered."""
+    if strategic_role == "maritime_frontier":
+        return "it opened a reachable coastal foothold across the water"
     if strategic_role == "junction":
         return "it offered strong connectivity and multiple follow-up routes"
     if strategic_role == "frontier":
@@ -1322,6 +1447,19 @@ def _choose_expansion_population_source(faction_name, target_region_name, world)
         for neighbor_name in world.regions[target_region_name].neighbors
         if world.regions[neighbor_name].owner == faction_name
     ]
+    maritime_route = get_maritime_route(
+        world,
+        faction_name,
+        target_region_name,
+        purpose="expand",
+    )
+    source_region_name = (
+        str(maritime_route.get("source_region"))
+        if maritime_route is not None
+        else None
+    )
+    if not candidate_regions and source_region_name in world.regions:
+        candidate_regions.append(world.regions[source_region_name])
     if not candidate_regions:
         return None
     return max(
@@ -1369,14 +1507,20 @@ def expand(faction_name, target_region_name, world):
         if population_source is not None
         else None
     )
+    maritime_expansion = bool(score_components.get("maritime_operation"))
     target_population_before = world.regions[target_region_name].population
     faction.treasury -= EXPANSION_COST
     handle_region_owner_change(world.regions[target_region_name], faction_name)
     transferred_population = 0
     if population_source is not None and population_source.population > 0:
+        transfer_factor = (
+            MARITIME_EXPANSION_POPULATION_TRANSFER_FACTOR
+            if maritime_expansion
+            else 1.0
+        )
         transferred_population = max(
-            POPULATION_EXPANSION_TRANSFER_MIN,
-            int(round(population_source.population * POPULATION_EXPANSION_TRANSFER_RATIO)),
+            max(8, int(round(POPULATION_EXPANSION_TRANSFER_MIN * transfer_factor))),
+            int(round(population_source.population * POPULATION_EXPANSION_TRANSFER_RATIO * transfer_factor)),
         )
         transferred_population = min(transferred_population, population_source.population)
         transferred_population = transfer_region_population(
@@ -1435,6 +1579,11 @@ def expand(faction_name, target_region_name, world):
             "doctrine_economic_modifier": score_components["doctrine_economic_modifier"],
             "terrain_affinity": score_components["terrain_affinity"],
             "core_status": score_components["core_status"],
+            "connection_mode": score_components.get("connection_mode", "land"),
+            "maritime_operation": maritime_expansion,
+            "maritime_route_source": score_components.get("maritime_route_source"),
+            "seafaring_level": score_components.get("seafaring_level", 0.0),
+            "maritime_expansion_modifier": score_components.get("maritime_expansion_modifier", 0.0),
             "region_display_name": region_display_name,
             "population_source_region": source_region_name,
             "population_source_before": source_population_before,
@@ -1656,6 +1805,11 @@ def attack(faction_name, target_region_name, world):
             "foreign_gateway_bonus": score_components["foreign_gateway_bonus"],
             "active_war_bonus": score_components.get("active_war_bonus", 0),
             "active_war_objective": score_components.get("active_war_objective"),
+            "connection_mode": score_components.get("connection_mode", "land"),
+            "maritime_operation": score_components.get("maritime_operation", False),
+            "maritime_route_source": score_components.get("maritime_route_source"),
+            "seafaring_level": score_components.get("seafaring_level", 0.0),
+            "maritime_attack_penalty": score_components.get("maritime_attack_penalty", 0),
             "military_attack_bonus": score_components.get("military_attack_bonus", 0.0),
             "military_defense_bonus": score_components.get("military_defense_bonus", 0.0),
             "attacker_army_quality": score_components.get("attacker_army_quality", 0.0),
@@ -1709,6 +1863,7 @@ def attack(faction_name, target_region_name, world):
             "success" if succeeded else "failure",
             *(["trade_warfare"] if trade_warfare_effect["trade_warfare_hit"] else []),
             *(["blockade"] if trade_warfare_effect["port_blockaded"] else []),
+            *(["maritime"] if score_components.get("maritime_operation", False) else []),
             *(["logistics"] if float(score_components.get("logistics_modifier", 1.0) or 1.0) >= 1.05 else []),
             *(["fortification"] if float(score_components.get("fortification_defense_bonus", 0.0) or 0.0) > 0 else []),
             *(["naval"] if score_components.get("naval_operation", False) else []),

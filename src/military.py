@@ -11,6 +11,7 @@ from src.technology import (
     TECH_COPPER_WORKING,
     TECH_ORGANIZED_LEVIES,
     TECH_ROAD_ADMINISTRATION,
+    TECH_SEAFARING,
     get_faction_institutional_technology,
     get_region_institutional_technology,
 )
@@ -133,6 +134,7 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
         levy_tech = get_faction_institutional_technology(faction, TECH_ORGANIZED_LEVIES)
         copper_tech = get_faction_institutional_technology(faction, TECH_COPPER_WORKING)
         road_tech = get_faction_institutional_technology(faction, TECH_ROAD_ADMINISTRATION)
+        seafaring_tech = get_faction_institutional_technology(faction, TECH_SEAFARING)
         food_shortage = float((faction.resource_shortages or {}).get(CAPACITY_FOOD_SECURITY, 0.0) or 0.0)
         mobility_shortage = float((faction.resource_shortages or {}).get(CAPACITY_MOBILITY, 0.0) or 0.0)
         metal_shortage = float((faction.resource_shortages or {}).get(CAPACITY_METAL, 0.0) or 0.0)
@@ -178,7 +180,12 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
             naval_base_total * 2.2
             + coastal_regions * 0.45
             + trade_port_value * 0.16
-            + road_tech * coastal_regions * 0.18,
+            + road_tech * coastal_regions * 0.18
+            + seafaring_tech * (
+                coastal_regions * 0.7
+                + naval_base_total * 0.9
+                + trade_port_value * 0.08
+            ),
         )
         military_tradition = _clamp(
             float(faction.military_tradition or 0.0)
