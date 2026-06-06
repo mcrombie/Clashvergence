@@ -159,7 +159,7 @@ def _get_diplomacy_attack_modifier(attack_components):
 
 def _score_expandable_regions(faction_name, expandable_regions, world):
     if not expandable_regions:
-        return (0.0, None)
+        return (0.0, None, None)
     best_region = max(
         expandable_regions,
         key=lambda region_name: (
@@ -167,9 +167,15 @@ def _score_expandable_regions(faction_name, expandable_regions, world):
             region_name,
         ),
     )
-    return (
-        score_expand_target_for_faction(best_region, faction_name, world),
+    components = get_expand_target_score_components(
         best_region,
+        world,
+        faction_name=faction_name,
+    )
+    return (
+        components["score"],
+        best_region,
+        components,
     )
 
 
@@ -295,6 +301,7 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
     best_attack_components = None
     best_expand_target = None
     best_expand_score = 0
+    best_expand_components = None
     best_develop_target = None
     best_develop_components = None
     action_utilities = {}
@@ -307,7 +314,7 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
         )
 
     if can_expand:
-        best_expand_score, best_expand_target = _score_expandable_regions(
+        best_expand_score, best_expand_target, best_expand_components = _score_expandable_regions(
             faction_name,
             expandable_regions,
             world,
@@ -320,6 +327,7 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
         best_expand_score=best_expand_score,
     )
 
+    acute_development_need = 0.0
     if can_develop:
         best_develop_score, best_develop_target, best_develop_components = _score_developable_regions(
             faction_name,
@@ -385,10 +393,62 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
             "expand": best_expand_target,
             "develop": best_develop_target,
         },
+        "components": {
+            "attack": best_attack_components or {},
+            "expand": best_expand_components or {},
+            "develop": best_develop_components or {},
+        },
+        "pressures": {
+            "frontier_pressure": frontier_pressure,
+            "acute_development_need": acute_development_need,
+        },
+        "bloc_biases": biases,
         "can_attack": can_attack,
         "can_expand": can_expand,
         "can_develop": can_develop,
     }
+
+
+def _select_single_action(evaluation):
+    action_utilities = evaluation["utilities"]
+    targets = evaluation["targets"]
+
+    if action_utilities:
+        best_action = max(
+            action_utilities,
+            key=lambda action_name: (action_utilities[action_name], action_name),
+        )
+        return (best_action, targets[best_action])
+
+    if evaluation["can_expand"]:
+        return ("expand", targets["expand"])
+    if evaluation["can_develop"]:
+        return ("develop", targets["develop"])
+    if evaluation["can_attack"]:
+        return ("attack", targets["attack"])
+
+    return (None, None)
+
+
+def _select_dual_track_actions(evaluation):
+    military_utilities = {
+        action_name: evaluation["utilities"][action_name]
+        for action_name in ("attack", "expand")
+        if action_name in evaluation["utilities"]
+    }
+    actions = []
+    if military_utilities:
+        military_action = max(
+            military_utilities,
+            key=lambda action_name: (military_utilities[action_name], action_name),
+        )
+        actions.append((military_action, evaluation["targets"][military_action]))
+
+    develop_utility = evaluation["utilities"].get("develop")
+    if develop_utility is not None and develop_utility >= 0.10:
+        actions.append(("develop", evaluation["targets"]["develop"]))
+
+    return actions
 
 def score_expand_target(region_name, world):
     """Returns a numeric score representing the strategic value of expanding into a region."""
@@ -463,24 +523,7 @@ def choose_action(faction_name, world):
         world,
         bloc_biases=get_bloc_action_biases(faction),
     )
-    action_utilities = evaluation["utilities"]
-    targets = evaluation["targets"]
-
-    if action_utilities:
-        best_action = max(
-            action_utilities,
-            key=lambda action_name: (action_utilities[action_name], action_name),
-        )
-        return (best_action, targets[best_action])
-
-    if evaluation["can_expand"]:
-        return ("expand", targets["expand"])
-    if evaluation["can_develop"]:
-        return ("develop", targets["develop"])
-    if evaluation["can_attack"]:
-        return ("attack", targets["attack"])
-
-    return (None, None)
+    return _select_single_action(evaluation)
 
 
 def get_available_tracks(faction_name, world):
@@ -539,7 +582,12 @@ def choose_actions(faction_name, world):
     )
 
     if not is_dual:
-        action_name, target_region_name = choose_action(faction_name, world)
+        evaluation = _evaluate_action_utilities(
+            faction_name,
+            world,
+            bloc_biases=get_bloc_action_biases(faction),
+        )
+        action_name, target_region_name = _select_single_action(evaluation)
         return (
             [(action_name, target_region_name)]
             if action_name is not None and action_name != "skip"
@@ -547,25 +595,87 @@ def choose_actions(faction_name, world):
         )
 
     bloc_biases = get_bloc_action_biases(faction)
-    actions = []
-    military_action = _choose_military_action(
+    evaluation = _evaluate_action_utilities(
         faction_name,
         world,
         bloc_biases=bloc_biases,
     )
-    if military_action[0] is not None:
-        actions.append(military_action)
+    return _select_dual_track_actions(evaluation)
 
-    admin_action = _choose_admin_action(
+
+def evaluate_action_diagnostics(faction_name, world):
+    """Return dashboard-only action utility and candidate detail for one faction-turn."""
+    faction = world.factions[faction_name]
+    owned_count = _get_owned_region_count(faction_name, world)
+    military_available, admin_available = get_available_tracks(faction_name, world)
+    is_dual = (
+        military_available
+        and admin_available
+        and not faction.proto_state
+        and owned_count >= DUAL_TRACK_MIN_REGIONS
+    )
+    bloc_biases = get_bloc_action_biases(faction)
+    evaluation = _evaluate_action_utilities(
         faction_name,
         world,
         bloc_biases=bloc_biases,
-        minimum_utility=0.10,
     )
-    if admin_action[0] is not None:
-        actions.append(admin_action)
 
-    return actions
+    if is_dual:
+        selected_actions = _select_dual_track_actions(evaluation)
+    else:
+        action_name, target_region_name = _select_single_action(evaluation)
+        selected_actions = (
+            [(action_name, target_region_name)]
+            if action_name is not None and action_name != "skip"
+            else []
+        )
+
+    dominant_admin_agenda = _get_dominant_admin_agenda(faction)
+    return {
+        "turn": world.turn + 1,
+        "faction": faction_name,
+        "regions": owned_count,
+        "dual_track_qualified": bool(is_dual),
+        "military_track_available": bool(military_available),
+        "admin_track_available": bool(admin_available),
+        "selected_actions": [
+            {
+                "action": action_name,
+                "target": target_region_name,
+            }
+            for action_name, target_region_name in selected_actions
+        ],
+        "utilities": {
+            action_name: round(float(value), 4)
+            for action_name, value in evaluation["utilities"].items()
+        },
+        "targets": dict(evaluation["targets"]),
+        "components": evaluation["components"],
+        "pressures": {
+            key: round(float(value), 4)
+            for key, value in evaluation["pressures"].items()
+        },
+        "bloc_biases": {
+            action_name: round(float(value), 4)
+            for action_name, value in evaluation["bloc_biases"].items()
+        },
+        "dominant_admin_agenda": dominant_admin_agenda,
+        "resource_shortages": {
+            CAPACITY_FOOD_SECURITY: round(
+                float(faction.resource_shortages.get(CAPACITY_FOOD_SECURITY, 0.0) or 0.0),
+                4,
+            ),
+            CAPACITY_MOBILITY: round(
+                float(faction.resource_shortages.get(CAPACITY_MOBILITY, 0.0) or 0.0),
+                4,
+            ),
+            CAPACITY_METAL: round(
+                float(faction.resource_shortages.get(CAPACITY_METAL, 0.0) or 0.0),
+                4,
+            ),
+        },
+    }
 
 
 def choose_invest_target(faction_name, world):

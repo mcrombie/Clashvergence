@@ -313,6 +313,10 @@ class Region:
     administrative_distance: float = 0.0
     administrative_autonomy: float = 0.0
     administrative_tax_capture: float = 1.0
+    capital_connection_mode: str = "none"
+    capital_connection_depth: int | None = None
+    capital_disconnection_turns: int = 0
+    capital_fragment_penalty: float = 0.0
     population: int = 0
     ethnic_composition: dict[str, int] = field(default_factory=dict)
     religious_composition: dict[str, int] = field(default_factory=dict)
@@ -495,6 +499,10 @@ class Faction:
     administrative_overextension: float = 0.0
     administrative_overextension_penalty: float = 0.0
     capital_region: str | None = None
+    capital_connected_regions: int = 0
+    capital_isolated_regions: int = 0
+    capital_fragment_count: int = 0
+    capital_connectivity_penalty: float = 0.0
     urban_network_value: float = 0.0
     urban_specialization_counts: dict[str, int] = field(default_factory=dict)
     elite_blocs: list[EliteBloc] = field(default_factory=list)

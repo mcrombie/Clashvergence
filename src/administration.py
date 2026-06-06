@@ -5,10 +5,16 @@ from src.config import (
     ADMIN_BURDEN_CORE,
     ADMIN_BURDEN_FRONTIER,
     ADMIN_BURDEN_HOMELAND,
+    ADMIN_CAPITAL_ISOLATION_CAPACITY_FACTOR,
+    ADMIN_CAPITAL_ISOLATION_INITIAL_PENALTY,
+    ADMIN_CAPITAL_ISOLATION_MARITIME_MITIGATION_FACTOR,
+    ADMIN_CAPITAL_ISOLATION_MAX_PENALTY,
+    ADMIN_CAPITAL_ISOLATION_TURN_PENALTY,
     ADMIN_DISTANCE_PER_ROUTE_DEPTH,
     ADMIN_FOREIGN_BORDER_DISTANCE,
     ADMIN_HOSTILE_BORDER_DISTANCE,
     ADMIN_LEGITIMACY_WEIGHT,
+    ADMIN_MONARCHY_SPLIT_REALM_FACTOR,
     ADMIN_MOBILITY_CAPACITY_FACTOR,
     ADMIN_OVEREXTENSION_PENALTY_FACTOR,
     ADMIN_POPULATION_BURDEN_FACTOR,
@@ -31,6 +37,11 @@ from src.governance import (
 )
 from src.internal_politics import get_faction_elite_effects
 from src.models import Region, WorldState
+from src.movement import (
+    get_faction_seafaring_level,
+    get_maritime_threshold,
+    region_supports_maritime_access,
+)
 from src.region_state import get_region_core_status
 from src.technology import (
     TECH_ROAD_ADMINISTRATION,
@@ -39,7 +50,210 @@ from src.technology import (
     get_region_institutional_technology,
     get_region_technology_adoption,
 )
-from src.urban import get_faction_urban_capacity_bonus, get_region_urban_effects
+from src.urban import (
+    choose_faction_capital,
+    get_faction_urban_capacity_bonus,
+    get_region_urban_effects,
+)
+
+
+ADMIN_MARITIME_CONNECTION_THRESHOLD = get_maritime_threshold("contact")
+
+
+def _owned_region_names(world: WorldState, faction_name: str) -> list[str]:
+    return sorted(
+        region.name
+        for region in world.regions.values()
+        if region.owner == faction_name
+    )
+
+
+def _ensure_faction_capital(world: WorldState, faction_name: str) -> str | None:
+    faction = world.factions[faction_name]
+    current_capital = faction.capital_region
+    if (
+        current_capital in world.regions
+        and world.regions[current_capital].owner == faction_name
+    ):
+        return current_capital
+
+    faction.capital_region = choose_faction_capital(world, faction_name)
+    return faction.capital_region
+
+
+def _split_realm_government_factor(world: WorldState, faction_name: str) -> float:
+    faction = world.factions[faction_name]
+    if faction.government_form == "monarchy":
+        return ADMIN_MONARCHY_SPLIT_REALM_FACTOR
+    return 1.0
+
+
+def _build_capital_connection_adjacency(
+    world: WorldState,
+    faction_name: str,
+) -> dict[str, list[tuple[str, str]]]:
+    owned_names = set(_owned_region_names(world, faction_name))
+    adjacency = {region_name: [] for region_name in owned_names}
+    if not owned_names:
+        return adjacency
+
+    for region_name in owned_names:
+        region = world.regions[region_name]
+        for neighbor_name in region.neighbors:
+            neighbor = world.regions.get(neighbor_name)
+            if neighbor is not None and neighbor.owner == faction_name:
+                adjacency[region_name].append((neighbor_name, "land"))
+
+    seafaring_level = get_faction_seafaring_level(world, faction_name)
+    if seafaring_level < ADMIN_MARITIME_CONNECTION_THRESHOLD:
+        return adjacency
+
+    for first_name, second_name in world.sea_links:
+        if first_name not in owned_names or second_name not in owned_names:
+            continue
+        first = world.regions[first_name]
+        second = world.regions[second_name]
+        if not (
+            region_supports_maritime_access(first)
+            and region_supports_maritime_access(second)
+        ):
+            continue
+        adjacency[first_name].append((second_name, "sea"))
+        adjacency[second_name].append((first_name, "sea"))
+
+    return adjacency
+
+
+def _walk_capital_connections(
+    adjacency: dict[str, list[tuple[str, str]]],
+    capital_region_name: str | None,
+) -> dict[str, dict[str, int | str | bool | None]]:
+    connection = {
+        region_name: {
+            "connected": False,
+            "mode": "isolated",
+            "depth": None,
+        }
+        for region_name in adjacency
+    }
+    if capital_region_name not in adjacency:
+        return connection
+
+    connection[capital_region_name] = {
+        "connected": True,
+        "mode": "capital",
+        "depth": 0,
+    }
+    queue = [capital_region_name]
+    while queue:
+        current_name = queue.pop(0)
+        current_depth = int(connection[current_name]["depth"] or 0)
+        current_mode = str(connection[current_name]["mode"])
+        for next_name, edge_mode in adjacency[current_name]:
+            if connection[next_name]["connected"]:
+                continue
+            connection[next_name] = {
+                "connected": True,
+                "mode": "sea" if edge_mode == "sea" or current_mode == "sea" else "land",
+                "depth": current_depth + 1,
+            }
+            queue.append(next_name)
+    return connection
+
+
+def _count_capital_connection_components(
+    adjacency: dict[str, list[tuple[str, str]]],
+) -> int:
+    remaining = set(adjacency)
+    components = 0
+    while remaining:
+        components += 1
+        queue = [remaining.pop()]
+        while queue:
+            current_name = queue.pop(0)
+            for next_name, _mode in adjacency[current_name]:
+                if next_name in remaining:
+                    remaining.remove(next_name)
+                    queue.append(next_name)
+    return components
+
+
+def _capital_fragment_penalty(
+    region: Region,
+    world: WorldState,
+    faction_name: str,
+) -> float:
+    if region.capital_connection_mode != "isolated":
+        return 0.0
+
+    turns = max(1, int(region.capital_disconnection_turns or 0))
+    penalty = ADMIN_CAPITAL_ISOLATION_INITIAL_PENALTY + min(
+        ADMIN_CAPITAL_ISOLATION_MAX_PENALTY - ADMIN_CAPITAL_ISOLATION_INITIAL_PENALTY,
+        max(0, turns - 1) * ADMIN_CAPITAL_ISOLATION_TURN_PENALTY,
+    )
+
+    seafaring_level = get_faction_seafaring_level(world, faction_name)
+    if (
+        region_supports_maritime_access(region)
+        and seafaring_level >= ADMIN_MARITIME_CONNECTION_THRESHOLD
+    ):
+        maritime_factor = max(
+            0.55,
+            1.0 - (seafaring_level * ADMIN_CAPITAL_ISOLATION_MARITIME_MITIGATION_FACTOR),
+        )
+        penalty *= maritime_factor
+
+    penalty *= _split_realm_government_factor(world, faction_name)
+    return round(max(0.0, penalty), 3)
+
+
+def _apply_capital_connectivity(world: WorldState, faction_name: str) -> None:
+    faction = world.factions[faction_name]
+    owned_names = _owned_region_names(world, faction_name)
+    if not owned_names:
+        faction.capital_connected_regions = 0
+        faction.capital_isolated_regions = 0
+        faction.capital_fragment_count = 0
+        faction.capital_connectivity_penalty = 0.0
+        return
+
+    capital_region_name = _ensure_faction_capital(world, faction_name)
+    adjacency = _build_capital_connection_adjacency(world, faction_name)
+    connection = _walk_capital_connections(adjacency, capital_region_name)
+    fragment_count = _count_capital_connection_components(adjacency)
+    connected_count = 0
+    isolated_count = 0
+    penalty_sum = 0.0
+
+    for region_name in owned_names:
+        region = world.regions[region_name]
+        state = connection.get(region_name, {})
+        connected = bool(state.get("connected", False))
+        if connected:
+            connected_count += 1
+            region.capital_connection_mode = str(state.get("mode") or "land")
+            region.capital_connection_depth = state.get("depth")
+            region.capital_disconnection_turns = 0
+        else:
+            isolated_count += 1
+            region.capital_connection_mode = "isolated"
+            region.capital_connection_depth = None
+            region.capital_disconnection_turns = int(region.capital_disconnection_turns or 0) + 1
+
+        region.capital_fragment_penalty = _capital_fragment_penalty(
+            region,
+            world,
+            faction_name,
+        )
+        penalty_sum += float(region.capital_fragment_penalty or 0.0)
+
+    faction.capital_connected_regions = connected_count
+    faction.capital_isolated_regions = isolated_count
+    faction.capital_fragment_count = fragment_count
+    faction.capital_connectivity_penalty = round(
+        penalty_sum / max(1, len(owned_names)),
+        3,
+    )
 
 
 def get_region_administrative_support(region: Region) -> float:
@@ -69,6 +283,7 @@ def get_region_administrative_distance(region: Region, world: WorldState) -> flo
         distance += 0.1 if get_region_core_status(region) == "frontier" else 0.04
     if region.resource_route_mode in {"sea", "river"}:
         distance = max(0.0, distance - 0.04)
+    distance += float(region.capital_fragment_penalty or 0.0)
 
     for neighbor_name in region.neighbors:
         neighbor = world.regions[neighbor_name]
@@ -79,7 +294,7 @@ def get_region_administrative_distance(region: Region, world: WorldState) -> flo
         if relation in {"rival", "war", "truce"}:
             distance += ADMIN_HOSTILE_BORDER_DISTANCE
 
-    return round(min(1.8, distance), 3)
+    return round(min(2.2, distance), 3)
 
 
 def get_region_administrative_burden(region: Region, world: WorldState) -> float:
@@ -114,6 +329,10 @@ def refresh_administrative_state(world: WorldState) -> None:
         faction.administrative_reach = 1.0
         faction.administrative_overextension = 0.0
         faction.administrative_overextension_penalty = 0.0
+        faction.capital_connected_regions = 0
+        faction.capital_isolated_regions = 0
+        faction.capital_fragment_count = 0
+        faction.capital_connectivity_penalty = 0.0
 
     for region in world.regions.values():
         if region.owner is None or region.owner not in world.factions:
@@ -122,15 +341,31 @@ def refresh_administrative_state(world: WorldState) -> None:
             region.administrative_distance = 0.0
             region.administrative_autonomy = 0.0
             region.administrative_tax_capture = 1.0
+            region.capital_connection_mode = "none"
+            region.capital_connection_depth = None
+            region.capital_disconnection_turns = 0
+            region.capital_fragment_penalty = 0.0
+            continue
+
+        region.administrative_support = get_region_administrative_support(region)
+        region.administrative_distance = 0.0
+        region.administrative_burden = 0.0
+        region.administrative_autonomy = 0.0
+        region.administrative_tax_capture = 1.0
+        region.capital_connection_mode = "none"
+        region.capital_connection_depth = None
+        region.capital_fragment_penalty = 0.0
+
+    for faction_name in world.factions:
+        _apply_capital_connectivity(world, faction_name)
+
+    for region in world.regions.values():
+        if region.owner is None or region.owner not in world.factions:
             continue
 
         owner_name = region.owner
-        region.administrative_support = get_region_administrative_support(region)
         region.administrative_distance = get_region_administrative_distance(region, world)
         region.administrative_burden = get_region_administrative_burden(region, world)
-        region.administrative_autonomy = 0.0
-        region.administrative_tax_capture = 1.0
-
         per_faction_support[owner_name] = (
             per_faction_support.get(owner_name, 0.0) + region.administrative_support
         )
@@ -178,6 +413,14 @@ def refresh_administrative_state(world: WorldState) -> None:
             1.0
             + get_faction_institutional_technology(faction, TECH_TEMPLE_RECORDKEEPING) * 0.08
             + get_faction_institutional_technology(faction, TECH_ROAD_ADMINISTRATION) * 0.05
+        )
+        capacity *= max(
+            0.65,
+            1.0
+            - (
+                float(faction.capital_connectivity_penalty or 0.0)
+                * ADMIN_CAPITAL_ISOLATION_CAPACITY_FACTOR
+            ),
         )
 
         load = max(0.01, float(faction.administrative_load or 0.0))

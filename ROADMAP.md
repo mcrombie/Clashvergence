@@ -50,10 +50,12 @@ The project has moved past the first economic and political scaffolding pass. It
 - terrain and climate
 - named factions with identities and governments
 - doctrine adaptation
+- annual year-turn pacing with climate-weighted dominant-season variation
 - terrain/climate-shaped action selection
+- dual-track action selection and elite-bloc competition for action bias
 - expansion, attack, and development behavior
 - specific regional resources and resource outputs
-- food production, storage, spoilage, shortage, and seasonal consumption
+- food production, storage, spoilage, shortage, and annual climate variance
 - domesticable resource spread and resource development projects
 - roads, markets, storehouses, granaries, irrigation, pastures, logging camps, mines, and quarries
 - trade routing, bottlenecks, sea links, river links, foreign trade, trade warfare, and blockade losses
@@ -64,10 +66,13 @@ The project has moved past the first economic and political scaffolding pass. It
 - unrest, secession, rebels, and proto-states
 - diplomacy, relationship states, tributaries, war objectives, and peace terms
 - administrative capacity, tax capture, autonomy, reach, and overextension
+- military institutions, manpower, readiness, logistics, fortifications, garrisons, naval bases, and battle losses
 - religion, sacred sites, religious legitimacy, conversion pressure, and reform pressure
 - dynastic succession, rulers, heirs, regencies, claimant pressure, and succession crises
 - emergent political ideologies derived from institutions, elite blocs, trade, administration, religion, urbanization, and frontier strain
 - practical technology diffusion through regional exposure, local adoption, and faction institutionalization
+- Seafaring as a practical technology for maritime contact, expansion, attack reach, and naval power
+- long-cycle shocks for climate anomaly, famine, epidemic, soil exhaustion, ecological degradation, resource depletion, trade collapse, population loss, and recovery
 - polity advancement and government-form modifiers
 - reporting, metrics, dead-system observation, experiments, and an HTML viewer
 - an experimental turn-by-turn interactive driver with limited-visibility CLI and browser player control
@@ -82,13 +87,16 @@ Priority: highest
 
 Why now:
 
-- Many major systems now exist, but not all of them fire visibly in ordinary runs.
-- A simulation can look deep in code while behaving narrowly in practice.
-- The current priority is to detect dead systems, runaway loops, and overly universal action incentives.
+- Many major systems now exist and recent dashboard runs show they activate, but activation alone does not prove they are exerting plausible pressure.
+- The annual-turn model, dual-track action selection, and long-cycle shocks need repeated-run diagnostics before more large features are added.
+- The current priority is to explain runaway loops, late-war cadence, noisy shock volume, and overly universal action incentives.
 
 Targets:
 
 - Use the balance dashboard's system-activity section to track active rate, dead-run rate, average event counts, metric signals, and first activation turn.
+- Use pressure diagnostics that explain when a faction becomes dominant: net income, administrative efficiency, overextension, force projection, manpower/readiness, shock exposure, active wars, diplomacy state, and dual-track usage near the runaway turn.
+- Use late-war cadence diagnostics to separate normal war activity from attacks driven by active war objectives, rivalries, resource needs, bloc pressure, or simply available targets.
+- Use shock event volume and active-shock exposure diagnostics so shock systems can be tuned for readable long-cycle stress rather than raw event count.
 - Keep tuning action selection so terrain and climate strongly shape faction personality.
 - Watch whether development, expansion, war, diplomacy, migration, religion, succession, unrest, and administration all matter at plausible horizons.
 - Tune only after repeated runs show a clear behavioral pattern.
@@ -97,7 +105,7 @@ Good outcomes:
 
 - plains, river, steppe, forest, highland, coast, and marsh societies behave differently
 - observable systems activate for understandable reasons
-- dead or near-silent systems are visible instead of hidden
+- dead, near-silent, and over-noisy systems are visible instead of hidden
 - dashboard findings lead to targeted changes rather than broad balancing
 
 ### Phase 2: Economic Deepening
@@ -141,7 +149,8 @@ Targets:
 - Make religious mismatch, sacred sites, reform pressure, clergy support, and emergent political ideologies affect diplomacy and internal cohesion.
 - Let succession crises, claimant pressure, and civil-war legitimacy shape war aims and secession patterns.
 - Make migration and refugee movement alter ethnic, religious, economic, and political maps over time.
-- Introduce urban specialization and city networks once migration and production pressure need them.
+- Make elite blocs and ideology more visibly affect diplomacy, revolt, state capacity, and action pressure.
+- Deepen city networks and labor/craft roles once migration and production pressure need them.
 
 Good outcomes:
 
@@ -158,7 +167,7 @@ Current state:
 
 - A V1 technology layer now exists.
 - It tracks regional presence, regional adoption, and faction institutionalization.
-- The first methods are irrigation methods, pastoral breeding, copper working, road administration, market accounting, organized levies, and temple recordkeeping.
+- The first methods are irrigation methods, pastoral breeding, copper working, road administration, market accounting, organized levies, temple recordkeeping, and seafaring.
 - Technology is influenced by trade, adjacency, density, resources, stability, and institutions, and it feeds back into production, logistics, administration, commerce, and war.
 
 Why continue:
@@ -186,14 +195,18 @@ Good outcomes:
 
 Priority: medium-high
 
+Current state:
+
+- A V1 long-cycle shock layer exists.
+- It models climate anomalies, famine, epidemic disease, soil exhaustion, ecological degradation, resource depletion, trade collapse, population loss, and recovery.
+- Shocks feed into resource output, workforce, spoilage, trade, migration, unrest, metrics, player view, and the HTML viewer.
+
 Targets:
 
-- famine
-- disease
-- ecological degradation
-- climate anomalies
-- trade collapse
-- resource exhaustion or local environmental damage
+- calibrate annual-turn shock frequency and event volume
+- make shock chains readable as multi-year stress arcs rather than disconnected event spam
+- distinguish immediate shock events from ongoing exposure, resilience, and recovery state
+- tune recovery paths by resources, state capacity, legitimacy, trade access, and local ecology
 
 Good outcomes:
 
@@ -210,7 +223,7 @@ Current state:
 - The first `--game` CLI mode exists.
 - The first `--game-server` local browser mode exists.
 - A human can control one faction from legal `develop`, `expand`, `attack`, and `skip` options.
-- Other factions still use the existing AI action chooser.
+- Other factions use the same simulation action chooser, including dual-track actions when administratively qualified.
 - Player snapshots are written incrementally as JSONL.
 - The player view is limited by faction visibility instead of exposing the omniscient world state.
 - The browser mode uses `GET /api/state` and `POST /api/action` on top of the same legal action API.
@@ -276,13 +289,14 @@ This keeps development fast while still protecting simulation coherence.
 - keep the dead-system dashboard current as new systems are added
 - add short, medium, and long seeded observation presets
 - track activation rates for expansion, war, diplomacy, trade disruption, administration, unrest, rebellion, migration, religion, succession, technology, and shocks
+- keep pressure diagnostics current for runaways, late war cadence, shock volume, propagation, and action incentives
 - record whether terrain/climate personalities produce distinct strategies
 
 ### Milestone B: Action Pressure Passes
 
 - tune action selection from observed behavior rather than flat target ratios
 - keep terrain and climate as strong personality inputs
-- make shortages, trade dependence, legitimacy, and overextension pull factions toward different choices
+- make shortages, trade dependence, legitimacy, manpower, readiness, bloc pressure, and overextension pull factions toward different choices
 - verify that insular, frontier, martial, developmental, and adaptive polities remain meaningfully different
 
 ### Milestone C: Production Chains
@@ -297,17 +311,17 @@ This keeps development fast while still protecting simulation coherence.
 - make religion, succession, and regime agitation more causally visible
 - connect legitimacy to diplomacy, unrest, administrative capture, and civil-war claims
 - support stronger religious schism, reform, suppression, and accommodation behavior
-- introduce elite blocs only when current legitimacy systems need more internal actors
+- make elite blocs and ideology more causally visible in diplomacy, revolt, administration, and action pressure
 
 ### Milestone E: Diffusion And Transformation
 
-- add technology spread
+- tune technology spread and regional lag
 - deepen migration and urban concentration
 - let long-term world divergence emerge from the combined systems
 
 ### Milestone F: Shocks And Resilience
 
-- add famine, disease, ecological, climate, and trade-collapse shocks
+- calibrate famine, disease, ecological, climate, resource-depletion, and trade-collapse shocks
 - distinguish resilient states from brittle ones
 - let recovery paths differ by resources, state capacity, legitimacy, and trade access
 

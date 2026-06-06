@@ -1,4 +1,17 @@
-# Dual-Track Actions + Bloc Competition for Action Selection
+# Archived: Dual-Track Actions + Bloc Competition for Action Selection
+
+Status: implemented. Archived on 2026-06-05 after verification against the current codebase.
+
+Implementation references:
+
+- `src/agents.py`: `choose_actions()`, `get_available_tracks()`, bloc-biased action utilities, and admin agenda development targeting.
+- `src/internal_politics.py`: `get_bloc_action_biases()` and bloc preference tables.
+- `src/simulation.py`: dual-track non-player action execution.
+- `src/models.py` and `src/world_serialization.py`: turn-local track flags and save/load omission.
+- `src/metrics.py`, `experiments/experiment_balance_dashboard.py`, and `experiments/experiment_azhora_calibration.py`: dual-track and bloc observability.
+- `tests/test_agents.py`, `tests/test_internal_politics.py`, `tests/test_balance_dashboard.py`, and `tests/test_faction_arrivals.py`: focused coverage.
+
+Original plan retained below for historical context.
 
 ## Overview
 

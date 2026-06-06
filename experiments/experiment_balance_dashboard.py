@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import random
 import sys
+from collections import Counter
 from pathlib import Path
 from statistics import mean, pstdev
 
@@ -26,6 +27,35 @@ DEFAULT_OUTPUT = ROOT / "reports/balance_dashboard.txt"
 DEFAULT_INVALID_MAP_POLICY = "skip"
 DEFAULT_NUM_FACTIONS = 4
 DEAD_SYSTEM_ACTIVE_RATE_THRESHOLD = 0.05
+PROTECTED_ATTACK_STATUSES = {
+    "alliance",
+    "non_aggression_pact",
+    "overlord",
+    "tributary",
+    "truce",
+}
+RUNAWAY_CONTEXT_METRICS = (
+    "treasury",
+    "regions",
+    "population",
+    "effective_income",
+    "net_income",
+    "force_projection",
+    "manpower_pool",
+    "military_readiness",
+    "administrative_efficiency",
+    "administrative_overextension",
+    "shock_exposure",
+    "shock_resilience",
+    "average_institutional_technology",
+    "bloc_action_bias_abs",
+)
+RUNAWAY_BOOL_METRICS = (
+    "dual_track_qualified",
+    "dual_track_both_tracks_used",
+    "military_track_used",
+    "admin_track_used",
+)
 
 
 SYSTEM_DEFINITIONS = {
@@ -430,6 +460,1374 @@ def build_dual_track_observability(world):
     }
 
 
+def _safe_number(value, default=0.0):
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _average(values):
+    return mean(values) if values else 0.0
+
+
+def _ratio(numerator, denominator):
+    return numerator / denominator if denominator else 0.0
+
+
+def _snapshot_turn(snapshot):
+    return int(snapshot.get("turn", 0) or 0)
+
+
+def _turn_horizon(world, action_diagnostics=None):
+    event_turns = [event.turn + 1 for event in world.events]
+    diagnostic_turns = [
+        int(record.get("turn", 0) or 0)
+        for record in (action_diagnostics or [])
+    ]
+    return max(
+        [1, len(world.metrics), int(getattr(world, "turn", 0) or 0)]
+        + event_turns
+        + diagnostic_turns
+    )
+
+
+def _phase_for_turn(turn, phase_ranges):
+    for phase_name, start_turn, end_turn in phase_ranges:
+        if start_turn <= turn <= end_turn:
+            return phase_name
+    return phase_ranges[-1][0] if phase_ranges else "all"
+
+
+def _rank_snapshot(snapshot, metric_key):
+    return sorted(
+        snapshot.get("factions", {}).items(),
+        key=lambda item: (_safe_number(item[1].get(metric_key)), item[0]),
+        reverse=True,
+    )
+
+
+def _metric_margin(snapshot, faction_name, metric_key):
+    factions = snapshot.get("factions", {})
+    faction_metrics = factions.get(faction_name)
+    if not faction_metrics:
+        return {
+            "runner_up": None,
+            "winner_value": 0.0,
+            "runner_up_value": 0.0,
+            "margin": 0.0,
+        }
+
+    ranked = [
+        (name, metrics)
+        for name, metrics in _rank_snapshot(snapshot, metric_key)
+        if name != faction_name
+    ]
+    runner_name, runner_metrics = ranked[0] if ranked else (None, {})
+    winner_value = _safe_number(faction_metrics.get(metric_key))
+    runner_value = _safe_number(runner_metrics.get(metric_key))
+    return {
+        "runner_up": runner_name,
+        "winner_value": winner_value,
+        "runner_up_value": runner_value,
+        "margin": winner_value - runner_value,
+    }
+
+
+def _nearest_snapshot(world, target_turn):
+    if not world.metrics:
+        return None
+    return min(
+        world.metrics,
+        key=lambda snapshot: (
+            abs(_snapshot_turn(snapshot) - target_turn),
+            _snapshot_turn(snapshot),
+        ),
+    )
+
+
+def _dominant_runaway_advantage(snapshot_summary):
+    candidate_margins = {
+        "treasury": snapshot_summary.get("treasury_margin", 0.0),
+        "regions": snapshot_summary.get("region_margin", 0.0),
+        "force_projection": snapshot_summary.get("force_projection_margin", 0.0),
+        "net_income": snapshot_summary.get("net_income_margin", 0.0),
+        "admin_efficiency": snapshot_summary.get("admin_efficiency_margin", 0.0),
+        "technology": snapshot_summary.get("technology_margin", 0.0),
+        "shock_resilience": snapshot_summary.get("shock_resilience_margin", 0.0),
+    }
+    if not candidate_margins:
+        return "none"
+    name, value = max(candidate_margins.items(), key=lambda item: (item[1], item[0]))
+    return name if value > 0 else "none"
+
+
+def _build_runaway_snapshot(snapshot, winner, label):
+    faction_metrics = snapshot.get("factions", {}).get(winner, {})
+    treasury_margin = _metric_margin(snapshot, winner, "treasury")
+    summary = {
+        "label": label,
+        "turn": _snapshot_turn(snapshot),
+        "winner": winner,
+        "runner_up": treasury_margin["runner_up"],
+    }
+
+    for metric_key in RUNAWAY_CONTEXT_METRICS:
+        summary[metric_key] = _safe_number(faction_metrics.get(metric_key))
+
+    for metric_key in RUNAWAY_BOOL_METRICS:
+        summary[metric_key] = bool(faction_metrics.get(metric_key, False))
+
+    margin_specs = {
+        "treasury": "treasury_margin",
+        "regions": "region_margin",
+        "population": "population_margin",
+        "effective_income": "effective_income_margin",
+        "net_income": "net_income_margin",
+        "force_projection": "force_projection_margin",
+        "manpower_pool": "manpower_margin",
+        "military_readiness": "military_readiness_margin",
+        "administrative_efficiency": "admin_efficiency_margin",
+        "administrative_overextension": "admin_overextension_gap",
+        "shock_exposure": "shock_exposure_gap",
+        "shock_resilience": "shock_resilience_margin",
+        "average_institutional_technology": "technology_margin",
+    }
+    for metric_key, output_key in margin_specs.items():
+        summary[output_key] = _metric_margin(snapshot, winner, metric_key)["margin"]
+
+    summary["dominant_advantage"] = _dominant_runaway_advantage(summary)
+    return summary
+
+
+def build_runaway_context(world, competition=None):
+    if competition is None:
+        competition = analyze_competition_metrics(world)
+
+    runaway = competition.get("runaway", {})
+    winner = runaway.get("winner")
+    start_turn = runaway.get("start_turn")
+    context = {
+        "detected": bool(runaway.get("detected", False)),
+        "winner": winner,
+        "start_turn": start_turn,
+        "snapshots": [],
+        "average_treasury_margin": 0.0,
+        "average_region_margin": 0.0,
+        "average_force_projection_margin": 0.0,
+        "average_net_income_margin": 0.0,
+        "average_admin_efficiency_margin": 0.0,
+        "average_shock_exposure_gap": 0.0,
+        "average_shock_resilience_margin": 0.0,
+        "average_technology_margin": 0.0,
+        "dominant_advantage_counts": {},
+    }
+    if not context["detected"] or winner is None or start_turn is None:
+        return context
+
+    final_turn = _snapshot_turn(world.metrics[-1]) if world.metrics else start_turn
+    target_snapshots = [
+        ("pre_runaway", max(1, int(start_turn) - 10)),
+        ("runaway_start", int(start_turn)),
+        ("post_runaway", min(final_turn, int(start_turn) + 10)),
+        ("final", final_turn),
+    ]
+    seen_turns = set()
+    for label, target_turn in target_snapshots:
+        snapshot = _nearest_snapshot(world, target_turn)
+        if snapshot is None:
+            continue
+        snapshot_turn = _snapshot_turn(snapshot)
+        if snapshot_turn in seen_turns:
+            continue
+        seen_turns.add(snapshot_turn)
+        context["snapshots"].append(_build_runaway_snapshot(snapshot, winner, label))
+
+    snapshots = context["snapshots"]
+    context["average_treasury_margin"] = _average([
+        snapshot["treasury_margin"] for snapshot in snapshots
+    ])
+    context["average_region_margin"] = _average([
+        snapshot["region_margin"] for snapshot in snapshots
+    ])
+    context["average_force_projection_margin"] = _average([
+        snapshot["force_projection_margin"] for snapshot in snapshots
+    ])
+    context["average_net_income_margin"] = _average([
+        snapshot["net_income_margin"] for snapshot in snapshots
+    ])
+    context["average_admin_efficiency_margin"] = _average([
+        snapshot["admin_efficiency_margin"] for snapshot in snapshots
+    ])
+    context["average_shock_exposure_gap"] = _average([
+        snapshot["shock_exposure_gap"] for snapshot in snapshots
+    ])
+    context["average_shock_resilience_margin"] = _average([
+        snapshot["shock_resilience_margin"] for snapshot in snapshots
+    ])
+    context["average_technology_margin"] = _average([
+        snapshot["technology_margin"] for snapshot in snapshots
+    ])
+    context["dominant_advantage_counts"] = dict(Counter(
+        snapshot["dominant_advantage"] for snapshot in snapshots
+    ))
+    return context
+
+
+def build_relationship_pressure(world):
+    status_counts = Counter(
+        relationship.status
+        for relationship in world.relationships.values()
+    )
+    active_wars = [
+        war
+        for war in world.wars.values()
+        if getattr(war, "active", False)
+    ]
+    tributary_pressure = status_counts.get("tributary", 0) + sum(
+        1
+        for relationship in world.relationships.values()
+        if relationship.subordinate_faction is not None
+    )
+    war_exhaustion = [
+        _safe_number(getattr(war, "war_exhaustion", 0.0))
+        for war in active_wars
+    ]
+
+    return {
+        "active_war_count": len(active_wars),
+        "war_count": len(world.wars),
+        "rivalry_count": status_counts.get("rival", 0),
+        "pact_count": status_counts.get("non_aggression_pact", 0),
+        "alliance_count": status_counts.get("alliance", 0),
+        "pact_alliance_count": (
+            status_counts.get("non_aggression_pact", 0)
+            + status_counts.get("alliance", 0)
+        ),
+        "tributary_pressure_count": tributary_pressure,
+        "average_active_war_exhaustion": _average(war_exhaustion),
+        "peak_active_war_exhaustion": max(war_exhaustion) if war_exhaustion else 0.0,
+        "relationship_status_counts": dict(status_counts),
+    }
+
+
+def build_late_war_cadence(world):
+    phase_ranges = get_phase_ranges(_turn_horizon(world))
+    phase_data = {
+        phase_name: {
+            "attacks": 0,
+            "successful_attacks": 0,
+            "active_war_attacks": 0,
+            "rival_attacks": 0,
+            "protected_target_attacks": 0,
+            "active_war_objective_attacks": 0,
+            "low_score_attacks": 0,
+            "repeated_same_pair_attacks": 0,
+            "pair_region_counts": Counter(),
+            "success_chances": [],
+            "supply_risks": [],
+            "attacker_readiness": [],
+            "manpower_commitments": [],
+            "attacker_manpower": [],
+            "manpower_commitment_ratios": [],
+            "target_values": [],
+            "scores": [],
+        }
+        for phase_name, _start_turn, _end_turn in phase_ranges
+    }
+
+    for event in world.events:
+        if event.type != "attack":
+            continue
+
+        phase_name = _phase_for_turn(event.turn + 1, phase_ranges)
+        data = phase_data[phase_name]
+        data["attacks"] += 1
+        if event.get("success", False):
+            data["successful_attacks"] += 1
+
+        diplomacy_status = str(event.get("diplomacy_status", "") or "")
+        active_war_bonus = _safe_number(event.get("active_war_bonus", 0.0))
+        if (
+            active_war_bonus > 0
+            or bool(event.get("active_war_objective", False))
+            or bool(event.get("war_objective", False))
+            or diplomacy_status == "war"
+        ):
+            data["active_war_attacks"] += 1
+        if bool(event.get("active_war_objective", False)):
+            data["active_war_objective_attacks"] += 1
+        if diplomacy_status == "rival":
+            data["rival_attacks"] += 1
+        if diplomacy_status in PROTECTED_ATTACK_STATUSES:
+            data["protected_target_attacks"] += 1
+
+        score = _safe_number(event.get("score", None), default=None)
+        success_chance = _safe_number(event.get("success_chance", None), default=None)
+        if score is not None:
+            data["scores"].append(score)
+        if success_chance is not None:
+            data["success_chances"].append(success_chance)
+        if (
+            score is not None
+            and score <= 45
+        ) or (
+            success_chance is not None
+            and success_chance <= 0.35
+        ):
+            data["low_score_attacks"] += 1
+
+        defender = event.get("defender", event.get("target_owner", ""))
+        pair_region_key = (event.faction, defender, event.region)
+        if data["pair_region_counts"][pair_region_key] > 0:
+            data["repeated_same_pair_attacks"] += 1
+        data["pair_region_counts"][pair_region_key] += 1
+
+        for event_key, list_key in (
+            ("supply_risk", "supply_risks"),
+            ("attacker_readiness", "attacker_readiness"),
+            ("manpower_commitment", "manpower_commitments"),
+            ("attacker_manpower", "attacker_manpower"),
+            ("target_taxable_value", "target_values"),
+        ):
+            value = _safe_number(event.get(event_key, None), default=None)
+            if value is not None:
+                data[list_key].append(value)
+
+        manpower_commitment = _safe_number(event.get("manpower_commitment", None), default=None)
+        attacker_manpower = _safe_number(event.get("attacker_manpower", None), default=None)
+        if manpower_commitment is not None and attacker_manpower and attacker_manpower > 0:
+            data["manpower_commitment_ratios"].append(
+                min(1.0, manpower_commitment / attacker_manpower)
+            )
+
+    return {
+        phase_name: {
+            "attacks": data["attacks"],
+            "successful_attacks": data["successful_attacks"],
+            "attack_success_rate": _ratio(data["successful_attacks"], data["attacks"]),
+            "active_war_attacks": data["active_war_attacks"],
+            "active_war_attack_rate": _ratio(data["active_war_attacks"], data["attacks"]),
+            "rival_attacks": data["rival_attacks"],
+            "rival_attack_rate": _ratio(data["rival_attacks"], data["attacks"]),
+            "protected_target_attacks": data["protected_target_attacks"],
+            "protected_target_attack_rate": _ratio(
+                data["protected_target_attacks"],
+                data["attacks"],
+            ),
+            "active_war_objective_attacks": data["active_war_objective_attacks"],
+            "active_war_objective_rate": _ratio(
+                data["active_war_objective_attacks"],
+                data["attacks"],
+            ),
+            "low_score_attacks": data["low_score_attacks"],
+            "low_score_attack_rate": _ratio(data["low_score_attacks"], data["attacks"]),
+            "repeated_same_pair_attacks": data["repeated_same_pair_attacks"],
+            "repeated_same_pair_attack_rate": _ratio(
+                data["repeated_same_pair_attacks"],
+                data["attacks"],
+            ),
+            "average_success_chance": _average(data["success_chances"]),
+            "average_supply_risk": _average(data["supply_risks"]),
+            "average_attacker_readiness": _average(data["attacker_readiness"]),
+            "average_manpower_commitment": _average(data["manpower_commitments"]),
+            "average_attacker_manpower": _average(data["attacker_manpower"]),
+            "average_manpower_commitment_ratio": _average(
+                data["manpower_commitment_ratios"]
+            ),
+            "average_target_value": _average(data["target_values"]),
+            "average_score": _average(data["scores"]),
+        }
+        for phase_name, data in phase_data.items()
+    }
+
+
+def build_shock_volume_diagnostics(world):
+    shock_events = [
+        event
+        for event in world.events
+        if event.type.startswith("shock_")
+    ]
+    event_type_counts = Counter(event.type for event in shock_events)
+    shocks_by_id = {}
+    for shock in list(world.shock_history) + list(world.active_shocks):
+        shocks_by_id[getattr(shock, "id", id(shock))] = shock
+
+    shock_kind_counts = Counter()
+    durations_by_kind = {}
+    affected_regions_by_kind = {}
+    intensities_by_kind = {}
+    for shock in shocks_by_id.values():
+        kind = getattr(shock, "kind", "unknown")
+        shock_kind_counts[kind] += 1
+        durations_by_kind.setdefault(kind, []).append(
+            _safe_number(getattr(shock, "duration_turns", 0.0))
+        )
+        affected_regions_by_kind.setdefault(kind, []).append(
+            len(getattr(shock, "affected_regions", []) or [])
+        )
+        intensities_by_kind.setdefault(kind, []).append(
+            _safe_number(getattr(shock, "intensity", 0.0))
+        )
+
+    exposure_samples = []
+    resilience_samples = []
+    active_pressure_turns = 0
+    faction_turns = 0
+    for _turn, metrics in _iter_faction_metric_rows(world):
+        exposure = _safe_number(metrics.get("shock_exposure", 0.0))
+        resilience = _safe_number(metrics.get("shock_resilience", 0.0))
+        exposure_samples.append(exposure)
+        resilience_samples.append(resilience)
+        faction_turns += 1
+        if (
+            _safe_number(metrics.get("famine_pressure", 0.0)) > 0.05
+            or _safe_number(metrics.get("epidemic_pressure", 0.0)) > 0.05
+            or _safe_number(metrics.get("trade_collapse_exposure", 0.0)) > 0.05
+        ):
+            active_pressure_turns += 1
+
+    population_loss_events = event_type_counts.get("shock_population_loss", 0)
+    total_population_loss = sum(
+        int(event.get("population_loss", event.get("loss", 0)) or 0)
+        for event in shock_events
+        if event.type == "shock_population_loss"
+    )
+    recovery_events = event_type_counts.get("shock_recovery", 0)
+    onset_events = len(shock_events) - recovery_events - population_loss_events
+
+    return {
+        "shock_event_count": len(shock_events),
+        "event_type_counts": dict(event_type_counts),
+        "onset_event_count": onset_events,
+        "recovery_event_count": recovery_events,
+        "population_loss_event_count": population_loss_events,
+        "total_population_loss": total_population_loss,
+        "unique_shock_count": len(shocks_by_id),
+        "shock_count_by_kind": dict(shock_kind_counts),
+        "shock_kind_summary": {
+            kind: {
+                "count": shock_kind_counts[kind],
+                "average_duration": _average(durations_by_kind.get(kind, [])),
+                "average_affected_regions": _average(
+                    affected_regions_by_kind.get(kind, [])
+                ),
+                "average_intensity": _average(intensities_by_kind.get(kind, [])),
+            }
+            for kind in sorted(shock_kind_counts)
+        },
+        "average_faction_shock_exposure": _average(exposure_samples),
+        "peak_faction_shock_exposure": max(exposure_samples) if exposure_samples else 0.0,
+        "average_faction_shock_resilience": _average(resilience_samples),
+        "peak_faction_shock_resilience": max(resilience_samples) if resilience_samples else 0.0,
+        "active_famine_epidemic_trade_turn_rate": _ratio(
+            active_pressure_turns,
+            faction_turns,
+        ),
+    }
+
+
+def _correlation(x_values, y_values):
+    pairs = [
+        (float(x_value), float(y_value))
+        for x_value, y_value in zip(x_values, y_values)
+        if x_value is not None and y_value is not None
+    ]
+    if len(pairs) < 2:
+        return 0.0
+    x_mean = mean(x for x, _y in pairs)
+    y_mean = mean(y for _x, y in pairs)
+    numerator = sum((x - x_mean) * (y - y_mean) for x, y in pairs)
+    x_denominator = sum((x - x_mean) ** 2 for x, _y in pairs) ** 0.5
+    y_denominator = sum((y - y_mean) ** 2 for _x, y in pairs) ** 0.5
+    if not x_denominator or not y_denominator:
+        return 0.0
+    return numerator / (x_denominator * y_denominator)
+
+
+def build_pressure_propagation_checks(world):
+    rows = [metrics for _turn, metrics in _iter_faction_metric_rows(world)]
+    region_counts = [_safe_number(metrics.get("regions", 0.0)) for metrics in rows]
+    admin_efficiencies = [
+        _safe_number(metrics.get("administrative_efficiency", 1.0))
+        for metrics in rows
+    ]
+    overextensions = [
+        _safe_number(metrics.get("administrative_overextension", 0.0))
+        for metrics in rows
+    ]
+    admin_reaches = [
+        _safe_number(metrics.get("administrative_reach", 1.0))
+        for metrics in rows
+    ]
+    elite_unrest = [
+        _safe_number(metrics.get("elite_unrest_pressure", 0.0))
+        for metrics in rows
+    ]
+    manpower_ratios = [
+        (
+            _safe_number(metrics.get("manpower_pool", 0.0))
+            / _safe_number(metrics.get("manpower_capacity", 0.0))
+        )
+        if _safe_number(metrics.get("manpower_capacity", 0.0)) > 0
+        else None
+        for metrics in rows
+    ]
+    attacks = [_safe_number(metrics.get("attacks", 0.0)) for metrics in rows]
+    readiness = [
+        _safe_number(metrics.get("military_readiness", 0.0))
+        for metrics in rows
+    ]
+    upkeep = [
+        _safe_number(metrics.get("military_upkeep", 0.0))
+        for metrics in rows
+    ]
+    shock_exposures = [
+        _safe_number(metrics.get("shock_exposure", 0.0))
+        for metrics in rows
+    ]
+    food_deficits = [
+        _safe_number(metrics.get("food_deficit", 0.0))
+        for metrics in rows
+    ]
+    migration_outflows = [
+        _safe_number(metrics.get("migration_outflow", 0.0))
+        + _safe_number(metrics.get("refugee_outflow", 0.0))
+        for metrics in rows
+    ]
+    net_incomes = [
+        _safe_number(metrics.get("net_income", 0.0))
+        for metrics in rows
+    ]
+    developments = [
+        _safe_number(metrics.get("developments", metrics.get("investments", 0.0)))
+        for metrics in rows
+    ]
+    trade_pressures = [
+        max(
+            _safe_number(metrics.get("trade_import_dependency", 0.0)),
+            _safe_number(metrics.get("trade_corridor_exposure", 0.0)),
+            _safe_number(metrics.get("trade_blockade_losses", 0.0)),
+            _safe_number(metrics.get("trade_collapse_exposure", 0.0)),
+        )
+        for metrics in rows
+    ]
+    bloc_biases = [
+        _safe_number(metrics.get("bloc_action_bias_abs", 0.0))
+        for metrics in rows
+    ]
+
+    large_state_rows = [
+        metrics
+        for metrics in rows
+        if _safe_number(metrics.get("regions", 0.0)) >= 8
+    ]
+    high_shock_rows = [
+        metrics
+        for metrics in rows
+        if _safe_number(metrics.get("shock_exposure", 0.0)) >= 0.25
+    ]
+    trade_pressure_rows = [
+        metrics
+        for metrics in rows
+        if max(
+            _safe_number(metrics.get("trade_import_dependency", 0.0)),
+            _safe_number(metrics.get("trade_corridor_exposure", 0.0)),
+            _safe_number(metrics.get("trade_blockade_losses", 0.0)),
+            _safe_number(metrics.get("trade_collapse_exposure", 0.0)),
+        ) >= 0.2
+    ]
+
+    return {
+        "samples": len(rows),
+        "large_state_samples": len(large_state_rows),
+        "large_state_average_admin_efficiency": _average([
+            _safe_number(metrics.get("administrative_efficiency", 1.0))
+            for metrics in large_state_rows
+        ]),
+        "large_state_average_overextension": _average([
+            _safe_number(metrics.get("administrative_overextension", 0.0))
+            for metrics in large_state_rows
+        ]),
+        "large_state_dual_track_loss_rate": _ratio(
+            sum(
+                1
+                for metrics in large_state_rows
+                if not bool(metrics.get("dual_track_qualified", False))
+            ),
+            len(large_state_rows),
+        ),
+        "average_manpower_ratio": _average([
+            ratio
+            for ratio in manpower_ratios
+            if ratio is not None
+        ]),
+        "high_shock_samples": len(high_shock_rows),
+        "high_shock_average_food_deficit": _average([
+            _safe_number(metrics.get("food_deficit", 0.0))
+            for metrics in high_shock_rows
+        ]),
+        "high_shock_average_migration_outflow": _average([
+            _safe_number(metrics.get("migration_outflow", 0.0))
+            + _safe_number(metrics.get("refugee_outflow", 0.0))
+            for metrics in high_shock_rows
+        ]),
+        "high_shock_average_net_income": _average([
+            _safe_number(metrics.get("net_income", 0.0))
+            for metrics in high_shock_rows
+        ]),
+        "trade_pressure_samples": len(trade_pressure_rows),
+        "trade_pressure_average_net_income": _average([
+            _safe_number(metrics.get("net_income", 0.0))
+            for metrics in trade_pressure_rows
+        ]),
+        "average_bloc_bias_abs": _average(bloc_biases),
+        "correlations": {
+            "regions_to_admin_efficiency": _correlation(region_counts, admin_efficiencies),
+            "regions_to_overextension": _correlation(region_counts, overextensions),
+            "regions_to_admin_reach": _correlation(region_counts, admin_reaches),
+            "regions_to_elite_unrest": _correlation(region_counts, elite_unrest),
+            "attacks_to_manpower_ratio": _correlation(attacks, manpower_ratios),
+            "attacks_to_readiness": _correlation(attacks, readiness),
+            "attacks_to_military_upkeep": _correlation(attacks, upkeep),
+            "shock_to_food_deficit": _correlation(shock_exposures, food_deficits),
+            "shock_to_migration_outflow": _correlation(shock_exposures, migration_outflows),
+            "shock_to_net_income": _correlation(shock_exposures, net_incomes),
+            "shock_to_development_choice": _correlation(shock_exposures, developments),
+            "trade_pressure_to_net_income": _correlation(trade_pressures, net_incomes),
+            "bloc_bias_to_military_action": _correlation(
+                bloc_biases,
+                [
+                    _safe_number(metrics.get("attacks", 0.0))
+                    + _safe_number(metrics.get("expansions", 0.0))
+                    for metrics in rows
+                ],
+            ),
+        },
+    }
+
+
+def _normalize_action_name(action_name):
+    return "develop" if action_name == "invest" else action_name
+
+
+def _new_action_phase_bucket():
+    return {
+        "faction_turns": 0,
+        "dual_track_qualified_turns": 0,
+        "selected_action_counts": Counter(),
+        "skipped_turns": 0,
+        "best_utility_samples": 0,
+        "best_utility_selected": 0,
+        "utility_gap_samples": [],
+        "utilities": {
+            "attack": [],
+            "expand": [],
+            "develop": [],
+        },
+        "attack_scores": [],
+        "attack_success_chances": [],
+        "attack_active_war_bonuses": [],
+        "attack_supply_risks": [],
+        "attack_manpower_commitments": [],
+        "attack_readiness": [],
+        "attack_resource_need_bonuses": [],
+        "attack_trade_chokepoint_bonuses": [],
+        "attack_foreign_gateway_bonuses": [],
+        "attack_diplomacy_statuses": Counter(),
+        "expand_scores": [],
+        "frontier_pressures": [],
+        "develop_scores": [],
+        "acute_development_needs": [],
+        "food_shortages": [],
+        "mobility_shortages": [],
+        "metal_shortages": [],
+        "admin_agendas": Counter(),
+        "bloc_biases": {
+            "attack": [],
+            "expand": [],
+            "develop": [],
+        },
+        "bloc_abs_biases": [],
+    }
+
+
+def _summarize_action_phase_bucket(bucket):
+    faction_turns = bucket["faction_turns"]
+    selected_total = sum(bucket["selected_action_counts"].values())
+    return {
+        "faction_turns": faction_turns,
+        "dual_track_qualified_rate": _ratio(
+            bucket["dual_track_qualified_turns"],
+            faction_turns,
+        ),
+        "selected_action_counts": dict(bucket["selected_action_counts"]),
+        "selected_attack_rate": _ratio(
+            bucket["selected_action_counts"].get("attack", 0),
+            selected_total,
+        ),
+        "selected_expand_rate": _ratio(
+            bucket["selected_action_counts"].get("expand", 0),
+            selected_total,
+        ),
+        "selected_develop_rate": _ratio(
+            bucket["selected_action_counts"].get("develop", 0),
+            selected_total,
+        ),
+        "skip_rate": _ratio(bucket["skipped_turns"], faction_turns),
+        "best_utility_selection_rate": _ratio(
+            bucket["best_utility_selected"],
+            bucket["best_utility_samples"],
+        ),
+        "average_utility_gap": _average(bucket["utility_gap_samples"]),
+        "average_utilities": {
+            action_name: _average(values)
+            for action_name, values in bucket["utilities"].items()
+        },
+        "attack_candidate": {
+            "samples": len(bucket["attack_scores"]),
+            "average_score": _average(bucket["attack_scores"]),
+            "average_success_chance": _average(bucket["attack_success_chances"]),
+            "average_active_war_bonus": _average(bucket["attack_active_war_bonuses"]),
+            "average_supply_risk": _average(bucket["attack_supply_risks"]),
+            "average_manpower_commitment": _average(bucket["attack_manpower_commitments"]),
+            "average_readiness": _average(bucket["attack_readiness"]),
+            "average_resource_need_bonus": _average(
+                bucket["attack_resource_need_bonuses"]
+            ),
+            "average_trade_chokepoint_bonus": _average(
+                bucket["attack_trade_chokepoint_bonuses"]
+            ),
+            "average_foreign_gateway_bonus": _average(
+                bucket["attack_foreign_gateway_bonuses"]
+            ),
+            "diplomacy_status_counts": dict(bucket["attack_diplomacy_statuses"]),
+        },
+        "expand_candidate": {
+            "samples": len(bucket["expand_scores"]),
+            "average_score": _average(bucket["expand_scores"]),
+            "average_frontier_pressure": _average(bucket["frontier_pressures"]),
+        },
+        "develop_candidate": {
+            "samples": len(bucket["develop_scores"]),
+            "average_score": _average(bucket["develop_scores"]),
+            "average_acute_development_need": _average(
+                bucket["acute_development_needs"]
+            ),
+            "average_food_shortage": _average(bucket["food_shortages"]),
+            "average_mobility_shortage": _average(bucket["mobility_shortages"]),
+            "average_metal_shortage": _average(bucket["metal_shortages"]),
+            "admin_agenda_counts": dict(bucket["admin_agendas"]),
+        },
+        "bloc_bias": {
+            "average_attack_bias": _average(bucket["bloc_biases"]["attack"]),
+            "average_expand_bias": _average(bucket["bloc_biases"]["expand"]),
+            "average_develop_bias": _average(bucket["bloc_biases"]["develop"]),
+            "average_abs_bias": _average(bucket["bloc_abs_biases"]),
+        },
+    }
+
+
+def build_action_incentive_diagnostics(action_diagnostics):
+    if not action_diagnostics:
+        empty_bucket = _new_action_phase_bucket()
+        return {
+            "total_faction_turns": 0,
+            "dual_track_qualified_rate": 0.0,
+            "selected_action_counts": {},
+            "phase_summary": {},
+            **_summarize_action_phase_bucket(empty_bucket),
+        }
+
+    horizon = max(int(record.get("turn", 0) or 0) for record in action_diagnostics)
+    phase_ranges = get_phase_ranges(max(1, horizon))
+    phase_buckets = {
+        phase_name: _new_action_phase_bucket()
+        for phase_name, _start_turn, _end_turn in phase_ranges
+    }
+    overall_bucket = _new_action_phase_bucket()
+
+    for record in action_diagnostics:
+        phase_name = _phase_for_turn(int(record.get("turn", 0) or 0), phase_ranges)
+        for bucket in (overall_bucket, phase_buckets[phase_name]):
+            bucket["faction_turns"] += 1
+            if record.get("dual_track_qualified", False):
+                bucket["dual_track_qualified_turns"] += 1
+
+            selected_actions = [
+                _normalize_action_name(selected.get("action"))
+                for selected in record.get("selected_actions", [])
+                if selected.get("action")
+            ]
+            if not selected_actions:
+                bucket["skipped_turns"] += 1
+            for action_name in selected_actions:
+                bucket["selected_action_counts"][action_name] += 1
+
+            utilities = {
+                _normalize_action_name(action_name): _safe_number(value)
+                for action_name, value in record.get("utilities", {}).items()
+            }
+            for action_name in ("attack", "expand", "develop"):
+                if action_name in utilities:
+                    bucket["utilities"][action_name].append(utilities[action_name])
+            if utilities:
+                best_action = max(
+                    utilities,
+                    key=lambda action_name: (utilities[action_name], action_name),
+                )
+                bucket["best_utility_samples"] += 1
+                if best_action in selected_actions:
+                    bucket["best_utility_selected"] += 1
+                if selected_actions:
+                    selected_utility = max(
+                        utilities.get(action_name, 0.0)
+                        for action_name in selected_actions
+                    )
+                    bucket["utility_gap_samples"].append(
+                        max(0.0, utilities[best_action] - selected_utility)
+                    )
+
+            components = record.get("components", {})
+            targets = record.get("targets", {})
+            attack = components.get("attack") or {}
+            if targets.get("attack"):
+                bucket["attack_scores"].append(_safe_number(attack.get("score", 0.0)))
+                bucket["attack_success_chances"].append(
+                    _safe_number(attack.get("success_chance", 0.0))
+                )
+                bucket["attack_active_war_bonuses"].append(
+                    _safe_number(attack.get("active_war_bonus", 0.0))
+                )
+                bucket["attack_supply_risks"].append(
+                    _safe_number(attack.get("supply_risk", 0.0))
+                )
+                bucket["attack_manpower_commitments"].append(
+                    _safe_number(attack.get("manpower_commitment", 0.0))
+                )
+                bucket["attack_readiness"].append(
+                    _safe_number(attack.get("attacker_readiness", 0.0))
+                )
+                bucket["attack_resource_need_bonuses"].append(
+                    _safe_number(attack.get("resource_need_bonus", 0.0))
+                )
+                bucket["attack_trade_chokepoint_bonuses"].append(
+                    _safe_number(attack.get("trade_chokepoint_bonus", 0.0))
+                )
+                bucket["attack_foreign_gateway_bonuses"].append(
+                    _safe_number(attack.get("foreign_gateway_bonus", 0.0))
+                )
+                diplomacy_status = str(attack.get("diplomacy_status", "") or "none")
+                bucket["attack_diplomacy_statuses"][diplomacy_status] += 1
+
+            expand = components.get("expand") or {}
+            if targets.get("expand"):
+                bucket["expand_scores"].append(_safe_number(expand.get("score", 0.0)))
+                bucket["frontier_pressures"].append(
+                    _safe_number(
+                        record.get("pressures", {}).get("frontier_pressure", 0.0)
+                    )
+                )
+
+            develop = components.get("develop") or {}
+            if targets.get("develop"):
+                bucket["develop_scores"].append(
+                    _safe_number(develop.get("score", 0.0))
+                )
+                bucket["acute_development_needs"].append(
+                    _safe_number(
+                        record.get("pressures", {}).get("acute_development_need", 0.0)
+                    )
+                )
+                shortages = record.get("resource_shortages", {})
+                bucket["food_shortages"].append(
+                    _safe_number(shortages.get("food_security", 0.0))
+                )
+                bucket["mobility_shortages"].append(
+                    _safe_number(shortages.get("mobility_capacity", 0.0))
+                )
+                bucket["metal_shortages"].append(
+                    _safe_number(shortages.get("metal_capacity", 0.0))
+                )
+                agenda = record.get("dominant_admin_agenda") or "none"
+                bucket["admin_agendas"][agenda] += 1
+
+            bloc_biases = record.get("bloc_biases", {})
+            abs_biases = []
+            for action_name in ("attack", "expand", "develop"):
+                bias = _safe_number(bloc_biases.get(action_name, 0.0))
+                bucket["bloc_biases"][action_name].append(bias)
+                abs_biases.append(abs(bias))
+            bucket["bloc_abs_biases"].append(max(abs_biases) if abs_biases else 0.0)
+
+    summary = _summarize_action_phase_bucket(overall_bucket)
+    summary["total_faction_turns"] = overall_bucket["faction_turns"]
+    summary["phase_summary"] = {
+        phase_name: _summarize_action_phase_bucket(bucket)
+        for phase_name, bucket in phase_buckets.items()
+    }
+    return summary
+
+
+def build_pressure_diagnostics(world, competition=None, action_diagnostics=None):
+    if competition is None:
+        competition = analyze_competition_metrics(world)
+
+    return {
+        "runaway": build_runaway_context(world, competition=competition),
+        "relationship_pressure": build_relationship_pressure(world),
+        "late_war_cadence": build_late_war_cadence(world),
+        "shock_volume": build_shock_volume_diagnostics(world),
+        "pressure_propagation": build_pressure_propagation_checks(world),
+        "action_incentives": build_action_incentive_diagnostics(
+            action_diagnostics or []
+        ),
+    }
+
+
+def _nested_numeric_values(run_diagnostics, path):
+    values = []
+    for diagnostics in run_diagnostics:
+        current = diagnostics
+        for key in path:
+            current = current.get(key, {}) if isinstance(current, dict) else {}
+        if isinstance(current, (int, float)):
+            values.append(float(current))
+    return values
+
+
+def _average_nested(run_diagnostics, path):
+    return _average(_nested_numeric_values(run_diagnostics, path))
+
+
+def _aggregate_phase_metrics(run_diagnostics, path):
+    phase_names = []
+    for diagnostics in run_diagnostics:
+        current = diagnostics
+        for key in path:
+            current = current.get(key, {}) if isinstance(current, dict) else {}
+        for phase_name in current:
+            if phase_name not in phase_names:
+                phase_names.append(phase_name)
+
+    aggregate = {}
+    for phase_name in phase_names:
+        phase_runs = []
+        for diagnostics in run_diagnostics:
+            current = diagnostics
+            for key in path:
+                current = current.get(key, {}) if isinstance(current, dict) else {}
+            if phase_name in current:
+                phase_runs.append(current[phase_name])
+        metric_names = sorted({
+            metric_name
+            for phase_run in phase_runs
+            for metric_name, value in phase_run.items()
+            if isinstance(value, (int, float))
+        })
+        aggregate[phase_name] = {
+            metric_name: _average([
+                float(phase_run.get(metric_name, 0.0))
+                for phase_run in phase_runs
+                if isinstance(phase_run.get(metric_name, 0.0), (int, float))
+            ])
+            for metric_name in metric_names
+        }
+    return aggregate
+
+
+def _aggregate_selected_action_counts(run_diagnostics):
+    counts = Counter()
+    for diagnostics in run_diagnostics:
+        counts.update(
+            diagnostics.get("action_incentives", {}).get("selected_action_counts", {})
+        )
+    return dict(counts)
+
+
+def _aggregate_counter_path(run_diagnostics, path):
+    counter = Counter()
+    for diagnostics in run_diagnostics:
+        current = diagnostics
+        for key in path:
+            current = current.get(key, {}) if isinstance(current, dict) else {}
+        if isinstance(current, dict):
+            counter.update(current)
+    return dict(counter)
+
+
+def summarize_pressure_diagnostics(run_diagnostics):
+    if not run_diagnostics:
+        return {
+            "run_count": 0,
+            "runaway": {},
+            "relationship_pressure": {},
+            "late_war_cadence": {},
+            "shock_volume": {},
+            "pressure_propagation": {},
+            "action_incentives": {},
+        }
+
+    runaway_winners = Counter(
+        diagnostics.get("runaway", {}).get("winner")
+        for diagnostics in run_diagnostics
+        if diagnostics.get("runaway", {}).get("winner") is not None
+    )
+    runaway_start_turns = [
+        diagnostics.get("runaway", {}).get("start_turn")
+        for diagnostics in run_diagnostics
+        if diagnostics.get("runaway", {}).get("start_turn") is not None
+    ]
+
+    return {
+        "run_count": len(run_diagnostics),
+        "runaway": {
+            "detected_rate": _average([
+                1.0 if diagnostics.get("runaway", {}).get("detected", False) else 0.0
+                for diagnostics in run_diagnostics
+            ]),
+            "average_start_turn": _average(runaway_start_turns),
+            "winner_counts": dict(runaway_winners),
+            "average_treasury_margin": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_treasury_margin"),
+            ),
+            "average_region_margin": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_region_margin"),
+            ),
+            "average_force_projection_margin": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_force_projection_margin"),
+            ),
+            "average_net_income_margin": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_net_income_margin"),
+            ),
+            "average_admin_efficiency_margin": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_admin_efficiency_margin"),
+            ),
+            "average_shock_exposure_gap": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_shock_exposure_gap"),
+            ),
+            "average_shock_resilience_margin": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_shock_resilience_margin"),
+            ),
+            "average_technology_margin": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_technology_margin"),
+            ),
+            "dominant_advantage_counts": _aggregate_counter_path(
+                run_diagnostics,
+                ("runaway", "dominant_advantage_counts"),
+            ),
+        },
+        "relationship_pressure": {
+            "average_active_war_count": _average_nested(
+                run_diagnostics,
+                ("relationship_pressure", "active_war_count"),
+            ),
+            "average_rivalry_count": _average_nested(
+                run_diagnostics,
+                ("relationship_pressure", "rivalry_count"),
+            ),
+            "average_pact_alliance_count": _average_nested(
+                run_diagnostics,
+                ("relationship_pressure", "pact_alliance_count"),
+            ),
+            "average_tributary_pressure_count": _average_nested(
+                run_diagnostics,
+                ("relationship_pressure", "tributary_pressure_count"),
+            ),
+            "average_active_war_exhaustion": _average_nested(
+                run_diagnostics,
+                ("relationship_pressure", "average_active_war_exhaustion"),
+            ),
+        },
+        "late_war_cadence": _aggregate_phase_metrics(
+            run_diagnostics,
+            ("late_war_cadence",),
+        ),
+        "shock_volume": {
+            "average_shock_event_count": _average_nested(
+                run_diagnostics,
+                ("shock_volume", "shock_event_count"),
+            ),
+            "average_onset_event_count": _average_nested(
+                run_diagnostics,
+                ("shock_volume", "onset_event_count"),
+            ),
+            "average_recovery_event_count": _average_nested(
+                run_diagnostics,
+                ("shock_volume", "recovery_event_count"),
+            ),
+            "average_population_loss_event_count": _average_nested(
+                run_diagnostics,
+                ("shock_volume", "population_loss_event_count"),
+            ),
+            "average_total_population_loss": _average_nested(
+                run_diagnostics,
+                ("shock_volume", "total_population_loss"),
+            ),
+            "average_unique_shock_count": _average_nested(
+                run_diagnostics,
+                ("shock_volume", "unique_shock_count"),
+            ),
+            "average_faction_shock_exposure": _average_nested(
+                run_diagnostics,
+                ("shock_volume", "average_faction_shock_exposure"),
+            ),
+            "peak_faction_shock_exposure": max(
+                _nested_numeric_values(
+                    run_diagnostics,
+                    ("shock_volume", "peak_faction_shock_exposure"),
+                )
+                or [0.0]
+            ),
+            "average_faction_shock_resilience": _average_nested(
+                run_diagnostics,
+                ("shock_volume", "average_faction_shock_resilience"),
+            ),
+            "active_famine_epidemic_trade_turn_rate": _average_nested(
+                run_diagnostics,
+                ("shock_volume", "active_famine_epidemic_trade_turn_rate"),
+            ),
+            "event_type_counts": _aggregate_counter_path(
+                run_diagnostics,
+                ("shock_volume", "event_type_counts"),
+            ),
+            "shock_count_by_kind": _aggregate_counter_path(
+                run_diagnostics,
+                ("shock_volume", "shock_count_by_kind"),
+            ),
+        },
+        "pressure_propagation": {
+            "average_large_state_admin_efficiency": _average_nested(
+                run_diagnostics,
+                ("pressure_propagation", "large_state_average_admin_efficiency"),
+            ),
+            "average_large_state_overextension": _average_nested(
+                run_diagnostics,
+                ("pressure_propagation", "large_state_average_overextension"),
+            ),
+            "average_large_state_dual_track_loss_rate": _average_nested(
+                run_diagnostics,
+                ("pressure_propagation", "large_state_dual_track_loss_rate"),
+            ),
+            "average_manpower_ratio": _average_nested(
+                run_diagnostics,
+                ("pressure_propagation", "average_manpower_ratio"),
+            ),
+            "average_high_shock_food_deficit": _average_nested(
+                run_diagnostics,
+                ("pressure_propagation", "high_shock_average_food_deficit"),
+            ),
+            "average_high_shock_migration_outflow": _average_nested(
+                run_diagnostics,
+                ("pressure_propagation", "high_shock_average_migration_outflow"),
+            ),
+            "average_high_shock_net_income": _average_nested(
+                run_diagnostics,
+                ("pressure_propagation", "high_shock_average_net_income"),
+            ),
+            "average_trade_pressure_net_income": _average_nested(
+                run_diagnostics,
+                ("pressure_propagation", "trade_pressure_average_net_income"),
+            ),
+            "average_bloc_bias_abs": _average_nested(
+                run_diagnostics,
+                ("pressure_propagation", "average_bloc_bias_abs"),
+            ),
+            "correlations": {
+                "regions_to_admin_efficiency": _average_nested(
+                    run_diagnostics,
+                    (
+                        "pressure_propagation",
+                        "correlations",
+                        "regions_to_admin_efficiency",
+                    ),
+                ),
+                "regions_to_overextension": _average_nested(
+                    run_diagnostics,
+                    (
+                        "pressure_propagation",
+                        "correlations",
+                        "regions_to_overextension",
+                    ),
+                ),
+                "attacks_to_manpower_ratio": _average_nested(
+                    run_diagnostics,
+                    (
+                        "pressure_propagation",
+                        "correlations",
+                        "attacks_to_manpower_ratio",
+                    ),
+                ),
+                "shock_to_food_deficit": _average_nested(
+                    run_diagnostics,
+                    (
+                        "pressure_propagation",
+                        "correlations",
+                        "shock_to_food_deficit",
+                    ),
+                ),
+                "shock_to_net_income": _average_nested(
+                    run_diagnostics,
+                    (
+                        "pressure_propagation",
+                        "correlations",
+                        "shock_to_net_income",
+                    ),
+                ),
+                "trade_pressure_to_net_income": _average_nested(
+                    run_diagnostics,
+                    (
+                        "pressure_propagation",
+                        "correlations",
+                        "trade_pressure_to_net_income",
+                    ),
+                ),
+                "bloc_bias_to_military_action": _average_nested(
+                    run_diagnostics,
+                    (
+                        "pressure_propagation",
+                        "correlations",
+                        "bloc_bias_to_military_action",
+                    ),
+                ),
+            },
+        },
+        "action_incentives": {
+            "average_total_faction_turns": _average_nested(
+                run_diagnostics,
+                ("action_incentives", "total_faction_turns"),
+            ),
+            "dual_track_qualified_rate": _average_nested(
+                run_diagnostics,
+                ("action_incentives", "dual_track_qualified_rate"),
+            ),
+            "selected_action_counts": _aggregate_selected_action_counts(run_diagnostics),
+            "best_utility_selection_rate": _average_nested(
+                run_diagnostics,
+                ("action_incentives", "best_utility_selection_rate"),
+            ),
+            "average_utility_gap": _average_nested(
+                run_diagnostics,
+                ("action_incentives", "average_utility_gap"),
+            ),
+            "average_attack_utility": _average_nested(
+                run_diagnostics,
+                ("action_incentives", "average_utilities", "attack"),
+            ),
+            "average_expand_utility": _average_nested(
+                run_diagnostics,
+                ("action_incentives", "average_utilities", "expand"),
+            ),
+            "average_develop_utility": _average_nested(
+                run_diagnostics,
+                ("action_incentives", "average_utilities", "develop"),
+            ),
+            "attack_candidate": {
+                "average_score": _average_nested(
+                    run_diagnostics,
+                    ("action_incentives", "attack_candidate", "average_score"),
+                ),
+                "average_success_chance": _average_nested(
+                    run_diagnostics,
+                    (
+                        "action_incentives",
+                        "attack_candidate",
+                        "average_success_chance",
+                    ),
+                ),
+                "average_active_war_bonus": _average_nested(
+                    run_diagnostics,
+                    (
+                        "action_incentives",
+                        "attack_candidate",
+                        "average_active_war_bonus",
+                    ),
+                ),
+                "average_supply_risk": _average_nested(
+                    run_diagnostics,
+                    ("action_incentives", "attack_candidate", "average_supply_risk"),
+                ),
+                "average_manpower_commitment": _average_nested(
+                    run_diagnostics,
+                    (
+                        "action_incentives",
+                        "attack_candidate",
+                        "average_manpower_commitment",
+                    ),
+                ),
+                "average_readiness": _average_nested(
+                    run_diagnostics,
+                    ("action_incentives", "attack_candidate", "average_readiness"),
+                ),
+            },
+            "expand_candidate": {
+                "average_score": _average_nested(
+                    run_diagnostics,
+                    ("action_incentives", "expand_candidate", "average_score"),
+                ),
+                "average_frontier_pressure": _average_nested(
+                    run_diagnostics,
+                    (
+                        "action_incentives",
+                        "expand_candidate",
+                        "average_frontier_pressure",
+                    ),
+                ),
+            },
+            "develop_candidate": {
+                "average_score": _average_nested(
+                    run_diagnostics,
+                    ("action_incentives", "develop_candidate", "average_score"),
+                ),
+                "average_acute_development_need": _average_nested(
+                    run_diagnostics,
+                    (
+                        "action_incentives",
+                        "develop_candidate",
+                        "average_acute_development_need",
+                    ),
+                ),
+                "average_food_shortage": _average_nested(
+                    run_diagnostics,
+                    (
+                        "action_incentives",
+                        "develop_candidate",
+                        "average_food_shortage",
+                    ),
+                ),
+            },
+            "bloc_bias": {
+                "average_attack_bias": _average_nested(
+                    run_diagnostics,
+                    ("action_incentives", "bloc_bias", "average_attack_bias"),
+                ),
+                "average_expand_bias": _average_nested(
+                    run_diagnostics,
+                    ("action_incentives", "bloc_bias", "average_expand_bias"),
+                ),
+                "average_develop_bias": _average_nested(
+                    run_diagnostics,
+                    ("action_incentives", "bloc_bias", "average_develop_bias"),
+                ),
+                "average_abs_bias": _average_nested(
+                    run_diagnostics,
+                    ("action_incentives", "bloc_bias", "average_abs_bias"),
+                ),
+            },
+        },
+    }
+
+
 def summarize_setting(map_name, num_turns, runs, num_factions):
     template_world = create_world(
         map_name=map_name,
@@ -503,18 +1901,31 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
             for bucket in ("1-3", "4-7", "8+")
         },
     }
+    pressure_diagnostic_runs = []
 
     for _ in range(runs):
         world = create_world(
             map_name=map_name,
             num_factions=num_factions,
         )
-        world = run_simulation(world, num_turns=num_turns, verbose=False)
+        action_diagnostics = []
+        world = run_simulation(
+            world,
+            num_turns=num_turns,
+            verbose=False,
+            action_diagnostics_callback=action_diagnostics.append,
+        )
         final_regions = count_owned_regions(world)
         competition = analyze_competition_metrics(world)
         phase_counts = build_phase_action_counts(world)
         run_system_activity = build_system_activity(world)
         run_dual_track = build_dual_track_observability(world)
+        run_pressure_diagnostics = build_pressure_diagnostics(
+            world,
+            competition=competition,
+            action_diagnostics=action_diagnostics,
+        )
+        pressure_diagnostic_runs.append(run_pressure_diagnostics)
 
         final_treasuries = {
             faction_name: faction.treasury
@@ -739,6 +2150,7 @@ def summarize_setting(map_name, num_turns, runs, num_factions):
             ),
             "track_split_by_faction_size": track_split_summary,
         },
+        "pressure_diagnostics": summarize_pressure_diagnostics(pressure_diagnostic_runs),
     }
 
 
@@ -751,6 +2163,7 @@ def format_setting_report(result):
     diplomacy = result["diplomacy"]
     system_activity = result["system_activity"]
     dual_track = result.get("dual_track_actions", {})
+    pressure = result.get("pressure_diagnostics", {})
 
     lines.append(f"Map: {result['map_name']}")
     lines.append(f"Turns: {result['num_turns']}")
@@ -806,6 +2219,97 @@ def format_setting_report(result):
         f"Avg largest treasury lead: {health['average_largest_treasury_lead']:.2f} | "
         f"Avg largest region lead: {health['average_largest_region_lead']:.2f} | "
         f"Avg final factions: {health['average_final_factions']:.2f}"
+    )
+
+    runaway_pressure = pressure.get("runaway", {})
+    relationship_pressure = pressure.get("relationship_pressure", {})
+    late_phase_summaries = pressure.get("late_war_cadence", {})
+    late_war = late_phase_summaries.get("late", {})
+    if not late_war and late_phase_summaries:
+        late_war = list(late_phase_summaries.values())[-1]
+    shock_volume = pressure.get("shock_volume", {})
+    propagation = pressure.get("pressure_propagation", {})
+    action_incentives = pressure.get("action_incentives", {})
+    selected_action_counts = action_incentives.get("selected_action_counts", {})
+    selected_actions_total = sum(selected_action_counts.values())
+    attack_candidate = action_incentives.get("attack_candidate", {})
+    expand_candidate = action_incentives.get("expand_candidate", {})
+    develop_candidate = action_incentives.get("develop_candidate", {})
+    bloc_bias = action_incentives.get("bloc_bias", {})
+    correlations = propagation.get("correlations", {})
+
+    lines.append("")
+    lines.append("Pressure Diagnostics")
+    lines.append(
+        f"  Runaway margins: treasury {runaway_pressure.get('average_treasury_margin', 0.0):.2f} | "
+        f"regions {runaway_pressure.get('average_region_margin', 0.0):.2f} | "
+        f"force projection {runaway_pressure.get('average_force_projection_margin', 0.0):.2f} | "
+        f"net income {runaway_pressure.get('average_net_income_margin', 0.0):.2f}"
+    )
+    lines.append(
+        f"  Durable pressure: admin eff margin "
+        f"{runaway_pressure.get('average_admin_efficiency_margin', 0.0):.3f} | "
+        f"shock exposure gap {runaway_pressure.get('average_shock_exposure_gap', 0.0):.3f} | "
+        f"shock resilience margin {runaway_pressure.get('average_shock_resilience_margin', 0.0):.3f} | "
+        f"technology margin {runaway_pressure.get('average_technology_margin', 0.0):.3f}"
+    )
+    lines.append(
+        f"  Diplomacy pressure: active wars "
+        f"{relationship_pressure.get('average_active_war_count', 0.0):.2f} | "
+        f"rivalries {relationship_pressure.get('average_rivalry_count', 0.0):.2f} | "
+        f"pacts/alliances {relationship_pressure.get('average_pact_alliance_count', 0.0):.2f} | "
+        f"tributary pressure {relationship_pressure.get('average_tributary_pressure_count', 0.0):.2f}"
+    )
+    lines.append(
+        f"  Late war: attacks {late_war.get('attacks', 0.0):.2f} | "
+        f"active-war rate {late_war.get('active_war_attack_rate', 0.0):.2%} | "
+        f"rival rate {late_war.get('rival_attack_rate', 0.0):.2%} | "
+        f"low-score rate {late_war.get('low_score_attack_rate', 0.0):.2%} | "
+        f"repeat rate {late_war.get('repeated_same_pair_attack_rate', 0.0):.2%}"
+    )
+    lines.append(
+        f"  Shock volume: events {shock_volume.get('average_shock_event_count', 0.0):.2f} | "
+        f"onsets {shock_volume.get('average_onset_event_count', 0.0):.2f} | "
+        f"recoveries {shock_volume.get('average_recovery_event_count', 0.0):.2f} | "
+        f"population-loss events {shock_volume.get('average_population_loss_event_count', 0.0):.2f} | "
+        f"avg exposure {shock_volume.get('average_faction_shock_exposure', 0.0):.3f}"
+    )
+    lines.append(
+        f"  Pressure bite: large-state admin eff "
+        f"{propagation.get('average_large_state_admin_efficiency', 0.0):.3f} | "
+        f"overextension {propagation.get('average_large_state_overextension', 0.0):.3f} | "
+        f"dual-track loss {propagation.get('average_large_state_dual_track_loss_rate', 0.0):.2%} | "
+        f"manpower ratio {propagation.get('average_manpower_ratio', 0.0):.2%} | "
+        f"high-shock net {propagation.get('average_high_shock_net_income', 0.0):.2f}"
+    )
+    lines.append(
+        f"  Pressure correlations: regions->admin "
+        f"{correlations.get('regions_to_admin_efficiency', 0.0):.2f} | "
+        f"regions->overextension {correlations.get('regions_to_overextension', 0.0):.2f} | "
+        f"shock->food deficit {correlations.get('shock_to_food_deficit', 0.0):.2f} | "
+        f"trade pressure->net income {correlations.get('trade_pressure_to_net_income', 0.0):.2f}"
+    )
+    lines.append(
+        f"  Action incentives: attack "
+        f"{_ratio(selected_action_counts.get('attack', 0), selected_actions_total):.2%} | "
+        f"expand {_ratio(selected_action_counts.get('expand', 0), selected_actions_total):.2%} | "
+        f"develop {_ratio(selected_action_counts.get('develop', 0), selected_actions_total):.2%} | "
+        f"best-utility selected {action_incentives.get('best_utility_selection_rate', 0.0):.2%} | "
+        f"dual-track qualified {action_incentives.get('dual_track_qualified_rate', 0.0):.2%}"
+    )
+    lines.append(
+        f"  Best candidates: attack score {attack_candidate.get('average_score', 0.0):.2f} "
+        f"/ success {attack_candidate.get('average_success_chance', 0.0):.2%} | "
+        f"expand score {expand_candidate.get('average_score', 0.0):.2f} "
+        f"/ frontier {expand_candidate.get('average_frontier_pressure', 0.0):.3f} | "
+        f"develop score {develop_candidate.get('average_score', 0.0):.2f} "
+        f"/ acute need {develop_candidate.get('average_acute_development_need', 0.0):.3f}"
+    )
+    lines.append(
+        f"  Bloc/action bias: abs {bloc_bias.get('average_abs_bias', 0.0):.4f} | "
+        f"attack {bloc_bias.get('average_attack_bias', 0.0):.4f} | "
+        f"expand {bloc_bias.get('average_expand_bias', 0.0):.4f} | "
+        f"develop {bloc_bias.get('average_develop_bias', 0.0):.4f}"
     )
 
     lines.append("")

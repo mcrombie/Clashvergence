@@ -14,16 +14,16 @@ This milestone is intended as a substantial public prototype, not a stable v1.0 
 
 ## What It Simulates
 
-Each run creates a world containing regions and factions. Regions track ownership, resource endowments, output, trade route state, food storage, population, terrain, climate, ethnic and religious composition, technology presence and adoption, integration, settlement level, administrative state, migration pressure, and unrest. Factions track treasury, identity, doctrine, ethnicity, diplomacy, political structure, resource access, trade income, administrative capacity, religion, succession, institutionalized technologies, elite blocs, and population movement.
+Each run creates a world containing regions and factions. Regions track ownership, resource endowments, output, trade route state, food storage, population, terrain, climate, ethnic and religious composition, technology presence and adoption, integration, settlement level, administrative state, shock exposure, migration pressure, and unrest. Factions track treasury, identity, doctrine, ethnicity, diplomacy, political structure, resource access, trade income, administrative capacity, religion, succession, institutionalized technologies, elite blocs, military state, shock resilience, and population movement.
 
 Each turn roughly follows this loop:
 
-1. Each faction chooses an action based on doctrine, opportunities, resources, diplomacy, and geography.
-2. Actions resolve as `expand`, `attack`, or `develop`.
+1. Each faction chooses legal actions based on doctrine, opportunities, resources, diplomacy, internal blocs, capacity, and geography.
+2. Actions resolve as `expand`, `attack`, or `develop`; larger administratively capable factions can use separate military and administrative tracks in the same annual turn.
 3. Resource production, trade routing, food storage, and administrative state are refreshed.
 4. Unrest events, secessions, rebel maturation, and migration are resolved.
 5. Income, empire-scale penalties, administrative penalties, tribute, and maintenance are applied.
-6. Integration, technology diffusion, population, settlement levels, polity tiers, diplomacy, religion, succession, language contact, and doctrine are updated.
+6. Integration, technology diffusion, population, settlement levels, polity tiers, diplomacy, religion, succession, language contact, elite politics, ideology, and doctrine are updated.
 7. Metrics and region history are recorded for analysis and visualization.
 
 ## Implemented Systems
@@ -32,24 +32,28 @@ Each turn roughly follows this loop:
 - Multiple hand-authored and generated map layouts.
 - Faction naming, identity, language, government forms, and polity tiers.
 - Doctrine profiles that adapt from homeland, climate, terrain, and lived experience.
-- Expansion, attack, and development decision logic, with terrain/climate personality shaping strategy.
+- Annual year-turn cadence with climate-weighted dominant-season variation.
+- Expansion, attack, and development decision logic, with terrain/climate personality, bloc competition, and dual-track action selection shaping strategy.
 - Specific resources including grain, livestock, horses, wild food, timber, copper, stone, salt, and textiles.
 - Resource production, shortages, domesticable resource spread, extraction sites, roads, storehouses, markets, irrigation, pastures, logging camps, mines, and quarries.
 - Internal trade routing, route bottlenecks, sea and river links, foreign trade, trade income, import reliance, trade warfare, and blockade losses.
-- Seasonal food production, consumption, storage, spoilage, shortages, and salt preservation effects.
-- Population growth, population transfer, migration, refugees, frontier settlement, and seasonal migration modifiers.
+- Annual food production, consumption, storage, spoilage, shortages, and salt preservation effects.
+- Population growth, population transfer, migration, refugees, frontier settlement, and climate/terrain-shaped migration pressure.
 - Homeland, core, and frontier integration.
 - Ethnicity, ethnic claims, language contact, and same-people regime tension.
 - Unrest, crises, secession, restoration, rebel proto-states, and rebel independence.
 - Diplomacy including rivalry, pacts, alliances, truces, tributary relationships, war objectives, peace terms, and diplomatic breakdown.
 - Administrative capacity, administrative reach, tax capture, autonomy, overextension, and administrative maintenance pressure.
+- Military institutions including manpower, standing forces, readiness, logistics, fortifications, garrisons, naval bases, battle losses, and reform pressure.
 - Religion, sacred sites, religious legitimacy, religious unrest, conversion pressure, clergy support, tolerance, zeal, and reform pressure.
 - Dynastic succession, rulers, heirs, regencies, legitimacy, prestige, claimant pressure, and succession crises.
 - Elite blocs and internal political pressure.
 - Emergent political ideologies, including legalism, civic republicanism, sacred kingship, merchant constitutionalism, imperial universalism, reform movements, military frontierism, lineage traditionalism, and anti-tax provincialism, derived from institutions and social blocs.
 - Practical technology diffusion through regional exposure, local adoption, and faction institutionalization.
+- Seafaring-gated maritime contact, expansion, attack reach, naval power, and sea-link visibility.
 - Urban specialization, capital selection, and urban network value.
-- Event logs, chronicles, metrics snapshots, balance dashboards, dead-system observation, and an HTML turn-by-turn viewer.
+- Long-cycle shocks including climate anomalies, famine, epidemic disease, soil exhaustion, ecological degradation, resource depletion, trade collapse, population loss, and recovery.
+- Event logs, chronicles, metrics snapshots, balance dashboards, pressure diagnostics, dead-system observation, and an HTML turn-by-turn viewer.
 - Optional AI-assisted interpretive narrative generation.
 
 ## Installation
@@ -207,16 +211,24 @@ reports/interpretive_narrative.txt
 
 The experiment scripts are observation tools. They are useful for spotting pathological behavior, runaway collapse, underused systems, and dead systems. They are not meant to force symmetric game balance.
 
+The balance dashboard includes pressure diagnostics for runaway context, late-war cadence, shock volume, pressure propagation, and dashboard-only action utility samples.
+
 Example balance dashboard run:
 
 ```powershell
 python experiments/experiment_balance_dashboard.py --maps thirty_seven_region_ring --turns 20 --runs 10 --num-factions 4
 ```
 
+For annual-turn calibration, compare multiple horizons:
+
+```powershell
+python experiments/experiment_balance_dashboard.py --maps thirty_seven_region_ring --turns 80 150 250 --runs 10 --num-factions 4
+```
+
 Example Azhora calibration run:
 
 ```powershell
-python experiments/experiment_azhora_calibration.py --runs 25 --turns 120
+python experiments/experiment_azhora_calibration.py --runs 25 --turns 150
 ```
 
 The Azhora calibration script translates the current world-builder Azhora map
@@ -261,6 +273,8 @@ Current tests are most valuable when they protect simulation coherence:
 - `examples/`: Suggested public demo commands and release examples.
 - `reports/`: Generated reports, chronicles, viewers, and experiment output. This directory is ignored by Git.
 - `ROADMAP.md`: Development direction after the prototype milestone.
+- `PRESSURE_DIAGNOSTICS_PLAN.md`: Pressure diagnostics implementation and calibration reference.
+- `archive/implemented/`: Historical implementation plans that are now complete.
 - `RELEASE_NOTES.md`: Public release notes.
 
 ## Known Limitations
@@ -277,8 +291,8 @@ These limitations are expected for v0.9.0:
 - Technology is a V1 practical-method diffusion layer, not a deep transformational history model.
 - Ideology is an early emergent layer. It now feeds back into administration, unrest, diplomacy, trade, integration, and military projection, but it is still intentionally broad rather than a detailed intellectual-history model.
 - Urban specialization exists, but deeper city networks and labor/craft roles remain future work.
-- Large shocks such as famine, disease, ecological degradation, climate anomalies, and trade collapse are not yet fully modeled.
-- Internal politics exists through succession, religion, claimants, and elite blocs, but still needs stronger causal feedback into diplomacy, revolt, and state capacity.
+- Long-cycle shocks are implemented, but their event volume and pressure effects still need calibration.
+- Internal politics exists through succession, religion, claimants, ideology, and elite blocs, but still needs stronger calibration around diplomacy, revolt, and state capacity.
 
 ## Development Philosophy
 
@@ -297,12 +311,13 @@ That fits a simulation where the interesting question is often, "what does this 
 
 The next major priorities after v0.9.0 are:
 
-1. Observe existing systems across repeated runs, especially with the dead-system dashboard.
-2. Tune pressure and action mix so terrain, climate, resources, trade, and legitimacy produce distinct strategies without flattening faction personality.
-3. Deepen production chains, strategic resources, and trade dependencies now that the first resource/trade layer exists.
-4. Deepen state capacity, legitimacy, religion, migration, succession, and elite politics so they create more visible causal pressure.
-5. Observe and tune technology diffusion so trade, density, stability, resources, and institutions create visible divergence without becoming a game-like tech tree.
-6. Grow the game-facing layer carefully: keep human controls on the same legal
+1. Use pressure diagnostics around runaway formation, late-war cadence, shock volume, action incentives, and pressure propagation to identify targeted tuning patches.
+2. Tune pressure and action mix from repeated-run evidence so terrain, climate, resources, trade, state capacity, legitimacy, and internal blocs produce distinct strategies without flattening faction personality.
+3. Calibrate annual-turn shocks so they create legible long-cycle stress without overwhelming reports.
+4. Deepen production chains, strategic resources, and trade dependencies now that the first resource/trade layer exists.
+5. Deepen state capacity, legitimacy, religion, migration, succession, and elite politics so they create more visible causal pressure.
+6. Observe and tune technology diffusion so trade, density, stability, resources, and institutions create visible divergence without becoming a game-like tech tree.
+7. Grow the game-facing layer carefully: keep human controls on the same legal
    action API as AI factions, preserve limited visibility, then deepen save/load,
    diplomacy controls, richer affordances, and stronger browser inspection tools.
 

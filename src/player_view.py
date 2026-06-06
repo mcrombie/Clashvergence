@@ -278,6 +278,14 @@ def _serialize_observer_faction(
             _metric(metrics, "administrative_overextension", faction.administrative_overextension),
             3,
         ),
+        "capital_region": faction.capital_region,
+        "capital_connected_regions": int(_metric(metrics, "capital_connected_regions", faction.capital_connected_regions) or 0),
+        "capital_isolated_regions": int(_metric(metrics, "capital_isolated_regions", faction.capital_isolated_regions) or 0),
+        "capital_fragment_count": int(_metric(metrics, "capital_fragment_count", faction.capital_fragment_count) or 0),
+        "capital_connectivity_penalty": _round_float(
+            _metric(metrics, "capital_connectivity_penalty", faction.capital_connectivity_penalty),
+            3,
+        ),
         "military_readiness": _round_float(
             _metric(metrics, "military_readiness", faction.military_readiness),
             3,

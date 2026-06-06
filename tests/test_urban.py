@@ -60,6 +60,47 @@ class UrbanSpecializationTests(unittest.TestCase):
         self.assertEqual(port.urban_specialization, URBAN_PORT_CITY)
         self.assertGreater(world.factions["FactionA"].urban_network_value, 0.0)
 
+    def test_existing_capital_remains_stable_while_owned(self):
+        old_capital = Region(
+            name="OldCapital",
+            neighbors=["NewCapital"],
+            owner="FactionA",
+            resources=2,
+            population=260,
+            settlement_level="town",
+            core_status="homeland",
+            administrative_support=0.5,
+        )
+        new_capital = Region(
+            name="NewCapital",
+            neighbors=["OldCapital"],
+            owner="FactionA",
+            resources=2,
+            population=720,
+            settlement_level="city",
+            core_status="homeland",
+            administrative_support=1.0,
+            infrastructure_level=1.0,
+            road_level=1.0,
+        )
+        world = WorldState(
+            regions={
+                "OldCapital": old_capital,
+                "NewCapital": new_capital,
+            },
+            factions={
+                "FactionA": Faction(
+                    name="FactionA",
+                    capital_region="OldCapital",
+                ),
+            },
+        )
+
+        update_urban_specializations(world)
+
+        self.assertEqual(world.factions["FactionA"].capital_region, "OldCapital")
+        self.assertEqual(old_capital.urban_specialization, URBAN_CAPITAL)
+
     def test_mining_town_detects_extractives(self):
         capital = Region(
             name="Capital",

@@ -68,6 +68,7 @@ from src.metrics import build_turn_metrics
 from src.models import Faction, FactionIdentity, LanguageProfile, Region, RelationshipState, WorldState
 from src.simulation_ui import build_simulation_snapshots, build_simulation_view_model
 from src.simulation import get_faction_economy_snapshot
+from src.technology import TECH_SEAFARING
 from src.world import create_world
 
 
@@ -275,6 +276,104 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertGreater(faction.administrative_overextension_penalty, 0.0)
         self.assertGreater(snapshot[faction_name]["empire_penalty"], 0.0)
 
+    def test_capital_disconnected_region_accumulates_administrative_penalty(self):
+        capital = Region(
+            name="Capital",
+            neighbors=["Core"],
+            owner="FactionA",
+            resources=2,
+            population=500,
+            settlement_level="city",
+            core_status="homeland",
+            administrative_support=0.8,
+        )
+        core = Region(
+            name="Core",
+            neighbors=["Capital"],
+            owner="FactionA",
+            resources=2,
+            population=220,
+            settlement_level="town",
+            core_status="core",
+            administrative_support=0.4,
+        )
+        enclave = Region(
+            name="Enclave",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=190,
+            settlement_level="rural",
+            core_status="frontier",
+        )
+        world = WorldState(
+            regions={
+                "Capital": capital,
+                "Core": core,
+                "Enclave": enclave,
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", capital_region="Capital"),
+            },
+        )
+
+        refresh_administrative_state(world)
+        first_penalty = enclave.capital_fragment_penalty
+        first_tax_capture = enclave.administrative_tax_capture
+        refresh_administrative_state(world)
+
+        self.assertEqual(enclave.capital_connection_mode, "isolated")
+        self.assertEqual(enclave.capital_disconnection_turns, 2)
+        self.assertGreater(enclave.capital_fragment_penalty, first_penalty)
+        self.assertLess(enclave.administrative_tax_capture, first_tax_capture)
+        self.assertEqual(world.factions["FactionA"].capital_isolated_regions, 1)
+        self.assertEqual(world.factions["FactionA"].capital_fragment_count, 2)
+        self.assertGreater(world.factions["FactionA"].capital_connectivity_penalty, 0.0)
+
+    def test_seafaring_sea_link_mitigates_capital_fragment_penalty(self):
+        capital = Region(
+            name="Capital",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=500,
+            settlement_level="city",
+            core_status="homeland",
+            terrain_tags=["coast"],
+        )
+        island = Region(
+            name="Island",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=190,
+            settlement_level="town",
+            core_status="frontier",
+            terrain_tags=["coast"],
+        )
+        world = WorldState(
+            regions={
+                "Capital": capital,
+                "Island": island,
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", capital_region="Capital"),
+            },
+            sea_links=[("Capital", "Island")],
+        )
+
+        refresh_administrative_state(world)
+        self.assertEqual(island.capital_connection_mode, "isolated")
+        self.assertGreater(island.capital_fragment_penalty, 0.0)
+
+        world.factions["FactionA"].known_technologies[TECH_SEAFARING] = 1.0
+        refresh_administrative_state(world)
+
+        self.assertEqual(island.capital_connection_mode, "sea")
+        self.assertEqual(island.capital_disconnection_turns, 0)
+        self.assertEqual(island.capital_fragment_penalty, 0.0)
+        self.assertEqual(world.factions["FactionA"].capital_isolated_regions, 0)
+
     def test_stronger_state_integrates_frontier_faster_than_overextended_polity(self):
         strong_world = create_world(map_name="thirteen_region_ring", num_factions=4)
         weak_world = deepcopy(strong_world)
@@ -333,8 +432,12 @@ class HeartlandSystemTests(unittest.TestCase):
 
         self.assertIn("administrative_capacity", metrics)
         self.assertIn("administrative_overextension_penalty", metrics)
+        self.assertIn("capital_fragment_count", metrics)
+        self.assertIn("capital_connectivity_penalty", metrics)
         self.assertIn("administrative_burden", region_snapshot)
         self.assertIn("administrative_tax_capture", region_snapshot)
+        self.assertIn("capital_connection_mode", region_snapshot)
+        self.assertIn("capital_fragment_penalty", region_snapshot)
 
     def test_world_initializes_dynastic_succession_state(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)

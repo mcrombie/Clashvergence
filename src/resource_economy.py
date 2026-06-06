@@ -411,6 +411,14 @@ def ensure_region_resource_state(region: Region) -> None:
     region.administrative_distance = round(max(0.0, float(region.administrative_distance or 0.0)), 3)
     region.administrative_autonomy = round(max(0.0, float(region.administrative_autonomy or 0.0)), 3)
     region.administrative_tax_capture = round(_clamp(float(region.administrative_tax_capture or 1.0), 0.2, 1.1), 3)
+    region.capital_connection_mode = str(region.capital_connection_mode or "none")
+    region.capital_connection_depth = (
+        int(region.capital_connection_depth)
+        if region.capital_connection_depth is not None
+        else None
+    )
+    region.capital_disconnection_turns = max(0, int(region.capital_disconnection_turns or 0))
+    region.capital_fragment_penalty = round(max(0.0, float(region.capital_fragment_penalty or 0.0)), 3)
     region.storehouse_level = round(max(0.0, float(region.storehouse_level or 0.0)), 2)
     region.market_level = round(max(0.0, float(region.market_level or 0.0)), 2)
     region.irrigation_level = round(max(0.0, float(region.irrigation_level or 0.0)), 2)
@@ -483,6 +491,10 @@ def _ensure_faction_resource_state(faction: Faction) -> None:
     faction.administrative_reach = round(_clamp(float(faction.administrative_reach or 1.0), 0.0, 2.0), 3)
     faction.administrative_overextension = round(max(0.0, float(faction.administrative_overextension or 0.0)), 3)
     faction.administrative_overextension_penalty = round(max(0.0, float(faction.administrative_overextension_penalty or 0.0)), 3)
+    faction.capital_connected_regions = max(0, int(faction.capital_connected_regions or 0))
+    faction.capital_isolated_regions = max(0, int(faction.capital_isolated_regions or 0))
+    faction.capital_fragment_count = max(0, int(faction.capital_fragment_count or 0))
+    faction.capital_connectivity_penalty = round(max(0.0, float(faction.capital_connectivity_penalty or 0.0)), 3)
 
 
 def get_region_resource_workforce_factor(region: Region, world: WorldState | None = None) -> float:

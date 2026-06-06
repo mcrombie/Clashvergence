@@ -1,7 +1,7 @@
 import random
 
 from src.administration import refresh_administrative_state
-from src.agents import choose_action, choose_actions
+from src.agents import choose_action, choose_actions, evaluate_action_diagnostics
 from src.actions import attack, develop, expand
 from src.calendar import (
     SEASONAL_TIME_STEP_YEARS,
@@ -214,7 +214,14 @@ def _execute_single_action(world, faction_name, action_name, target_region_name,
             print(f"{faction_name} skipped its turn")
 
 
-def _run_faction_action_phase(world, turn_order, *, verbose=True, action_provider=None):
+def _run_faction_action_phase(
+    world,
+    turn_order,
+    *,
+    verbose=True,
+    action_provider=None,
+    action_diagnostics_callback=None,
+):
     for faction_name in turn_order:
         update_faction_resource_economy(world, advance_resources=False)
         refresh_administrative_state(world)
@@ -232,7 +239,15 @@ def _run_faction_action_phase(world, turn_order, *, verbose=True, action_provide
                 selected_action=selected_action,
             )
         else:
-            actions = choose_actions(faction_name, world)
+            if action_diagnostics_callback is not None:
+                diagnostics = evaluate_action_diagnostics(faction_name, world)
+                action_diagnostics_callback(diagnostics)
+                actions = [
+                    (selected["action"], selected["target"])
+                    for selected in diagnostics["selected_actions"]
+                ]
+            else:
+                actions = choose_actions(faction_name, world)
             if not actions and verbose:
                 print(f"{faction_name} skipped its turn")
             for action_name, target_region_name in actions:
@@ -322,6 +337,7 @@ def run_turn(
     randomize_order=True,
     verbose=True,
     action_provider=None,
+    action_diagnostics_callback=None,
 ):
     """Runs one full turn of the simulation."""
     current_turn = world.turn
@@ -340,6 +356,7 @@ def run_turn(
         turn_order,
         verbose=verbose,
         action_provider=action_provider,
+        action_diagnostics_callback=action_diagnostics_callback,
     )
     economy_snapshot = _run_post_action_phase(world)
     if is_year_end(current_turn):
@@ -357,6 +374,7 @@ def run_simulation(
     verbose=True,
     action_provider=None,
     turn_callback=None,
+    action_diagnostics_callback=None,
 ):
     """Runs the simulation for the given number of turns."""
 
@@ -366,6 +384,7 @@ def run_simulation(
             faction_order=faction_order,
             verbose=verbose,
             action_provider=action_provider,
+            action_diagnostics_callback=action_diagnostics_callback,
         )
         if turn_callback is not None:
             turn_callback(world)

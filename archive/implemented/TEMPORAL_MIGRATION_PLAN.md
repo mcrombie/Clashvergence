@@ -1,4 +1,16 @@
-# Temporal Scale Migration: Season-Turns → Year-Turns
+# Archived: Temporal Scale Migration: Season-Turns To Year-Turns
+
+Status: implemented. Archived on 2026-06-05 after verification against the current codebase.
+
+Implementation references:
+
+- `src/calendar.py`: `TURNS_PER_YEAR = 1`, annual dominant-season selection, annual campaign modifiers, annual food variance, and year-only turn labels.
+- `src/agents.py`, `src/actions.py`, `src/heartland.py`, and `src/resource_economy.py`: annual dominant-season mechanics threaded through action selection, combat, unrest, migration, and food economy.
+- `src/config.py`: annualized population, unrest, rebel independence, diplomacy, and war-duration constants.
+- `src/simulation_ui.py` and `src/metrics.py`: annual date labels and viewer/metric reporting.
+- `tests/test_calendar.py`, `tests/test_climate.py`, and related system tests: focused annual cadence coverage.
+
+Original plan retained below for historical context.
 
 ## Problem
 

@@ -30,17 +30,20 @@ Longer runs can generate very large report files. `reports/` is ignored by Git.
 
 ## Highlights
 
-- Turn-based historical simulation with region ownership, faction actions, and emergent event logs.
+- Annual-turn historical simulation with region ownership, dual-track faction actions, and emergent event logs.
 - Terrain, climate, resources, trade, food, migration, administration, and settlement growth.
 - Faction identity, language/culture, government forms, polity tiers, and doctrine adaptation.
 - Diplomacy with rivalry, pacts, alliances, truces, tributaries, wars, objectives, and settlements.
+- Military institutions with manpower, standing forces, readiness, logistics, fortifications, garrisons, naval bases, and battle losses.
 - Unrest, crises, secession, rebel proto-states, and successor polities.
 - Religion, sacred sites, legitimacy, conversion pressure, reform pressure, and clergy support.
 - Dynastic succession with rulers, heirs, regencies, claimants, prestige, and crises.
 - Elite blocs and internal political pressure.
 - Emergent political ideology from institutions and social blocs, with legalist, civic, sacred, mercantile, imperial, reformist, frontier, lineage, and provincial-autonomy currents.
 - Practical technology diffusion through regional exposure, local adoption, and faction institutionalization.
+- Seafaring-gated maritime contact, expansion, attack reach, and naval power.
 - Urban specialization, capital selection, and urban network value.
+- Long-cycle shocks for climate anomaly, famine, epidemic disease, ecological stress, resource depletion, trade collapse, population loss, and recovery.
 - HTML turn-by-turn viewer with map playback, region/faction inspection, metrics, trade overlays, migration/admin/religion/succession data, and doctrine timelines.
 - Text reports, chronicles, metrics logs, experiment dashboards, and optional AI-assisted interpretive narrative generation.
 - Generated map support and a standalone map generator UI.
@@ -53,9 +56,9 @@ Longer runs can generate very large report files. `reports/` is ignored by Git.
 - Event logs and reports can be noisy.
 - Production chains are still shallow relative to the resource/trade substrate.
 - Technology is still a V1 practical-method diffusion layer.
-- Ideology beyond religion and legitimacy politics is not yet modeled.
+- Ideology is an early broad system rather than a detailed intellectual-history model.
 - Urban specialization exists, but deeper city networks, labor roles, and craft specialization remain future work.
-- Large shocks such as famine, disease, ecological degradation, climate anomalies, and trade collapse are not yet fully modeled.
+- Long-cycle shocks are implemented, but their event volume and pressure effects still need calibration.
 - Internal politics and ideology now feed into diplomacy, revolt, administration, and collapse, but remain broad prototype systems rather than deep intellectual-history models.
 
 ## Optional AI Narrative
@@ -80,8 +83,9 @@ There are no stable APIs promised before v1.0. Internal data structures, event f
 
 After v0.9.0, the highest-value work is:
 
-1. Observe system activity across repeated runs.
-2. Tune terrain/climate/resource pressures.
-3. Deepen production chains and strategic resources.
-4. Strengthen legitimacy, administration, migration, succession, religion, and elite politics.
-5. Continue refining technology diffusion without turning it into a game-style tech tree.
+1. Use pressure diagnostics for runaways, late-war cadence, shock volume, action incentives, and propagation to guide targeted tuning.
+2. Tune terrain/climate/resource/state-capacity pressures from repeated-run evidence.
+3. Calibrate long-cycle shocks for readable annual-turn histories.
+4. Deepen production chains and strategic resources.
+5. Strengthen legitimacy, administration, migration, succession, religion, ideology, and elite politics.
+6. Continue refining technology diffusion without turning it into a game-style tech tree.

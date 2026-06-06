@@ -445,7 +445,11 @@ def get_faction_urban_capacity_bonus(world: WorldState, faction_name: str) -> fl
 
 def update_urban_specializations(world: WorldState) -> None:
     for faction_name, faction in world.factions.items():
-        faction.capital_region = choose_faction_capital(world, faction_name)
+        if (
+            faction.capital_region not in world.regions
+            or world.regions[faction.capital_region].owner != faction_name
+        ):
+            faction.capital_region = choose_faction_capital(world, faction_name)
         faction.urban_network_value = 0.0
         faction.urban_specialization_counts = build_empty_urban_specialization_counts()
 

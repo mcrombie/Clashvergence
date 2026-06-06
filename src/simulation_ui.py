@@ -207,6 +207,10 @@ def _build_region_resource_payload(region):
         "administrative_distance": round(float(region.administrative_distance or 0.0), 3),
         "administrative_autonomy": round(float(region.administrative_autonomy or 0.0), 3),
         "administrative_tax_capture": round(float(region.administrative_tax_capture or 1.0), 3),
+        "capital_connection_mode": region.capital_connection_mode,
+        "capital_connection_depth": region.capital_connection_depth,
+        "capital_disconnection_turns": int(region.capital_disconnection_turns or 0),
+        "capital_fragment_penalty": round(float(region.capital_fragment_penalty or 0.0), 3),
         "frontier_settler_inflow": int(region.frontier_settler_inflow or 0),
         "migration_pressure": round(float(region.migration_pressure or 0.0), 3),
         "migration_attraction": round(float(region.migration_attraction or 0.0), 3),
@@ -928,6 +932,10 @@ def build_simulation_snapshots(world):
             "administrative_distance": initial_region_history.get(region_name, {}).get("administrative_distance", region.administrative_distance),
             "administrative_autonomy": initial_region_history.get(region_name, {}).get("administrative_autonomy", region.administrative_autonomy),
             "administrative_tax_capture": initial_region_history.get(region_name, {}).get("administrative_tax_capture", region.administrative_tax_capture),
+            "capital_connection_mode": initial_region_history.get(region_name, {}).get("capital_connection_mode", region.capital_connection_mode),
+            "capital_connection_depth": initial_region_history.get(region_name, {}).get("capital_connection_depth", region.capital_connection_depth),
+            "capital_disconnection_turns": initial_region_history.get(region_name, {}).get("capital_disconnection_turns", region.capital_disconnection_turns),
+            "capital_fragment_penalty": initial_region_history.get(region_name, {}).get("capital_fragment_penalty", region.capital_fragment_penalty),
             "homeland_faction_id": initial_region_history.get(region_name, {}).get("homeland_faction_id"),
             "integrated_owner": initial_region_history.get(region_name, {}).get("integrated_owner"),
             "integration_score": initial_region_history.get(region_name, {}).get("integration_score", 0.0),
@@ -1065,6 +1073,10 @@ def build_simulation_snapshots(world):
                 "administrative_distance": region["administrative_distance"],
                 "administrative_autonomy": region["administrative_autonomy"],
                 "administrative_tax_capture": region["administrative_tax_capture"],
+                "capital_connection_mode": region.get("capital_connection_mode", "none"),
+                "capital_connection_depth": region.get("capital_connection_depth"),
+                "capital_disconnection_turns": region.get("capital_disconnection_turns", 0),
+                "capital_fragment_penalty": region.get("capital_fragment_penalty", 0.0),
                 "homeland_faction_id": region["homeland_faction_id"],
                 "integrated_owner": region["integrated_owner"],
                 "integration_score": region["integration_score"],
@@ -1224,6 +1236,10 @@ def build_simulation_snapshots(world):
             region_state[region_name]["administrative_distance"] = history_region.get("administrative_distance", region_state[region_name]["administrative_distance"])
             region_state[region_name]["administrative_autonomy"] = history_region.get("administrative_autonomy", region_state[region_name]["administrative_autonomy"])
             region_state[region_name]["administrative_tax_capture"] = history_region.get("administrative_tax_capture", region_state[region_name]["administrative_tax_capture"])
+            region_state[region_name]["capital_connection_mode"] = history_region.get("capital_connection_mode", region_state[region_name].get("capital_connection_mode", "none"))
+            region_state[region_name]["capital_connection_depth"] = history_region.get("capital_connection_depth", region_state[region_name].get("capital_connection_depth"))
+            region_state[region_name]["capital_disconnection_turns"] = history_region.get("capital_disconnection_turns", region_state[region_name].get("capital_disconnection_turns", 0))
+            region_state[region_name]["capital_fragment_penalty"] = history_region.get("capital_fragment_penalty", region_state[region_name].get("capital_fragment_penalty", 0.0))
             region_state[region_name]["display_name"] = history_region["display_name"] or region_state[region_name]["display_name"]
             region_state[region_name]["founding_name"] = history_region["founding_name"]
             region_state[region_name]["original_namer_faction_id"] = history_region["original_namer_faction_id"]
@@ -1375,6 +1391,10 @@ def build_simulation_snapshots(world):
                     "administrative_distance": region["administrative_distance"],
                     "administrative_autonomy": region["administrative_autonomy"],
                     "administrative_tax_capture": region["administrative_tax_capture"],
+                    "capital_connection_mode": region.get("capital_connection_mode", "none"),
+                    "capital_connection_depth": region.get("capital_connection_depth"),
+                    "capital_disconnection_turns": region.get("capital_disconnection_turns", 0),
+                    "capital_fragment_penalty": region.get("capital_fragment_penalty", 0.0),
                     "homeland_faction_id": region["homeland_faction_id"],
                     "integrated_owner": region["integrated_owner"],
                     "integration_score": region["integration_score"],
@@ -1532,6 +1552,10 @@ def build_simulation_view_model(world):
                 if world.factions[faction_name].capital_region in world.regions
                 else "None"
             ),
+            "capital_connected_regions": int(world.factions[faction_name].capital_connected_regions or 0),
+            "capital_isolated_regions": int(world.factions[faction_name].capital_isolated_regions or 0),
+            "capital_fragment_count": int(world.factions[faction_name].capital_fragment_count or 0),
+            "capital_connectivity_penalty": round(float(world.factions[faction_name].capital_connectivity_penalty or 0.0), 3),
             "urban_network_value": round(float(world.factions[faction_name].urban_network_value or 0.0), 3),
             "urban_specialization_counts": dict(world.factions[faction_name].urban_specialization_counts or {}),
             "resource_access": _serialize_resource_map(world.factions[faction_name].resource_access),
@@ -5070,6 +5094,15 @@ def render_simulation_html(world):
               <div class="detail-value">
                 Capture ${{Number((regionSnapshot.administrative_tax_capture ?? staticRegion.administrative_tax_capture ?? 1) * 100).toFixed(0)}}%
                 / Autonomy ${{Number(regionSnapshot.administrative_autonomy ?? staticRegion.administrative_autonomy ?? 0).toFixed(2)}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Capital Link</div>
+              <div class="detail-value">
+                ${{escapeHtml(regionSnapshot.capital_connection_mode ?? staticRegion.capital_connection_mode ?? "none")}}
+                / depth ${{regionSnapshot.capital_connection_depth ?? staticRegion.capital_connection_depth ?? "n/a"}}
+                / cut ${{Number(regionSnapshot.capital_disconnection_turns ?? staticRegion.capital_disconnection_turns ?? 0).toFixed(0)}}
+                / penalty ${{Number(regionSnapshot.capital_fragment_penalty ?? staticRegion.capital_fragment_penalty ?? 0).toFixed(2)}}
               </div>
             </div>
             <div class="detail-row">
