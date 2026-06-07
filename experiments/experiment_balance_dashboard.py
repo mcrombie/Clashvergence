@@ -45,6 +45,9 @@ RUNAWAY_CONTEXT_METRICS = (
     "military_readiness",
     "administrative_efficiency",
     "administrative_overextension",
+    "capital_isolated_regions",
+    "capital_fragment_count",
+    "capital_connectivity_penalty",
     "shock_exposure",
     "shock_resilience",
     "average_institutional_technology",
@@ -555,6 +558,10 @@ def _dominant_runaway_advantage(snapshot_summary):
         "force_projection": snapshot_summary.get("force_projection_margin", 0.0),
         "net_income": snapshot_summary.get("net_income_margin", 0.0),
         "admin_efficiency": snapshot_summary.get("admin_efficiency_margin", 0.0),
+        "capital_cohesion": -snapshot_summary.get(
+            "capital_connectivity_penalty_gap",
+            0.0,
+        ),
         "technology": snapshot_summary.get("technology_margin", 0.0),
         "shock_resilience": snapshot_summary.get("shock_resilience_margin", 0.0),
     }
@@ -591,6 +598,9 @@ def _build_runaway_snapshot(snapshot, winner, label):
         "military_readiness": "military_readiness_margin",
         "administrative_efficiency": "admin_efficiency_margin",
         "administrative_overextension": "admin_overextension_gap",
+        "capital_isolated_regions": "capital_isolated_region_gap",
+        "capital_fragment_count": "capital_fragment_gap",
+        "capital_connectivity_penalty": "capital_connectivity_penalty_gap",
         "shock_exposure": "shock_exposure_gap",
         "shock_resilience": "shock_resilience_margin",
         "average_institutional_technology": "technology_margin",
@@ -619,6 +629,12 @@ def build_runaway_context(world, competition=None):
         "average_force_projection_margin": 0.0,
         "average_net_income_margin": 0.0,
         "average_admin_efficiency_margin": 0.0,
+        "average_winner_capital_isolated_regions": 0.0,
+        "average_winner_capital_fragment_count": 0.0,
+        "average_winner_capital_connectivity_penalty": 0.0,
+        "average_capital_isolated_region_gap": 0.0,
+        "average_capital_fragment_gap": 0.0,
+        "average_capital_connectivity_penalty_gap": 0.0,
         "average_shock_exposure_gap": 0.0,
         "average_shock_resilience_margin": 0.0,
         "average_technology_margin": 0.0,
@@ -660,6 +676,24 @@ def build_runaway_context(world, competition=None):
     ])
     context["average_admin_efficiency_margin"] = _average([
         snapshot["admin_efficiency_margin"] for snapshot in snapshots
+    ])
+    context["average_winner_capital_isolated_regions"] = _average([
+        snapshot["capital_isolated_regions"] for snapshot in snapshots
+    ])
+    context["average_winner_capital_fragment_count"] = _average([
+        snapshot["capital_fragment_count"] for snapshot in snapshots
+    ])
+    context["average_winner_capital_connectivity_penalty"] = _average([
+        snapshot["capital_connectivity_penalty"] for snapshot in snapshots
+    ])
+    context["average_capital_isolated_region_gap"] = _average([
+        snapshot["capital_isolated_region_gap"] for snapshot in snapshots
+    ])
+    context["average_capital_fragment_gap"] = _average([
+        snapshot["capital_fragment_gap"] for snapshot in snapshots
+    ])
+    context["average_capital_connectivity_penalty_gap"] = _average([
+        snapshot["capital_connectivity_penalty_gap"] for snapshot in snapshots
     ])
     context["average_shock_exposure_gap"] = _average([
         snapshot["shock_exposure_gap"] for snapshot in snapshots
@@ -958,6 +992,18 @@ def build_pressure_propagation_checks(world):
         _safe_number(metrics.get("administrative_overextension", 0.0))
         for metrics in rows
     ]
+    capital_isolated_regions = [
+        _safe_number(metrics.get("capital_isolated_regions", 0.0))
+        for metrics in rows
+    ]
+    capital_fragment_counts = [
+        _safe_number(metrics.get("capital_fragment_count", 0.0))
+        for metrics in rows
+    ]
+    capital_connectivity_penalties = [
+        _safe_number(metrics.get("capital_connectivity_penalty", 0.0))
+        for metrics in rows
+    ]
     admin_reaches = [
         _safe_number(metrics.get("administrative_reach", 1.0))
         for metrics in rows
@@ -1039,6 +1085,14 @@ def build_pressure_propagation_checks(world):
             _safe_number(metrics.get("trade_collapse_exposure", 0.0)),
         ) >= 0.2
     ]
+    capital_pressure_rows = [
+        metrics
+        for metrics in rows
+        if (
+            _safe_number(metrics.get("capital_isolated_regions", 0.0)) > 0.0
+            or _safe_number(metrics.get("capital_connectivity_penalty", 0.0)) > 0.0
+        )
+    ]
 
     return {
         "samples": len(rows),
@@ -1049,6 +1103,14 @@ def build_pressure_propagation_checks(world):
         ]),
         "large_state_average_overextension": _average([
             _safe_number(metrics.get("administrative_overextension", 0.0))
+            for metrics in large_state_rows
+        ]),
+        "large_state_average_capital_isolated_regions": _average([
+            _safe_number(metrics.get("capital_isolated_regions", 0.0))
+            for metrics in large_state_rows
+        ]),
+        "large_state_average_capital_connectivity_penalty": _average([
+            _safe_number(metrics.get("capital_connectivity_penalty", 0.0))
             for metrics in large_state_rows
         ]),
         "large_state_dual_track_loss_rate": _ratio(
@@ -1083,12 +1145,53 @@ def build_pressure_propagation_checks(world):
             _safe_number(metrics.get("net_income", 0.0))
             for metrics in trade_pressure_rows
         ]),
+        "capital_pressure_samples": len(capital_pressure_rows),
+        "capital_pressure_average_admin_efficiency": _average([
+            _safe_number(metrics.get("administrative_efficiency", 1.0))
+            for metrics in capital_pressure_rows
+        ]),
+        "capital_pressure_average_overextension": _average([
+            _safe_number(metrics.get("administrative_overextension", 0.0))
+            for metrics in capital_pressure_rows
+        ]),
+        "capital_pressure_average_net_income": _average([
+            _safe_number(metrics.get("net_income", 0.0))
+            for metrics in capital_pressure_rows
+        ]),
         "average_bloc_bias_abs": _average(bloc_biases),
         "correlations": {
             "regions_to_admin_efficiency": _correlation(region_counts, admin_efficiencies),
             "regions_to_overextension": _correlation(region_counts, overextensions),
+            "regions_to_capital_isolated_regions": _correlation(
+                region_counts,
+                capital_isolated_regions,
+            ),
+            "regions_to_capital_fragment_count": _correlation(
+                region_counts,
+                capital_fragment_counts,
+            ),
+            "regions_to_capital_connectivity_penalty": _correlation(
+                region_counts,
+                capital_connectivity_penalties,
+            ),
             "regions_to_admin_reach": _correlation(region_counts, admin_reaches),
             "regions_to_elite_unrest": _correlation(region_counts, elite_unrest),
+            "capital_penalty_to_admin_efficiency": _correlation(
+                capital_connectivity_penalties,
+                admin_efficiencies,
+            ),
+            "capital_penalty_to_overextension": _correlation(
+                capital_connectivity_penalties,
+                overextensions,
+            ),
+            "capital_penalty_to_net_income": _correlation(
+                capital_connectivity_penalties,
+                net_incomes,
+            ),
+            "capital_isolation_to_admin_efficiency": _correlation(
+                capital_isolated_regions,
+                admin_efficiencies,
+            ),
             "attacks_to_manpower_ratio": _correlation(attacks, manpower_ratios),
             "attacks_to_readiness": _correlation(attacks, readiness),
             "attacks_to_military_upkeep": _correlation(attacks, upkeep),
@@ -1510,6 +1613,30 @@ def summarize_pressure_diagnostics(run_diagnostics):
                 run_diagnostics,
                 ("runaway", "average_admin_efficiency_margin"),
             ),
+            "average_winner_capital_isolated_regions": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_winner_capital_isolated_regions"),
+            ),
+            "average_winner_capital_fragment_count": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_winner_capital_fragment_count"),
+            ),
+            "average_winner_capital_connectivity_penalty": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_winner_capital_connectivity_penalty"),
+            ),
+            "average_capital_isolated_region_gap": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_capital_isolated_region_gap"),
+            ),
+            "average_capital_fragment_gap": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_capital_fragment_gap"),
+            ),
+            "average_capital_connectivity_penalty_gap": _average_nested(
+                run_diagnostics,
+                ("runaway", "average_capital_connectivity_penalty_gap"),
+            ),
             "average_shock_exposure_gap": _average_nested(
                 run_diagnostics,
                 ("runaway", "average_shock_exposure_gap"),
@@ -1615,6 +1742,20 @@ def summarize_pressure_diagnostics(run_diagnostics):
                 run_diagnostics,
                 ("pressure_propagation", "large_state_average_overextension"),
             ),
+            "average_large_state_capital_isolated_regions": _average_nested(
+                run_diagnostics,
+                (
+                    "pressure_propagation",
+                    "large_state_average_capital_isolated_regions",
+                ),
+            ),
+            "average_large_state_capital_connectivity_penalty": _average_nested(
+                run_diagnostics,
+                (
+                    "pressure_propagation",
+                    "large_state_average_capital_connectivity_penalty",
+                ),
+            ),
             "average_large_state_dual_track_loss_rate": _average_nested(
                 run_diagnostics,
                 ("pressure_propagation", "large_state_dual_track_loss_rate"),
@@ -1639,6 +1780,27 @@ def summarize_pressure_diagnostics(run_diagnostics):
                 run_diagnostics,
                 ("pressure_propagation", "trade_pressure_average_net_income"),
             ),
+            "average_capital_pressure_admin_efficiency": _average_nested(
+                run_diagnostics,
+                (
+                    "pressure_propagation",
+                    "capital_pressure_average_admin_efficiency",
+                ),
+            ),
+            "average_capital_pressure_overextension": _average_nested(
+                run_diagnostics,
+                (
+                    "pressure_propagation",
+                    "capital_pressure_average_overextension",
+                ),
+            ),
+            "average_capital_pressure_net_income": _average_nested(
+                run_diagnostics,
+                (
+                    "pressure_propagation",
+                    "capital_pressure_average_net_income",
+                ),
+            ),
             "average_bloc_bias_abs": _average_nested(
                 run_diagnostics,
                 ("pressure_propagation", "average_bloc_bias_abs"),
@@ -1658,6 +1820,38 @@ def summarize_pressure_diagnostics(run_diagnostics):
                         "pressure_propagation",
                         "correlations",
                         "regions_to_overextension",
+                    ),
+                ),
+                "regions_to_capital_connectivity_penalty": _average_nested(
+                    run_diagnostics,
+                    (
+                        "pressure_propagation",
+                        "correlations",
+                        "regions_to_capital_connectivity_penalty",
+                    ),
+                ),
+                "capital_penalty_to_admin_efficiency": _average_nested(
+                    run_diagnostics,
+                    (
+                        "pressure_propagation",
+                        "correlations",
+                        "capital_penalty_to_admin_efficiency",
+                    ),
+                ),
+                "capital_penalty_to_overextension": _average_nested(
+                    run_diagnostics,
+                    (
+                        "pressure_propagation",
+                        "correlations",
+                        "capital_penalty_to_overextension",
+                    ),
+                ),
+                "capital_penalty_to_net_income": _average_nested(
+                    run_diagnostics,
+                    (
+                        "pressure_propagation",
+                        "correlations",
+                        "capital_penalty_to_net_income",
                     ),
                 ),
                 "attacks_to_manpower_ratio": _average_nested(
@@ -2254,6 +2448,13 @@ def format_setting_report(result):
         f"technology margin {runaway_pressure.get('average_technology_margin', 0.0):.3f}"
     )
     lines.append(
+        f"  Capital fracture: winner isolated "
+        f"{runaway_pressure.get('average_winner_capital_isolated_regions', 0.0):.2f} | "
+        f"winner fragments {runaway_pressure.get('average_winner_capital_fragment_count', 0.0):.2f} | "
+        f"winner penalty {runaway_pressure.get('average_winner_capital_connectivity_penalty', 0.0):.3f} | "
+        f"penalty gap {runaway_pressure.get('average_capital_connectivity_penalty_gap', 0.0):.3f}"
+    )
+    lines.append(
         f"  Diplomacy pressure: active wars "
         f"{relationship_pressure.get('average_active_war_count', 0.0):.2f} | "
         f"rivalries {relationship_pressure.get('average_rivalry_count', 0.0):.2f} | "
@@ -2278,14 +2479,23 @@ def format_setting_report(result):
         f"  Pressure bite: large-state admin eff "
         f"{propagation.get('average_large_state_admin_efficiency', 0.0):.3f} | "
         f"overextension {propagation.get('average_large_state_overextension', 0.0):.3f} | "
+        f"capital penalty {propagation.get('average_large_state_capital_connectivity_penalty', 0.0):.3f} | "
         f"dual-track loss {propagation.get('average_large_state_dual_track_loss_rate', 0.0):.2%} | "
         f"manpower ratio {propagation.get('average_manpower_ratio', 0.0):.2%} | "
         f"high-shock net {propagation.get('average_high_shock_net_income', 0.0):.2f}"
     )
     lines.append(
+        f"  Capital bite: admin eff "
+        f"{propagation.get('average_capital_pressure_admin_efficiency', 0.0):.3f} | "
+        f"overextension {propagation.get('average_capital_pressure_overextension', 0.0):.3f} | "
+        f"net income {propagation.get('average_capital_pressure_net_income', 0.0):.2f}"
+    )
+    lines.append(
         f"  Pressure correlations: regions->admin "
         f"{correlations.get('regions_to_admin_efficiency', 0.0):.2f} | "
         f"regions->overextension {correlations.get('regions_to_overextension', 0.0):.2f} | "
+        f"regions->capital penalty {correlations.get('regions_to_capital_connectivity_penalty', 0.0):.2f} | "
+        f"capital penalty->admin {correlations.get('capital_penalty_to_admin_efficiency', 0.0):.2f} | "
         f"shock->food deficit {correlations.get('shock_to_food_deficit', 0.0):.2f} | "
         f"trade pressure->net income {correlations.get('trade_pressure_to_net_income', 0.0):.2f}"
     )

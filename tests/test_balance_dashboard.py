@@ -249,6 +249,9 @@ class BalanceDashboardObservationTests(unittest.TestCase):
                             "administrative_efficiency": 0.95,
                             "administrative_reach": 0.9,
                             "administrative_overextension": 0.0,
+                            "capital_isolated_regions": 0,
+                            "capital_fragment_count": 1,
+                            "capital_connectivity_penalty": 0.0,
                             "shock_exposure": 0.0,
                             "shock_resilience": 0.35,
                             "average_institutional_technology": 0.08,
@@ -273,6 +276,9 @@ class BalanceDashboardObservationTests(unittest.TestCase):
                             "administrative_efficiency": 0.98,
                             "administrative_reach": 0.9,
                             "administrative_overextension": 0.0,
+                            "capital_isolated_regions": 0,
+                            "capital_fragment_count": 1,
+                            "capital_connectivity_penalty": 0.0,
                             "shock_exposure": 0.0,
                             "shock_resilience": 0.25,
                             "average_institutional_technology": 0.05,
@@ -302,6 +308,9 @@ class BalanceDashboardObservationTests(unittest.TestCase):
                             "administrative_efficiency": 0.9,
                             "administrative_reach": 0.84,
                             "administrative_overextension": 0.15,
+                            "capital_isolated_regions": 1,
+                            "capital_fragment_count": 2,
+                            "capital_connectivity_penalty": 0.24,
                             "shock_exposure": 0.1,
                             "famine_pressure": 0.08,
                             "shock_resilience": 0.5,
@@ -331,6 +340,9 @@ class BalanceDashboardObservationTests(unittest.TestCase):
                             "administrative_efficiency": 0.96,
                             "administrative_reach": 0.9,
                             "administrative_overextension": 0.0,
+                            "capital_isolated_regions": 0,
+                            "capital_fragment_count": 1,
+                            "capital_connectivity_penalty": 0.0,
                             "shock_exposure": 0.0,
                             "shock_resilience": 0.3,
                             "average_institutional_technology": 0.08,
@@ -434,6 +446,22 @@ class BalanceDashboardObservationTests(unittest.TestCase):
 
         self.assertEqual(diagnostics["runaway"]["winner"], "FactionA")
         self.assertGreater(diagnostics["runaway"]["average_treasury_margin"], 0)
+        self.assertAlmostEqual(
+            diagnostics["runaway"]["average_winner_capital_isolated_regions"],
+            0.5,
+        )
+        self.assertAlmostEqual(
+            diagnostics["runaway"]["average_winner_capital_fragment_count"],
+            1.5,
+        )
+        self.assertAlmostEqual(
+            diagnostics["runaway"]["average_winner_capital_connectivity_penalty"],
+            0.12,
+        )
+        self.assertAlmostEqual(
+            diagnostics["runaway"]["average_capital_connectivity_penalty_gap"],
+            0.12,
+        )
         self.assertEqual(
             diagnostics["relationship_pressure"]["active_war_count"],
             1,
@@ -446,6 +474,14 @@ class BalanceDashboardObservationTests(unittest.TestCase):
         self.assertEqual(
             diagnostics["shock_volume"]["total_population_loss"],
             14,
+        )
+        self.assertAlmostEqual(
+            diagnostics["pressure_propagation"]["capital_pressure_average_admin_efficiency"],
+            0.9,
+        )
+        self.assertAlmostEqual(
+            diagnostics["pressure_propagation"]["capital_pressure_average_net_income"],
+            3.0,
         )
         self.assertEqual(
             diagnostics["action_incentives"]["selected_action_counts"]["attack"],
@@ -638,6 +674,8 @@ class BalanceDashboardObservationTests(unittest.TestCase):
         self.assertIn("Dual-Track Actions", report)
         self.assertIn("Pressure Diagnostics", report)
         self.assertIn("Runaway margins", report)
+        self.assertIn("Capital fracture", report)
+        self.assertIn("Capital bite", report)
         self.assertIn("Shock volume", report)
         self.assertIn("Expansion", report)
         self.assertIn("Dead or near-silent systems", report)
