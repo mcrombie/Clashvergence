@@ -126,6 +126,8 @@ def _build_region_resource_payload(region):
         "resource_routed_output": _serialize_resource_map(region.resource_routed_output),
         "resource_effective_output": _serialize_resource_map(region.resource_effective_output),
         "resource_damage": _serialize_resource_map(region.resource_damage),
+        "resource_depletion_by_resource": _serialize_resource_map(region.resource_depletion_by_resource),
+        "resource_prices": _serialize_resource_map(region.resource_prices),
         "resource_monetized_value": round(float(region.resource_monetized_value or 0.0), 3),
         "resource_isolation_factor": round(float(region.resource_isolation_factor or 0.0), 3),
         "resource_route_depth": region.resource_route_depth,
@@ -175,6 +177,8 @@ def _build_region_resource_payload(region):
         "logging_camp_level": round(region.logging_camp_level, 2),
         "road_level": round(region.road_level, 2),
         "copper_mine_level": round(region.copper_mine_level, 2),
+        "iron_mine_level": round(region.iron_mine_level, 2),
+        "gold_mine_level": round(region.gold_mine_level, 2),
         "stone_quarry_level": round(region.stone_quarry_level, 2),
         "agriculture_level": round(region.agriculture_level, 2),
         "pastoral_level": round(region.pastoral_level, 2),
@@ -850,6 +854,8 @@ def build_simulation_snapshots(world):
             "resource_routed_output": dict(initial_region_history.get(region_name, {}).get("resource_routed_output", region.resource_routed_output)),
             "resource_effective_output": dict(initial_region_history.get(region_name, {}).get("resource_effective_output", region.resource_effective_output)),
             "resource_damage": dict(initial_region_history.get(region_name, {}).get("resource_damage", region.resource_damage)),
+            "resource_depletion_by_resource": dict(initial_region_history.get(region_name, {}).get("resource_depletion_by_resource", region.resource_depletion_by_resource)),
+            "resource_prices": dict(initial_region_history.get(region_name, {}).get("resource_prices", region.resource_prices)),
             "resource_monetized_value": initial_region_history.get(region_name, {}).get("resource_monetized_value", region.resource_monetized_value),
             "resource_isolation_factor": initial_region_history.get(region_name, {}).get("resource_isolation_factor", region.resource_isolation_factor),
             "resource_route_depth": initial_region_history.get(region_name, {}).get("resource_route_depth", region.resource_route_depth),
@@ -893,6 +899,8 @@ def build_simulation_snapshots(world):
             "logging_camp_level": initial_region_history.get(region_name, {}).get("logging_camp_level", region.logging_camp_level),
             "road_level": initial_region_history.get(region_name, {}).get("road_level", region.road_level),
             "copper_mine_level": initial_region_history.get(region_name, {}).get("copper_mine_level", region.copper_mine_level),
+            "iron_mine_level": initial_region_history.get(region_name, {}).get("iron_mine_level", region.iron_mine_level),
+            "gold_mine_level": initial_region_history.get(region_name, {}).get("gold_mine_level", region.gold_mine_level),
             "stone_quarry_level": initial_region_history.get(region_name, {}).get("stone_quarry_level", region.stone_quarry_level),
             "agriculture_level": initial_region_history.get(region_name, {}).get("agriculture_level", region.agriculture_level),
             "pastoral_level": initial_region_history.get(region_name, {}).get("pastoral_level", region.pastoral_level),
@@ -991,6 +999,8 @@ def build_simulation_snapshots(world):
                 "resource_routed_output": dict(region["resource_routed_output"]),
                 "resource_effective_output": dict(region["resource_effective_output"]),
                 "resource_damage": dict(region["resource_damage"]),
+                "resource_depletion_by_resource": dict(region.get("resource_depletion_by_resource", {})),
+                "resource_prices": dict(region.get("resource_prices", {})),
                 "resource_monetized_value": region["resource_monetized_value"],
                 "resource_isolation_factor": region["resource_isolation_factor"],
                 "resource_route_depth": region["resource_route_depth"],
@@ -1034,6 +1044,8 @@ def build_simulation_snapshots(world):
                 "logging_camp_level": region["logging_camp_level"],
                 "road_level": region["road_level"],
                 "copper_mine_level": region["copper_mine_level"],
+                "iron_mine_level": region.get("iron_mine_level", 0.0),
+                "gold_mine_level": region.get("gold_mine_level", 0.0),
                 "stone_quarry_level": region["stone_quarry_level"],
                 "agriculture_level": region["agriculture_level"],
                 "pastoral_level": region["pastoral_level"],
@@ -1154,6 +1166,8 @@ def build_simulation_snapshots(world):
             region_state[region_name]["resource_routed_output"] = dict(history_region.get("resource_routed_output", region_state[region_name]["resource_routed_output"]))
             region_state[region_name]["resource_effective_output"] = dict(history_region.get("resource_effective_output", region_state[region_name]["resource_effective_output"]))
             region_state[region_name]["resource_damage"] = dict(history_region.get("resource_damage", region_state[region_name]["resource_damage"]))
+            region_state[region_name]["resource_depletion_by_resource"] = dict(history_region.get("resource_depletion_by_resource", region_state[region_name].get("resource_depletion_by_resource", {})))
+            region_state[region_name]["resource_prices"] = dict(history_region.get("resource_prices", region_state[region_name].get("resource_prices", {})))
             region_state[region_name]["resource_monetized_value"] = history_region.get("resource_monetized_value", region_state[region_name]["resource_monetized_value"])
             region_state[region_name]["resource_isolation_factor"] = history_region.get("resource_isolation_factor", region_state[region_name]["resource_isolation_factor"])
             region_state[region_name]["resource_route_depth"] = history_region.get("resource_route_depth", region_state[region_name]["resource_route_depth"])
@@ -1197,6 +1211,8 @@ def build_simulation_snapshots(world):
             region_state[region_name]["logging_camp_level"] = history_region.get("logging_camp_level", region_state[region_name]["logging_camp_level"])
             region_state[region_name]["road_level"] = history_region.get("road_level", region_state[region_name]["road_level"])
             region_state[region_name]["copper_mine_level"] = history_region.get("copper_mine_level", region_state[region_name]["copper_mine_level"])
+            region_state[region_name]["iron_mine_level"] = history_region.get("iron_mine_level", region_state[region_name].get("iron_mine_level", 0.0))
+            region_state[region_name]["gold_mine_level"] = history_region.get("gold_mine_level", region_state[region_name].get("gold_mine_level", 0.0))
             region_state[region_name]["stone_quarry_level"] = history_region.get("stone_quarry_level", region_state[region_name]["stone_quarry_level"])
             region_state[region_name]["agriculture_level"] = history_region.get("agriculture_level", region_state[region_name]["agriculture_level"])
             region_state[region_name]["pastoral_level"] = history_region.get("pastoral_level", region_state[region_name]["pastoral_level"])
@@ -1309,6 +1325,8 @@ def build_simulation_snapshots(world):
                     "resource_routed_output": dict(region["resource_routed_output"]),
                     "resource_effective_output": dict(region["resource_effective_output"]),
                     "resource_damage": dict(region["resource_damage"]),
+                    "resource_depletion_by_resource": dict(region.get("resource_depletion_by_resource", {})),
+                    "resource_prices": dict(region.get("resource_prices", {})),
                     "resource_monetized_value": region["resource_monetized_value"],
                     "resource_isolation_factor": region["resource_isolation_factor"],
                     "resource_route_depth": region["resource_route_depth"],
@@ -1352,6 +1370,8 @@ def build_simulation_snapshots(world):
                     "logging_camp_level": region["logging_camp_level"],
                     "road_level": region["road_level"],
                     "copper_mine_level": region["copper_mine_level"],
+                    "iron_mine_level": region.get("iron_mine_level", 0.0),
+                    "gold_mine_level": region.get("gold_mine_level", 0.0),
                     "stone_quarry_level": region["stone_quarry_level"],
                     "agriculture_level": region["agriculture_level"],
                     "pastoral_level": region["pastoral_level"],
@@ -1563,6 +1583,10 @@ def build_simulation_view_model(world):
             "resource_effective_access": _serialize_resource_map(world.factions[faction_name].resource_effective_access),
             "resource_isolated_output": _serialize_resource_map(world.factions[faction_name].resource_isolated_output),
             "produced_goods": _serialize_resource_map(world.factions[faction_name].produced_goods),
+            "resource_stockpiles": _serialize_resource_map(world.factions[faction_name].resource_stockpiles),
+            "produced_good_stockpiles": _serialize_resource_map(world.factions[faction_name].produced_good_stockpiles),
+            "resource_stockpile_draw": _serialize_resource_map(world.factions[faction_name].resource_stockpile_draw),
+            "resource_price_index": _serialize_resource_map(world.factions[faction_name].resource_price_index),
             "resource_shortages": {
                 key: round(float(value), 3)
                 for key, value in (world.factions[faction_name].resource_shortages or {}).items()
@@ -1589,6 +1613,7 @@ def build_simulation_view_model(world):
             "trade_corridor_exposure": round(world.factions[faction_name].trade_corridor_exposure, 3),
             "trade_foreign_income": round(world.factions[faction_name].trade_foreign_income, 3),
             "trade_foreign_imported_flow": round(world.factions[faction_name].trade_foreign_imported_flow, 3),
+            "merchant_capacity": round(float(world.factions[faction_name].merchant_capacity or 0.0), 3),
             "shock_exposure": round(float(world.factions[faction_name].shock_exposure or 0.0), 3),
             "shock_resilience": round(float(world.factions[faction_name].shock_resilience or 0.0), 3),
             "famine_pressure": round(float(world.factions[faction_name].famine_pressure or 0.0), 3),
@@ -1616,6 +1641,9 @@ def build_simulation_view_model(world):
             "resource_gross_summary": format_resource_map(world.factions[faction_name].resource_gross_output, limit=5),
             "resource_isolated_summary": format_resource_map(world.factions[faction_name].resource_isolated_output, limit=5),
             "produced_goods_summary": format_resource_map(world.factions[faction_name].produced_goods, limit=4),
+            "resource_stockpile_summary": format_resource_map(world.factions[faction_name].resource_stockpiles, limit=4),
+            "produced_good_stockpile_summary": format_resource_map(world.factions[faction_name].produced_good_stockpiles, limit=3),
+            "resource_price_summary": format_resource_map(world.factions[faction_name].resource_price_index, limit=4),
             "urban_specialization_summary": ", ".join(
                 f"{format_urban_specialization(role)} {count}"
                 for role, count in sorted((world.factions[faction_name].urban_specialization_counts or {}).items())
@@ -1639,9 +1667,15 @@ def build_simulation_view_model(world):
                         ("Mobility", world.factions[faction_name].resource_shortages.get("mobility_capacity", 0.0)),
                         ("Metal", world.factions[faction_name].resource_shortages.get("metal_capacity", 0.0)),
                         ("Construction", world.factions[faction_name].resource_shortages.get("construction_capacity", 0.0)),
+                        ("Iron", world.factions[faction_name].resource_shortages.get("iron", 0.0)),
                         ("Salt", world.factions[faction_name].resource_shortages.get("salt", 0.0)),
                         ("Textiles", world.factions[faction_name].resource_shortages.get("textiles", 0.0)),
                         ("Tools", world.factions[faction_name].production_chain_shortages.get("tools", 0.0)),
+                        ("Iron Goods", world.factions[faction_name].production_chain_shortages.get("iron_goods", 0.0)),
+                        ("Weapons", world.factions[faction_name].production_chain_shortages.get("weapons", 0.0)),
+                        ("Provisions", world.factions[faction_name].production_chain_shortages.get("provisions", 0.0)),
+                        ("Crafted", world.factions[faction_name].production_chain_shortages.get("crafted_goods", 0.0)),
+                        ("Ships", world.factions[faction_name].production_chain_shortages.get("ships", 0.0)),
                         ("Urban Surplus", world.factions[faction_name].production_chain_shortages.get("urban_surplus", 0.0)),
                     )
                     if value > 0
@@ -2920,6 +2954,8 @@ def render_simulation_html(world):
       timber: "Tm",
       horses: "Hs",
       copper: "Cu",
+      iron: "Fe",
+      gold: "Au",
       stone: "St",
       salt: "Sa",
       textiles: "Tx",
@@ -2931,6 +2967,8 @@ def render_simulation_html(world):
       timber: "#5d6b36",
       horses: "#8b6a4f",
       copper: "#b3672b",
+      iron: "#7f8f96",
+      gold: "#c7962b",
       stone: "#6b7280",
       salt: "#4d8aa8",
       textiles: "#a3537d",
@@ -2944,6 +2982,8 @@ def render_simulation_html(world):
       ["pasture_level", "Ps"],
       ["logging_camp_level", "Lg"],
       ["copper_mine_level", "Mn"],
+      ["iron_mine_level", "Fe"],
+      ["gold_mine_level", "Au"],
       ["stone_quarry_level", "Qr"],
       ["infrastructure_level", "If"],
     ];
@@ -5044,7 +5084,9 @@ def render_simulation_html(world):
               <div class="detail-value">
                 Logging ${{Number(regionSnapshot.logging_camp_level ?? staticRegion.logging_camp_level ?? 0).toFixed(2)}}
                 / Agri ${{Number(regionSnapshot.agriculture_level ?? staticRegion.agriculture_level ?? 0).toFixed(2)}}
-                / Mine ${{Number(regionSnapshot.copper_mine_level ?? staticRegion.copper_mine_level ?? 0).toFixed(2)}}
+                / Copper ${{Number(regionSnapshot.copper_mine_level ?? staticRegion.copper_mine_level ?? 0).toFixed(2)}}
+                / Iron ${{Number(regionSnapshot.iron_mine_level ?? staticRegion.iron_mine_level ?? 0).toFixed(2)}}
+                / Gold ${{Number(regionSnapshot.gold_mine_level ?? staticRegion.gold_mine_level ?? 0).toFixed(2)}}
                 / Quarry ${{Number(regionSnapshot.stone_quarry_level ?? staticRegion.stone_quarry_level ?? 0).toFixed(2)}}
               </div>
             </div>
@@ -5083,6 +5125,13 @@ def render_simulation_html(world):
               <div class="detail-label">Route Damage</div>
               <div class="detail-value">
                 ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_damage || staticRegion.resource_damage || {{}}))}}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Depletion / Prices</div>
+              <div class="detail-value">
+                ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_depletion_by_resource || staticRegion.resource_depletion_by_resource || {{}}))}}
+                / ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_prices || staticRegion.resource_prices || {{}}))}}
               </div>
             </div>
             <div class="detail-row">
@@ -5425,6 +5474,7 @@ def render_simulation_html(world):
             </div>
             <div class="metric-line"><strong>Route Anchor:</strong> ${{routeText}}</div>
             <div class="metric-line"><strong>Route Damage:</strong> ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_damage || staticRegion.resource_damage || {{}}))}}</div>
+            <div class="metric-line"><strong>Depletion / Prices:</strong> ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_depletion_by_resource || staticRegion.resource_depletion_by_resource || {{}}))}} / ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_prices || staticRegion.resource_prices || {{}}))}}</div>
             <div class="metric-line"><strong>Regime Agitation:</strong> ${{agitationText}}</div>
           </article>
           <article class="inspector-card">
@@ -5448,7 +5498,7 @@ def render_simulation_html(world):
               </div>
             </div>
             <div class="metric-line"><strong>Development Spine:</strong> ${{developmentSummary || "No major developments yet."}}</div>
-            <div class="metric-line"><strong>Production Sites:</strong> Logging ${{Number(regionSnapshot.logging_camp_level ?? staticRegion.logging_camp_level ?? 0).toFixed(2)}} / Mine ${{Number(regionSnapshot.copper_mine_level ?? staticRegion.copper_mine_level ?? 0).toFixed(2)}} / Quarry ${{Number(regionSnapshot.stone_quarry_level ?? staticRegion.stone_quarry_level ?? 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Production Sites:</strong> Logging ${{Number(regionSnapshot.logging_camp_level ?? staticRegion.logging_camp_level ?? 0).toFixed(2)}} / Copper ${{Number(regionSnapshot.copper_mine_level ?? staticRegion.copper_mine_level ?? 0).toFixed(2)}} / Iron ${{Number(regionSnapshot.iron_mine_level ?? staticRegion.iron_mine_level ?? 0).toFixed(2)}} / Gold ${{Number(regionSnapshot.gold_mine_level ?? staticRegion.gold_mine_level ?? 0).toFixed(2)}} / Quarry ${{Number(regionSnapshot.stone_quarry_level ?? staticRegion.stone_quarry_level ?? 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Support Works:</strong> Infra ${{Number(regionSnapshot.infrastructure_level ?? staticRegion.infrastructure_level ?? 0).toFixed(2)}} / Irrigation ${{Number(regionSnapshot.irrigation_level ?? staticRegion.irrigation_level ?? 0).toFixed(2)}} / Pasture ${{Number(regionSnapshot.pasture_level ?? staticRegion.pasture_level ?? 0).toFixed(2)}} / Agriculture ${{Number(regionSnapshot.agriculture_level ?? staticRegion.agriculture_level ?? 0).toFixed(2)}}</div>
           </article>
         </section>
@@ -5648,10 +5698,14 @@ def render_simulation_html(world):
           </article>
           <article class="inspector-card">
             <h4 class="inspector-title">Resource Position</h4>
-            <div class="metric-line"><strong>Access:</strong> Grain ${{Number(metrics.grain_access || 0).toFixed(2)}} / Timber ${{Number(metrics.timber_access || 0).toFixed(2)}} / Horses ${{Number(metrics.horse_access || 0).toFixed(2)}} / Copper ${{Number(metrics.copper_access || 0).toFixed(2)}} / Stone ${{Number(metrics.stone_access || 0).toFixed(2)}}</div>
-            <div class="metric-line"><strong>Gross Output:</strong> Grain ${{Number(metrics.gross_grain_output || 0).toFixed(2)}} / Horses ${{Number(metrics.gross_horse_output || 0).toFixed(2)}} / Copper ${{Number(metrics.gross_copper_output || 0).toFixed(2)}} / Stone ${{Number(metrics.gross_stone_output || 0).toFixed(2)}}</div>
-            <div class="metric-line"><strong>Isolated Output:</strong> Grain ${{Number(metrics.isolated_grain_output || 0).toFixed(2)}} / Horses ${{Number(metrics.isolated_horse_output || 0).toFixed(2)}} / Copper ${{Number(metrics.isolated_copper_output || 0).toFixed(2)}} / Stone ${{Number(metrics.isolated_stone_output || 0).toFixed(2)}}</div>
-            <div class="metric-line"><strong>Shortages:</strong> Food ${{Number(metrics.food_shortage || 0).toFixed(2)}} / Mobility ${{Number(metrics.mobility_shortage || 0).toFixed(2)}} / Metal ${{Number(metrics.metal_shortage || 0).toFixed(2)}} / Construction ${{Number(metrics.construction_shortage || 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Access:</strong> Grain ${{Number(metrics.grain_access || 0).toFixed(2)}} / Livestock ${{Number(metrics.livestock_access || 0).toFixed(2)}} / Timber ${{Number(metrics.timber_access || 0).toFixed(2)}} / Horses ${{Number(metrics.horse_access || 0).toFixed(2)}} / Copper ${{Number(metrics.copper_access || 0).toFixed(2)}} / Iron ${{Number(metrics.iron_access || 0).toFixed(2)}} / Gold ${{Number(metrics.gold_access || 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Commerce:</strong> Salt ${{Number(metrics.salt_access || 0).toFixed(2)}} / Textiles ${{Number(metrics.textiles_access || 0).toFixed(2)}} / Merchant capacity ${{Number(metrics.merchant_capacity || 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Gross Output:</strong> Grain ${{Number(metrics.gross_grain_output || 0).toFixed(2)}} / Horses ${{Number(metrics.gross_horse_output || 0).toFixed(2)}} / Copper ${{Number(metrics.gross_copper_output || 0).toFixed(2)}} / Iron ${{Number(metrics.gross_iron_output || 0).toFixed(2)}} / Gold ${{Number(metrics.gross_gold_output || 0).toFixed(2)}} / Stone ${{Number(metrics.gross_stone_output || 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Isolated Output:</strong> Grain ${{Number(metrics.isolated_grain_output || 0).toFixed(2)}} / Horses ${{Number(metrics.isolated_horse_output || 0).toFixed(2)}} / Copper ${{Number(metrics.isolated_copper_output || 0).toFixed(2)}} / Iron ${{Number(metrics.isolated_iron_output || 0).toFixed(2)}} / Gold ${{Number(metrics.isolated_gold_output || 0).toFixed(2)}} / Stone ${{Number(metrics.isolated_stone_output || 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Produced Goods:</strong> Tools ${{Number(metrics.tools_output || 0).toFixed(2)}} / Iron Goods ${{Number(metrics.iron_goods_output || 0).toFixed(2)}} / Weapons ${{Number(metrics.weapons_output || 0).toFixed(2)}} / Provisions ${{Number(metrics.provisions_output || 0).toFixed(2)}} / Crafted ${{Number(metrics.crafted_goods_output || 0).toFixed(2)}} / Ships ${{Number(metrics.ships_output || 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Stockpiles:</strong> Grain ${{Number(metrics.grain_stockpile || 0).toFixed(2)}} / Copper ${{Number(metrics.copper_stockpile || 0).toFixed(2)}} / Iron ${{Number(metrics.iron_stockpile || 0).toFixed(2)}} / Salt ${{Number(metrics.salt_stockpile || 0).toFixed(2)}} / Weapons ${{Number(metrics.weapons_stockpile || 0).toFixed(2)}} / Provisions ${{Number(metrics.provisions_stockpile || 0).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Prices:</strong> Grain ${{Number(metrics.grain_price || 1).toFixed(2)}} / Copper ${{Number(metrics.copper_price || 1).toFixed(2)}} / Iron ${{Number(metrics.iron_price || 1).toFixed(2)}} / Salt ${{Number(metrics.salt_price || 1).toFixed(2)}} / Textiles ${{Number(metrics.textiles_price || 1).toFixed(2)}}</div>
+            <div class="metric-line"><strong>Shortages:</strong> Food ${{Number(metrics.food_shortage || 0).toFixed(2)}} / Mobility ${{Number(metrics.mobility_shortage || 0).toFixed(2)}} / Metal ${{Number(metrics.metal_shortage || 0).toFixed(2)}} / Construction ${{Number(metrics.construction_shortage || 0).toFixed(2)}} / Iron ${{Number(metrics.iron_shortage || 0).toFixed(2)}} / Salt ${{Number(metrics.salt_shortage || 0).toFixed(2)}} / Textiles ${{Number(metrics.textiles_shortage || 0).toFixed(2)}}</div>
           </article>
           <article class="inspector-card">
             <h4 class="inspector-title">Diplomacy And Pressure</h4>
@@ -5865,6 +5919,14 @@ def render_simulation_html(world):
                 <div class="detail-row">
                   <div class="detail-label">Produced Goods</div>
                   <div class="detail-value">${{escapeHtml(faction.produced_goods_summary || "None")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Stockpiles</div>
+                  <div class="detail-value">${{escapeHtml(faction.resource_stockpile_summary || "None")}} / ${{escapeHtml(faction.produced_good_stockpile_summary || "None")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Prices</div>
+                  <div class="detail-value">${{escapeHtml(faction.resource_price_summary || "None")}}</div>
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">Shortages</div>

@@ -62,10 +62,17 @@ from src.resources import (
     EXTRACTIVE_RESOURCES,
     FOOD_RESOURCES,
     PRODUCED_GOOD_TOOLS,
+    PRODUCED_GOOD_IRON_GOODS,
+    PRODUCED_GOOD_WEAPONS,
+    PRODUCED_GOOD_PROVISIONS,
+    PRODUCED_GOOD_CRAFTED_GOODS,
+    PRODUCED_GOOD_SHIPS,
     PRODUCED_GOOD_URBAN_SURPLUS,
     RESOURCE_COPPER,
+    RESOURCE_GOLD,
     RESOURCE_GRAIN,
     RESOURCE_HORSES,
+    RESOURCE_IRON,
     RESOURCE_LIVESTOCK,
     RESOURCE_SALT,
     RESOURCE_STONE,
@@ -108,6 +115,8 @@ RESOURCE_BASE_OUTPUT = {
     RESOURCE_WILD_FOOD: 1.8,
     RESOURCE_TIMBER: 1.5,
     RESOURCE_COPPER: 1.7,
+    RESOURCE_IRON: 1.25,
+    RESOURCE_GOLD: 0.85,
     RESOURCE_STONE: 1.55,
     RESOURCE_SALT: 1.35,
     RESOURCE_TEXTILES: 1.45,
@@ -212,24 +221,32 @@ FOREIGN_TRADE_RESOURCE_PRIORITY = [
     RESOURCE_GRAIN,
     RESOURCE_LIVESTOCK,
     RESOURCE_SALT,
+    RESOURCE_TEXTILES,
     RESOURCE_COPPER,
+    RESOURCE_IRON,
     RESOURCE_TIMBER,
     RESOURCE_STONE,
-    RESOURCE_TEXTILES,
+    RESOURCE_GOLD,
     RESOURCE_HORSES,
     RESOURCE_WILD_FOOD,
 ]
 FOREIGN_TRADE_RESOURCE_WEIGHTS = {
     RESOURCE_GRAIN: 0.95,
     RESOURCE_LIVESTOCK: 0.82,
-    RESOURCE_SALT: 1.0,
+    RESOURCE_SALT: 1.22,
     RESOURCE_COPPER: 0.92,
+    RESOURCE_IRON: 0.88,
+    RESOURCE_GOLD: 1.45,
     RESOURCE_TIMBER: 0.82,
     RESOURCE_STONE: 0.72,
-    RESOURCE_TEXTILES: 0.95,
+    RESOURCE_TEXTILES: 1.16,
     RESOURCE_HORSES: 0.8,
     RESOURCE_WILD_FOOD: 0.55,
 }
+FOREIGN_TRADE_PRICE_GRADIENT_FACTOR = 0.2
+FOREIGN_TRADE_SALT_GATEWAY_BONUS = 0.18
+FOREIGN_TRADE_GOLD_GATEWAY_BONUS = 0.24
+FOREIGN_TRADE_TEXTILE_GATEWAY_BONUS = 0.12
 FOREIGN_TRADE_CORRIDOR_FLOW_DECAY = 0.9
 FOREIGN_TRADE_CORRIDOR_TRANSIT_FACTOR = 0.02
 FOREIGN_TRADE_CORRIDOR_HUB_FACTOR = 0.015
@@ -254,6 +271,12 @@ RESOURCE_EXTRACTIVE_SUPPORT_LEVEL_FACTOR = 0.16
 RESOURCE_SALT_UNWORKED_FACTOR = 0.34
 RESOURCE_SALT_STOREHOUSE_FACTOR = 0.16
 RESOURCE_SALT_MARKET_FACTOR = 0.12
+RESOURCE_IRON_UNSMELTED_METAL_FACTOR = 0.35
+RESOURCE_IRON_GOODS_INPUT_FACTOR = 0.78
+RESOURCE_IRON_GOODS_FUEL_FACTOR = 0.62
+RESOURCE_IRON_GOODS_EXTRACTIVE_FACTOR = 0.18
+RESOURCE_GOLD_ADMIN_CAPACITY_FACTOR = 0.06
+RESOURCE_GOLD_TRADE_BONUS_FACTOR = 0.08
 RESOURCE_RETENTION_BASE_FACTOR = 0.72
 RESOURCE_RETENTION_INFRASTRUCTURE_FACTOR = 0.05
 RESOURCE_RETENTION_STOREHOUSE_FACTOR = 0.18
@@ -314,9 +337,55 @@ TOOLS_METAL_CAPACITY_FACTOR = 0.35
 TOOLS_TAXABLE_VALUE_FACTOR = 0.65
 URBAN_SURPLUS_FOOD_INPUT_FACTOR = 0.42
 URBAN_SURPLUS_SALT_INPUT_FACTOR = 0.2
+URBAN_SURPLUS_TEXTILE_INPUT_FACTOR = 0.24
 URBAN_SURPLUS_CITY_POPULATION_FACTOR = 0.007
 URBAN_SURPLUS_TOWN_POPULATION_FACTOR = 0.004
 URBAN_SURPLUS_TAXABLE_VALUE_FACTOR = 0.85
+TEXTILE_TAXABLE_ACCESS_FACTOR = 0.12
+IRON_GOODS_METAL_CAPACITY_FACTOR = 0.82
+IRON_GOODS_TAXABLE_VALUE_FACTOR = 0.5
+WEAPONS_METAL_INPUT_FACTOR = 0.42
+WEAPONS_TIMBER_INPUT_FACTOR = 0.28
+WEAPONS_TOOLS_INPUT_FACTOR = 0.34
+WEAPONS_ATTACK_QUALITY_FACTOR = 0.04
+PROVISIONS_FOOD_INPUT_FACTOR = 0.32
+PROVISIONS_SALT_INPUT_FACTOR = 0.52
+PROVISIONS_STOREHOUSE_FACTOR = 0.16
+PROVISIONS_LOGISTICS_FACTOR = 0.14
+CRAFTED_GOODS_MATERIAL_INPUT_FACTOR = 0.34
+CRAFTED_GOODS_TOOLS_INPUT_FACTOR = 0.26
+CRAFTED_GOODS_URBAN_FACTOR = 0.0038
+CRAFTED_GOODS_TAXABLE_VALUE_FACTOR = 1.15
+SHIPS_TIMBER_INPUT_FACTOR = 0.38
+SHIPS_TOOLS_INPUT_FACTOR = 0.24
+SHIPS_PORT_FACTOR = 0.28
+SHIPS_NAVAL_FACTOR = 0.16
+RAW_RESOURCE_STOCKPILES = (
+    RESOURCE_GRAIN,
+    RESOURCE_COPPER,
+    RESOURCE_IRON,
+    RESOURCE_SALT,
+)
+PRODUCED_GOOD_STOCKPILES = (
+    PRODUCED_GOOD_PROVISIONS,
+    PRODUCED_GOOD_WEAPONS,
+)
+STOCKPILE_BASE_CAPACITY = 0.35
+STOCKPILE_STOREHOUSE_CAPACITY_FACTOR = 1.35
+STOCKPILE_GRANARY_GRAIN_FACTOR = 1.2
+STOCKPILE_MARKET_CAPACITY_FACTOR = 0.25
+STOCKPILE_FILL_RATE = 0.38
+STOCKPILE_DRAW_RATE = 0.65
+STOCKPILE_BASE_SPOILAGE = 0.018
+STOCKPILE_STOREHOUSE_SPOILAGE_REDUCTION = 0.004
+EXTRACTIVE_DEPLETION_RATE = 0.0014
+EXTRACTIVE_DEPLETION_MAINTENANCE_REDUCTION = 0.00045
+EXTRACTIVE_DEPLETION_MAX_RECOVERY = 0.18
+MARKET_PRICE_BASE = 1.0
+MARKET_PRICE_SHORTAGE_FACTOR = 0.65
+MARKET_PRICE_SURPLUS_FACTOR = 0.22
+MARKET_PRICE_TRADE_DISRUPTION_FACTOR = 0.18
+MARKET_PRICE_BLEND = 0.35
 
 RouteState = dict[str, float | int | str | None]
 
@@ -347,10 +416,18 @@ def ensure_region_resource_state(region: Region) -> None:
         region.resource_routed_output = normalize_resource_map(region.resource_routed_output)
         region.resource_effective_output = normalize_resource_map(region.resource_effective_output)
         region.resource_damage = normalize_resource_map(region.resource_damage)
+        region.resource_depletion_by_resource = normalize_resource_map(
+            region.resource_depletion_by_resource,
+        )
+        region.resource_prices = normalize_resource_map(region.resource_prices)
     region.resource_retained_output = normalize_resource_map(region.resource_retained_output)
     region.resource_routed_output = normalize_resource_map(region.resource_routed_output)
     region.resource_effective_output = normalize_resource_map(region.resource_effective_output)
     region.resource_damage = normalize_resource_map(region.resource_damage)
+    region.resource_depletion_by_resource = normalize_resource_map(
+        region.resource_depletion_by_resource,
+    )
+    region.resource_prices = normalize_resource_map(region.resource_prices)
     region.resource_monetized_value = round(max(0.0, float(region.resource_monetized_value or 0.0)), 3)
     region.resource_isolation_factor = round(float(region.resource_isolation_factor or 0.0), 3)
     region.resource_route_depth = (
@@ -426,6 +503,8 @@ def ensure_region_resource_state(region: Region) -> None:
     region.logging_camp_level = round(max(0.0, float(region.logging_camp_level or 0.0)), 2)
     region.road_level = round(max(0.0, float(region.road_level or 0.0)), 2)
     region.copper_mine_level = round(max(0.0, float(region.copper_mine_level or 0.0)), 2)
+    region.iron_mine_level = round(max(0.0, float(region.iron_mine_level or 0.0)), 2)
+    region.gold_mine_level = round(max(0.0, float(region.gold_mine_level or 0.0)), 2)
     region.stone_quarry_level = round(max(0.0, float(region.stone_quarry_level or 0.0)), 2)
 
 
@@ -458,6 +537,19 @@ def _ensure_faction_resource_state(faction: Faction) -> None:
     faction.production_chain_shortages = normalize_produced_goods_map(
         faction.production_chain_shortages,
     )
+    faction.produced_good_stockpiles = normalize_produced_goods_map(
+        faction.produced_good_stockpiles,
+    )
+    faction.resource_stockpiles = normalize_resource_map(faction.resource_stockpiles)
+    faction.resource_stockpile_capacity = normalize_resource_map(
+        faction.resource_stockpile_capacity,
+    )
+    faction.resource_stockpile_draw = normalize_resource_map(faction.resource_stockpile_draw)
+    faction.resource_stockpile_spoilage = normalize_resource_map(
+        faction.resource_stockpile_spoilage,
+    )
+    faction.resource_price_index = normalize_resource_map(faction.resource_price_index)
+    faction.merchant_capacity = round(max(0.0, float(faction.merchant_capacity or 0.0)), 3)
     faction.food_stored = round(max(0.0, float(faction.food_stored or 0.0)), 3)
     faction.food_storage_capacity = round(max(0.0, float(faction.food_storage_capacity or 0.0)), 3)
     faction.food_produced = round(max(0.0, float(faction.food_produced or 0.0)), 3)
@@ -609,9 +701,25 @@ def get_region_resource_development_factor(region: Region, resource_name: str) -
     return 0.95 + (region.infrastructure_level * 0.1)
 
 
+def faction_has_iron_extraction(world: WorldState | None, faction_name: str | None) -> bool:
+    if world is None or faction_name is None or faction_name not in world.factions:
+        return False
+    for region in world.regions.values():
+        if region.owner != faction_name:
+            continue
+        if float(region.copper_mine_level or 0.0) >= 0.85:
+            return True
+    faction = world.factions[faction_name]
+    return float(faction.institutional_technologies.get(TECH_COPPER_WORKING, 0.0) or 0.0) >= 0.55
+
+
 def get_region_extractive_site_level(region: Region, resource_name: str) -> float:
     if resource_name == RESOURCE_COPPER:
         return float(region.copper_mine_level or 0.0)
+    if resource_name == RESOURCE_IRON:
+        return float(region.iron_mine_level or 0.0)
+    if resource_name == RESOURCE_GOLD:
+        return float(region.gold_mine_level or 0.0)
     if resource_name == RESOURCE_STONE:
         return float(region.stone_quarry_level or 0.0)
     return 0.0
@@ -868,6 +976,26 @@ def _get_region_foreign_trade_gateway_quality(
     quality += min(0.12, region.infrastructure_level * 0.08)
     quality += min(0.08, region.road_level * 0.06)
     quality += min(0.08, get_region_urban_effects(region).get("trade_value_factor", 0.0) * 0.45)
+    quality += min(
+        FOREIGN_TRADE_SALT_GATEWAY_BONUS,
+        (
+            region.resource_effective_output.get(RESOURCE_SALT, 0.0)
+            + region.resource_fixed_endowments.get(RESOURCE_SALT, 0.0) * 0.35
+        )
+        * 0.06,
+    )
+    quality += min(
+        FOREIGN_TRADE_GOLD_GATEWAY_BONUS,
+        (
+            region.resource_effective_output.get(RESOURCE_GOLD, 0.0)
+            + region.resource_fixed_endowments.get(RESOURCE_GOLD, 0.0) * 0.45
+        )
+        * 0.08,
+    )
+    quality += min(
+        FOREIGN_TRADE_TEXTILE_GATEWAY_BONUS,
+        region.resource_effective_output.get(RESOURCE_TEXTILES, 0.0) * 0.05,
+    )
     if region.population >= 180:
         quality += 0.04
     quality *= _clamp(1.0 - (float(region.resource_isolation_factor or 0.0) * 0.55), 0.35, 1.0)
@@ -1284,17 +1412,27 @@ def _apply_foreign_trade_access(
                             + import_bonuses[faction_b].get(resource_name, 0.0)
                         ),
                     )
+                    access_a = effective_totals[faction_a].get(resource_name, 0.0) + import_bonuses[faction_a].get(resource_name, 0.0)
+                    access_b = effective_totals[faction_b].get(resource_name, 0.0) + import_bonuses[faction_b].get(resource_name, 0.0)
+                    demand_a = demand_by_faction[faction_a].get(resource_name, 0.0)
+                    demand_b = demand_by_faction[faction_b].get(resource_name, 0.0)
+                    price_a = _estimate_resource_price(demand_a, access_a, disruption_risk=0.0)
+                    price_b = _estimate_resource_price(demand_b, access_b, disruption_risk=0.0)
+                    price_pull_a = max(0.0, price_a - price_b) * FOREIGN_TRADE_PRICE_GRADIENT_FACTOR * max(0.2, demand_a)
+                    price_pull_b = max(0.0, price_b - price_a) * FOREIGN_TRADE_PRICE_GRADIENT_FACTOR * max(0.2, demand_b)
+                    import_pull_a = max(shortage_a, price_pull_a)
+                    import_pull_b = max(shortage_b, price_pull_b)
 
                     if (
-                        shortage_a > 0
+                        import_pull_a > 0
                         and b_scope_exportable[resource_name] > 0
                         and remaining_exportable[faction_b][resource_name] > 0
                     ):
                         trade_amount = min(
-                            shortage_a,
+                            import_pull_a,
                             b_scope_exportable[resource_name],
                             remaining_exportable[faction_b][resource_name],
-                            remaining_capacity * resource_weight,
+                            remaining_capacity * resource_weight * (1.0 + min(0.25, price_pull_a)),
                         )
                         if trade_amount > 0.01:
                             provider_region_b = get_gateway_supply_region_name(
@@ -1350,15 +1488,15 @@ def _apply_foreign_trade_access(
                         break
 
                     if (
-                        shortage_b > 0
+                        import_pull_b > 0
                         and a_scope_exportable[resource_name] > 0
                         and remaining_exportable[faction_a][resource_name] > 0
                     ):
                         trade_amount = min(
-                            shortage_b,
+                            import_pull_b,
                             a_scope_exportable[resource_name],
                             remaining_exportable[faction_a][resource_name],
-                            remaining_capacity * resource_weight,
+                            remaining_capacity * resource_weight * (1.0 + min(0.25, price_pull_b)),
                         )
                         if trade_amount > 0.01:
                             provider_region_a = get_gateway_supply_region_name(
@@ -2054,6 +2192,41 @@ def _get_region_trade_demand(region: Region) -> float:
     )
 
 
+def _estimate_resource_price(
+    demand: float,
+    access: float,
+    *,
+    disruption_risk: float,
+) -> float:
+    demand = max(0.0, float(demand or 0.0))
+    access = max(0.0, float(access or 0.0))
+    baseline = MARKET_PRICE_BASE
+    if demand <= 0.0:
+        return round(
+            _clamp(
+                baseline
+                - min(0.18, access * 0.04)
+                + min(0.18, disruption_risk * MARKET_PRICE_TRADE_DISRUPTION_FACTOR),
+                0.55,
+                2.4,
+            ),
+            3,
+        )
+    shortage_ratio = max(0.0, demand - access) / max(0.2, demand)
+    surplus_ratio = max(0.0, access - demand) / max(0.2, demand)
+    return round(
+        _clamp(
+            baseline
+            + shortage_ratio * MARKET_PRICE_SHORTAGE_FACTOR
+            - min(0.28, surplus_ratio * MARKET_PRICE_SURPLUS_FACTOR)
+            + min(0.24, disruption_risk * MARKET_PRICE_TRADE_DISRUPTION_FACTOR),
+            0.45,
+            2.8,
+        ),
+        3,
+    )
+
+
 def _get_region_average_resource_damage(region: Region) -> float:
     return sum(region.resource_damage.values()) / max(1, len(ALL_RESOURCES))
 
@@ -2577,6 +2750,8 @@ def _get_monetized_value_from_output(
             RESOURCE_WILD_FOOD: 0.58,
             RESOURCE_TIMBER: 0.9,
             RESOURCE_COPPER: 1.48,
+            RESOURCE_IRON: 0.82,
+            RESOURCE_GOLD: 2.2,
             RESOURCE_STONE: 0.86,
             RESOURCE_SALT: 1.24,
             RESOURCE_TEXTILES: 1.18,
@@ -2673,9 +2848,13 @@ def get_region_resource_output(region: Region, world: WorldState | None = None) 
         endowment = region.resource_fixed_endowments.get(resource_name, 0.0)
         if endowment <= 0:
             continue
+        if resource_name == RESOURCE_IRON and not faction_has_iron_extraction(world, region.owner):
+            continue
+        depletion = region.resource_depletion_by_resource.get(resource_name, 0.0)
+        effective_endowment = endowment * (1.0 - _clamp(depletion, 0.0, 0.92))
         output[resource_name] = round(
             RESOURCE_BASE_OUTPUT[resource_name]
-            * endowment
+            * effective_endowment
             * workforce_factor
             * get_region_resource_development_factor(region, resource_name)
             * integration_factor
@@ -2697,6 +2876,8 @@ def _get_taxable_value_from_output(output: dict[str, float]) -> float:
                 RESOURCE_WILD_FOOD: 0.9,
                 RESOURCE_TIMBER: 0.85,
                 RESOURCE_COPPER: 1.35,
+                RESOURCE_IRON: 0.86,
+                RESOURCE_GOLD: 2.05,
                 RESOURCE_STONE: 0.8,
                 RESOURCE_SALT: 1.18,
                 RESOURCE_TEXTILES: 1.15,
@@ -2851,6 +3032,14 @@ def get_faction_resource_demand(
     demand[RESOURCE_LIVESTOCK] = round(max(0.18, food_demand * 0.24), 3)
     demand[RESOURCE_HORSES] = round(mobility_demand, 3)
     demand[RESOURCE_COPPER] = round(metal_demand, 3)
+    demand[RESOURCE_IRON] = round(
+        metal_demand * (0.55 if faction_has_iron_extraction(world, faction_name) else 0.0),
+        3,
+    )
+    demand[RESOURCE_GOLD] = round(
+        max(0.0, (town_regions * 0.02) + (city_regions * 0.06)),
+        3,
+    )
     demand[RESOURCE_STONE] = round(construction_demand * 0.52, 3)
     demand[RESOURCE_TIMBER] = round(construction_demand * 0.36, 3)
     demand[RESOURCE_WILD_FOOD] = round(max(0.15, food_demand * 0.18), 3)
@@ -3001,6 +3190,122 @@ def _get_faction_manufacturing_factor(
     )
 
 
+def _get_faction_stockpile_capacity(
+    world: WorldState,
+    faction_name: str,
+    good_name: str,
+) -> float:
+    owned_regions = _get_owned_regions(world, faction_name)
+    if not owned_regions:
+        return 0.0
+    storehouse_support = sum(region.storehouse_level for region in owned_regions)
+    market_support = sum(region.market_level for region in owned_regions)
+    capacity = (
+        len(owned_regions) * STOCKPILE_BASE_CAPACITY
+        + storehouse_support * STOCKPILE_STOREHOUSE_CAPACITY_FACTOR
+        + market_support * STOCKPILE_MARKET_CAPACITY_FACTOR
+    )
+    if good_name == RESOURCE_GRAIN:
+        capacity += sum(region.granary_level for region in owned_regions) * STOCKPILE_GRANARY_GRAIN_FACTOR
+    if good_name in {RESOURCE_COPPER, RESOURCE_IRON, PRODUCED_GOOD_WEAPONS}:
+        capacity += sum(region.extractive_level for region in owned_regions) * 0.32
+    return round(max(0.0, capacity), 3)
+
+
+def _get_faction_stockpile_spoilage_rate(
+    world: WorldState,
+    faction_name: str,
+) -> float:
+    owned_regions = _get_owned_regions(world, faction_name)
+    if not owned_regions:
+        return STOCKPILE_BASE_SPOILAGE
+    average_storehouse = sum(region.storehouse_level for region in owned_regions) / len(owned_regions)
+    return round(
+        _clamp(
+            STOCKPILE_BASE_SPOILAGE - (average_storehouse * STOCKPILE_STOREHOUSE_SPOILAGE_REDUCTION),
+            0.002,
+            STOCKPILE_BASE_SPOILAGE,
+        ),
+        3,
+    )
+
+
+def _apply_raw_resource_stockpiles(
+    world: WorldState,
+    faction_name: str,
+    access: dict[str, float],
+    demand: dict[str, float],
+    *,
+    advance_stockpiles: bool,
+) -> dict[str, float]:
+    faction = world.factions[faction_name]
+    updated_access = normalize_resource_map(access)
+    stockpiles = normalize_resource_map(faction.resource_stockpiles)
+    capacities = normalize_resource_map(faction.resource_stockpile_capacity)
+    draws = build_empty_resource_map()
+    spoilage_map = build_empty_resource_map()
+    spoilage_rate = _get_faction_stockpile_spoilage_rate(world, faction_name)
+
+    for resource_name in RAW_RESOURCE_STOCKPILES:
+        capacity = _get_faction_stockpile_capacity(world, faction_name, resource_name)
+        capacities[resource_name] = capacity
+        current = min(stockpiles.get(resource_name, 0.0), capacity)
+        spoilage = 0.0
+        if advance_stockpiles and current > 0:
+            spoilage = min(current, current * spoilage_rate)
+            current = max(0.0, current - spoilage)
+        surplus = max(0.0, updated_access.get(resource_name, 0.0) - demand.get(resource_name, 0.0))
+        fill = min(max(0.0, capacity - current), surplus * STOCKPILE_FILL_RATE) if advance_stockpiles else 0.0
+        current += fill
+        shortage = max(0.0, demand.get(resource_name, 0.0) - updated_access.get(resource_name, 0.0))
+        draw = min(current, shortage * STOCKPILE_DRAW_RATE)
+        if draw > 0:
+            updated_access[resource_name] = round(updated_access.get(resource_name, 0.0) + draw, 3)
+        draws[resource_name] = round(draw, 3)
+        spoilage_map[resource_name] = round(spoilage, 3)
+        if advance_stockpiles:
+            current = max(0.0, current - draw)
+            stockpiles[resource_name] = round(min(capacity, current), 3)
+
+    faction.resource_stockpiles = normalize_resource_map(stockpiles)
+    faction.resource_stockpile_capacity = normalize_resource_map(capacities)
+    faction.resource_stockpile_draw = normalize_resource_map(draws)
+    faction.resource_stockpile_spoilage = normalize_resource_map(spoilage_map)
+    return normalize_resource_map(updated_access)
+
+
+def _apply_produced_good_stockpiles(
+    world: WorldState,
+    faction_name: str,
+    produced_goods: dict[str, float],
+    demand: dict[str, float],
+    *,
+    advance_stockpiles: bool,
+) -> dict[str, float]:
+    faction = world.factions[faction_name]
+    updated_goods = normalize_produced_goods_map(produced_goods)
+    stockpiles = normalize_produced_goods_map(faction.produced_good_stockpiles)
+    spoilage_rate = _get_faction_stockpile_spoilage_rate(world, faction_name)
+
+    for good_name in PRODUCED_GOOD_STOCKPILES:
+        capacity = _get_faction_stockpile_capacity(world, faction_name, good_name)
+        current = min(stockpiles.get(good_name, 0.0), capacity)
+        if advance_stockpiles and current > 0:
+            current = max(0.0, current - min(current, current * spoilage_rate * 0.55))
+        surplus = max(0.0, updated_goods.get(good_name, 0.0) - demand.get(good_name, 0.0))
+        if advance_stockpiles:
+            current += min(max(0.0, capacity - current), surplus * STOCKPILE_FILL_RATE)
+        shortage = max(0.0, demand.get(good_name, 0.0) - updated_goods.get(good_name, 0.0))
+        draw = min(current, shortage * STOCKPILE_DRAW_RATE)
+        if draw > 0:
+            updated_goods[good_name] = round(updated_goods.get(good_name, 0.0) + draw, 3)
+        if advance_stockpiles:
+            stockpiles[good_name] = round(min(capacity, max(0.0, current - draw)), 3)
+
+    faction.produced_good_stockpiles = normalize_produced_goods_map(stockpiles)
+    return normalize_produced_goods_map(updated_goods)
+
+
 def _build_faction_produced_goods(
     world: WorldState,
     faction_name: str,
@@ -3022,13 +3327,43 @@ def _build_faction_produced_goods(
         sum(get_region_urban_effects(region).get("tools_output_factor", 0.0) for region in owned_regions),
     )
     elite_effects = get_faction_elite_effects(faction)
+    average_extractive = sum(region.extractive_level for region in owned_regions) / len(owned_regions)
+    coastal_or_river_towns = sum(
+        1
+        for region in owned_regions
+        if (
+            region.settlement_level in {"town", "city"}
+            and (
+                "coast" in region.terrain_tags
+                or "riverland" in region.terrain_tags
+                or region.trade_gateway_role in {"sea_gateway", "river_gateway"}
+            )
+        )
+    )
+
+    iron_input = effective_access.get(RESOURCE_IRON, 0.0)
+    timber_input = effective_access.get(RESOURCE_TIMBER, 0.0)
+    produced_goods[PRODUCED_GOOD_IRON_GOODS] = round(
+        min(
+            iron_input * RESOURCE_IRON_GOODS_INPUT_FACTOR,
+            timber_input * RESOURCE_IRON_GOODS_FUEL_FACTOR,
+        )
+        * manufacturing_factor
+        * (0.65 + (average_extractive * RESOURCE_IRON_GOODS_EXTRACTIVE_FACTOR)),
+        3,
+    )
+
     material_input = (
-        effective_access.get(RESOURCE_TIMBER, 0.0)
+        timber_input
         + (effective_access.get(RESOURCE_STONE, 0.0) * 0.45)
+    )
+    tools_metal_input = (
+        effective_access.get(RESOURCE_COPPER, 0.0) * TOOLS_COPPER_INPUT_FACTOR
+        + produced_goods[PRODUCED_GOOD_IRON_GOODS] * 0.34
     )
     produced_goods[PRODUCED_GOOD_TOOLS] = round(
         min(
-            effective_access.get(RESOURCE_COPPER, 0.0) * TOOLS_COPPER_INPUT_FACTOR,
+            tools_metal_input,
             material_input * TOOLS_MATERIAL_INPUT_FACTOR,
         )
         * manufacturing_factor,
@@ -3050,6 +3385,11 @@ def _build_faction_produced_goods(
         for region in owned_regions
         if region.settlement_level in {"town", "city"}
     )
+    urban_craft_population = sum(
+        region.population
+        for region in owned_regions
+        if region.settlement_level in {"town", "city"}
+    )
     food_input = max(
         0.0,
         effective_access.get(RESOURCE_GRAIN, 0.0)
@@ -3058,6 +3398,7 @@ def _build_faction_produced_goods(
         - (sum(region.population for region in owned_regions) / 180.0),
     )
     preservation_input = effective_access.get(RESOURCE_SALT, 0.0) * URBAN_SURPLUS_SALT_INPUT_FACTOR
+    textile_input = effective_access.get(RESOURCE_TEXTILES, 0.0) * URBAN_SURPLUS_TEXTILE_INPUT_FACTOR
     urban_infrastructure_factor = _clamp(
         0.65
         + (sum(region.market_level for region in owned_regions) / len(owned_regions) * 0.18)
@@ -3073,7 +3414,11 @@ def _build_faction_produced_goods(
     produced_goods[PRODUCED_GOOD_URBAN_SURPLUS] = round(
         min(
             urban_population_support,
-            (food_input * URBAN_SURPLUS_FOOD_INPUT_FACTOR) + preservation_input,
+            (
+                food_input * URBAN_SURPLUS_FOOD_INPUT_FACTOR
+            )
+            + preservation_input
+            + textile_input,
         )
         * urban_infrastructure_factor,
         3,
@@ -3083,16 +3428,65 @@ def _build_faction_produced_goods(
         * (1.0 + urban_role_factor + elite_effects.get("urban_surplus_factor", 0.0)),
         3,
     )
+
+    produced_goods[PRODUCED_GOOD_PROVISIONS] = round(
+        min(
+            food_input * PROVISIONS_FOOD_INPUT_FACTOR,
+            effective_access.get(RESOURCE_SALT, 0.0) * PROVISIONS_SALT_INPUT_FACTOR,
+        )
+        * (0.72 + (sum(region.storehouse_level for region in owned_regions) / len(owned_regions) * PROVISIONS_STOREHOUSE_FACTOR))
+        * (1.0 + min(0.18, produced_goods[PRODUCED_GOOD_URBAN_SURPLUS] * 0.018)),
+        3,
+    )
+
+    weapons_metal_input = (
+        effective_access.get(RESOURCE_COPPER, 0.0) * 0.42
+        + produced_goods[PRODUCED_GOOD_IRON_GOODS] * 0.68
+    )
+    produced_goods[PRODUCED_GOOD_WEAPONS] = round(
+        min(
+            weapons_metal_input * WEAPONS_METAL_INPUT_FACTOR,
+            timber_input * WEAPONS_TIMBER_INPUT_FACTOR,
+            produced_goods[PRODUCED_GOOD_TOOLS] * WEAPONS_TOOLS_INPUT_FACTOR,
+        )
+        * manufacturing_factor,
+        3,
+    )
+
+    crafted_material_input = (
+        effective_access.get(RESOURCE_TEXTILES, 0.0)
+        + effective_access.get(RESOURCE_STONE, 0.0) * 0.35
+        + effective_access.get(RESOURCE_SALT, 0.0) * 0.12
+    )
+    produced_goods[PRODUCED_GOOD_CRAFTED_GOODS] = round(
+        min(
+            crafted_material_input * CRAFTED_GOODS_MATERIAL_INPUT_FACTOR,
+            produced_goods[PRODUCED_GOOD_TOOLS] * CRAFTED_GOODS_TOOLS_INPUT_FACTOR,
+            urban_craft_population * CRAFTED_GOODS_URBAN_FACTOR,
+        )
+        * manufacturing_factor
+        * (1.0 + min(0.22, produced_goods[PRODUCED_GOOD_URBAN_SURPLUS] * 0.02)),
+        3,
+    )
+
+    produced_goods[PRODUCED_GOOD_SHIPS] = round(
+        min(
+            timber_input * SHIPS_TIMBER_INPUT_FACTOR,
+            produced_goods[PRODUCED_GOOD_TOOLS] * SHIPS_TOOLS_INPUT_FACTOR,
+            coastal_or_river_towns * SHIPS_PORT_FACTOR,
+        )
+        * (0.75 + min(0.35, sum(region.market_level for region in owned_regions) * 0.025)),
+        3,
+    )
     return normalize_produced_goods_map(produced_goods)
 
 
-def _build_faction_production_chain_shortages(
+def _build_faction_produced_good_demand(
     world: WorldState,
     faction_name: str,
     demand: dict[str, float],
 ) -> dict[str, float]:
     faction = world.factions[faction_name]
-    produced_goods = normalize_produced_goods_map(faction.produced_goods)
     owned_regions = _get_owned_regions(world, faction_name)
     urban_population_support = sum(
         region.population
@@ -3104,10 +3498,50 @@ def _build_faction_production_chain_shortages(
         for region in owned_regions
         if region.settlement_level in {"town", "city"}
     )
+    frontier_regions = sum(1 for region in owned_regions if get_region_core_status(region) == "frontier")
+    coastal_regions = sum(
+        1
+        for region in owned_regions
+        if "coast" in region.terrain_tags or region.trade_gateway_role == "sea_gateway"
+    )
+    active_wars = sum(
+        1
+        for war in world.wars.values()
+        if war.active and faction_name in {war.aggressor, war.defender}
+    )
+    war_bias = max(0.0, faction.doctrine_profile.war_posture - 0.5)
     chain_demand = build_empty_produced_goods_map()
     chain_demand[PRODUCED_GOOD_TOOLS] = round(
         (demand.get(CAPACITY_CONSTRUCTION, 0.0) * 0.26)
         + (demand.get(CAPACITY_METAL, 0.0) * 0.22),
+        3,
+    )
+    chain_demand[PRODUCED_GOOD_IRON_GOODS] = round(
+        demand.get(RESOURCE_IRON, 0.0) * 0.62
+        + demand.get(CAPACITY_METAL, 0.0) * 0.12,
+        3,
+    )
+    chain_demand[PRODUCED_GOOD_WEAPONS] = round(
+        max(0.08, demand.get(CAPACITY_METAL, 0.0) * 0.18)
+        + active_wars * 0.35
+        + war_bias * 0.5,
+        3,
+    )
+    chain_demand[PRODUCED_GOOD_PROVISIONS] = round(
+        demand.get(CAPACITY_FOOD_SECURITY, 0.0) * 0.14
+        + frontier_regions * 0.08
+        + active_wars * 0.22,
+        3,
+    )
+    chain_demand[PRODUCED_GOOD_CRAFTED_GOODS] = round(
+        max(
+            demand.get(CAPACITY_TAXABLE_VALUE, 0.0) * 0.08,
+            urban_population_support * 0.18,
+        ),
+        3,
+    )
+    chain_demand[PRODUCED_GOOD_SHIPS] = round(
+        max(0.0, coastal_regions * 0.12 + faction.trade_foreign_imported_flow * 0.02),
         3,
     )
     chain_demand[PRODUCED_GOOD_URBAN_SURPLUS] = round(
@@ -3117,6 +3551,17 @@ def _build_faction_production_chain_shortages(
         ),
         3,
     )
+    return normalize_produced_goods_map(chain_demand)
+
+
+def _build_faction_production_chain_shortages(
+    world: WorldState,
+    faction_name: str,
+    demand: dict[str, float],
+) -> dict[str, float]:
+    faction = world.factions[faction_name]
+    produced_goods = normalize_produced_goods_map(faction.produced_goods)
+    chain_demand = _build_faction_produced_good_demand(world, faction_name, demand)
     return normalize_produced_goods_map({
         good_name: max(0.0, chain_demand[good_name] - produced_goods[good_name])
         for good_name in ALL_PRODUCED_GOODS
@@ -3139,15 +3584,34 @@ def _build_faction_derived_capacity(
         3,
     )
     derived_capacity[CAPACITY_MOBILITY] = round(effective_access[RESOURCE_HORSES], 3)
+    derived_capacity[CAPACITY_MOBILITY] = round(
+        derived_capacity[CAPACITY_MOBILITY]
+        + (effective_access[RESOURCE_LIVESTOCK] * 0.18)
+        + (produced_goods[PRODUCED_GOOD_PROVISIONS] * PROVISIONS_LOGISTICS_FACTOR)
+        + (produced_goods[PRODUCED_GOOD_SHIPS] * SHIPS_NAVAL_FACTOR),
+        3,
+    )
     derived_capacity[CAPACITY_METAL] = round(
         effective_access[RESOURCE_COPPER]
+        + (effective_access[RESOURCE_IRON] * RESOURCE_IRON_UNSMELTED_METAL_FACTOR)
         + (produced_goods[PRODUCED_GOOD_TOOLS] * TOOLS_METAL_CAPACITY_FACTOR),
+        3,
+    )
+    derived_capacity[CAPACITY_METAL] = round(
+        derived_capacity[CAPACITY_METAL]
+        + (produced_goods[PRODUCED_GOOD_IRON_GOODS] * IRON_GOODS_METAL_CAPACITY_FACTOR)
+        + (produced_goods[PRODUCED_GOOD_WEAPONS] * 0.18),
         3,
     )
     derived_capacity[CAPACITY_CONSTRUCTION] = round(
         effective_access[RESOURCE_TIMBER]
         + effective_access[RESOURCE_STONE]
         + (produced_goods[PRODUCED_GOOD_TOOLS] * TOOLS_CONSTRUCTION_CAPACITY_FACTOR),
+        3,
+    )
+    derived_capacity[CAPACITY_CONSTRUCTION] = round(
+        derived_capacity[CAPACITY_CONSTRUCTION]
+        + (produced_goods[PRODUCED_GOOD_IRON_GOODS] * 0.22),
         3,
     )
     derived_capacity[CAPACITY_TAXABLE_VALUE] = round(
@@ -3161,6 +3625,10 @@ def _build_faction_derived_capacity(
             if region.owner == faction_name
         )
         + (produced_goods[PRODUCED_GOOD_TOOLS] * TOOLS_TAXABLE_VALUE_FACTOR)
+        + (produced_goods[PRODUCED_GOOD_IRON_GOODS] * IRON_GOODS_TAXABLE_VALUE_FACTOR)
+        + (produced_goods[PRODUCED_GOOD_CRAFTED_GOODS] * CRAFTED_GOODS_TAXABLE_VALUE_FACTOR)
+        + (effective_access[RESOURCE_TEXTILES] * TEXTILE_TAXABLE_ACCESS_FACTOR)
+        + (effective_access[RESOURCE_GOLD] * 1.4)
         + (
             produced_goods[PRODUCED_GOOD_URBAN_SURPLUS]
             * URBAN_SURPLUS_TAXABLE_VALUE_FACTOR
@@ -3214,6 +3682,113 @@ def _update_faction_food_aggregate(world: WorldState, faction_name: str) -> None
     faction.food_overflow = round(sum(region.food_overflow for region in owned_regions), 3)
 
 
+def _advance_region_extractive_depletion(region: Region) -> None:
+    ensure_region_resource_state(region)
+    for resource_name in (RESOURCE_COPPER, RESOURCE_IRON, RESOURCE_GOLD, RESOURCE_STONE):
+        if region.resource_fixed_endowments.get(resource_name, 0.0) <= 0:
+            continue
+        output = max(0.0, region.resource_output.get(resource_name, 0.0))
+        site_level = get_region_extractive_site_level(region, resource_name)
+        current = region.resource_depletion_by_resource.get(resource_name, 0.0)
+        if output > 0.0:
+            pressure = (
+                output * EXTRACTIVE_DEPLETION_RATE
+                + max(0.0, site_level - 0.8) * EXTRACTIVE_DEPLETION_RATE * 0.55
+                - region.extractive_level * EXTRACTIVE_DEPLETION_MAINTENANCE_REDUCTION
+            )
+            current = min(0.92, current + max(0.0, pressure))
+        elif region.extractive_level > 0.7 and current > EXTRACTIVE_DEPLETION_MAX_RECOVERY:
+            current = max(
+                EXTRACTIVE_DEPLETION_MAX_RECOVERY,
+                current - (region.extractive_level * EXTRACTIVE_DEPLETION_MAINTENANCE_REDUCTION),
+            )
+        region.resource_depletion_by_resource[resource_name] = round(current, 4)
+    region.resource_depletion = round(
+        max(
+            float(region.resource_depletion or 0.0),
+            max(region.resource_depletion_by_resource.values(), default=0.0),
+        ),
+        3,
+    )
+
+
+def _refresh_faction_market_state(
+    world: WorldState,
+    faction_name: str,
+    demand: dict[str, float],
+    *,
+    advance_prices: bool,
+) -> None:
+    faction = world.factions[faction_name]
+    owned_regions = _get_owned_regions(world, faction_name)
+    if not owned_regions:
+        faction.resource_price_index = build_empty_resource_map()
+        faction.merchant_capacity = 0.0
+        return
+
+    owned_count = len(owned_regions)
+    price_totals = build_empty_resource_map()
+    price_weight = 0.0
+    merchant_capacity = 0.0
+    urban_surplus = normalize_produced_goods_map(faction.produced_goods).get(
+        PRODUCED_GOOD_URBAN_SURPLUS,
+        0.0,
+    )
+    for region in owned_regions:
+        market_weight = (
+            0.35
+            + region.market_level
+            + (0.35 if region.settlement_level == "town" else 0.0)
+            + (0.75 if region.settlement_level == "city" else 0.0)
+        )
+        merchant_capacity += (
+            region.market_level * 0.42
+            + region.road_level * 0.18
+            + region.infrastructure_level * 0.08
+            + region.trade_foreign_flow * 0.04
+        )
+        if market_weight <= 0.0:
+            region.resource_prices = build_empty_resource_map()
+            continue
+        prices = build_empty_resource_map()
+        for resource_name in ALL_RESOURCES:
+            target_price = _estimate_resource_price(
+                demand.get(resource_name, 0.0) / max(1, owned_count),
+                (
+                    faction.resource_effective_access.get(resource_name, 0.0) / max(1, owned_count)
+                    + region.resource_effective_output.get(resource_name, 0.0) * 0.35
+                ),
+                disruption_risk=region.trade_disruption_risk,
+            )
+            if advance_prices:
+                previous = region.resource_prices.get(resource_name, MARKET_PRICE_BASE)
+                prices[resource_name] = round(
+                    previous * (1.0 - MARKET_PRICE_BLEND)
+                    + target_price * MARKET_PRICE_BLEND,
+                    3,
+                )
+            else:
+                prices[resource_name] = target_price
+            price_totals[resource_name] += prices[resource_name] * market_weight
+        price_weight += market_weight
+        region.resource_prices = normalize_resource_map(prices)
+
+    faction.resource_price_index = normalize_resource_map({
+        resource_name: (
+            round(price_totals[resource_name] / price_weight, 3)
+            if price_weight > 0
+            else MARKET_PRICE_BASE
+        )
+        for resource_name in ALL_RESOURCES
+    })
+    faction.merchant_capacity = round(
+        merchant_capacity
+        + urban_surplus * 0.12
+        + faction.resource_effective_access.get(RESOURCE_GOLD, 0.0) * 0.08,
+        3,
+    )
+
+
 def update_faction_resource_economy(
     world: WorldState,
     *,
@@ -3239,6 +3814,8 @@ def update_faction_resource_economy(
             world,
             faction_route_map=faction_route_maps.get(region.owner or "", {}),
         )
+        if advance_resources:
+            _advance_region_extractive_depletion(region)
         region.trade_foreign_partner = None
         region.trade_foreign_partner_region = None
         region.trade_foreign_flow = 0.0
@@ -3300,6 +3877,13 @@ def update_faction_resource_economy(
         faction_name: get_faction_resource_demand(world, faction_name)
         for faction_name in world.factions
     }
+    advance_stockpiles_by_faction = {
+        faction_name: bool(
+            advance_resources
+            and world.factions[faction_name].last_stockpile_turn != world.turn
+        )
+        for faction_name in world.factions
+    }
 
     for faction_name, faction in world.factions.items():
         _ensure_faction_resource_state(faction)
@@ -3323,7 +3907,13 @@ def update_faction_resource_economy(
 
     for faction_name, faction in world.factions.items():
         faction.resource_gross_output = normalize_resource_map(faction_gross_totals[faction_name])
-        faction.resource_effective_access = normalize_resource_map(faction_effective_totals[faction_name])
+        faction.resource_effective_access = _apply_raw_resource_stockpiles(
+            world,
+            faction_name,
+            faction_effective_totals[faction_name],
+            demand_by_faction[faction_name],
+            advance_stockpiles=advance_stockpiles_by_faction[faction_name],
+        )
         faction.resource_isolated_output = normalize_resource_map({
             resource_name: round(
                 max(
@@ -3341,6 +3931,18 @@ def update_faction_resource_economy(
             world,
             faction_name,
         )
+        produced_good_demand = _build_faction_produced_good_demand(
+            world,
+            faction_name,
+            demand_by_faction[faction_name],
+        )
+        faction.produced_goods = _apply_produced_good_stockpiles(
+            world,
+            faction_name,
+            faction.produced_goods,
+            produced_good_demand,
+            advance_stockpiles=advance_stockpiles_by_faction[faction_name],
+        )
         faction.derived_capacity = _build_faction_derived_capacity(
             world,
             faction_name,
@@ -3355,6 +3957,14 @@ def update_faction_resource_economy(
             faction_name,
             demand_by_faction[faction_name],
         )
+        _refresh_faction_market_state(
+            world,
+            faction_name,
+            demand_by_faction[faction_name],
+            advance_prices=advance_stockpiles_by_faction[faction_name],
+        )
+        if advance_stockpiles_by_faction[faction_name]:
+            faction.last_stockpile_turn = world.turn
 
 
 def apply_turn_food_economy(

@@ -27,11 +27,17 @@ from src.models import Faction, Region, RelationshipState, WorldState
 from src.resources import (
     CAPACITY_CONSTRUCTION,
     CAPACITY_METAL,
+    PRODUCED_GOOD_CRAFTED_GOODS,
+    PRODUCED_GOOD_IRON_GOODS,
+    PRODUCED_GOOD_PROVISIONS,
     PRODUCED_GOOD_TOOLS,
     PRODUCED_GOOD_URBAN_SURPLUS,
+    PRODUCED_GOOD_WEAPONS,
     RESOURCE_COPPER,
+    RESOURCE_GOLD,
     RESOURCE_GRAIN,
     RESOURCE_HORSES,
+    RESOURCE_IRON,
     RESOURCE_LIVESTOCK,
     RESOURCE_SALT,
     RESOURCE_STONE,
@@ -2328,6 +2334,230 @@ class ResourceSystemTests(unittest.TestCase):
         self.assertTrue(develop("FactionA", "A", world))
         self.assertGreater(world.regions["A"].market_level, 0.0)
         self.assertGreater(get_region_taxable_value(world.regions["A"], world), taxable_before)
+
+    def test_iron_requires_metalworking_and_gold_is_valuable(self):
+        iron_region = Region(
+            name="A",
+            neighbors=["B"],
+            owner="FactionA",
+            resources=2,
+            population=180,
+            terrain_tags=["hills"],
+            climate="temperate",
+            settlement_level="rural",
+            iron_mine_level=1.1,
+            extractive_level=0.8,
+            infrastructure_level=0.8,
+        )
+        timber_region = Region(
+            name="B",
+            neighbors=["A"],
+            owner="FactionA",
+            resources=2,
+            population=180,
+            terrain_tags=["forest", "hills"],
+            climate="temperate",
+            settlement_level="town",
+            copper_mine_level=1.0,
+            gold_mine_level=1.0,
+            logging_camp_level=1.2,
+            market_level=0.9,
+            infrastructure_level=0.9,
+        )
+        world = WorldState(
+            regions={"A": iron_region, "B": timber_region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        iron_region.resource_fixed_endowments[RESOURCE_IRON] = 1.1
+        timber_region.resource_fixed_endowments[RESOURCE_COPPER] = 0.0
+        timber_region.resource_fixed_endowments[RESOURCE_GOLD] = 0.5
+        timber_region.resource_wild_endowments[RESOURCE_TIMBER] = 1.2
+
+        timber_region.copper_mine_level = 0.0
+        update_faction_resource_economy(world)
+        self.assertEqual(world.regions["A"].resource_output[RESOURCE_IRON], 0.0)
+
+        timber_region.copper_mine_level = 1.0
+        update_faction_resource_economy(world)
+        faction = world.factions["FactionA"]
+
+        self.assertGreater(world.regions["A"].resource_output[RESOURCE_IRON], 0.0)
+        self.assertGreater(faction.produced_goods[PRODUCED_GOOD_IRON_GOODS], 0.0)
+        self.assertGreater(faction.resource_effective_access[RESOURCE_GOLD], 0.0)
+        self.assertGreater(faction.derived_capacity[CAPACITY_METAL], faction.resource_effective_access[RESOURCE_COPPER])
+
+    def test_textiles_support_urban_surplus_and_crafted_goods(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=320,
+            terrain_tags=["riverland", "plains"],
+            climate="temperate",
+            settlement_level="city",
+            infrastructure_level=1.2,
+            market_level=1.2,
+            storehouse_level=0.8,
+            road_level=0.6,
+            agriculture_level=1.1,
+            pastoral_level=0.8,
+        )
+        seed_region_resource_profile(region)
+        region.resource_established[RESOURCE_GRAIN] = 0.95
+        region.resource_established[RESOURCE_LIVESTOCK] = 0.65
+        region.resource_fixed_endowments[RESOURCE_SALT] = 1.2
+        region.resource_fixed_endowments[RESOURCE_COPPER] = 1.0
+        region.resource_wild_endowments[RESOURCE_TIMBER] = 1.0
+        region.copper_mine_level = 1.1
+        region.logging_camp_level = 1.1
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+
+        region.resource_established[RESOURCE_TEXTILES] = 0.0
+        update_faction_resource_economy(world)
+        low_textile_surplus = world.factions["FactionA"].produced_goods[PRODUCED_GOOD_URBAN_SURPLUS]
+
+        region.resource_established[RESOURCE_TEXTILES] = 0.75
+        update_faction_resource_economy(world)
+        faction = world.factions["FactionA"]
+
+        self.assertGreater(faction.produced_goods[PRODUCED_GOOD_URBAN_SURPLUS], low_textile_surplus)
+        self.assertGreater(faction.produced_goods[PRODUCED_GOOD_CRAFTED_GOODS], 0.0)
+
+    def test_strategic_stockpile_buffers_shortage_once_per_turn(self):
+        region = Region(
+            name="A",
+            neighbors=[],
+            owner="FactionA",
+            resources=2,
+            population=260,
+            terrain_tags=["plains"],
+            climate="temperate",
+            settlement_level="city",
+            storehouse_level=1.2,
+            market_level=0.8,
+        )
+        seed_region_resource_profile(region)
+        region.resource_fixed_endowments[RESOURCE_COPPER] = 0.0
+        world = WorldState(
+            regions={"A": region},
+            factions={
+                "FactionA": Faction(
+                    name="FactionA",
+                    resource_stockpiles={RESOURCE_COPPER: 1.0},
+                )
+            },
+        )
+
+        update_faction_resource_economy(world, advance_resources=True)
+        faction = world.factions["FactionA"]
+
+        self.assertGreater(faction.resource_stockpile_draw[RESOURCE_COPPER], 0.0)
+        self.assertGreater(faction.resource_effective_access[RESOURCE_COPPER], 0.0)
+        self.assertLess(faction.resource_stockpiles[RESOURCE_COPPER], 1.0)
+
+        stockpile_after_first_update = faction.resource_stockpiles[RESOURCE_COPPER]
+        update_faction_resource_economy(world, advance_resources=True)
+        self.assertEqual(faction.resource_stockpiles[RESOURCE_COPPER], stockpile_after_first_update)
+
+    def test_depletion_and_market_prices_are_observable(self):
+        mine = Region(
+            name="A",
+            neighbors=["B"],
+            owner="FactionA",
+            resources=2,
+            population=180,
+            terrain_tags=["highland"],
+            climate="temperate",
+            settlement_level="town",
+            copper_mine_level=1.8,
+            extractive_level=0.2,
+            market_level=0.9,
+            infrastructure_level=0.7,
+        )
+        market = Region(
+            name="B",
+            neighbors=["A"],
+            owner="FactionA",
+            resources=2,
+            population=260,
+            terrain_tags=["plains"],
+            climate="temperate",
+            settlement_level="city",
+            market_level=1.2,
+            storehouse_level=0.8,
+        )
+        world = WorldState(
+            regions={"A": mine, "B": market},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        mine.resource_fixed_endowments[RESOURCE_COPPER] = 1.3
+
+        update_faction_resource_economy(world, advance_resources=True)
+
+        self.assertGreater(mine.resource_depletion_by_resource[RESOURCE_COPPER], 0.0)
+        self.assertIn(RESOURCE_COPPER, market.resource_prices)
+        self.assertGreater(world.factions["FactionA"].merchant_capacity, 0.0)
+        self.assertGreater(world.factions["FactionA"].resource_price_index[RESOURCE_COPPER], 0.0)
+
+    def test_weapons_and_provisions_are_produced_from_deeper_chains(self):
+        city = Region(
+            name="A",
+            neighbors=["B"],
+            owner="FactionA",
+            resources=2,
+            population=340,
+            terrain_tags=["coast", "riverland"],
+            climate="temperate",
+            settlement_level="city",
+            market_level=1.2,
+            storehouse_level=1.1,
+            infrastructure_level=1.2,
+            road_level=0.8,
+            agriculture_level=1.1,
+        )
+        mine = Region(
+            name="B",
+            neighbors=["A"],
+            owner="FactionA",
+            resources=2,
+            population=180,
+            terrain_tags=["hills", "forest"],
+            climate="temperate",
+            settlement_level="town",
+            copper_mine_level=1.2,
+            iron_mine_level=1.1,
+            logging_camp_level=1.2,
+            extractive_level=0.9,
+            infrastructure_level=1.0,
+        )
+        world = WorldState(
+            regions={"A": city, "B": mine},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+        for region in world.regions.values():
+            seed_region_resource_profile(region)
+        city.resource_established[RESOURCE_GRAIN] = 0.95
+        city.resource_established[RESOURCE_LIVESTOCK] = 0.65
+        city.resource_fixed_endowments[RESOURCE_SALT] = 1.0
+        mine.resource_fixed_endowments[RESOURCE_COPPER] = 1.0
+        mine.resource_fixed_endowments[RESOURCE_IRON] = 1.0
+        mine.resource_wild_endowments[RESOURCE_TIMBER] = 1.2
+
+        update_faction_resource_economy(world)
+        faction = world.factions["FactionA"]
+
+        self.assertGreater(faction.produced_goods[PRODUCED_GOOD_PROVISIONS], 0.0)
+        self.assertGreater(faction.produced_goods[PRODUCED_GOOD_WEAPONS], 0.0)
+        self.assertIn(PRODUCED_GOOD_PROVISIONS, faction.production_chain_shortages)
+        self.assertIn(PRODUCED_GOOD_WEAPONS, faction.production_chain_shortages)
 
 
 if __name__ == "__main__":

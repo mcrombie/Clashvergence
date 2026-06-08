@@ -11,14 +11,26 @@ RESOURCE_HORSES = "horses"
 RESOURCE_WILD_FOOD = "wild_food"
 RESOURCE_TIMBER = "timber"
 RESOURCE_COPPER = "copper"
+RESOURCE_IRON = "iron"
+RESOURCE_GOLD = "gold"
 RESOURCE_STONE = "stone"
 RESOURCE_SALT = "salt"
 RESOURCE_TEXTILES = "textiles"
 
 PRODUCED_GOOD_TOOLS = "tools"
+PRODUCED_GOOD_IRON_GOODS = "iron_goods"
+PRODUCED_GOOD_WEAPONS = "weapons"
+PRODUCED_GOOD_PROVISIONS = "provisions"
+PRODUCED_GOOD_CRAFTED_GOODS = "crafted_goods"
+PRODUCED_GOOD_SHIPS = "ships"
 PRODUCED_GOOD_URBAN_SURPLUS = "urban_surplus"
 ALL_PRODUCED_GOODS = (
     PRODUCED_GOOD_TOOLS,
+    PRODUCED_GOOD_IRON_GOODS,
+    PRODUCED_GOOD_WEAPONS,
+    PRODUCED_GOOD_PROVISIONS,
+    PRODUCED_GOOD_CRAFTED_GOODS,
+    PRODUCED_GOOD_SHIPS,
     PRODUCED_GOOD_URBAN_SURPLUS,
 )
 
@@ -34,6 +46,8 @@ WILD_RESOURCES = (
 )
 EXTRACTIVE_RESOURCES = (
     RESOURCE_COPPER,
+    RESOURCE_IRON,
+    RESOURCE_GOLD,
     RESOURCE_STONE,
     RESOURCE_SALT,
 )
@@ -49,8 +63,10 @@ CONSTRUCTION_RESOURCES = (
 STRATEGIC_RESOURCES = (
     RESOURCE_HORSES,
     RESOURCE_COPPER,
+    RESOURCE_IRON,
 )
 COMMERCIAL_RESOURCES = (
+    RESOURCE_GOLD,
     RESOURCE_SALT,
     RESOURCE_TEXTILES,
 )
@@ -80,10 +96,17 @@ RESOURCE_LABELS = {
     RESOURCE_WILD_FOOD: "Wild Food",
     RESOURCE_TIMBER: "Timber",
     RESOURCE_COPPER: "Copper",
+    RESOURCE_IRON: "Iron",
+    RESOURCE_GOLD: "Gold",
     RESOURCE_STONE: "Stone",
     RESOURCE_SALT: "Salt",
     RESOURCE_TEXTILES: "Textiles",
     PRODUCED_GOOD_TOOLS: "Tools",
+    PRODUCED_GOOD_IRON_GOODS: "Iron Goods",
+    PRODUCED_GOOD_WEAPONS: "Weapons",
+    PRODUCED_GOOD_PROVISIONS: "Provisions",
+    PRODUCED_GOOD_CRAFTED_GOODS: "Crafted Goods",
+    PRODUCED_GOOD_SHIPS: "Ships",
     PRODUCED_GOOD_URBAN_SURPLUS: "Urban Surplus",
 }
 
@@ -94,6 +117,8 @@ RESOURCE_VALUE_WEIGHTS = {
     RESOURCE_WILD_FOOD: 1.05,
     RESOURCE_TIMBER: 0.8,
     RESOURCE_COPPER: 1.35,
+    RESOURCE_IRON: 1.05,
+    RESOURCE_GOLD: 1.9,
     RESOURCE_STONE: 0.75,
     RESOURCE_SALT: 1.15,
     RESOURCE_TEXTILES: 1.2,
@@ -115,6 +140,7 @@ TERRAIN_RESOURCE_PROFILES = {
         RESOURCE_HORSES: 0.2,
         RESOURCE_WILD_FOOD: 0.85,
         RESOURCE_TIMBER: 0.15,
+        RESOURCE_GOLD: 0.18,
         RESOURCE_STONE: 0.1,
         RESOURCE_TEXTILES: 0.45,
     },
@@ -124,6 +150,7 @@ TERRAIN_RESOURCE_PROFILES = {
         RESOURCE_HORSES: 0.2,
         RESOURCE_WILD_FOOD: 0.95,
         RESOURCE_TIMBER: 0.2,
+        RESOURCE_GOLD: 0.05,
         RESOURCE_STONE: 0.05,
         RESOURCE_SALT: 1.0,
         RESOURCE_TEXTILES: 0.55,
@@ -144,6 +171,8 @@ TERRAIN_RESOURCE_PROFILES = {
         RESOURCE_WILD_FOOD: 0.45,
         RESOURCE_TIMBER: 0.25,
         RESOURCE_COPPER: 0.8,
+        RESOURCE_IRON: 0.65,
+        RESOURCE_GOLD: 0.24,
         RESOURCE_STONE: 0.9,
         RESOURCE_SALT: 0.2,
     },
@@ -154,6 +183,8 @@ TERRAIN_RESOURCE_PROFILES = {
         RESOURCE_WILD_FOOD: 0.35,
         RESOURCE_TIMBER: 0.2,
         RESOURCE_COPPER: 1.0,
+        RESOURCE_IRON: 0.55,
+        RESOURCE_GOLD: 0.16,
         RESOURCE_STONE: 1.0,
         RESOURCE_SALT: 0.35,
     },
@@ -172,6 +203,7 @@ TERRAIN_RESOURCE_PROFILES = {
         RESOURCE_HORSES: 0.95,
         RESOURCE_WILD_FOOD: 0.22,
         RESOURCE_TIMBER: 0.05,
+        RESOURCE_IRON: 0.12,
         RESOURCE_STONE: 0.08,
         RESOURCE_SALT: 0.12,
         RESOURCE_TEXTILES: 0.12,
@@ -195,6 +227,8 @@ CLIMATE_GROUP_RESOURCE_MODIFIERS = {
         RESOURCE_WILD_FOOD: -0.14,
         RESOURCE_TIMBER: -0.16,
         RESOURCE_STONE: 0.08,
+        RESOURCE_IRON: 0.04,
+        RESOURCE_GOLD: 0.03,
         RESOURCE_SALT: 0.14,
         RESOURCE_TEXTILES: -0.05,
     },
@@ -212,6 +246,7 @@ CLIMATE_GROUP_RESOURCE_MODIFIERS = {
         RESOURCE_WILD_FOOD: 0.04,
         RESOURCE_TIMBER: 0.07,
         RESOURCE_STONE: 0.03,
+        RESOURCE_IRON: 0.03,
         RESOURCE_SALT: 0.04,
         RESOURCE_TEXTILES: -0.05,
     },
@@ -222,6 +257,7 @@ CLIMATE_GROUP_RESOURCE_MODIFIERS = {
         RESOURCE_WILD_FOOD: -0.18,
         RESOURCE_TIMBER: -0.18,
         RESOURCE_STONE: 0.04,
+        RESOURCE_IRON: 0.02,
         RESOURCE_SALT: 0.02,
         RESOURCE_TEXTILES: -0.25,
     },
@@ -563,8 +599,13 @@ def seed_region_resource_profile(region) -> None:
         )
 
     for resource_name in EXTRACTIVE_RESOURCES:
+        raw_value = climate_values.get(resource_name, 0.0)
+        if resource_name == RESOURCE_GOLD:
+            raw_value *= 0.55
+        elif resource_name == RESOURCE_IRON:
+            raw_value *= 0.8
         fixed_endowments[resource_name] = round(
-            _clamp(climate_values.get(resource_name, 0.0), 0.0, 2.0),
+            _clamp(raw_value, 0.0, 2.0),
             3,
         )
 

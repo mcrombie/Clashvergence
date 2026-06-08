@@ -234,6 +234,8 @@ class Region:
     resource_routed_output: dict[str, float] = field(default_factory=dict)
     resource_effective_output: dict[str, float] = field(default_factory=dict)
     resource_damage: dict[str, float] = field(default_factory=dict)
+    resource_depletion_by_resource: dict[str, float] = field(default_factory=dict)
+    resource_prices: dict[str, float] = field(default_factory=dict)
     resource_monetized_value: float = 0.0
     resource_isolation_factor: float = 0.0
     resource_route_depth: int | None = None
@@ -279,6 +281,8 @@ class Region:
     logging_camp_level: float = 0.0
     road_level: float = 0.0
     copper_mine_level: float = 0.0
+    iron_mine_level: float = 0.0
+    gold_mine_level: float = 0.0
     stone_quarry_level: float = 0.0
     agriculture_level: float = 0.0
     pastoral_level: float = 0.0
@@ -452,6 +456,14 @@ class Faction:
     derived_capacity: dict[str, float] = field(default_factory=dict)
     produced_goods: dict[str, float] = field(default_factory=dict)
     production_chain_shortages: dict[str, float] = field(default_factory=dict)
+    produced_good_stockpiles: dict[str, float] = field(default_factory=dict)
+    resource_stockpiles: dict[str, float] = field(default_factory=dict)
+    resource_stockpile_capacity: dict[str, float] = field(default_factory=dict)
+    resource_stockpile_draw: dict[str, float] = field(default_factory=dict)
+    resource_stockpile_spoilage: dict[str, float] = field(default_factory=dict)
+    resource_price_index: dict[str, float] = field(default_factory=dict)
+    merchant_capacity: float = 0.0
+    last_stockpile_turn: int | None = None
     food_stored: float = 0.0
     food_storage_capacity: float = 0.0
     food_produced: float = 0.0

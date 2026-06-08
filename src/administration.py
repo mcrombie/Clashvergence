@@ -42,6 +42,7 @@ from src.movement import (
     get_maritime_threshold,
     region_supports_maritime_access,
 )
+from src.resources import RESOURCE_GOLD
 from src.region_state import get_region_core_status
 from src.technology import (
     TECH_ROAD_ADMINISTRATION,
@@ -407,6 +408,8 @@ def refresh_administrative_state(world: WorldState) -> None:
             max(0.0, float(faction.derived_capacity.get("taxable_value", 0.0)))
             * ADMIN_TAXABLE_CAPACITY_FACTOR
         )
+        gold_access = max(0.0, float((faction.resource_effective_access or {}).get(RESOURCE_GOLD, 0.0)))
+        capacity *= 1.0 + min(0.08, gold_access * 0.018)
         capacity *= 1.0 + get_faction_urban_capacity_bonus(world, faction_name)
         capacity *= 1.0 + get_faction_elite_effects(faction).get("administrative_capacity_factor", 0.0)
         capacity *= (
@@ -434,6 +437,7 @@ def refresh_administrative_state(world: WorldState) -> None:
             ),
         )
         reach *= 1.0 + get_faction_elite_effects(faction).get("administrative_reach_factor", 0.0)
+        reach *= 1.0 + min(0.04, gold_access * 0.01)
         reach = max(0.35, min(1.18, reach))
         overextension = max(0.0, load - capacity)
 

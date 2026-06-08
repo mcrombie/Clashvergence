@@ -38,6 +38,7 @@ from src.region_state import (
 )
 from src.resource_economy import (
     apply_region_resource_damage,
+    faction_has_iron_extraction,
     get_region_taxable_value,
     update_faction_resource_economy,
 )
@@ -77,8 +78,10 @@ from src.resources import (
     CAPACITY_MOBILITY,
     CAPACITY_TAXABLE_VALUE,
     RESOURCE_COPPER,
+    RESOURCE_GOLD,
     RESOURCE_GRAIN,
     RESOURCE_HORSES,
+    RESOURCE_IRON,
     RESOURCE_LIVESTOCK,
     RESOURCE_SALT,
     RESOURCE_STONE,
@@ -345,6 +348,8 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
         for level in (
             region.logging_camp_level,
             region.copper_mine_level,
+            region.iron_mine_level,
+            region.gold_mine_level,
             region.stone_quarry_level,
             region.extractive_level,
         )
@@ -561,6 +566,46 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
                 + (0.8 if region.copper_mine_level <= 0 else region.copper_mine_level * 0.45)
             ),
             "resource_focus": RESOURCE_COPPER,
+        })
+
+    iron_endowment = region.resource_fixed_endowments.get(RESOURCE_IRON, 0.0)
+    if (
+        iron_endowment > 0
+        and region.iron_mine_level < 1.8
+        and faction_has_iron_extraction(world, faction_name)
+    ):
+        options.append({
+            "project_type": (
+                "build_iron_mine"
+                if region.iron_mine_level <= 0
+                else "expand_iron_mine"
+            ),
+            "score": (
+                3.6
+                + (iron_endowment * 3.8)
+                + (shortages.get(CAPACITY_METAL, 0.0) * 1.9)
+                + (region.infrastructure_level * 0.32)
+                + (0.65 if region.iron_mine_level <= 0 else region.iron_mine_level * 0.38)
+            ),
+            "resource_focus": RESOURCE_IRON,
+        })
+
+    gold_endowment = region.resource_fixed_endowments.get(RESOURCE_GOLD, 0.0)
+    if gold_endowment > 0 and region.gold_mine_level < 1.8:
+        options.append({
+            "project_type": (
+                "build_gold_mine"
+                if region.gold_mine_level <= 0
+                else "expand_gold_mine"
+            ),
+            "score": (
+                3.2
+                + (gold_endowment * 5.2)
+                + (shortages.get(CAPACITY_TAXABLE_VALUE, 0.0) * 0.7)
+                + (trade_foreign_flow * 0.28)
+                + (0.55 if region.gold_mine_level <= 0 else region.gold_mine_level * 0.34)
+            ),
+            "resource_focus": RESOURCE_GOLD,
         })
 
     stone_endowment = region.resource_fixed_endowments.get(RESOURCE_STONE, 0.0)
@@ -2029,6 +2074,20 @@ def develop(faction_name, target_region_name, world):
     elif project_type == "expand_copper_mine":
         region.copper_mine_level = round(min(1.8, region.copper_mine_level + 0.28), 2)
         project_amount = 0.28
+    elif project_type == "build_iron_mine":
+        region.iron_mine_level = round(min(1.8, region.iron_mine_level + 0.36), 2)
+        region.extractive_level = round(min(1.8, region.extractive_level + 0.06), 2)
+        project_amount = 0.36
+    elif project_type == "expand_iron_mine":
+        region.iron_mine_level = round(min(1.8, region.iron_mine_level + 0.24), 2)
+        project_amount = 0.24
+    elif project_type == "build_gold_mine":
+        region.gold_mine_level = round(min(1.8, region.gold_mine_level + 0.32), 2)
+        region.extractive_level = round(min(1.8, region.extractive_level + 0.05), 2)
+        project_amount = 0.32
+    elif project_type == "expand_gold_mine":
+        region.gold_mine_level = round(min(1.8, region.gold_mine_level + 0.22), 2)
+        project_amount = 0.22
     elif project_type == "build_stone_quarry":
         region.stone_quarry_level = round(min(1.8, region.stone_quarry_level + 0.4), 2)
         project_amount = 0.4
@@ -2043,6 +2102,10 @@ def develop(faction_name, target_region_name, world):
     elif project_type == "improve_extraction":
         if score_components["resource_focus"] == RESOURCE_COPPER:
             region.copper_mine_level = round(min(1.8, region.copper_mine_level + 0.28), 2)
+        elif score_components["resource_focus"] == RESOURCE_IRON:
+            region.iron_mine_level = round(min(1.8, region.iron_mine_level + 0.24), 2)
+        elif score_components["resource_focus"] == RESOURCE_GOLD:
+            region.gold_mine_level = round(min(1.8, region.gold_mine_level + 0.2), 2)
         elif score_components["resource_focus"] == RESOURCE_STONE:
             region.stone_quarry_level = round(min(1.8, region.stone_quarry_level + 0.28), 2)
         region.extractive_level = round(min(1.8, region.extractive_level + 0.18), 2)

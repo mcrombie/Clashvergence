@@ -6,6 +6,9 @@ from src.resources import (
     CAPACITY_FOOD_SECURITY,
     CAPACITY_METAL,
     CAPACITY_MOBILITY,
+    PRODUCED_GOOD_PROVISIONS,
+    PRODUCED_GOOD_SHIPS,
+    PRODUCED_GOOD_WEAPONS,
 )
 from src.technology import (
     TECH_COPPER_WORKING,
@@ -30,6 +33,10 @@ MILITARY_PROJECT_TYPES = {
     PROJECT_BUILD_NAVAL_BASE,
     PROJECT_MILITARY_REFORM,
 }
+
+WEAPONS_QUALITY_FACTOR = 0.035
+PROVISIONS_LOGISTICS_FACTOR = 0.18
+SHIPS_NAVAL_FACTOR = 0.22
 
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
@@ -138,7 +145,19 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
         food_shortage = float((faction.resource_shortages or {}).get(CAPACITY_FOOD_SECURITY, 0.0) or 0.0)
         mobility_shortage = float((faction.resource_shortages or {}).get(CAPACITY_MOBILITY, 0.0) or 0.0)
         metal_shortage = float((faction.resource_shortages or {}).get(CAPACITY_METAL, 0.0) or 0.0)
-        shortage_drag = min(0.42, (food_shortage * 0.18) + (mobility_shortage * 0.18) + (metal_shortage * 0.16))
+        weapons_output = float((faction.produced_goods or {}).get(PRODUCED_GOOD_WEAPONS, 0.0) or 0.0)
+        provisions_output = float((faction.produced_goods or {}).get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0)
+        ships_output = float((faction.produced_goods or {}).get(PRODUCED_GOOD_SHIPS, 0.0) or 0.0)
+        weapons_shortage = float((faction.production_chain_shortages or {}).get(PRODUCED_GOOD_WEAPONS, 0.0) or 0.0)
+        provisions_shortage = float((faction.production_chain_shortages or {}).get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0)
+        shortage_drag = min(
+            0.48,
+            (food_shortage * 0.18)
+            + (mobility_shortage * 0.18)
+            + (metal_shortage * 0.16)
+            + (weapons_shortage * 0.11)
+            + (provisions_shortage * 0.1),
+        )
         manpower_capacity = round(max(0.0, manpower_capacity * polity_factor * (1.0 + levy_tech * 0.28)), 3)
 
         can_recover = faction.last_military_recovery_turn != world.turn
@@ -175,11 +194,13 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
             + road_tech * max(1.0, len(regions)) * 0.75
             + float((faction.derived_capacity or {}).get(CAPACITY_MOBILITY, 0.0) or 0.0) * 0.12,
         )
+        logistics_capacity += provisions_output * PROVISIONS_LOGISTICS_FACTOR
         naval_power = max(
             0.0,
             naval_base_total * 2.2
             + coastal_regions * 0.45
             + trade_port_value * 0.16
+            + ships_output * SHIPS_NAVAL_FACTOR
             + road_tech * coastal_regions * 0.18
             + seafaring_tech * (
                 coastal_regions * 0.7
@@ -199,6 +220,7 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
             + levy_tech * 0.32
             + copper_tech * 0.2
             + military_tradition * 0.24
+            + min(0.16, weapons_output * WEAPONS_QUALITY_FACTOR)
             + min(0.16, logistics_capacity / max(8.0, len(regions) * 4.0))
             - shortage_drag
         )
@@ -245,6 +267,8 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
 def get_attack_military_profile(world: WorldState, attacker_name: str, target_region, staging_regions=None) -> dict[str, float | bool]:
     refresh_military_state(world, emit_events=False)
     attacker = world.factions[attacker_name]
+    weapons_output = float((attacker.produced_goods or {}).get(PRODUCED_GOOD_WEAPONS, 0.0) or 0.0)
+    provisions_output = float((attacker.produced_goods or {}).get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0)
     staging_regions = list(staging_regions or [])
     staging_logistics = max((get_region_logistics_value(region) for region in staging_regions), default=0.0)
     maritime = is_maritime_operation(world, attacker_name, target_region)
@@ -268,6 +292,7 @@ def get_attack_military_profile(world: WorldState, attacker_name: str, target_re
         manpower_commitment * 0.32
         + float(attacker.army_quality or 0.0) * 3.0
         + float(attacker.military_readiness or 0.0) * 2.2
+        + min(1.2, weapons_output * 0.12)
         + max(0.0, logistics_modifier - 0.78) * 4.0
         + naval_bonus
     )
@@ -284,6 +309,8 @@ def get_attack_military_profile(world: WorldState, attacker_name: str, target_re
         "logistics_modifier": round(logistics_modifier, 3),
         "manpower_commitment": round(manpower_commitment, 3),
         "supply_risk": round(_clamp(1.0 - logistics_modifier, 0.0, 0.6), 3),
+        "provisions_output": round(provisions_output, 3),
+        "weapons_output": round(weapons_output, 3),
         "naval_operation": maritime,
         "naval_attack_bonus": round(naval_bonus, 3),
     }
