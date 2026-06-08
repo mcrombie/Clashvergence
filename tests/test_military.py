@@ -14,7 +14,12 @@ from src.military import (
 )
 from src.models import Faction, Region, WorldState
 from src.resource_economy import update_faction_resource_economy
-from src.resources import RESOURCE_GRAIN, seed_region_resource_profile
+from src.resources import (
+    PRODUCED_GOOD_PROVISIONS,
+    PRODUCED_GOOD_WEAPONS,
+    RESOURCE_GRAIN,
+    seed_region_resource_profile,
+)
 from src.technology import TECH_COPPER_WORKING, TECH_ORGANIZED_LEVIES, TECH_ROAD_ADMINISTRATION
 
 
@@ -133,6 +138,50 @@ class MilitaryInstitutionTests(unittest.TestCase):
         self.assertGreater(attack_event.get("trade_blockade_added", 0.0), 0.0)
         self.assertTrue(attack_event.get("naval_operation", False))
 
+    def test_weapons_and_provisions_shape_campaign_profile(self):
+        undersupplied_world = self._border_world()
+        undersupplied = undersupplied_world.factions["FactionA"]
+        undersupplied.produced_goods[PRODUCED_GOOD_WEAPONS] = 0.0
+        undersupplied.produced_goods[PRODUCED_GOOD_PROVISIONS] = 0.0
+        undersupplied.production_chain_shortages[PRODUCED_GOOD_WEAPONS] = 1.0
+        undersupplied.production_chain_shortages[PRODUCED_GOOD_PROVISIONS] = 1.0
+        refresh_military_state(undersupplied_world)
+        weak_score = get_attack_target_score_components("B", "FactionA", undersupplied_world)
+
+        supplied_world = self._border_world()
+        supplied = supplied_world.factions["FactionA"]
+        supplied.produced_goods[PRODUCED_GOOD_WEAPONS] = 2.0
+        supplied.produced_goods[PRODUCED_GOOD_PROVISIONS] = 2.0
+        supplied.production_chain_shortages[PRODUCED_GOOD_WEAPONS] = 0.0
+        supplied.production_chain_shortages[PRODUCED_GOOD_PROVISIONS] = 0.0
+        refresh_military_state(supplied_world)
+        strong_score = get_attack_target_score_components("B", "FactionA", supplied_world)
+
+        self.assertGreater(strong_score["military_attack_bonus"], weak_score["military_attack_bonus"])
+        self.assertGreater(strong_score["attack_effectiveness_multiplier"], weak_score["attack_effectiveness_multiplier"])
+        self.assertGreater(strong_score["logistics_radius"], weak_score["logistics_radius"])
+        self.assertGreater(weak_score["campaign_cost_pressure"], strong_score["campaign_cost_pressure"])
+
+    def test_campaign_supply_draws_provisions_and_records_crisis(self):
+        world = self._border_world()
+        attacker = world.factions["FactionA"]
+        attacker.treasury = 20
+        attacker.produced_good_stockpiles[PRODUCED_GOOD_PROVISIONS] = 0.04
+        attacker.produced_goods[PRODUCED_GOOD_PROVISIONS] = 0.0
+        attacker.production_chain_shortages[PRODUCED_GOOD_PROVISIONS] = 1.0
+        refresh_military_state(world)
+
+        with patch("src.actions.random.random", return_value=0.0):
+            succeeded = attack("FactionA", "B", world)
+
+        attack_event = next(event for event in world.events if event.type == "attack")
+        self.assertTrue(succeeded)
+        self.assertEqual(attacker.produced_good_stockpiles[PRODUCED_GOOD_PROVISIONS], 0.0)
+        self.assertGreater(attacker.campaign_supply_draw, 0.0)
+        self.assertGreater(attacker.campaign_supply_crisis, 0.0)
+        self.assertGreater(attack_event.get("campaign_supply_unmet", 0.0), 0.0)
+        self.assertGreater(attack_event.get("campaign_supply_crisis", 0.0), 0.0)
+
     def test_development_can_build_durable_military_projects(self):
         world = self._border_world()
         region = world.regions["A"]
@@ -183,12 +232,20 @@ class MilitaryInstitutionTests(unittest.TestCase):
         self.assertIn("manpower_capacity", metrics)
         self.assertIn("army_quality", metrics)
         self.assertIn("logistics_capacity", metrics)
+        self.assertIn("logistics_radius", metrics)
+        self.assertIn("campaign_supply_draw", metrics)
+        self.assertIn("campaign_supply_crisis", metrics)
+        self.assertIn("weapons_quality_bonus", metrics)
+        self.assertIn("campaign_cost_pressure", metrics)
+        self.assertIn("economic_identity", metrics)
         self.assertIn("naval_power", metrics)
         self.assertGreater(metrics["standing_forces"], 0.0)
         self.assertEqual(snapshot["fortification_level"], 0.8)
         self.assertEqual(snapshot["garrison_strength"], 0.6)
         self.assertEqual(snapshot["logistics_node_level"], 0.9)
         self.assertEqual(snapshot["naval_base_level"], 0.7)
+        self.assertIn("resource_recovery_rate", snapshot)
+        self.assertIn("urbanization_pressure", snapshot)
 
 
 if __name__ == "__main__":

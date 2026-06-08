@@ -640,9 +640,15 @@ def get_region_resource_shock_factor(
     if resource_name in FOOD_RESOURCES:
         factor *= 1.0 - min(0.36, climate * 0.34)
         factor *= 1.0 - min(0.22, famine * 0.16)
+    if resource_name == RESOURCE_LIVESTOCK:
+        factor *= 1.0 - min(0.14, climate * 0.12)
     if resource_name == RESOURCE_GRAIN:
         factor *= _clamp(0.58 + float(region.soil_health or 0.0) * 0.42, 0.58, 1.0)
         factor *= 1.0 - min(0.32, soil * 0.32)
+    if resource_name == RESOURCE_WILD_FOOD and any(
+        tag in {"riverland", "marsh", "wetland"} for tag in region.terrain_tags
+    ):
+        factor *= 1.0 + min(0.14, climate * 0.1)
     if resource_name in {RESOURCE_WILD_FOOD, RESOURCE_TIMBER}:
         factor *= _clamp(0.56 + float(region.ecological_integrity or 0.0) * 0.44, 0.56, 1.0)
         factor *= 1.0 - min(0.34, ecology * 0.3)
@@ -655,7 +661,15 @@ def get_region_resource_shock_factor(
 def get_region_workforce_shock_factor(region: Region, world: WorldState | None) -> float:
     epidemic = get_region_active_shock_intensity(world, region, SHOCK_EPIDEMIC)
     famine = get_region_active_shock_intensity(world, region, SHOCK_FAMINE)
-    return round(_clamp(1.0 - min(0.32, epidemic * 0.28) - min(0.18, famine * 0.12), 0.45, 1.0), 3)
+    sustained_famine = min(0.12, float(region.food_stress_turns or 0) * famine * 0.018)
+    return round(
+        _clamp(
+            1.0 - min(0.32, epidemic * 0.28) - min(0.24, famine * 0.17) - sustained_famine,
+            0.38,
+            1.0,
+        ),
+        3,
+    )
 
 
 def get_region_food_spoilage_shock_modifier(region: Region, world: WorldState | None) -> float:

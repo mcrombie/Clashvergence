@@ -128,6 +128,7 @@ def _build_region_resource_payload(region):
         "resource_damage": _serialize_resource_map(region.resource_damage),
         "resource_depletion_by_resource": _serialize_resource_map(region.resource_depletion_by_resource),
         "resource_prices": _serialize_resource_map(region.resource_prices),
+        "resource_recovery_rate": _serialize_resource_map(region.resource_recovery_rate),
         "resource_monetized_value": round(float(region.resource_monetized_value or 0.0), 3),
         "resource_isolation_factor": round(float(region.resource_isolation_factor or 0.0), 3),
         "resource_route_depth": region.resource_route_depth,
@@ -196,6 +197,7 @@ def _build_region_resource_payload(region):
         "disease_burden": round(float(region.disease_burden or 0.0), 3),
         "climate_anomaly": round(float(region.climate_anomaly or 0.0), 3),
         "resource_depletion": round(float(region.resource_depletion or 0.0), 3),
+        "urbanization_pressure": round(float(region.urbanization_pressure or 0.0), 3),
         "food_stress_turns": int(region.food_stress_turns or 0),
         "trade_stress_turns": int(region.trade_stress_turns or 0),
         "active_shock_kinds": list(region.active_shock_kinds or []),
@@ -856,6 +858,7 @@ def build_simulation_snapshots(world):
             "resource_damage": dict(initial_region_history.get(region_name, {}).get("resource_damage", region.resource_damage)),
             "resource_depletion_by_resource": dict(initial_region_history.get(region_name, {}).get("resource_depletion_by_resource", region.resource_depletion_by_resource)),
             "resource_prices": dict(initial_region_history.get(region_name, {}).get("resource_prices", region.resource_prices)),
+            "resource_recovery_rate": dict(initial_region_history.get(region_name, {}).get("resource_recovery_rate", region.resource_recovery_rate)),
             "resource_monetized_value": initial_region_history.get(region_name, {}).get("resource_monetized_value", region.resource_monetized_value),
             "resource_isolation_factor": initial_region_history.get(region_name, {}).get("resource_isolation_factor", region.resource_isolation_factor),
             "resource_route_depth": initial_region_history.get(region_name, {}).get("resource_route_depth", region.resource_route_depth),
@@ -918,6 +921,7 @@ def build_simulation_snapshots(world):
             "disease_burden": initial_region_history.get(region_name, {}).get("disease_burden", region.disease_burden),
             "climate_anomaly": initial_region_history.get(region_name, {}).get("climate_anomaly", region.climate_anomaly),
             "resource_depletion": initial_region_history.get(region_name, {}).get("resource_depletion", region.resource_depletion),
+            "urbanization_pressure": initial_region_history.get(region_name, {}).get("urbanization_pressure", region.urbanization_pressure),
             "food_stress_turns": initial_region_history.get(region_name, {}).get("food_stress_turns", region.food_stress_turns),
             "trade_stress_turns": initial_region_history.get(region_name, {}).get("trade_stress_turns", region.trade_stress_turns),
             "active_shock_kinds": list(initial_region_history.get(region_name, {}).get("active_shock_kinds", region.active_shock_kinds)),
@@ -1001,6 +1005,7 @@ def build_simulation_snapshots(world):
                 "resource_damage": dict(region["resource_damage"]),
                 "resource_depletion_by_resource": dict(region.get("resource_depletion_by_resource", {})),
                 "resource_prices": dict(region.get("resource_prices", {})),
+                "resource_recovery_rate": dict(region.get("resource_recovery_rate", {})),
                 "resource_monetized_value": region["resource_monetized_value"],
                 "resource_isolation_factor": region["resource_isolation_factor"],
                 "resource_route_depth": region["resource_route_depth"],
@@ -1063,6 +1068,7 @@ def build_simulation_snapshots(world):
                 "disease_burden": region["disease_burden"],
                 "climate_anomaly": region["climate_anomaly"],
                 "resource_depletion": region["resource_depletion"],
+                "urbanization_pressure": region.get("urbanization_pressure", 0.0),
                 "food_stress_turns": region["food_stress_turns"],
                 "trade_stress_turns": region["trade_stress_turns"],
                 "active_shock_kinds": region["active_shock_kinds"],
@@ -1168,6 +1174,7 @@ def build_simulation_snapshots(world):
             region_state[region_name]["resource_damage"] = dict(history_region.get("resource_damage", region_state[region_name]["resource_damage"]))
             region_state[region_name]["resource_depletion_by_resource"] = dict(history_region.get("resource_depletion_by_resource", region_state[region_name].get("resource_depletion_by_resource", {})))
             region_state[region_name]["resource_prices"] = dict(history_region.get("resource_prices", region_state[region_name].get("resource_prices", {})))
+            region_state[region_name]["resource_recovery_rate"] = dict(history_region.get("resource_recovery_rate", region_state[region_name].get("resource_recovery_rate", {})))
             region_state[region_name]["resource_monetized_value"] = history_region.get("resource_monetized_value", region_state[region_name]["resource_monetized_value"])
             region_state[region_name]["resource_isolation_factor"] = history_region.get("resource_isolation_factor", region_state[region_name]["resource_isolation_factor"])
             region_state[region_name]["resource_route_depth"] = history_region.get("resource_route_depth", region_state[region_name]["resource_route_depth"])
@@ -1230,6 +1237,7 @@ def build_simulation_snapshots(world):
             region_state[region_name]["disease_burden"] = history_region.get("disease_burden", region_state[region_name]["disease_burden"])
             region_state[region_name]["climate_anomaly"] = history_region.get("climate_anomaly", region_state[region_name]["climate_anomaly"])
             region_state[region_name]["resource_depletion"] = history_region.get("resource_depletion", region_state[region_name]["resource_depletion"])
+            region_state[region_name]["urbanization_pressure"] = history_region.get("urbanization_pressure", region_state[region_name].get("urbanization_pressure", 0.0))
             region_state[region_name]["food_stress_turns"] = history_region.get("food_stress_turns", region_state[region_name]["food_stress_turns"])
             region_state[region_name]["trade_stress_turns"] = history_region.get("trade_stress_turns", region_state[region_name]["trade_stress_turns"])
             region_state[region_name]["active_shock_kinds"] = list(history_region.get("active_shock_kinds", region_state[region_name]["active_shock_kinds"]))
@@ -1327,6 +1335,7 @@ def build_simulation_snapshots(world):
                     "resource_damage": dict(region["resource_damage"]),
                     "resource_depletion_by_resource": dict(region.get("resource_depletion_by_resource", {})),
                     "resource_prices": dict(region.get("resource_prices", {})),
+                    "resource_recovery_rate": dict(region.get("resource_recovery_rate", {})),
                     "resource_monetized_value": region["resource_monetized_value"],
                     "resource_isolation_factor": region["resource_isolation_factor"],
                     "resource_route_depth": region["resource_route_depth"],
@@ -1389,6 +1398,7 @@ def build_simulation_snapshots(world):
                     "disease_burden": region["disease_burden"],
                     "climate_anomaly": region["climate_anomaly"],
                     "resource_depletion": region["resource_depletion"],
+                    "urbanization_pressure": region.get("urbanization_pressure", 0.0),
                     "food_stress_turns": region["food_stress_turns"],
                     "trade_stress_turns": region["trade_stress_turns"],
                     "active_shock_kinds": region["active_shock_kinds"],
@@ -1578,6 +1588,12 @@ def build_simulation_view_model(world):
             "capital_connectivity_penalty": round(float(world.factions[faction_name].capital_connectivity_penalty or 0.0), 3),
             "urban_network_value": round(float(world.factions[faction_name].urban_network_value or 0.0), 3),
             "urban_specialization_counts": dict(world.factions[faction_name].urban_specialization_counts or {}),
+            "economic_identity": world.factions[faction_name].economic_identity,
+            "economic_identity_secondary": world.factions[faction_name].economic_identity_secondary,
+            "economic_identity_scores": {
+                key: round(float(value), 3)
+                for key, value in (world.factions[faction_name].economic_identity_scores or {}).items()
+            },
             "resource_access": _serialize_resource_map(world.factions[faction_name].resource_access),
             "resource_gross_output": _serialize_resource_map(world.factions[faction_name].resource_gross_output),
             "resource_effective_access": _serialize_resource_map(world.factions[faction_name].resource_effective_access),
@@ -1625,11 +1641,17 @@ def build_simulation_view_model(world):
             "army_quality": round(float(world.factions[faction_name].army_quality or 0.0), 3),
             "military_readiness": round(float(world.factions[faction_name].military_readiness or 0.0), 3),
             "logistics_capacity": round(float(world.factions[faction_name].logistics_capacity or 0.0), 3),
+            "logistics_radius": round(float(world.factions[faction_name].logistics_radius or 0.0), 3),
             "naval_power": round(float(world.factions[faction_name].naval_power or 0.0), 3),
             "force_projection": round(float(world.factions[faction_name].force_projection or 0.0), 3),
             "military_tradition": round(float(world.factions[faction_name].military_tradition or 0.0), 3),
             "military_reform_pressure": round(float(world.factions[faction_name].military_reform_pressure or 0.0), 3),
             "military_upkeep": round(float(world.factions[faction_name].military_upkeep or 0.0), 3),
+            "campaign_supply_draw": round(float(world.factions[faction_name].campaign_supply_draw or 0.0), 3),
+            "campaign_supply_crisis": round(float(world.factions[faction_name].campaign_supply_crisis or 0.0), 3),
+            "campaign_supply_crisis_turns": int(world.factions[faction_name].campaign_supply_crisis_turns or 0),
+            "weapons_quality_bonus": round(float(world.factions[faction_name].weapons_quality_bonus or 0.0), 3),
+            "campaign_cost_pressure": round(float(world.factions[faction_name].campaign_cost_pressure or 0.0), 3),
             "tribute_income": round(world.factions[faction_name].tribute_income, 3),
             "tribute_paid": round(world.factions[faction_name].tribute_paid, 3),
             "migration_inflow": int(world.factions[faction_name].migration_inflow or 0),
@@ -5128,9 +5150,10 @@ def render_simulation_html(world):
               </div>
             </div>
             <div class="detail-row">
-              <div class="detail-label">Depletion / Prices</div>
+              <div class="detail-label">Depletion / Recovery / Prices</div>
               <div class="detail-value">
                 ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_depletion_by_resource || staticRegion.resource_depletion_by_resource || {{}}))}}
+                / ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_recovery_rate || staticRegion.resource_recovery_rate || {{}}))}}
                 / ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_prices || staticRegion.resource_prices || {{}}))}}
               </div>
             </div>
@@ -5474,7 +5497,8 @@ def render_simulation_html(world):
             </div>
             <div class="metric-line"><strong>Route Anchor:</strong> ${{routeText}}</div>
             <div class="metric-line"><strong>Route Damage:</strong> ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_damage || staticRegion.resource_damage || {{}}))}}</div>
-            <div class="metric-line"><strong>Depletion / Prices:</strong> ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_depletion_by_resource || staticRegion.resource_depletion_by_resource || {{}}))}} / ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_prices || staticRegion.resource_prices || {{}}))}}</div>
+            <div class="metric-line"><strong>Depletion / Recovery / Prices:</strong> ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_depletion_by_resource || staticRegion.resource_depletion_by_resource || {{}}))}} / ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_recovery_rate || staticRegion.resource_recovery_rate || {{}}))}} / ${{escapeHtml(formatResourceDamage(regionSnapshot.resource_prices || staticRegion.resource_prices || {{}}))}}</div>
+            <div class="metric-line"><strong>Urbanization Pressure:</strong> ${{Number(regionSnapshot.urbanization_pressure ?? staticRegion.urbanization_pressure ?? 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Regime Agitation:</strong> ${{agitationText}}</div>
           </article>
           <article class="inspector-card">
@@ -5674,7 +5698,8 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Food Stores:</strong> ${{Number(metrics.food_stored || 0).toFixed(1)}} / ${{Number(metrics.food_storage_capacity || 0).toFixed(1)}} | +${{Number(metrics.food_produced || 0).toFixed(1)}} / -${{Number(metrics.food_consumption || 0).toFixed(1)}}</div>
             <div class="metric-line"><strong>Food Pressure:</strong> Balance ${{Number(metrics.food_balance || 0).toFixed(1)}} / Deficit ${{Number(metrics.food_deficit || 0).toFixed(1)}} / Waste ${{Number((metrics.food_spoilage || 0) + (metrics.food_overflow || 0)).toFixed(1)}}</div>
             <div class="metric-line"><strong>Shock Ecology:</strong> Exposure ${{Number(metrics.shock_exposure || faction.shock_exposure || 0).toFixed(2)}} / Resilience ${{Number(metrics.shock_resilience || faction.shock_resilience || 0).toFixed(2)}} | Famine ${{Number(metrics.famine_pressure || faction.famine_pressure || 0).toFixed(2)}} / Epidemic ${{Number(metrics.epidemic_pressure || faction.epidemic_pressure || 0).toFixed(2)}} / Trade Collapse ${{Number(metrics.trade_collapse_exposure || faction.trade_collapse_exposure || 0).toFixed(2)}}</div>
-            <div class="metric-line"><strong>Military Institution:</strong> Forces ${{Number(metrics.standing_forces || faction.standing_forces || 0).toFixed(1)}} / Manpower ${{Number(metrics.manpower_pool || faction.manpower_pool || 0).toFixed(1)}} of ${{Number(metrics.manpower_capacity || faction.manpower_capacity || 0).toFixed(1)}} | quality ${{Number(metrics.army_quality || faction.army_quality || 0).toFixed(2)}} / readiness ${{Number(metrics.military_readiness || faction.military_readiness || 0).toFixed(2)}} | logistics ${{Number(metrics.logistics_capacity || faction.logistics_capacity || 0).toFixed(1)}} / navy ${{Number(metrics.naval_power || faction.naval_power || 0).toFixed(1)}}</div>
+            <div class="metric-line"><strong>Military Institution:</strong> Forces ${{Number(metrics.standing_forces || faction.standing_forces || 0).toFixed(1)}} / Manpower ${{Number(metrics.manpower_pool || faction.manpower_pool || 0).toFixed(1)}} of ${{Number(metrics.manpower_capacity || faction.manpower_capacity || 0).toFixed(1)}} | quality ${{Number(metrics.army_quality || faction.army_quality || 0).toFixed(2)}} / readiness ${{Number(metrics.military_readiness || faction.military_readiness || 0).toFixed(2)}} | logistics ${{Number(metrics.logistics_capacity || faction.logistics_capacity || 0).toFixed(1)}} range ${{Number(metrics.logistics_radius || faction.logistics_radius || 0).toFixed(1)}} / navy ${{Number(metrics.naval_power || faction.naval_power || 0).toFixed(1)}}</div>
+            <div class="metric-line"><strong>Campaign Supply:</strong> Draw ${{Number(metrics.campaign_supply_draw || faction.campaign_supply_draw || 0).toFixed(2)}} / crisis ${{Number(metrics.campaign_supply_crisis || faction.campaign_supply_crisis || 0).toFixed(2)}} | weapon quality ${{Number(metrics.weapons_quality_bonus || faction.weapons_quality_bonus || 0).toFixed(2)}} | cost pressure ${{Number(metrics.campaign_cost_pressure || faction.campaign_cost_pressure || 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Migration:</strong> In ${{Number(metrics.migration_inflow || 0).toFixed(0)}} / Out ${{Number(metrics.migration_outflow || 0).toFixed(0)}} | Refugees ${{Number(metrics.refugee_inflow || 0).toFixed(0)}} in / ${{Number(metrics.refugee_outflow || 0).toFixed(0)}} out | Frontier settlers ${{Number(metrics.frontier_settlers || 0).toFixed(0)}}</div>
             <div class="metric-line"><strong>Administration:</strong> Capacity ${{Number(metrics.administrative_capacity || 0).toFixed(2)}} / Load ${{Number(metrics.administrative_load || 0).toFixed(2)}} | Efficiency ${{Number((metrics.administrative_efficiency || 0) * 100).toFixed(0)}}% | Reach ${{Number((metrics.administrative_reach || 0) * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Overextension:</strong> ${{Number(metrics.administrative_overextension || 0).toFixed(2)}} | Penalty ${{Number(metrics.administrative_overextension_penalty || 0).toFixed(2)}}</div>
@@ -5698,6 +5723,7 @@ def render_simulation_html(world):
           </article>
           <article class="inspector-card">
             <h4 class="inspector-title">Resource Position</h4>
+            <div class="metric-line"><strong>Economic Identity:</strong> ${{escapeHtml(metrics.economic_identity || faction.economic_identity || "adaptive")}}${{(metrics.economic_identity_secondary || faction.economic_identity_secondary) ? ` / ${{escapeHtml(metrics.economic_identity_secondary || faction.economic_identity_secondary)}}` : ""}}</div>
             <div class="metric-line"><strong>Access:</strong> Grain ${{Number(metrics.grain_access || 0).toFixed(2)}} / Livestock ${{Number(metrics.livestock_access || 0).toFixed(2)}} / Timber ${{Number(metrics.timber_access || 0).toFixed(2)}} / Horses ${{Number(metrics.horse_access || 0).toFixed(2)}} / Copper ${{Number(metrics.copper_access || 0).toFixed(2)}} / Iron ${{Number(metrics.iron_access || 0).toFixed(2)}} / Gold ${{Number(metrics.gold_access || 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Commerce:</strong> Salt ${{Number(metrics.salt_access || 0).toFixed(2)}} / Textiles ${{Number(metrics.textiles_access || 0).toFixed(2)}} / Merchant capacity ${{Number(metrics.merchant_capacity || 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Gross Output:</strong> Grain ${{Number(metrics.gross_grain_output || 0).toFixed(2)}} / Horses ${{Number(metrics.gross_horse_output || 0).toFixed(2)}} / Copper ${{Number(metrics.gross_copper_output || 0).toFixed(2)}} / Iron ${{Number(metrics.gross_iron_output || 0).toFixed(2)}} / Gold ${{Number(metrics.gross_gold_output || 0).toFixed(2)}} / Stone ${{Number(metrics.gross_stone_output || 0).toFixed(2)}}</div>

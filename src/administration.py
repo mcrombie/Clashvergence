@@ -305,11 +305,20 @@ def get_region_administrative_burden(region: Region, world: WorldState) -> float
         "core": ADMIN_BURDEN_CORE,
         "frontier": ADMIN_BURDEN_FRONTIER,
     }.get(status, ADMIN_BURDEN_FRONTIER)
-    burden += get_region_administrative_distance(region, world)
+    administrative_distance = get_region_administrative_distance(region, world)
+    burden += administrative_distance
     burden += min(
         ADMIN_POPULATION_BURDEN_MAX,
         max(0.0, region.population) * ADMIN_POPULATION_BURDEN_FACTOR,
     )
+    if region.owner in world.factions:
+        faction = world.factions[region.owner]
+        gold_access = max(0.0, float((faction.resource_effective_access or {}).get(RESOURCE_GOLD, 0.0)))
+        if gold_access >= 0.18 and administrative_distance > 0:
+            burden -= min(
+                0.18,
+                gold_access * 0.022 * (1.0 + min(0.6, administrative_distance * 0.35)),
+            )
     burden += region.unrest * ADMIN_UNREST_BURDEN_FACTOR
     if region.unrest_event_level == "disturbance":
         burden += 0.12

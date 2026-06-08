@@ -261,6 +261,12 @@ def _serialize_observer_faction(
         "culture_name": faction.culture_name,
         "is_rebel": faction.is_rebel,
         "origin_faction": faction.origin_faction,
+        "economic_identity": _metric(metrics, "economic_identity", faction.economic_identity),
+        "economic_identity_secondary": _metric(
+            metrics,
+            "economic_identity_secondary",
+            faction.economic_identity_secondary,
+        ),
         "net_income": _round_float(_metric(metrics, "net_income", 0.0), 2),
         "effective_income": _round_float(_metric(metrics, "effective_income", 0.0), 2),
         "maintenance": _round_float(_metric(metrics, "maintenance", 0.0), 2),
@@ -292,6 +298,23 @@ def _serialize_observer_faction(
         ),
         "naval_power": _round_float(_metric(metrics, "naval_power", faction.naval_power), 3),
         "army_quality": _round_float(_metric(metrics, "army_quality", faction.army_quality), 3),
+        "logistics_radius": _round_float(_metric(metrics, "logistics_radius", faction.logistics_radius), 3),
+        "campaign_supply_draw": _round_float(
+            _metric(metrics, "campaign_supply_draw", faction.campaign_supply_draw),
+            3,
+        ),
+        "campaign_supply_crisis": _round_float(
+            _metric(metrics, "campaign_supply_crisis", faction.campaign_supply_crisis),
+            3,
+        ),
+        "weapons_quality_bonus": _round_float(
+            _metric(metrics, "weapons_quality_bonus", faction.weapons_quality_bonus),
+            3,
+        ),
+        "campaign_cost_pressure": _round_float(
+            _metric(metrics, "campaign_cost_pressure", faction.campaign_cost_pressure),
+            3,
+        ),
         "standing_forces": _round_float(
             _metric(metrics, "standing_forces", faction.standing_forces),
             1,
@@ -418,10 +441,17 @@ def _serialize_player_faction(world, faction_name: str) -> dict[str, Any]:
         "doctrine_label": faction.doctrine_label,
         "government_type": faction.government_type,
         "polity_tier": faction.polity_tier,
+        "economic_identity": faction.economic_identity,
+        "economic_identity_secondary": faction.economic_identity_secondary,
         "food_stored": round(float(faction.food_stored or 0.0), 3),
         "food_balance": round(float(faction.food_balance or 0.0), 3),
         "manpower_pool": round(float(faction.manpower_pool or 0.0), 3),
         "army_quality": round(float(faction.army_quality or 0.0), 3),
+        "logistics_radius": round(float(faction.logistics_radius or 0.0), 3),
+        "campaign_supply_draw": round(float(faction.campaign_supply_draw or 0.0), 3),
+        "campaign_supply_crisis": round(float(faction.campaign_supply_crisis or 0.0), 3),
+        "weapons_quality_bonus": round(float(faction.weapons_quality_bonus or 0.0), 3),
+        "campaign_cost_pressure": round(float(faction.campaign_cost_pressure or 0.0), 3),
         "known_regions": list(world.factions[faction_name].known_regions or []),
         "visible_regions": list(world.factions[faction_name].visible_regions or []),
     }
@@ -467,6 +497,8 @@ def _serialize_player_region(
                 "settlement_level": region.settlement_level,
                 "food_stored": round(float(region.food_stored or 0.0), 3),
                 "food_balance": round(float(region.food_balance or 0.0), 3),
+                "resource_depletion": round(float(region.resource_depletion or 0.0), 3),
+                "urbanization_pressure": round(float(region.urbanization_pressure or 0.0), 3),
                 "resource_short_summary": _known_resource_summary(region),
             }
         )

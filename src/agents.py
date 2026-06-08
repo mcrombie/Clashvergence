@@ -157,6 +157,39 @@ def _get_diplomacy_attack_modifier(attack_components):
     return 0.0
 
 
+def _get_identity_action_bias(faction, action_name: str) -> float:
+    identity = str(getattr(faction, "economic_identity", "") or "").lower()
+    if identity == "agricultural":
+        if action_name == "develop":
+            return 0.07 + min(0.08, faction.resource_shortages.get(CAPACITY_FOOD_SECURITY, 0.0) * 0.03)
+        if action_name == "attack":
+            return -0.04
+    elif identity == "pastoral":
+        if action_name in {"expand", "attack"}:
+            return 0.05
+    elif identity == "commercial":
+        if action_name == "develop":
+            return 0.08
+        if action_name == "attack":
+            return -0.03
+    elif identity == "industrial":
+        if action_name == "attack":
+            return 0.08
+        if action_name == "develop":
+            return 0.04
+    elif identity == "maritime":
+        if action_name in {"expand", "attack"}:
+            return 0.05
+        if action_name == "develop":
+            return 0.03
+    elif identity == "imperial":
+        if action_name == "develop":
+            return 0.05
+        if action_name == "expand":
+            return 0.03
+    return 0.0
+
+
 def _score_expandable_regions(faction_name, expandable_regions, world):
     if not expandable_regions:
         return (0.0, None, None)
@@ -351,6 +384,7 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
             attack_utility -= REBEL_PROTO_ATTACK_UTILITY_PENALTY
         attack_utility += _get_diplomacy_attack_modifier(best_attack_components)
         attack_utility += campaign_modifier * 0.7
+        attack_utility += _get_identity_action_bias(faction, "attack")
         attack_utility += biases["attack"]
         action_utilities["attack"] = attack_utility
 
@@ -366,6 +400,7 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
         if faction.treasury >= EXPANSION_COST * 2:
             expand_utility += 0.05
         expand_utility += campaign_modifier * 0.12
+        expand_utility += _get_identity_action_bias(faction, "expand")
         expand_utility += biases["expand"]
         action_utilities["expand"] = expand_utility
 
@@ -383,6 +418,7 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
             develop_utility -= frontier_pressure * 0.4
         if is_proto_state:
             develop_utility += REBEL_PROTO_INVEST_UTILITY_BONUS
+        develop_utility += _get_identity_action_bias(faction, "develop")
         develop_utility += biases["develop"]
         action_utilities["develop"] = develop_utility
 

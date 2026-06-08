@@ -6,6 +6,7 @@ from src.resources import (
     CAPACITY_FOOD_SECURITY,
     CAPACITY_METAL,
     CAPACITY_MOBILITY,
+    PRODUCED_GOOD_IRON_GOODS,
     PRODUCED_GOOD_PROVISIONS,
     PRODUCED_GOOD_SHIPS,
     PRODUCED_GOOD_WEAPONS,
@@ -37,6 +38,12 @@ MILITARY_PROJECT_TYPES = {
 WEAPONS_QUALITY_FACTOR = 0.035
 PROVISIONS_LOGISTICS_FACTOR = 0.18
 SHIPS_NAVAL_FACTOR = 0.22
+ATTACK_MATERIAL_QUALITY_MAX = 0.12
+WEAPONS_CAMPAIGN_COST_FACTOR = 0.32
+PROVISIONS_CAMPAIGN_DRAW_BASE = 0.08
+PROVISIONS_CAMPAIGN_DRAW_DEPTH_FACTOR = 0.035
+PROVISIONS_CAMPAIGN_STOCKPILE_DRAW_RATE = 0.72
+SUPPLY_CRISIS_DECAY = 0.82
 
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
@@ -62,6 +69,38 @@ def _frontier_edges(world: WorldState, faction_name: str, region) -> int:
 
 def _population_manpower(population: int) -> float:
     return max(0.0, float(population or 0) / 28.0)
+
+
+def _output_ratio(output: float, shortage: float) -> float:
+    return _clamp(output / max(0.1, output + shortage), 0.0, 1.0)
+
+
+def get_faction_material_quality_bonus(faction) -> float:
+    produced = faction.produced_goods or {}
+    shortages = faction.production_chain_shortages or {}
+    weapons_output = float(produced.get(PRODUCED_GOOD_WEAPONS, 0.0) or 0.0)
+    iron_goods_output = float(produced.get(PRODUCED_GOOD_IRON_GOODS, 0.0) or 0.0)
+    weapons_ratio = _output_ratio(
+        weapons_output,
+        float(shortages.get(PRODUCED_GOOD_WEAPONS, 0.0) or 0.0),
+    )
+    iron_goods_ratio = _output_ratio(
+        iron_goods_output,
+        float(shortages.get(PRODUCED_GOOD_IRON_GOODS, 0.0) or 0.0),
+    )
+    return round(
+        min(
+            ATTACK_MATERIAL_QUALITY_MAX,
+            weapons_ratio * 0.085 + iron_goods_ratio * 0.035,
+        ),
+        3,
+    )
+
+
+def get_faction_provisions_ratio(faction) -> float:
+    provisions_output = float((faction.produced_goods or {}).get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0)
+    provisions_shortage = float((faction.production_chain_shortages or {}).get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0)
+    return _output_ratio(provisions_output, provisions_shortage)
 
 
 def get_region_military_value(region, world: WorldState | None = None) -> float:
@@ -150,6 +189,10 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
         ships_output = float((faction.produced_goods or {}).get(PRODUCED_GOOD_SHIPS, 0.0) or 0.0)
         weapons_shortage = float((faction.production_chain_shortages or {}).get(PRODUCED_GOOD_WEAPONS, 0.0) or 0.0)
         provisions_shortage = float((faction.production_chain_shortages or {}).get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0)
+        weapons_ratio = _output_ratio(weapons_output, weapons_shortage)
+        provisions_ratio = get_faction_provisions_ratio(faction)
+        material_quality_bonus = get_faction_material_quality_bonus(faction)
+        supply_crisis = float(faction.campaign_supply_crisis or 0.0) * SUPPLY_CRISIS_DECAY
         shortage_drag = min(
             0.48,
             (food_shortage * 0.18)
@@ -158,6 +201,7 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
             + (weapons_shortage * 0.11)
             + (provisions_shortage * 0.1),
         )
+        shortage_drag += min(0.12, supply_crisis * 0.1)
         manpower_capacity = round(max(0.0, manpower_capacity * polity_factor * (1.0 + levy_tech * 0.28)), 3)
 
         can_recover = faction.last_military_recovery_turn != world.turn
@@ -195,6 +239,7 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
             + float((faction.derived_capacity or {}).get(CAPACITY_MOBILITY, 0.0) or 0.0) * 0.12,
         )
         logistics_capacity += provisions_output * PROVISIONS_LOGISTICS_FACTOR
+        average_road = sum(float(region.road_level or 0.0) for region in regions) / max(1, len(regions))
         naval_power = max(
             0.0,
             naval_base_total * 2.2
@@ -208,6 +253,13 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
                 + trade_port_value * 0.08
             ),
         )
+        logistics_radius = (
+            1.15
+            + provisions_ratio * 2.4
+            + min(1.15, ships_output * 0.22 + naval_power * 0.06)
+            + min(1.0, average_road * 0.55 + road_tech * 0.65)
+            - min(0.9, supply_crisis * 0.75)
+        )
         military_tradition = _clamp(
             float(faction.military_tradition or 0.0)
             + (0.004 if any(war.active and faction_name in {war.aggressor, war.defender} for war in world.wars.values()) else 0.0)
@@ -220,6 +272,7 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
             + levy_tech * 0.32
             + copper_tech * 0.2
             + military_tradition * 0.24
+            + material_quality_bonus
             + min(0.16, weapons_output * WEAPONS_QUALITY_FACTOR)
             + min(0.16, logistics_capacity / max(8.0, len(regions) * 4.0))
             - shortage_drag
@@ -243,7 +296,20 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
         faction.army_quality = round(_clamp(quality, 0.28, 1.45), 3)
         faction.military_readiness = round(_clamp(readiness, 0.0, 1.25), 3)
         faction.force_projection = round(max(0.0, force_projection), 3)
-        faction.military_upkeep = round(max(0.0, standing_forces * 0.028 + fort_total * 0.06 + naval_power * 0.035), 3)
+        campaign_cost_pressure = min(
+            1.0,
+            (1.0 - weapons_ratio) * WEAPONS_CAMPAIGN_COST_FACTOR
+            + supply_crisis * 0.42,
+        )
+        faction.logistics_radius = round(max(0.4, logistics_radius), 3)
+        faction.campaign_supply_crisis = round(_clamp(supply_crisis, 0.0, 1.0), 3)
+        faction.weapons_quality_bonus = material_quality_bonus
+        faction.campaign_cost_pressure = round(campaign_cost_pressure, 3)
+        faction.military_upkeep = round(
+            max(0.0, standing_forces * 0.028 + fort_total * 0.06 + naval_power * 0.035)
+            * (1.0 + campaign_cost_pressure * 0.12),
+            3,
+        )
         faction.military_reform_pressure = round(max(0.0, faction.military_reform_pressure * 0.88 + shortage_drag * 0.16), 3)
         if can_recover or initialized_pool:
             faction.last_military_recovery_turn = world.turn
@@ -264,14 +330,24 @@ def refresh_military_state(world: WorldState, *, emit_events: bool = False) -> N
             ))
 
 
-def get_attack_military_profile(world: WorldState, attacker_name: str, target_region, staging_regions=None) -> dict[str, float | bool]:
+def get_attack_military_profile(
+    world: WorldState,
+    attacker_name: str,
+    target_region,
+    staging_regions=None,
+    *,
+    campaign_depth: float = 1.0,
+) -> dict[str, float | bool]:
     refresh_military_state(world, emit_events=False)
     attacker = world.factions[attacker_name]
     weapons_output = float((attacker.produced_goods or {}).get(PRODUCED_GOOD_WEAPONS, 0.0) or 0.0)
     provisions_output = float((attacker.produced_goods or {}).get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0)
+    material_quality_bonus = get_faction_material_quality_bonus(attacker)
     staging_regions = list(staging_regions or [])
     staging_logistics = max((get_region_logistics_value(region) for region in staging_regions), default=0.0)
     maritime = is_maritime_operation(world, attacker_name, target_region)
+    range_gap = max(0.0, campaign_depth - float(attacker.logistics_radius or 0.0))
+    range_penalty = min(0.32, range_gap * 0.12)
     logistics_modifier = _clamp(
         0.78
         + min(0.38, float(attacker.logistics_capacity or 0.0) / max(6.0, len(_owned_regions(world, attacker_name)) * 3.2))
@@ -288,8 +364,10 @@ def get_attack_military_profile(world: WorldState, attacker_name: str, target_re
     if maritime:
         naval_bonus = min(5.0, float(attacker.naval_power or 0.0) * 0.55)
         logistics_modifier += min(0.12, float(attacker.naval_power or 0.0) * 0.02)
+    logistics_modifier = _clamp(logistics_modifier - range_penalty, 0.45, 1.28)
     attack_bonus = (
         manpower_commitment * 0.32
+        + manpower_commitment * material_quality_bonus
         + float(attacker.army_quality or 0.0) * 3.0
         + float(attacker.military_readiness or 0.0) * 2.2
         + min(1.2, weapons_output * 0.12)
@@ -307,12 +385,67 @@ def get_attack_military_profile(world: WorldState, attacker_name: str, target_re
         "attacker_logistics": round(float(attacker.logistics_capacity or 0.0), 3),
         "attacker_naval_power": round(float(attacker.naval_power or 0.0), 3),
         "logistics_modifier": round(logistics_modifier, 3),
+        "logistics_radius": round(float(attacker.logistics_radius or 0.0), 3),
+        "campaign_depth": round(float(campaign_depth or 0.0), 3),
+        "campaign_range_penalty": round(range_penalty, 3),
+        "attack_effectiveness_multiplier": round(material_quality_bonus, 3),
+        "campaign_cost_pressure": round(float(attacker.campaign_cost_pressure or 0.0), 3),
         "manpower_commitment": round(manpower_commitment, 3),
-        "supply_risk": round(_clamp(1.0 - logistics_modifier, 0.0, 0.6), 3),
+        "supply_risk": round(_clamp(1.0 - logistics_modifier + range_penalty, 0.0, 0.75), 3),
         "provisions_output": round(provisions_output, 3),
         "weapons_output": round(weapons_output, 3),
         "naval_operation": maritime,
         "naval_attack_bonus": round(naval_bonus, 3),
+    }
+
+
+def apply_campaign_supply_draw(
+    world: WorldState,
+    faction_name: str,
+    *,
+    campaign_depth: float,
+    manpower_commitment: float,
+    maritime: bool = False,
+    siege: bool = False,
+) -> dict[str, float | bool]:
+    faction = world.factions[faction_name]
+    stockpiles = dict(faction.produced_good_stockpiles or {})
+    current_stockpile = max(0.0, float(stockpiles.get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0))
+    produced_goods = dict(faction.produced_goods or {})
+    current_output = max(0.0, float(produced_goods.get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0))
+    draw_needed = (
+        PROVISIONS_CAMPAIGN_DRAW_BASE
+        + max(0.0, campaign_depth) * PROVISIONS_CAMPAIGN_DRAW_DEPTH_FACTOR
+        + max(0.0, manpower_commitment) * 0.006
+        + (0.06 if maritime else 0.0)
+        + (0.08 if siege else 0.0)
+    )
+    stockpile_draw = min(current_stockpile, draw_needed * PROVISIONS_CAMPAIGN_STOCKPILE_DRAW_RATE)
+    remaining = max(0.0, draw_needed - stockpile_draw)
+    output_draw = min(current_output, remaining)
+    unmet = max(0.0, remaining - output_draw)
+
+    stockpiles[PRODUCED_GOOD_PROVISIONS] = round(max(0.0, current_stockpile - stockpile_draw), 3)
+    produced_goods[PRODUCED_GOOD_PROVISIONS] = round(max(0.0, current_output - output_draw), 3)
+    faction.produced_good_stockpiles = stockpiles
+    faction.produced_goods = produced_goods
+    faction.campaign_supply_draw = round(draw_needed, 3)
+    if unmet > 0.0:
+        faction.campaign_supply_crisis = round(
+            _clamp(float(faction.campaign_supply_crisis or 0.0) + min(0.45, unmet / max(0.1, draw_needed)), 0.0, 1.0),
+            3,
+        )
+        faction.campaign_supply_crisis_turns = int(faction.campaign_supply_crisis_turns or 0) + 1
+    else:
+        faction.campaign_supply_crisis = round(max(0.0, float(faction.campaign_supply_crisis or 0.0) * 0.72), 3)
+        faction.campaign_supply_crisis_turns = 0
+    return {
+        "campaign_supply_draw": round(draw_needed, 3),
+        "campaign_supply_stockpile_draw": round(stockpile_draw, 3),
+        "campaign_supply_output_draw": round(output_draw, 3),
+        "campaign_supply_unmet": round(unmet, 3),
+        "campaign_supply_crisis": round(float(faction.campaign_supply_crisis or 0.0), 3),
+        "campaign_supply_crisis_active": unmet > 0.0,
     }
 
 
@@ -321,6 +454,12 @@ def get_defense_military_profile(world: WorldState, defender_name: str, region) 
     defender = world.factions[defender_name]
     fort_bonus = get_region_fortification_defense_bonus(region, world)
     local_garrison = float(region.garrison_strength or 0.0)
+    provisions_stockpile = max(
+        0.0,
+        float((defender.produced_good_stockpiles or {}).get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0),
+    )
+    siege_like = region.settlement_level in {"town", "city"} or float(region.fortification_level or 0.0) >= 0.6
+    siege_supply_resilience = min(2.0, provisions_stockpile * (0.45 if siege_like else 0.18))
     reserve_commitment = min(
         float(defender.standing_forces or 0.0) * 0.24,
         max(0.0, float(defender.manpower_pool or 0.0) * 0.22),
@@ -328,6 +467,7 @@ def get_defense_military_profile(world: WorldState, defender_name: str, region) 
     defense_bonus = (
         fort_bonus
         + local_garrison * 1.6
+        + siege_supply_resilience
         + reserve_commitment * 0.22
         + float(defender.army_quality or 0.0) * 2.4
         + float(defender.military_readiness or 0.0) * 1.7
@@ -341,6 +481,8 @@ def get_defense_military_profile(world: WorldState, defender_name: str, region) 
         "defender_logistics": round(float(defender.logistics_capacity or 0.0), 3),
         "defender_fortification": round(float(region.fortification_level or 0.0), 3),
         "defender_garrison": round(float(region.garrison_strength or 0.0), 3),
+        "defender_siege_supply": round(provisions_stockpile, 3),
+        "siege_supply_defense_bonus": round(siege_supply_resilience, 3),
         "fortification_defense_bonus": fort_bonus,
         "reserve_commitment": round(reserve_commitment, 3),
     }
@@ -359,9 +501,21 @@ def apply_battle_military_losses(
     defender = world.factions[defender_name]
     target_region = world.regions[region_name]
     supply_risk = float(score_components.get("supply_risk", 0.0) or 0.0)
+    supply_crisis = float(score_components.get("campaign_supply_crisis", 0.0) or 0.0)
+    material_bonus = float(score_components.get("attack_effectiveness_multiplier", 0.0) or 0.0)
     attacker_commitment = float(score_components.get("manpower_commitment", 0.0) or 0.0)
     defender_commitment = float(score_components.get("reserve_commitment", 0.0) or 0.0) + float(target_region.garrison_strength or 0.0) * 2.0
-    attacker_loss = max(0.08, attacker_commitment * (0.07 + supply_risk * 0.08 + (0.03 if not succeeded else 0.0)))
+    attacker_loss = max(
+        0.08,
+        attacker_commitment
+        * (
+            0.07
+            + supply_risk * 0.08
+            + supply_crisis * 0.05
+            + (0.03 if not succeeded else 0.0)
+            - min(0.025, material_bonus * 0.12)
+        ),
+    )
     defender_loss = max(0.06, defender_commitment * (0.09 + (0.05 if succeeded else 0.02)))
     attacker.manpower_pool = round(max(0.0, float(attacker.manpower_pool or 0.0) - attacker_loss), 3)
     defender.manpower_pool = round(max(0.0, float(defender.manpower_pool or 0.0) - defender_loss), 3)

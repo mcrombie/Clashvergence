@@ -236,6 +236,7 @@ class Region:
     resource_damage: dict[str, float] = field(default_factory=dict)
     resource_depletion_by_resource: dict[str, float] = field(default_factory=dict)
     resource_prices: dict[str, float] = field(default_factory=dict)
+    resource_recovery_rate: dict[str, float] = field(default_factory=dict)
     resource_monetized_value: float = 0.0
     resource_isolation_factor: float = 0.0
     resource_route_depth: int | None = None
@@ -333,6 +334,7 @@ class Region:
     technology_pressure: dict[str, float] = field(default_factory=dict)
     urban_specialization: str = "none"
     urban_specialization_score: float = 0.0
+    urbanization_pressure: float = 0.0
     urban_network_value: float = 0.0
     display_name: str = ""
     founding_name: str = ""
@@ -463,6 +465,15 @@ class Faction:
     resource_stockpile_spoilage: dict[str, float] = field(default_factory=dict)
     resource_price_index: dict[str, float] = field(default_factory=dict)
     merchant_capacity: float = 0.0
+    economic_identity: str = "adaptive"
+    economic_identity_secondary: str = ""
+    economic_identity_scores: dict[str, float] = field(default_factory=dict)
+    logistics_radius: float = 0.0
+    campaign_supply_draw: float = 0.0
+    campaign_supply_crisis: float = 0.0
+    campaign_supply_crisis_turns: int = 0
+    weapons_quality_bonus: float = 0.0
+    campaign_cost_pressure: float = 0.0
     last_stockpile_turn: int | None = None
     food_stored: float = 0.0
     food_storage_capacity: float = 0.0

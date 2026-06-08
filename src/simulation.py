@@ -32,6 +32,7 @@ from src.religion import update_religious_legitimacy
 from src.region_state import get_region_core_status
 from src.resource_economy import (
     advance_trade_warfare_state,
+    advance_long_run_economic_dynamics,
     apply_turn_food_economy,
     get_region_effective_income,
     get_region_maintenance_cost,
@@ -292,6 +293,7 @@ def _run_post_action_phase(world):
 
 
 def _run_year_end_phase(world):
+    advance_long_run_economic_dynamics(world)
     update_religious_legitimacy(world)
     resolve_dynastic_succession(world)
     update_region_populations(world)

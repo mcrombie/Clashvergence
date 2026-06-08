@@ -2196,6 +2196,7 @@ def get_region_productive_capacity(region: Region, world: WorldState | None = No
         get_region_taxable_value(region, world)
         + min(1.5, len(region.neighbors) * SURPLUS_CONNECTION_YIELD)
         + max(-0.8, terrain_productivity * 0.35)
+        + float(region.urbanization_pressure or 0.0)
     )
     return round(max(0.0, productive_capacity), 2)
 
@@ -2451,17 +2452,19 @@ def update_region_populations(world: WorldState) -> None:
             )
             if food_deficit_ratio > 0:
                 growth_factor -= min(
-                    POPULATION_FOOD_DEFICIT_MAX_PENALTY,
-                    food_deficit_ratio * POPULATION_FOOD_DEFICIT_PENALTY_FACTOR,
+                    POPULATION_FOOD_DEFICIT_MAX_PENALTY * 1.35,
+                    food_deficit_ratio * POPULATION_FOOD_DEFICIT_PENALTY_FACTOR * 1.2,
                 )
+                if region.food_stress_turns >= 2:
+                    growth_factor -= min(0.018, food_deficit_ratio * 0.018)
             else:
                 food_surplus_ratio = min(
                     1.0,
                     max(0.0, region.food_balance) / food_consumption,
                 )
                 growth_factor += min(
-                    POPULATION_FOOD_SURPLUS_MAX_BONUS,
-                    food_surplus_ratio * POPULATION_FOOD_SURPLUS_BONUS_FACTOR,
+                    POPULATION_FOOD_SURPLUS_MAX_BONUS * 1.25,
+                    food_surplus_ratio * POPULATION_FOOD_SURPLUS_BONUS_FACTOR * 1.15,
                 )
             shock_growth_penalty = (
                 get_region_active_shock_intensity(world, region, SHOCK_FAMINE) * 0.018
@@ -4532,6 +4535,9 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "resource_routed_output": normalize_resource_map(region.resource_routed_output),
             "resource_effective_output": normalize_resource_map(region.resource_effective_output),
             "resource_damage": normalize_resource_map(region.resource_damage),
+            "resource_depletion_by_resource": normalize_resource_map(region.resource_depletion_by_resource),
+            "resource_prices": normalize_resource_map(region.resource_prices),
+            "resource_recovery_rate": normalize_resource_map(region.resource_recovery_rate),
             "resource_monetized_value": round(region.resource_monetized_value, 3),
             "resource_isolation_factor": round(region.resource_isolation_factor, 3),
             "resource_route_depth": region.resource_route_depth,
@@ -4595,6 +4601,8 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "logging_camp_level": round(region.logging_camp_level, 2),
             "road_level": round(region.road_level, 2),
             "copper_mine_level": round(region.copper_mine_level, 2),
+            "iron_mine_level": round(region.iron_mine_level, 2),
+            "gold_mine_level": round(region.gold_mine_level, 2),
             "stone_quarry_level": round(region.stone_quarry_level, 2),
             "agriculture_level": round(region.agriculture_level, 2),
             "pastoral_level": round(region.pastoral_level, 2),
@@ -4612,6 +4620,7 @@ def build_region_snapshot(world: WorldState) -> dict[str, dict]:
             "disease_burden": round(float(region.disease_burden or 0.0), 3),
             "climate_anomaly": round(float(region.climate_anomaly or 0.0), 3),
             "resource_depletion": round(float(region.resource_depletion or 0.0), 3),
+            "urbanization_pressure": round(float(region.urbanization_pressure or 0.0), 3),
             "food_stress_turns": int(region.food_stress_turns or 0),
             "trade_stress_turns": int(region.trade_stress_turns or 0),
             "active_shock_kinds": list(region.active_shock_kinds or []),

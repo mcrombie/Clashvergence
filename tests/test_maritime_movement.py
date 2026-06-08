@@ -79,6 +79,61 @@ class MaritimeMovementTests(unittest.TestCase):
         self.assertTrue(components["maritime_operation"])
         self.assertLess(components["maritime_expansion_modifier"], 0)
 
+    def test_maritime_expansion_prefers_mild_island_over_harsh_polar_target(self):
+        world = WorldState(
+            regions={
+                "Main": Region(
+                    name="Main",
+                    neighbors=[],
+                    owner="FactionA",
+                    resources=5,
+                    population=300,
+                    terrain_tags=["coast", "plains"],
+                    climate="Cfb",
+                    market_level=0.6,
+                    infrastructure_level=0.4,
+                ),
+                "NearIsland": Region(
+                    name="NearIsland",
+                    neighbors=[],
+                    owner=None,
+                    resources=3,
+                    population=80,
+                    terrain_tags=["coast", "plains"],
+                    climate="Cfb",
+                ),
+                "FarTundra": Region(
+                    name="FarTundra",
+                    neighbors=[],
+                    owner=None,
+                    resources=5,
+                    population=40,
+                    terrain_tags=["coast", "hills"],
+                    climate="ET",
+                ),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", treasury=10, primary_ethnicity="Aeth"),
+            },
+            sea_links=[
+                ("Main", "NearIsland"),
+                ("Main", "FarTundra"),
+            ],
+        )
+        faction = world.factions["FactionA"]
+        faction.institutional_technologies[TECH_SEAFARING] = SEAFARING_EXPANSION_THRESHOLD
+        faction.doctrine_state.homeland_terrain_tags = ["coast", "plains"]
+        faction.doctrine_state.terrain_experience = {"coast": 16.0, "plains": 16.0}
+        faction.doctrine_state.homeland_climate = "Cfb"
+        faction.doctrine_state.climate_experience = {"Cfb": 16.0}
+
+        mild_score = get_expand_target_score_components("NearIsland", world, faction_name="FactionA")
+        polar_score = get_expand_target_score_components("FarTundra", world, faction_name="FactionA")
+
+        self.assertGreater(mild_score["score"], polar_score["score"])
+        self.assertGreater(polar_score["climate_harshness_penalty"], mild_score["climate_harshness_penalty"])
+        self.assertLess(polar_score["climate_expansion_modifier"], 0)
+
     def test_maritime_expansion_event_records_route(self):
         world = _make_maritime_world()
         world.factions["FactionA"].institutional_technologies[TECH_SEAFARING] = SEAFARING_EXPANSION_THRESHOLD

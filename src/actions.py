@@ -30,6 +30,11 @@ from src.config import (
     REBEL_REABSORPTION_UNREST,
     TREASURY_CONCENTRATION_REGION_FACTOR,
 )
+from src.climate import (
+    get_climate_expansion_modifier,
+    get_climate_profile,
+    get_climate_similarity,
+)
 from src.doctrine import get_faction_region_alignment
 from src.region_state import (
     get_region_attack_projection_modifier,
@@ -52,6 +57,7 @@ from src.internal_politics import get_faction_elite_effects
 from src.ideology import get_faction_ideology_effects
 from src.military import (
     MILITARY_PROJECT_TYPES,
+    apply_campaign_supply_draw,
     apply_battle_military_losses,
     apply_military_development_project,
     get_attack_military_profile,
@@ -88,6 +94,7 @@ from src.resources import (
     RESOURCE_TIMBER,
     RESOURCE_TEXTILES,
     RESOURCE_WILD_FOOD,
+    PRODUCED_GOOD_PROVISIONS,
     format_resource_map,
 )
 from src.region_naming import apply_region_name_layer, assign_region_founding_name, format_region_reference
@@ -118,6 +125,61 @@ TRADE_BLOCKADE_FAILURE_TURNS = 2
 
 def _clamp(value, minimum, maximum):
     return max(minimum, min(maximum, value))
+
+
+def _get_climate_harshness(climate):
+    profile = get_climate_profile(climate)
+    heat_pressure = max(0.0, float(profile["heat"]) - 0.86) * 0.3
+    dry_pressure = max(0.0, 0.45 - float(profile["humidity"])) * 0.3
+    return round(
+        _clamp(
+            (float(profile["cold"]) * 0.75)
+            + (float(profile["aridity"]) * 0.55)
+            + heat_pressure
+            + dry_pressure,
+            0.0,
+            1.25,
+        ),
+        3,
+    )
+
+
+def _get_expansion_climate_components(region, faction, doctrine_alignment):
+    if faction is None:
+        return {
+            "climate_expansion_modifier": round(get_climate_expansion_modifier(region.climate) * 10.0, 3),
+            "climate_baseline_modifier": round(get_climate_expansion_modifier(region.climate) * 10.0, 3),
+            "climate_harshness": _get_climate_harshness(region.climate),
+            "climate_harshness_penalty": 0.0,
+            "climate_affinity": 0.0,
+            "homeland_climate_similarity": 0.0,
+        }
+
+    climate_harshness = _get_climate_harshness(region.climate)
+    baseline_modifier = get_climate_expansion_modifier(region.climate) * 10.0
+    climate_affinity = (
+        float(doctrine_alignment.get("climate_affinity", 0.0))
+        if doctrine_alignment is not None
+        else 0.0
+    )
+    homeland_similarity = get_climate_similarity(
+        faction.doctrine_state.homeland_climate,
+        region.climate,
+    )
+    adaptation = _clamp(max(climate_affinity, homeland_similarity * 0.85), 0.0, 1.0)
+    harshness_penalty = climate_harshness * (0.8 + ((1.0 - adaptation) * 5.2))
+    if str(get_climate_profile(region.climate)["group"]) == "E":
+        harshness_penalty += (1.0 - adaptation) * 2.5
+    affinity_modifier = (climate_affinity - 0.55) * 1.2
+    climate_modifier = baseline_modifier + affinity_modifier - harshness_penalty
+    return {
+        "climate_expansion_modifier": round(climate_modifier, 3),
+        "climate_baseline_modifier": round(baseline_modifier, 3),
+        "climate_harshness": round(climate_harshness, 3),
+        "climate_harshness_penalty": round(harshness_penalty, 3),
+        "climate_affinity": round(climate_affinity, 3),
+        "homeland_climate_similarity": round(homeland_similarity, 3),
+    }
 
 
 def get_expandable_regions(faction_name, world):
@@ -205,7 +267,14 @@ def _get_region_resource_interest(region, faction_name, world) -> int:
     if shortages.get(CAPACITY_MOBILITY, 0.0) > 0:
         bonus += int(round(region.resource_suitability.get(RESOURCE_HORSES, 0.0) * 4))
     if shortages.get(CAPACITY_METAL, 0.0) > 0:
-        bonus += int(round(region.resource_fixed_endowments.get(RESOURCE_COPPER, 0.0) * 5))
+        depletion_factor = _get_region_extractives_depletion_factor(region)
+        bonus += int(round(
+            (
+                region.resource_fixed_endowments.get(RESOURCE_COPPER, 0.0) * 5
+                + region.resource_fixed_endowments.get(RESOURCE_IRON, 0.0) * 4
+            )
+            * depletion_factor
+        ))
     if shortages.get(CAPACITY_CONSTRUCTION, 0.0) > 0:
         bonus += int(
             round(
@@ -217,6 +286,7 @@ def _get_region_resource_interest(region, faction_name, world) -> int:
         bonus += int(
             round(
                 region.resource_fixed_endowments.get(RESOURCE_SALT, 0.0) * 3
+                + region.resource_fixed_endowments.get(RESOURCE_GOLD, 0.0) * 3
                 + region.resource_suitability.get(RESOURCE_TEXTILES, 0.0) * 3
             )
         )
@@ -226,6 +296,75 @@ def _get_region_resource_interest(region, faction_name, world) -> int:
 
 def _get_region_strategic_value(region, world) -> float:
     return round(get_region_taxable_value(region, world), 2)
+
+
+def _get_region_extractives_depletion_factor(region) -> float:
+    weighted_depletion = 0.0
+    weighted_endowment = 0.0
+    for resource_name in (RESOURCE_COPPER, RESOURCE_IRON, RESOURCE_GOLD, RESOURCE_STONE, RESOURCE_SALT):
+        endowment = max(0.0, float(region.resource_fixed_endowments.get(resource_name, 0.0) or 0.0))
+        if endowment <= 0.0:
+            continue
+        weighted_endowment += endowment
+        weighted_depletion += endowment * max(
+            0.0,
+            float(region.resource_depletion_by_resource.get(resource_name, 0.0) or 0.0),
+        )
+    if weighted_endowment <= 0.0:
+        return 1.0
+    return round(_clamp(1.0 - (weighted_depletion / weighted_endowment), 0.25, 1.0), 3)
+
+
+def _get_region_depletion_adjusted_strategic_value(region, world) -> tuple[float, float]:
+    raw_value = _get_region_strategic_value(region, world)
+    depletion_factor = _get_region_extractives_depletion_factor(region)
+    return (round(raw_value * depletion_factor, 2), depletion_factor)
+
+
+def _get_economic_identity_target_bias(faction, region, *, action_name: str) -> float:
+    identity = str(getattr(faction, "economic_identity", "") or "").lower()
+    if identity == "agricultural":
+        bias = (
+            region.resource_suitability.get(RESOURCE_GRAIN, 0.0) * 1.4
+            + region.resource_suitability.get(RESOURCE_LIVESTOCK, 0.0) * 0.8
+            + (0.8 if any(tag in {"plains", "riverland"} for tag in region.terrain_tags) else 0.0)
+        )
+        return bias * (0.6 if action_name == "attack" else 1.0)
+    if identity == "pastoral":
+        return (
+            region.resource_suitability.get(RESOURCE_HORSES, 0.0) * 1.5
+            + region.resource_suitability.get(RESOURCE_LIVESTOCK, 0.0) * 1.0
+            + (0.6 if any(tag in {"steppe", "grassland", "plains"} for tag in region.terrain_tags) else 0.0)
+        )
+    if identity == "commercial":
+        return (
+            region.resource_suitability.get(RESOURCE_TEXTILES, 0.0) * 1.1
+            + region.resource_fixed_endowments.get(RESOURCE_SALT, 0.0) * 0.9
+            + float(region.market_level or 0.0) * 0.7
+            + float(region.trade_foreign_flow or 0.0) * 0.12
+            + (0.6 if region.trade_gateway_role != "none" else 0.0)
+        )
+    if identity == "industrial":
+        return (
+            region.resource_fixed_endowments.get(RESOURCE_COPPER, 0.0) * 1.4
+            + region.resource_fixed_endowments.get(RESOURCE_IRON, 0.0) * 1.25
+            + region.resource_wild_endowments.get(RESOURCE_TIMBER, 0.0) * 0.45
+            + (0.5 if any(tag in {"hills", "highland", "forest"} for tag in region.terrain_tags) else 0.0)
+        )
+    if identity == "maritime":
+        return (
+            (0.9 if "coast" in region.terrain_tags else 0.0)
+            + (0.75 if region.trade_gateway_role in {"sea_gateway", "river_gateway"} else 0.0)
+            + region.resource_wild_endowments.get(RESOURCE_TIMBER, 0.0) * 0.6
+            + float(region.trade_foreign_value or 0.0) * 0.12
+        )
+    if identity == "imperial":
+        return (
+            max(0.0, float(region.integration_score or 0.0)) * 0.08
+            + region.resource_fixed_endowments.get(RESOURCE_GOLD, 0.0) * 1.0
+            + float(region.administrative_support or 0.0) * 0.7
+        )
+    return 0.0
 
 
 def _get_region_corridor_pressure(region) -> float:
@@ -307,6 +446,37 @@ def _get_best_resource_source_region(
         if best is None or candidate < best[0]:
             best = (candidate, region)
     return None if best is None else best[1]
+
+
+def _get_economic_identity_project_bias(faction, region, option: dict[str, float | str]) -> float:
+    identity = str(getattr(faction, "economic_identity", "") or "").lower()
+    focus = str(option.get("resource_focus", "") or "")
+    project = str(option.get("project_type", "") or "")
+    if identity == "agricultural":
+        if focus in {RESOURCE_GRAIN, RESOURCE_LIVESTOCK} or project in {"build_granary", "build_irrigation", "expand_irrigation"}:
+            return 0.65
+        return 0.0
+    if identity == "pastoral":
+        if focus in {RESOURCE_HORSES, RESOURCE_LIVESTOCK} or project in {"establish_pasture", "expand_pasture", "improve_pastoralism"}:
+            return 0.65
+        return 0.0
+    if identity == "commercial":
+        if focus in {"trade", RESOURCE_TEXTILES, RESOURCE_SALT, RESOURCE_GOLD} or project in {"build_market", "expand_market"}:
+            return 0.75
+        return 0.0
+    if identity == "industrial":
+        if focus in {RESOURCE_COPPER, RESOURCE_IRON, RESOURCE_STONE, RESOURCE_TIMBER} or "mine" in project or "quarry" in project:
+            return 0.8
+        return 0.0
+    if identity == "maritime":
+        if focus in {"naval", "trade"} or "coast" in region.terrain_tags or region.trade_gateway_role == "sea_gateway":
+            return 0.65
+        return 0.0
+    if identity == "imperial":
+        if focus in {"mixed", "logistics", "trade"} or project in {"improve_infrastructure", "build_road_station", "improve_road"}:
+            return 0.55
+        return 0.0
+    return 0.0
 
 
 def _get_development_project_options(faction_name: str, region, world) -> list[dict[str, float | str]]:
@@ -717,6 +887,11 @@ def _get_development_project_options(faction_name: str, region, world) -> list[d
         })
 
     options.extend(get_military_project_score_options(world, faction_name, region))
+    for option in options:
+        identity_bias = _get_economic_identity_project_bias(faction, region, option)
+        if identity_bias:
+            option["score"] = float(option["score"]) + identity_bias
+            option["economic_identity_bonus"] = round(identity_bias, 3)
     return options
 
 
@@ -739,6 +914,7 @@ def get_development_target_score_components(region_name: str, faction_name: str,
         "project_type": str(best_option["project_type"]),
         "resource_focus": str(best_option["resource_focus"]),
         "source_region": str(best_option.get("source_region", "")),
+        "economic_identity_bonus": round(float(best_option.get("economic_identity_bonus", 0.0)), 3),
         "resource_profile": format_resource_map(region.resource_output or region.resource_fixed_endowments, limit=3),
     }
 
@@ -950,6 +1126,53 @@ def get_treasury_concentration_multiplier(region_count):
     return max(MIN_TREASURY_CONCENTRATION, round(multiplier, 3))
 
 
+def _estimate_campaign_depth(staging_regions, target_region, *, maritime_route=None) -> float:
+    if staging_regions:
+        staging_depth = min(
+            float(region.resource_route_depth if region.resource_route_depth is not None else 1)
+            for region in staging_regions
+        )
+    else:
+        staging_depth = 1.0
+    target_depth = float(target_region.resource_route_depth if target_region.resource_route_depth is not None else staging_depth + 1.0)
+    depth = max(1.0, min(target_depth, staging_depth + 1.0))
+    if maritime_route is not None:
+        depth += 0.75
+    if target_region.trade_warfare_pressure > 0:
+        depth += min(0.5, float(target_region.trade_warfare_pressure or 0.0) * 0.35)
+    return round(depth, 3)
+
+
+def _apply_defender_siege_supply_draw(world, defender_name: str, target_region) -> dict[str, float | bool]:
+    defender = world.factions.get(defender_name)
+    if defender is None:
+        return {
+            "defender_siege_supply_draw": 0.0,
+            "defender_siege_supply_remaining": 0.0,
+            "siege_supply_contested": False,
+        }
+    siege_like = (
+        target_region.settlement_level in {"town", "city"}
+        or float(target_region.fortification_level or 0.0) >= 0.6
+    )
+    if not siege_like:
+        return {
+            "defender_siege_supply_draw": 0.0,
+            "defender_siege_supply_remaining": round(float((defender.produced_good_stockpiles or {}).get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0), 3),
+            "siege_supply_contested": False,
+        }
+    stockpiles = dict(defender.produced_good_stockpiles or {})
+    current = max(0.0, float(stockpiles.get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0))
+    draw = min(current, 0.06 + float(target_region.population or 0) / 5200.0 + float(target_region.garrison_strength or 0.0) * 0.025)
+    stockpiles[PRODUCED_GOOD_PROVISIONS] = round(max(0.0, current - draw), 3)
+    defender.produced_good_stockpiles = stockpiles
+    return {
+        "defender_siege_supply_draw": round(draw, 3),
+        "defender_siege_supply_remaining": round(stockpiles[PRODUCED_GOOD_PROVISIONS], 3),
+        "siege_supply_contested": True,
+    }
+
+
 def get_attack_target_score_components(region_name, faction_name, world):
     """Returns a simple attack score and combat stats for an enemy region."""
 
@@ -1017,11 +1240,17 @@ def get_attack_target_score_components(region_name, faction_name, world):
         ),
         default=0,
     )
+    campaign_depth = _estimate_campaign_depth(
+        staging_regions,
+        region,
+        maritime_route=maritime_route,
+    )
     military_attack = get_attack_military_profile(
         world,
         faction_name,
         region,
         staging_regions=staging_regions,
+        campaign_depth=campaign_depth,
     )
     maritime_attack_penalty = 0
     if maritime_route is not None:
@@ -1042,6 +1271,9 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + doctrine_alignment["combat_modifier"]
     )
     attacker_strength += int(round(float(military_attack["military_attack_bonus"])))
+    attacker_strength += int(round(
+        attacker_strength * float(military_attack.get("attack_effectiveness_multiplier", 0.0) or 0.0)
+    ))
     attacker_strength += int(round(
         get_faction_institutional_technology(attacker_faction, TECH_ORGANIZED_LEVIES) * 4
         + get_faction_institutional_technology(attacker_faction, TECH_COPPER_WORKING) * 2
@@ -1094,7 +1326,13 @@ def get_attack_target_score_components(region_name, faction_name, world):
         defender_name,
     )
     resource_need_bonus = _get_region_resource_interest(region, faction_name, world)
-    target_value = _get_region_strategic_value(region, world)
+    target_value, depletion_factor = _get_region_depletion_adjusted_strategic_value(region, world)
+    raw_target_value = _get_region_strategic_value(region, world)
+    economic_identity_bonus = _get_economic_identity_target_bias(
+        attacker_faction,
+        region,
+        action_name="attack",
+    )
     trade_chokepoint_bonus = (
         min(10, int(round(float(region.trade_throughput or 0.0) * 0.18)))
         + min(6, int(round(float(region.trade_transit_flow or 0.0) * 0.45)))
@@ -1105,7 +1343,15 @@ def get_attack_target_score_components(region_name, faction_name, world):
     foreign_gateway_bonus = (
         min(8, int(round(float(region.trade_foreign_flow or 0.0) * 0.45)))
         + min(6, int(round(float(region.trade_foreign_value or 0.0) * 1.2)))
-        + (5 if region.trade_gateway_role == "sea_gateway" else 3 if region.trade_gateway_role == "border_gateway" else 0)
+        + (
+            5
+            if region.trade_gateway_role == "sea_gateway"
+            else 4
+            if region.trade_gateway_role == "river_gateway"
+            else 3
+            if region.trade_gateway_role == "border_gateway"
+            else 0
+        )
     )
     active_war_bonus, active_war_objective = _get_active_war_target_bonus(
         faction_name,
@@ -1152,6 +1398,7 @@ def get_attack_target_score_components(region_name, faction_name, world):
         + trade_chokepoint_bonus
         + foreign_gateway_bonus
         + active_war_bonus
+        + int(round(economic_identity_bonus))
         + seasonal_attack_score_bonus
         + int(round(float(military_attack["military_attack_bonus"]) * 1.2))
         - int(round(float(military_defense["fortification_defense_bonus"]) * 0.55))
@@ -1168,6 +1415,10 @@ def get_attack_target_score_components(region_name, faction_name, world):
         "defender": defender_name,
         "target_resources": region.resources,
         "target_taxable_value": target_value,
+        "raw_target_taxable_value": raw_target_value,
+        "resource_depletion_factor": depletion_factor,
+        "economic_identity": attacker_faction.economic_identity,
+        "economic_identity_target_bonus": round(economic_identity_bonus, 3),
         "attacker_region_count": attacker_region_count,
         "defender_region_count": defender_region_count,
         "attacker_treasury_multiplier": round(attacker_treasury_multiplier, 3),
@@ -1238,12 +1489,18 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
     region = world.regions[region_name]
     terrain_profile = get_terrain_profile(region)
     doctrine_alignment = None
-    if faction_name is not None and faction_name in world.factions:
+    faction = world.factions.get(faction_name) if faction_name is not None else None
+    if faction is not None:
         doctrine_alignment = get_faction_region_alignment(
-            world.factions[faction_name],
+            faction,
             region.terrain_tags,
             region.climate,
         )
+    climate_components = _get_expansion_climate_components(
+        region,
+        faction,
+        doctrine_alignment,
+    )
     region_core_status = get_region_core_status(region)
     unclaimed_neighbors = 0
 
@@ -1281,7 +1538,17 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         else 0
     )
     resource_need_bonus = min(resource_need_bonus, 4)
-    target_value = _get_region_strategic_value(region, world)
+    target_value, depletion_factor = _get_region_depletion_adjusted_strategic_value(region, world)
+    raw_target_value = _get_region_strategic_value(region, world)
+    economic_identity_bonus = (
+        _get_economic_identity_target_bias(
+            world.factions[faction_name],
+            region,
+            action_name="expand",
+        )
+        if faction_name is not None and faction_name in world.factions
+        else 0.0
+    )
     score = (
         (target_value * 2)
         + len(region.neighbors)
@@ -1290,13 +1557,23 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         + terrain_profile["economic_modifier"]
         + (doctrine_alignment["expansion_modifier"] if doctrine_alignment is not None else 0)
         + (doctrine_alignment["economic_modifier"] if doctrine_alignment is not None else 0)
+        + climate_components["climate_expansion_modifier"]
         + resource_need_bonus
+        + economic_identity_bonus
         + maritime_modifier
     )
 
     return {
         "resources": region.resources,
         "taxable_value": target_value,
+        "raw_taxable_value": raw_target_value,
+        "resource_depletion_factor": depletion_factor,
+        "economic_identity": (
+            world.factions[faction_name].economic_identity
+            if faction_name is not None and faction_name in world.factions
+            else "adaptive"
+        ),
+        "economic_identity_target_bonus": round(economic_identity_bonus, 3),
         "neighbors": len(region.neighbors),
         "unclaimed_neighbors": unclaimed_neighbors,
         "terrain_tags": terrain_profile["terrain_tags"],
@@ -1318,6 +1595,12 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
             if doctrine_alignment is not None
             else 0.0
         ),
+        "climate_affinity": climate_components["climate_affinity"],
+        "homeland_climate_similarity": climate_components["homeland_climate_similarity"],
+        "climate_expansion_modifier": climate_components["climate_expansion_modifier"],
+        "climate_baseline_modifier": climate_components["climate_baseline_modifier"],
+        "climate_harshness": climate_components["climate_harshness"],
+        "climate_harshness_penalty": climate_components["climate_harshness_penalty"],
         "core_status": region_core_status,
         "resource_need_bonus": resource_need_bonus,
         "connection_mode": "sea" if maritime_route is not None else "land",
@@ -1348,6 +1631,11 @@ def get_expand_event_tags(score_components):
         tags.append("high_value")
     if score_components["unclaimed_neighbors"] >= 2:
         tags.append("frontier")
+    if (
+        score_components.get("climate_harshness", 0.0) >= 0.65
+        and score_components.get("climate_affinity", 1.0) < 0.6
+    ):
+        tags.append("harsh_climate_frontier")
     if (
         score_components["neighbors"] >= 6
         or (
@@ -1613,6 +1901,10 @@ def expand(faction_name, target_region_name, world):
             "cost": EXPANSION_COST,
             "resources": score_components["resources"],
             "taxable_value": score_components["taxable_value"],
+            "raw_taxable_value": score_components.get("raw_taxable_value", score_components["taxable_value"]),
+            "resource_depletion_factor": score_components.get("resource_depletion_factor", 1.0),
+            "economic_identity": score_components.get("economic_identity", "adaptive"),
+            "economic_identity_target_bonus": score_components.get("economic_identity_target_bonus", 0.0),
             "neighbors": score_components["neighbors"],
             "unclaimed_neighbors": score_components["unclaimed_neighbors"],
             "score": score_components["score"],
@@ -1623,6 +1915,12 @@ def expand(faction_name, target_region_name, world):
             "doctrine_expansion_modifier": score_components["doctrine_expansion_modifier"],
             "doctrine_economic_modifier": score_components["doctrine_economic_modifier"],
             "terrain_affinity": score_components["terrain_affinity"],
+            "climate_affinity": score_components.get("climate_affinity", 0.0),
+            "homeland_climate_similarity": score_components.get("homeland_climate_similarity", 0.0),
+            "climate_expansion_modifier": score_components.get("climate_expansion_modifier", 0.0),
+            "climate_baseline_modifier": score_components.get("climate_baseline_modifier", 0.0),
+            "climate_harshness": score_components.get("climate_harshness", 0.0),
+            "climate_harshness_penalty": score_components.get("climate_harshness_penalty", 0.0),
             "core_status": score_components["core_status"],
             "connection_mode": score_components.get("connection_mode", "land"),
             "maritime_operation": maritime_expansion,
@@ -1692,6 +1990,14 @@ def attack(faction_name, target_region_name, world):
         return False
 
     score_components = get_attack_target_score_components(target_region_name, faction_name, world)
+    effective_attack_cost = round(
+        ATTACK_COST
+        * (1.0 + min(0.45, float(score_components.get("campaign_cost_pressure", 0.0) or 0.0))),
+        3,
+    )
+    if attacker.treasury < effective_attack_cost:
+        return False
+
     war_objective, war_objective_label = _choose_war_objective(
         faction_name,
         defender_name,
@@ -1701,10 +2007,37 @@ def attack(faction_name, target_region_name, world):
     )
     treasury_before = attacker.treasury
     population_before = target_region.population
-    attacker.treasury -= ATTACK_COST
+    attacker.treasury -= effective_attack_cost
+    supply_effect = apply_campaign_supply_draw(
+        world,
+        faction_name,
+        campaign_depth=float(score_components.get("campaign_depth", 1.0) or 1.0),
+        manpower_commitment=float(score_components.get("manpower_commitment", 0.0) or 0.0),
+        maritime=bool(score_components.get("maritime_operation", False)),
+        siege=target_region.settlement_level in {"town", "city"} or float(target_region.fortification_level or 0.0) >= 0.6,
+    )
+    siege_supply_effect = _apply_defender_siege_supply_draw(world, defender_name, target_region)
+    if float(supply_effect.get("campaign_supply_unmet", 0.0) or 0.0) > 0.0:
+        score_components["supply_risk"] = round(
+            min(
+                0.75,
+                float(score_components.get("supply_risk", 0.0) or 0.0)
+                + float(supply_effect["campaign_supply_unmet"]) * 0.18,
+            ),
+            3,
+        )
+        score_components["success_chance"] = max(
+            ATTACK_SUCCESS_MIN,
+            min(
+                ATTACK_SUCCESS_MAX,
+                float(score_components["success_chance"])
+                - float(supply_effect["campaign_supply_unmet"]) * 0.035,
+            ),
+        )
+    score_components["campaign_supply_crisis"] = supply_effect["campaign_supply_crisis"]
     success_roll = random.random()
     succeeded = success_roll < score_components["success_chance"]
-    treasury_change = -ATTACK_COST
+    treasury_change = -effective_attack_cost
     actual_failure_penalty = 0
     population_loss = 0
     trade_warfare_effect = {
@@ -1826,9 +2159,15 @@ def attack(faction_name, target_region_name, world):
         details={
             "defender": defender_name,
             "success": succeeded,
-            "attack_cost": ATTACK_COST,
+            "attack_cost": effective_attack_cost,
+            "base_attack_cost": ATTACK_COST,
+            "campaign_cost_pressure": score_components.get("campaign_cost_pressure", 0.0),
             "failure_penalty": actual_failure_penalty,
             "target_taxable_value": score_components["target_taxable_value"],
+            "raw_target_taxable_value": score_components.get("raw_target_taxable_value", score_components["target_taxable_value"]),
+            "resource_depletion_factor": score_components.get("resource_depletion_factor", 1.0),
+            "economic_identity": score_components.get("economic_identity", "adaptive"),
+            "economic_identity_target_bonus": score_components.get("economic_identity_target_bonus", 0.0),
             "success_chance": round(score_components["success_chance"], 3),
             "attack_strength": score_components["attacker_strength"],
             "defense_strength": score_components["defender_strength"],
@@ -1868,7 +2207,13 @@ def attack(faction_name, target_region_name, world):
             "attacker_logistics": score_components.get("attacker_logistics", 0.0),
             "defender_logistics": score_components.get("defender_logistics", 0.0),
             "logistics_modifier": score_components.get("logistics_modifier", 1.0),
+            "logistics_radius": score_components.get("logistics_radius", 0.0),
+            "campaign_depth": score_components.get("campaign_depth", 0.0),
+            "campaign_range_penalty": score_components.get("campaign_range_penalty", 0.0),
+            "attack_effectiveness_multiplier": score_components.get("attack_effectiveness_multiplier", 0.0),
             "supply_risk": score_components.get("supply_risk", 0.0),
+            **supply_effect,
+            **siege_supply_effect,
             "manpower_commitment": score_components.get("manpower_commitment", 0.0),
             "reserve_commitment": score_components.get("reserve_commitment", 0.0),
             "defender_fortification": score_components.get("defender_fortification", 0.0),
@@ -2158,6 +2503,8 @@ def develop(faction_name, target_region_name, world):
             "invest_amount": project_amount,
             "project_type": project_type,
             "resource_focus": score_components["resource_focus"],
+            "economic_identity": world.factions[faction_name].economic_identity,
+            "economic_identity_bonus": score_components.get("economic_identity_bonus", 0.0),
             "source_region": source_region_name,
             "region_display_name": region.display_name,
             "region_reference": format_region_reference(region, include_code=True),
