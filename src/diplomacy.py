@@ -462,6 +462,11 @@ def _resolve_subordination(
     if state.truce_turns_remaining > 0:
         return None, "tributary", 0.0
 
+    # Coalition pressure (runaway modifier) reflects diplomatic isolation, not raw power.
+    # Subordination is driven by power imbalance, so use the score without that modifier.
+    coalition_modifier = _get_runaway_modifier(world, faction_a, faction_b)
+    subordination_score = state.score - coalition_modifier
+
     prior_subordinate = state.subordinate_faction
     if prior_subordinate is not None:
         prior_overlord = faction_b if prior_subordinate == faction_a else faction_a
@@ -473,7 +478,7 @@ def _resolve_subordination(
         subordinate_power = max(0.1, _estimate_faction_power(world, prior_subordinate))
         overlord_power = max(0.1, _estimate_faction_power(world, prior_overlord))
         if (
-            state.score >= DIPLOMACY_SUBORDINATION_BREAK_THRESHOLD
+            subordination_score >= DIPLOMACY_SUBORDINATION_BREAK_THRESHOLD
             and (overlord_power / subordinate_power) >= (min_power_ratio * 0.8)
         ):
             return (
@@ -485,7 +490,7 @@ def _resolve_subordination(
     if (
         shared_borders <= 0
         or state.years_at_peace < DIPLOMACY_SUBORDINATION_MIN_PEACE_YEARS
-        or state.score < DIPLOMACY_SUBORDINATION_THRESHOLD
+        or subordination_score < DIPLOMACY_SUBORDINATION_THRESHOLD
     ):
         return None, "tributary", 0.0
 
@@ -1233,6 +1238,10 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
     polity_tensions: list[tuple[str, float, str | None]] = []
     regime_tensions: list[tuple[str, float, str | None]] = []
     regime_accommodations: list[tuple[str, float, str | None]] = []
+    alliances: list[tuple[str, float]] = []
+    pacts: list[tuple[str, float]] = []
+    truces: list[tuple[str, float, int]] = []
+    rivalries: list[tuple[str, float]] = []
     tributaries: list[tuple[str, float, str]] = []
     wars: list[tuple[str, float, str]] = []
     overlord_name = None
@@ -1295,12 +1304,16 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
             overlord_type = state.subordination_type or "tributary"
         elif state.status == "alliance":
             alliance_count += 1
+            alliances.append((other_faction, state.score))
         elif state.status == "truce":
             truce_count += 1
+            truces.append((other_faction, state.score, state.truce_turns_remaining))
         elif state.status == "non_aggression_pact":
             pact_count += 1
+            pacts.append((other_faction, state.score))
         elif state.status == "rival":
             rival_count += 1
+            rivalries.append((other_faction, state.score))
 
     for region in world.regions.values():
         if region.owner is None or region.owner == faction_name:
@@ -1408,4 +1421,62 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
         "primary_war_objective": primary_war_objective,
         "tributary_count": tributary_count,
         "vassal_count": vassal_count,
+        "war_enemies": [
+            {
+                "name": name,
+                "pressure": round(pressure, 3),
+                "objective": objective,
+            }
+            for name, pressure, objective in sorted(wars, key=lambda item: (-item[1], item[0]))
+        ],
+        "allies": [
+            {
+                "name": name,
+                "score": round(score, 2),
+            }
+            for name, score in sorted(alliances, key=lambda item: (-item[1], item[0]))
+        ],
+        "pacts": [
+            {
+                "name": name,
+                "score": round(score, 2),
+            }
+            for name, score in sorted(pacts, key=lambda item: (-item[1], item[0]))
+        ],
+        "truces": [
+            {
+                "name": name,
+                "score": round(score, 2),
+                "turns_remaining": max(0, int(turns_remaining or 0)),
+            }
+            for name, score, turns_remaining in sorted(
+                truces,
+                key=lambda item: (item[2], -item[1], item[0]),
+            )
+        ],
+        "rivals": [
+            {
+                "name": name,
+                "score": round(score, 2),
+            }
+            for name, score in sorted(rivalries, key=lambda item: (item[1], item[0]))
+        ],
+        "tributaries": [
+            {
+                "name": name,
+                "tribute_share": round(tribute_share, 3),
+                "type": subordination_type,
+            }
+            for name, tribute_share, subordination_type in sorted(
+                tributaries,
+                key=lambda item: (-item[1], item[0]),
+            )
+        ],
+        "claim_disputes": [
+            {
+                "name": name,
+                "regions": regions,
+            }
+            for name, regions in sorted(claim_disputes.items(), key=lambda item: (-item[1], item[0]))
+        ],
     }

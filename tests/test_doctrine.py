@@ -7,7 +7,7 @@ from src.doctrine import (
     get_faction_region_alignment,
     update_faction_doctrines,
 )
-from src.models import Event
+from src.models import Event, Faction
 from src.simulation import run_turn
 from src.simulation_ui import (
     build_simulation_snapshots,
@@ -100,6 +100,33 @@ class FactionDoctrineTests(unittest.TestCase):
         self.assertGreater(faction.doctrine_state.terrain_experience["riverland"], 0.0)
         self.assertGreaterEqual(faction.doctrine_profile.expansion_posture, 0.3)
         self.assertGreaterEqual(faction.doctrine_profile.development_posture, 0.3)
+
+    def test_doctrine_label_includes_climate_identity(self):
+        faction = Faction(name="Dune Polity")
+        faction.doctrine_state.homeland_terrain_tags = ["plains"]
+        faction.doctrine_state.homeland_climate = "BWh"
+        faction.doctrine_state.terrain_experience = {"plains": 20.0}
+        faction.doctrine_state.climate_experience = {"BWh": 20.0}
+
+        profile = compute_faction_doctrine_profile(faction, total_regions=10)
+
+        self.assertIn("Desert", profile.doctrine_label)
+        self.assertIn("Plains", profile.doctrine_label)
+
+    def test_doctrine_label_shifts_when_climate_experience_changes(self):
+        faction = Faction(name="Weathered Polity")
+        faction.doctrine_state.homeland_terrain_tags = ["coast"]
+        faction.doctrine_state.homeland_climate = "Cfb"
+        faction.doctrine_state.terrain_experience = {"coast": 20.0}
+        faction.doctrine_state.climate_experience = {"Cfb": 20.0}
+
+        oceanic_profile = compute_faction_doctrine_profile(faction, total_regions=10)
+        faction.doctrine_state.climate_experience = {"BSh": 28.0, "Cfb": 8.0}
+        steppe_profile = compute_faction_doctrine_profile(faction, total_regions=10)
+
+        self.assertIn("Oceanic", oceanic_profile.doctrine_label)
+        self.assertIn("Steppe", steppe_profile.doctrine_label)
+        self.assertNotEqual(oceanic_profile.doctrine_label, steppe_profile.doctrine_label)
 
     def test_attack_score_includes_terrain_adaptation_bonus(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)

@@ -13,6 +13,7 @@ from src.diplomacy import (
 )
 from src.metrics import build_turn_metrics
 from src.models import Event, Faction, FactionIdentity, Region, RelationshipState, WarState, WorldState
+from src.player_view import build_observer_snapshot
 from src.simulation_ui import _serialize_event
 from src.visibility import establish_faction_contact, initialize_faction_visibility, refresh_faction_visibility
 from src.world import create_world
@@ -475,6 +476,7 @@ class DiplomacySystemTests(unittest.TestCase):
                 "FactionB": Faction(name="FactionB"),
                 "FactionC": Faction(name="FactionC"),
                 "FactionD": Faction(name="FactionD"),
+                "FactionE": Faction(name="FactionE"),
             },
         )
         initialize_relationships(world)
@@ -495,15 +497,24 @@ class DiplomacySystemTests(unittest.TestCase):
             status="rival",
             grievance=25.0,
         )
+        world.relationships[("FactionA", "FactionE")] = RelationshipState(
+            score=4.0,
+            status="truce",
+            truce_turns_remaining=3,
+        )
 
         summary = get_faction_diplomacy_summary(world, "FactionA")
 
         self.assertEqual(summary["top_ally"], "FactionB")
         self.assertEqual(summary["top_rival"], "FactionD")
         self.assertEqual(summary["alliance_count"], 1)
-        self.assertEqual(summary["truce_count"], 0)
+        self.assertEqual(summary["truce_count"], 1)
         self.assertEqual(summary["pact_count"], 1)
         self.assertEqual(summary["rival_count"], 1)
+        self.assertEqual(summary["allies"], [{"name": "FactionB", "score": 78.0}])
+        self.assertEqual(summary["pacts"], [{"name": "FactionC", "score": 46.0}])
+        self.assertEqual(summary["rivals"], [{"name": "FactionD", "score": -58.0}])
+        self.assertEqual(summary["truces"], [{"name": "FactionE", "score": 4.0, "turns_remaining": 3}])
 
     def test_diplomacy_summary_reports_overlord_and_tributaries(self):
         world = WorldState(
@@ -536,6 +547,10 @@ class DiplomacySystemTests(unittest.TestCase):
         self.assertEqual(overlord_summary["tributary_count"], 2)
         self.assertEqual(overlord_summary["vassal_count"], 1)
         self.assertEqual(overlord_summary["top_tributary"], "FactionB")
+        self.assertEqual(overlord_summary["tributaries"], [
+            {"name": "FactionB", "tribute_share": 0.18, "type": "vassal"},
+            {"name": "FactionC", "tribute_share": 0.12, "type": "tributary"},
+        ])
         self.assertEqual(subordinate_summary["overlord"], "FactionA")
         self.assertEqual(subordinate_summary["overlord_type"], "vassal")
 
@@ -549,6 +564,40 @@ class DiplomacySystemTests(unittest.TestCase):
         self.assertEqual(summary["top_claim_dispute_ethnicity"], "Aeth")
         self.assertEqual(summary["top_claim_dispute_regions"], 1)
         self.assertEqual(summary["claim_dispute_count"], 1)
+        self.assertEqual(summary["claim_disputes"], [{"name": "FactionB", "regions": 1}])
+
+    def test_observer_snapshot_includes_faction_diplomacy_lists(self):
+        world = WorldState(
+            regions={},
+            factions={
+                "FactionA": Faction(name="FactionA"),
+                "FactionB": Faction(name="FactionB"),
+            },
+        )
+        initialize_relationships(world)
+        world.relationships[("FactionA", "FactionB")] = RelationshipState(
+            score=-72.0,
+            status="war",
+        )
+        world.wars[("FactionA", "FactionB")] = WarState(
+            active=True,
+            aggressor="FactionA",
+            defender="FactionB",
+            objective_label="border campaign",
+            objective_type="territorial_conquest",
+            aggressor_score=8.0,
+            defender_score=2.0,
+            war_exhaustion=4.0,
+        )
+
+        snapshot = build_observer_snapshot(world)
+        faction = next(item for item in snapshot["factions"] if item["name"] == "FactionA")
+
+        self.assertEqual(faction["active_war_count"], 1)
+        self.assertEqual(faction["top_rival"], "FactionB")
+        self.assertEqual(faction["war_enemies"], [
+            {"name": "FactionB", "pressure": 9.4, "objective": "border campaign"},
+        ])
 
     def test_mature_civil_war_claimant_generates_regime_legitimacy_pressure(self):
         world = WorldState(

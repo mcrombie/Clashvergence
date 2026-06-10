@@ -9,6 +9,7 @@ from src.config import (
     REBEL_MATURE_GOVERNMENT_TYPE,
     SUCCESSION_FORCED_AGE,
     UNREST_SECESSION_CRISIS_TURNS,
+    UNREST_SECESSION_THRESHOLD,
 )
 from src.actions import (
     attack,
@@ -90,13 +91,11 @@ class HeartlandSystemTests(unittest.TestCase):
                 region,
                 world.factions[faction_name].primary_ethnicity,
             )
-        region.unrest = 9.5
 
-        for crisis_turn in range(UNREST_SECESSION_CRISIS_TURNS):
+        for _crisis_turn in range(UNREST_SECESSION_CRISIS_TURNS):
+            region.unrest = UNREST_SECESSION_THRESHOLD + 0.3
             resolve_unrest_events(world)
             update_region_integration(world)
-            if crisis_turn < UNREST_SECESSION_CRISIS_TURNS - 1:
-                region.unrest = 9.5
 
         return region.owner, region
 
@@ -2164,7 +2163,21 @@ class HeartlandSystemTests(unittest.TestCase):
         }
         parent_ethnicity = world.factions[faction_name].primary_ethnicity
 
-        rebel_name, _region = self._spawn_rebel_from_region(world, faction_name)
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "frontier"
+        region.homeland_faction_id = None
+        if region.population <= 0:
+            region.population = estimate_region_population(
+                region.resources, len(region.neighbors), owner=faction_name
+            )
+        if not region.ethnic_composition:
+            seed_region_ethnicity(region, world.factions[faction_name].primary_ethnicity)
+        region.unrest = 9.5
+        region.unrest_event_level = "crisis"
+        region.secession_cooldown_turns = 0
+        apply_unrest_secession(world, region)
+        rebel_name = region.owner
         rebel_faction = world.factions[rebel_name]
         self.assertEqual(rebel_name, "Endevor Rebels")
         self.assertEqual(rebel_faction.display_name, "Endevor Rebels")
@@ -2193,7 +2206,21 @@ class HeartlandSystemTests(unittest.TestCase):
                     "authored_name": authored_region_name,
                 }
 
-                rebel_name, _region = self._spawn_rebel_from_region(world, faction_name)
+                region.owner = faction_name
+                region.integrated_owner = faction_name
+                region.core_status = "frontier"
+                region.homeland_faction_id = None
+                if region.population <= 0:
+                    region.population = estimate_region_population(
+                        region.resources, len(region.neighbors), owner=faction_name
+                    )
+                if not region.ethnic_composition:
+                    seed_region_ethnicity(region, world.factions[faction_name].primary_ethnicity)
+                region.unrest = 9.5
+                region.unrest_event_level = "crisis"
+                region.secession_cooldown_turns = 0
+                apply_unrest_secession(world, region)
+                rebel_name = region.owner
                 rebel_faction = world.factions[rebel_name]
                 self.assertEqual(rebel_name, "Lond Rebels")
                 self.assertEqual(rebel_faction.display_name, "Lond Rebels")

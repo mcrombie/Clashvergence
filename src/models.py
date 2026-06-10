@@ -125,7 +125,7 @@ class FactionDoctrineProfile:
     war_posture: float = 0.5
     development_posture: float = 0.5
     insularity: float = 0.5
-    doctrine_label: str = "Adaptive Plains"
+    doctrine_label: str = "Adaptive Temperate Plains"
     summary: str = ""
     dominant_behavior: str = "adaptive"
 

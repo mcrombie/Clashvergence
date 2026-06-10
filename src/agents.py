@@ -11,8 +11,12 @@ from src.calendar import get_annual_campaign_modifier, get_annual_dominant_seaso
 from src.climate import get_climate_expansion_modifier
 from src.config import (
     ATTACK_COST,
+    ATTACK_OVEREXTENSION_MAX_PENALTY,
+    ATTACK_OVEREXTENSION_PENALTY_FACTOR,
     DUAL_TRACK_ADMIN_EFFICIENCY_THRESHOLD,
     DUAL_TRACK_MIN_REGIONS,
+    DUAL_TRACK_MILITARY_MIN_UTILITY,
+    DUAL_TRACK_OVEREXTENSION_MAX,
     EXPANSION_COST,
     REBEL_PROTO_ATTACK_UTILITY_PENALTY,
     REBEL_PROTO_INVEST_UTILITY_BONUS,
@@ -386,6 +390,11 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
         attack_utility += campaign_modifier * 0.7
         attack_utility += _get_identity_action_bias(faction, "attack")
         attack_utility += biases["attack"]
+        overextension_penalty = float(faction.administrative_overextension_penalty or 0.0)
+        attack_utility -= min(
+            ATTACK_OVEREXTENSION_MAX_PENALTY,
+            overextension_penalty * ATTACK_OVEREXTENSION_PENALTY_FACTOR,
+        )
         action_utilities["attack"] = attack_utility
 
     if can_expand:
@@ -478,7 +487,8 @@ def _select_dual_track_actions(evaluation):
             military_utilities,
             key=lambda action_name: (military_utilities[action_name], action_name),
         )
-        actions.append((military_action, evaluation["targets"][military_action]))
+        if military_utilities[military_action] >= DUAL_TRACK_MILITARY_MIN_UTILITY:
+            actions.append((military_action, evaluation["targets"][military_action]))
 
     develop_utility = evaluation["utilities"].get("develop")
     if develop_utility is not None and develop_utility >= 0.10:
@@ -573,10 +583,12 @@ def get_available_tracks(faction_name, world):
         return (True, True)
 
     admin_efficiency = float(faction.administrative_efficiency or 1.0)
-    return (
-        True,
-        admin_efficiency >= DUAL_TRACK_ADMIN_EFFICIENCY_THRESHOLD,
+    overextension_penalty = float(faction.administrative_overextension_penalty or 0.0)
+    admin_available = (
+        admin_efficiency >= DUAL_TRACK_ADMIN_EFFICIENCY_THRESHOLD
+        and overextension_penalty < DUAL_TRACK_OVEREXTENSION_MAX
     )
+    return (True, admin_available)
 
 
 def _choose_military_action(faction_name, world, bloc_biases=None):

@@ -11,6 +11,8 @@ from src.calendar import (
 from src.config import (
     EMPIRE_FREE_REGIONS,
     EMPIRE_SCALE_COST,
+    EMPIRE_QUADRATIC_THRESHOLD,
+    EMPIRE_QUADRATIC_COST,
 )
 from src.diplomacy import apply_tributary_flows, update_relationships
 from src.doctrine import update_faction_doctrines
@@ -95,10 +97,11 @@ def get_faction_economy_snapshot(world):
     for faction_name, data in snapshot.items():
         data["maintenance"] += float(world.factions[faction_name].military_upkeep or 0.0)
         data["total_surplus"] = round(data["total_surplus"], 2)
-        data["empire_penalty"] = max(
-            0,
-            data["owned_regions"] - EMPIRE_FREE_REGIONS,
-        ) * EMPIRE_SCALE_COST
+        excess = max(0, data["owned_regions"] - EMPIRE_FREE_REGIONS)
+        linear_penalty = min(excess, EMPIRE_QUADRATIC_THRESHOLD) * EMPIRE_SCALE_COST
+        quadratic_excess = max(0, excess - EMPIRE_QUADRATIC_THRESHOLD)
+        quadratic_penalty = quadratic_excess * (quadratic_excess + 1) / 2 * EMPIRE_QUADRATIC_COST
+        data["empire_penalty"] = linear_penalty + quadratic_penalty
         data["empire_penalty"] += float(
             world.factions[faction_name].administrative_overextension_penalty or 0.0
         )

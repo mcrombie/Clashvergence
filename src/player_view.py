@@ -4,7 +4,7 @@ from collections import Counter
 from typing import Any
 
 from src.calendar import format_turn_label
-from src.diplomacy import get_relationship_status
+from src.diplomacy import get_faction_diplomacy_summary, get_relationship_status
 from src.faction_arrivals import is_faction_inactive
 from src.map_visualization import build_map_layout, get_map_edges
 from src.player_actions import get_available_actions
@@ -244,6 +244,7 @@ def _serialize_observer_faction(
 ) -> dict[str, Any]:
     faction = world.factions[faction_name]
     metrics = _latest_metrics_for(world, faction_name)
+    diplomacy = get_faction_diplomacy_summary(world, faction_name)
     owned_population = sum(
         region.population
         for region in world.regions.values()
@@ -346,11 +347,25 @@ def _serialize_observer_faction(
         "maritime_attack_reach": int(_metric(metrics, "maritime_attack_reach", 0) or 0),
         "ruler_name": _metric(metrics, "ruler_name", faction.succession.ruler_name),
         "legitimacy": _round_float(_metric(metrics, "legitimacy", faction.succession.legitimacy), 3),
-        "top_ally": _metric(metrics, "top_ally", None),
-        "top_rival": _metric(metrics, "top_rival", None),
-        "overlord": _metric(metrics, "overlord", None),
-        "tributary_count": int(_metric(metrics, "tributary_count", 0) or 0),
-        "claim_dispute_count": int(_metric(metrics, "claim_dispute_count", 0) or 0),
+        "top_ally": diplomacy.get("top_ally"),
+        "top_rival": diplomacy.get("top_rival"),
+        "overlord": diplomacy.get("overlord"),
+        "overlord_type": diplomacy.get("overlord_type"),
+        "top_tributary": diplomacy.get("top_tributary"),
+        "tributary_count": int(diplomacy.get("tributary_count", 0) or 0),
+        "alliance_count": int(diplomacy.get("alliance_count", 0) or 0),
+        "pact_count": int(diplomacy.get("pact_count", 0) or 0),
+        "truce_count": int(diplomacy.get("truce_count", 0) or 0),
+        "rival_count": int(diplomacy.get("rival_count", 0) or 0),
+        "active_war_count": int(diplomacy.get("active_war_count", 0) or 0),
+        "claim_dispute_count": int(diplomacy.get("claim_dispute_count", 0) or 0),
+        "war_enemies": list(diplomacy.get("war_enemies", [])),
+        "allies": list(diplomacy.get("allies", [])),
+        "pacts": list(diplomacy.get("pacts", [])),
+        "truces": list(diplomacy.get("truces", [])),
+        "rivals": list(diplomacy.get("rivals", [])),
+        "tributaries": list(diplomacy.get("tributaries", [])),
+        "claim_disputes": list(diplomacy.get("claim_disputes", [])),
     }
 
 

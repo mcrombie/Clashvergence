@@ -14,7 +14,7 @@ POLITY_TIER_MODIFIERS = {
         "administrative_capacity_factor": 0.78,
         "administrative_reach_factor": 0.84,
         "attack_bias": -1,
-        "realm_size_unrest_factor": 1.40,
+        "realm_size_unrest_factor": 0.70,
     },
     "tribe": {
         "income_factor": 0.95,
@@ -24,7 +24,7 @@ POLITY_TIER_MODIFIERS = {
         "administrative_capacity_factor": 0.96,
         "administrative_reach_factor": 0.96,
         "attack_bias": 0,
-        "realm_size_unrest_factor": 1.10,
+        "realm_size_unrest_factor": 0.88,
     },
     "chiefdom": {
         "income_factor": 1.05,
@@ -34,7 +34,7 @@ POLITY_TIER_MODIFIERS = {
         "administrative_capacity_factor": 1.1,
         "administrative_reach_factor": 1.04,
         "attack_bias": 1,
-        "realm_size_unrest_factor": 0.95,
+        "realm_size_unrest_factor": 1.05,
     },
     "state": {
         "income_factor": 1.15,
@@ -44,7 +44,7 @@ POLITY_TIER_MODIFIERS = {
         "administrative_capacity_factor": 1.26,
         "administrative_reach_factor": 1.12,
         "attack_bias": 1,
-        "realm_size_unrest_factor": 0.85,
+        "realm_size_unrest_factor": 1.35,
     },
 }
 

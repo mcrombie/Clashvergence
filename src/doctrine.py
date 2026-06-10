@@ -119,6 +119,28 @@ def _get_behavior_label(
     return "Adaptive"
 
 
+def _get_compact_climate_doctrine_label(climate_identity: str) -> str:
+    if "Desert" in climate_identity:
+        return "Desert"
+    if "Steppe" in climate_identity:
+        return "Steppe"
+    if any(term in climate_identity for term in ("Rainforest", "Monsoon", "Savanna")):
+        return "Tropical"
+    if "Mediterranean" in climate_identity:
+        return "Mediterranean"
+    if "Subtropical" in climate_identity:
+        return "Subtropical"
+    if "Oceanic" in climate_identity:
+        return "Oceanic"
+    if "Subarctic" in climate_identity:
+        return "Subarctic"
+    if "Continental" in climate_identity:
+        return "Continental"
+    if climate_identity in {"Tundra", "Ice Cap"}:
+        return "Polar"
+    return climate_identity
+
+
 def _build_doctrine_summary(
     faction: Faction,
     homeland_identity: str,
@@ -219,7 +241,8 @@ def compute_faction_doctrine_profile(
         development_posture,
         insularity,
     )
-    doctrine_label = f"{behavior_label} {terrain_identity}"
+    climate_doctrine_label = _get_compact_climate_doctrine_label(climate_identity)
+    doctrine_label = f"{behavior_label} {climate_doctrine_label} {terrain_identity}"
     summary = _build_doctrine_summary(
         faction,
         homeland_identity,
