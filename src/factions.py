@@ -32,12 +32,20 @@ def create_factions(
 
     factions = {}
     for index, identity in enumerate(identities, start=1):
-        factions[identity.display_name] = Faction(
+        faction = Faction(
             name=identity.display_name,
             treasury=starting_treasury,
             identity=identity,
             starting_treasury=starting_treasury,
         )
+        if language_family_overrides:
+            internal_id = get_faction_internal_id(index)
+            override = language_family_overrides.get(internal_id) or language_family_overrides.get(str(index))
+            if isinstance(override, dict):
+                traits = override.get("faction_traits")
+                if traits and isinstance(traits, list):
+                    faction.faction_traits = list(traits)
+        factions[identity.display_name] = faction
     return factions
 
 

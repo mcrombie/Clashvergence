@@ -22,6 +22,20 @@ from src.config import (
     REBEL_PROTO_INVEST_UTILITY_BONUS,
 )
 from src.doctrine import OPEN_TERRAIN_TAGS, ROUGH_TERRAIN_TAGS
+
+CHAOS_PIONEER_FRONTIER_PRESSURE_CAP = 0.82   # vs normal 0.52
+CHAOS_PIONEER_FRONTIER_PRESSURE_MULT = 1.55
+CHAOS_PIONEER_EXPAND_UTILITY_BONUS = 0.18
+
+MILITARY_EXPANSION_ATTACK_BONUS = 0.28
+MILITARIST_ISOLATIONIST_ATTACK_BONUS = 0.22
+MILITARIST_ISOLATIONIST_EXPAND_PENALTY = 0.24
+DEVELOPMENTAL_RELIGIOUS_DEVELOP_BONUS = 0.26
+DEVELOPMENTAL_RELIGIOUS_EXPAND_PENALTY = 0.10
+MILITARIST_PIONEERS_FRONTIER_PRESSURE_CAP = 0.72
+MILITARIST_PIONEERS_FRONTIER_PRESSURE_MULT = 1.4
+MILITARIST_PIONEERS_EXPAND_BONUS = 0.14
+MILITARIST_PIONEERS_ATTACK_BONUS = 0.22
 from src.internal_politics import (
     BLOC_ADMIN_PROJECT_BIAS,
     BLOC_PREFERRED_TRACK,
@@ -123,6 +137,10 @@ def _get_frontier_pressure(
 
     pressure *= _get_expansion_personality(faction)
 
+    if "chaos_pioneers" in faction.faction_traits:
+        return _clamp(pressure * CHAOS_PIONEER_FRONTIER_PRESSURE_MULT, 0.0, CHAOS_PIONEER_FRONTIER_PRESSURE_CAP)
+    if "militarist_pioneers" in faction.faction_traits:
+        return _clamp(pressure * MILITARIST_PIONEERS_FRONTIER_PRESSURE_MULT, 0.0, MILITARIST_PIONEERS_FRONTIER_PRESSURE_CAP)
     return _clamp(pressure, 0.0, 0.52)
 
 
@@ -390,6 +408,12 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
         attack_utility += campaign_modifier * 0.7
         attack_utility += _get_identity_action_bias(faction, "attack")
         attack_utility += biases["attack"]
+        if "military_expansion" in faction.faction_traits:
+            attack_utility += MILITARY_EXPANSION_ATTACK_BONUS
+        if "militarist_isolationist" in faction.faction_traits:
+            attack_utility += MILITARIST_ISOLATIONIST_ATTACK_BONUS
+        if "militarist_pioneers" in faction.faction_traits:
+            attack_utility += MILITARIST_PIONEERS_ATTACK_BONUS
         overextension_penalty = float(faction.administrative_overextension_penalty or 0.0)
         attack_utility -= min(
             ATTACK_OVEREXTENSION_MAX_PENALTY,
@@ -411,6 +435,14 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
         expand_utility += campaign_modifier * 0.12
         expand_utility += _get_identity_action_bias(faction, "expand")
         expand_utility += biases["expand"]
+        if "chaos_pioneers" in faction.faction_traits:
+            expand_utility += CHAOS_PIONEER_EXPAND_UTILITY_BONUS
+        if "militarist_pioneers" in faction.faction_traits:
+            expand_utility += MILITARIST_PIONEERS_EXPAND_BONUS
+        if "militarist_isolationist" in faction.faction_traits:
+            expand_utility -= MILITARIST_ISOLATIONIST_EXPAND_PENALTY
+        if "developmental_religious" in faction.faction_traits:
+            expand_utility -= DEVELOPMENTAL_RELIGIOUS_EXPAND_PENALTY
         action_utilities["expand"] = expand_utility
 
     if can_develop and best_develop_target is not None:
@@ -429,6 +461,8 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
             develop_utility += REBEL_PROTO_INVEST_UTILITY_BONUS
         develop_utility += _get_identity_action_bias(faction, "develop")
         develop_utility += biases["develop"]
+        if "developmental_religious" in faction.faction_traits:
+            develop_utility += DEVELOPMENTAL_RELIGIOUS_DEVELOP_BONUS
         action_utilities["develop"] = develop_utility
 
     return {

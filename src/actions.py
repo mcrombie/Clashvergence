@@ -1483,6 +1483,47 @@ def get_attack_target_score_components(region_name, faction_name, world):
     }
 
 
+_ARID_CLIMATES = frozenset({"BWh", "BWk", "BSh", "BSk", "BWn", "BSn"})
+_SUBTROPICAL_CLIMATES = frozenset({"Cfa", "Cwa"})
+
+
+def _get_faction_trait_expansion_bonus(faction, region) -> float:
+    """Score bonus/penalty applied to an expansion target based on faction_traits."""
+    if not faction.faction_traits:
+        return 0.0
+    bonus = 0.0
+    terrain = set(region.terrain_tags)
+    climate = region.climate or ""
+
+    if "desert_pioneers" in faction.faction_traits:
+        if climate[:1] == "B" or "steppe" in terrain:
+            bonus += 4.5
+        else:
+            bonus -= 1.2
+
+    if "plains_pioneers" in faction.faction_traits:
+        if "plains" in terrain or "steppe" in terrain:
+            bonus += 3.5
+        elif "highland" in terrain and "plains" not in terrain and "steppe" not in terrain:
+            bonus -= 0.8
+
+    if "forest_pioneers" in faction.faction_traits:
+        if "forest" in terrain:
+            bonus += 3.5
+        else:
+            bonus -= 0.8
+
+    if "subtropical_pioneers" in faction.faction_traits:
+        if climate in _SUBTROPICAL_CLIMATES:
+            bonus += 4.0
+        elif climate[:1] == "C":
+            bonus += 0.5
+        else:
+            bonus -= 1.0
+
+    return bonus
+
+
 def get_expand_target_score_components(region_name, world, faction_name=None):
     """Returns the scoring breakdown for an expansion target."""
 
@@ -1549,6 +1590,11 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         if faction_name is not None and faction_name in world.factions
         else 0.0
     )
+    faction_trait_bonus = (
+        _get_faction_trait_expansion_bonus(faction, region)
+        if faction is not None
+        else 0.0
+    )
     score = (
         (target_value * 2)
         + len(region.neighbors)
@@ -1561,6 +1607,7 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         + resource_need_bonus
         + economic_identity_bonus
         + maritime_modifier
+        + faction_trait_bonus
     )
 
     return {
@@ -1603,6 +1650,7 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         "climate_harshness_penalty": climate_components["climate_harshness_penalty"],
         "core_status": region_core_status,
         "resource_need_bonus": resource_need_bonus,
+        "faction_trait_bonus": round(faction_trait_bonus, 3),
         "connection_mode": "sea" if maritime_route is not None else "land",
         "maritime_operation": maritime_route is not None,
         "maritime_route_source": (

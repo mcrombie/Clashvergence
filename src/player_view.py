@@ -359,13 +359,13 @@ def _serialize_observer_faction(
         "rival_count": int(diplomacy.get("rival_count", 0) or 0),
         "active_war_count": int(diplomacy.get("active_war_count", 0) or 0),
         "claim_dispute_count": int(diplomacy.get("claim_dispute_count", 0) or 0),
-        "war_enemies": list(diplomacy.get("war_enemies", [])),
-        "allies": list(diplomacy.get("allies", [])),
-        "pacts": list(diplomacy.get("pacts", [])),
-        "truces": list(diplomacy.get("truces", [])),
-        "rivals": list(diplomacy.get("rivals", [])),
-        "tributaries": list(diplomacy.get("tributaries", [])),
-        "claim_disputes": list(diplomacy.get("claim_disputes", [])),
+        "war_enemies": list(diplomacy.get("war_enemies", []))[:8],
+        "allies": list(diplomacy.get("allies", []))[:8],
+        "pacts": list(diplomacy.get("pacts", []))[:8],
+        "truces": list(diplomacy.get("truces", []))[:8],
+        "rivals": list(diplomacy.get("rivals", []))[:8],
+        "tributaries": list(diplomacy.get("tributaries", []))[:8],
+        "claim_disputes": list(diplomacy.get("claim_disputes", []))[:8],
     }
 
 

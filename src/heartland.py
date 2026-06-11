@@ -4,6 +4,9 @@ from copy import deepcopy
 import random
 import re
 
+CHAOS_PIONEER_FRONTIER_BURDEN_MULT = 2.2
+CHAOS_PIONEER_SECESSION_THRESHOLD_REDUCTION = 1.8
+
 from src.calendar import (
     get_annual_dominant_season,
 )
@@ -4214,10 +4217,16 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         if get_region_core_status(region) == "frontier"
         else 0.0
     )
+    chaos_pioneer_mult = (
+        CHAOS_PIONEER_FRONTIER_BURDEN_MULT
+        if "chaos_pioneers" in owner_faction.faction_traits
+        else 1.0
+    )
     frontier_burden = (
         get_faction_frontier_burden(world, region.owner)
         * UNREST_FRONTIER_BURDEN_FACTOR
         * get_faction_realm_size_unrest_factor(owner_faction)
+        * chaos_pioneer_mult
     )
     ethnic_pressure = get_region_ethnic_unrest_modifier(region, world)
     regime_pressure = get_region_regime_contestation_unrest_modifier(region, world)
@@ -4507,11 +4516,18 @@ def update_region_integration(world: WorldState, *, time_step_years: float = 1.0
                 if region.unrest_event_turns_remaining <= 0:
                     clear_region_unrest_event(region)
             continue
+        owner_faction_for_check = world.factions.get(region.owner)
+        effective_secession_threshold = (
+            UNREST_SECESSION_THRESHOLD - CHAOS_PIONEER_SECESSION_THRESHOLD_REDUCTION
+            if owner_faction_for_check is not None
+            and "chaos_pioneers" in owner_faction_for_check.faction_traits
+            else UNREST_SECESSION_THRESHOLD
+        )
         if (
             region.unrest_event_level == "crisis"
             and region.secession_cooldown_turns <= 0
             and region.unrest_crisis_streak >= UNREST_SECESSION_CRISIS_TURNS
-            and region.unrest >= UNREST_SECESSION_THRESHOLD
+            and region.unrest >= effective_secession_threshold
         ):
             apply_unrest_secession(world, region)
             continue

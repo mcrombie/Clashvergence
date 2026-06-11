@@ -444,6 +444,7 @@ class Faction:
     religion: FactionReligionState = field(default_factory=FactionReligionState)
     ideology: FactionIdeologyState = field(default_factory=FactionIdeologyState)
     primary_ethnicity: str | None = None
+    faction_traits: list[str] = field(default_factory=list)
     is_rebel: bool = False
     origin_faction: str | None = None
     rebel_conflict_type: str = ""
