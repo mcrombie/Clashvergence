@@ -1454,6 +1454,10 @@ def _build_snapshot_standings(metrics, region_state, world):
             "faction": faction_name,
             "treasury": faction_metrics["treasury"],
             "owned_regions": faction_metrics["regions"],
+            "civilizational_phase": faction_metrics.get(
+                "civilizational_phase",
+                world.factions[faction_name].civilizational_phase,
+            ),
         })
     standings.sort(
         key=lambda item: (item["treasury"], item["owned_regions"]),
@@ -1474,6 +1478,7 @@ def _build_snapshot_standings_from_regions(region_state, world):
             "faction": faction_name,
             "treasury": faction.starting_treasury,
             "owned_regions": owned_counts.get(faction_name, 0),
+            "civilizational_phase": faction.civilizational_phase,
         })
     standings.sort(
         key=lambda item: (item["treasury"], item["owned_regions"]),
@@ -1635,6 +1640,13 @@ def build_simulation_view_model(world):
             "famine_pressure": round(float(world.factions[faction_name].famine_pressure or 0.0), 3),
             "epidemic_pressure": round(float(world.factions[faction_name].epidemic_pressure or 0.0), 3),
             "trade_collapse_exposure": round(float(world.factions[faction_name].trade_collapse_exposure or 0.0), 3),
+            "civilizational_phase": world.factions[faction_name].civilizational_phase,
+            "civilizational_phase_turns": int(world.factions[faction_name].civilizational_phase_turns or 0),
+            "social_energy": round(float(world.factions[faction_name].social_energy or 0.0), 3),
+            "religious_vitality": round(float(world.factions[faction_name].religious_vitality or 0.0), 3),
+            "material_accumulation": round(float(world.factions[faction_name].material_accumulation or 0.0), 3),
+            "intellectual_activity": round(float(world.factions[faction_name].intellectual_activity or 0.0), 3),
+            "revival_surge_turns": int(world.factions[faction_name].revival_surge_turns or 0),
             "manpower_pool": round(float(world.factions[faction_name].manpower_pool or 0.0), 3),
             "manpower_capacity": round(float(world.factions[faction_name].manpower_capacity or 0.0), 3),
             "standing_forces": round(float(world.factions[faction_name].standing_forces or 0.0), 3),
@@ -2564,6 +2576,56 @@ def render_simulation_html(world):
       font-weight: 700;
       white-space: nowrap;
     }}
+    .stage-indicator {{
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.7em;
+      line-height: 1.1;
+      opacity: 0.75;
+    }}
+    .standing-stage-line {{
+      display: block;
+    }}
+    .stage-dot {{
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+    }}
+    .cycle-meter-grid {{
+      display: grid;
+      gap: 10px;
+    }}
+    .cycle-meter {{
+      display: grid;
+      gap: 5px;
+    }}
+    .cycle-meter-head {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }}
+    .cycle-meter-track {{
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(63, 74, 89, 0.12);
+    }}
+    .cycle-meter-fill {{
+      height: 100%;
+      border-radius: inherit;
+    }}
+    .revival-note {{
+      color: #c0392b;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }}
     .mini-stats {{
       display: flex;
       gap: 12px;
@@ -2995,6 +3057,43 @@ def render_simulation_html(world):
       salt: "#4d8aa8",
       textiles: "#a3537d",
     }};
+    const CIVI_STAGES = {{
+      pioneers: {{
+        label: "Age of Pioneers",
+        color: "#c0392b",
+        summary: "A fierce, desperate people burst from obscurity on martial and spiritual energy."
+      }},
+      conquests: {{
+        label: "Age of Conquests",
+        color: "#e67e22",
+        summary: "Military success becomes systematic; expansion and dominion define the generation."
+      }},
+      commerce: {{
+        label: "Age of Commerce",
+        color: "#d4ac0d",
+        summary: "Conquest yields to trade; wealth grows and merchants displace warriors in prestige."
+      }},
+      affluence: {{
+        label: "Age of Affluence",
+        color: "#27ae60",
+        summary: "Accumulated wealth fosters luxury, grandeur, and the arts while softening martial spirit."
+      }},
+      intellect: {{
+        label: "Age of Intellect",
+        color: "#2980b9",
+        summary: "Surplus and stability breed scholars and critics who question faith and order."
+      }},
+      decadence: {{
+        label: "Age of Decadence",
+        color: "#8e44ad",
+        summary: "Cynicism and pleasure-seeking replace civic virtue; the state buys loyalty it can no longer inspire."
+      }},
+      decline: {{
+        label: "Age of Decline",
+        color: "#7f8c8d",
+        summary: "Vital energy is exhausted; the realm fractures under its own weight or endures long enough to revive."
+      }},
+    }};
     const developmentMapEntries = [
       ["granary_level", "Gy"],
       ["storehouse_level", "Sh"],
@@ -3205,6 +3304,29 @@ def render_simulation_html(world):
 
     function formatDoctrineLabel(label) {{
       return escapeHtml(label || "Forming");
+    }}
+
+    function getCivilizationalStage(phase) {{
+      return CIVI_STAGES[phase] || CIVI_STAGES.pioneers;
+    }}
+
+    function getCivilizationalStageShortLabel(phase) {{
+      return getCivilizationalStage(phase).label.replace(/^Age of\\s+/, "");
+    }}
+
+    function renderCycleMeter(label, value, color) {{
+      const bounded = Math.max(0, Math.min(1, Number(value || 0)));
+      return `
+        <div class="cycle-meter">
+          <div class="cycle-meter-head">
+            <span>${{escapeHtml(label)}}</span>
+            <strong>${{bounded.toFixed(2)}}</strong>
+          </div>
+          <div class="cycle-meter-track">
+            <div class="cycle-meter-fill" style="width:${{(bounded * 100).toFixed(0)}}%; background:${{color}};"></div>
+          </div>
+        </div>
+      `;
     }}
 
     function svgElement(name, attrs) {{
@@ -3591,6 +3713,13 @@ def render_simulation_html(world):
         construction_shortage: 0,
         tribute_income: 0,
         tribute_paid: 0,
+        civilizational_phase: faction.civilizational_phase || "pioneers",
+        civilizational_phase_turns: Number(faction.civilizational_phase_turns || 0),
+        social_energy: Number(faction.social_energy || 0),
+        religious_vitality: Number(faction.religious_vitality || 0),
+        material_accumulation: Number(faction.material_accumulation || 0),
+        intellectual_activity: Number(faction.intellectual_activity || 0),
+        revival_surge_turns: Number(faction.revival_surge_turns || 0),
         top_ally: "None",
         top_rival: "None",
         overlord: null,
@@ -5586,6 +5715,23 @@ def render_simulation_html(world):
       const reformPressure = Number(metrics.reform_pressure ?? faction.reform_pressure ?? 0);
       const sacredSitesControlled = Number(metrics.sacred_sites_controlled ?? faction.sacred_sites_controlled ?? 0);
       const totalSacredSites = Number(metrics.total_sacred_sites ?? faction.total_sacred_sites ?? 0);
+      const civilizationalPhase = metrics.civilizational_phase || faction.civilizational_phase || "pioneers";
+      const civilizationalStage = getCivilizationalStage(civilizationalPhase);
+      const civilizationalStageColor = civilizationalStage.color;
+      const civilizationalStageTurns = Number(metrics.civilizational_phase_turns ?? faction.civilizational_phase_turns ?? 0);
+      const revivalSurgeTurns = Number(metrics.revival_surge_turns ?? faction.revival_surge_turns ?? 0);
+      const cycleMetricsMarkup = [
+        ["Social Energy", Number(metrics.social_energy ?? faction.social_energy ?? 0)],
+        ["Religious Vitality", Number(metrics.religious_vitality ?? faction.religious_vitality ?? 0)],
+        ["Material Wealth", Number(metrics.material_accumulation ?? faction.material_accumulation ?? 0)],
+        ["Intellectual Activity", Number(metrics.intellectual_activity ?? faction.intellectual_activity ?? 0)],
+      ].map(([label, value]) => renderCycleMeter(label, value, civilizationalStageColor)).join("");
+      const revivalNote = (
+        ["decadence", "decline"].includes(civilizationalPhase)
+        && revivalSurgeTurns > 0
+      )
+        ? `<div class="revival-note">Spiritual awakening stirring - revival surge: ${{revivalSurgeTurns}} / 5 turns</div>`
+        : "";
       const doctrineHistoryMarkup = history.length
         ? history.map((entry, index) => {{
             const prior = index > 0 ? history[index - 1] : null;
@@ -5667,6 +5813,16 @@ def render_simulation_html(world):
           </div>
         </section>
         <section class="region-focus-grid">
+          <article class="inspector-card prominent">
+            <div class="card-header">
+              <h4 class="inspector-title">Civilizational Age</h4>
+              <span class="pill" style="background:${{civilizationalStageColor}}; color:white;">${{escapeHtml(civilizationalStage.label)}}</span>
+            </div>
+            <p class="summary-copy">${{escapeHtml(civilizationalStage.summary)}}</p>
+            <div class="metric-line"><strong>Years in stage:</strong> Year ${{civilizationalStageTurns}} of this age</div>
+            <div class="cycle-meter-grid">${{cycleMetricsMarkup}}</div>
+            ${{revivalNote}}
+          </article>
           <article class="inspector-card prominent">
             <h4 class="inspector-title">Realm Snapshot</h4>
             <div class="metric-strip">
@@ -5995,10 +6151,27 @@ def render_simulation_html(world):
     }}
 
     function renderStandings(snapshot) {{
-      standings.innerHTML = snapshot.standings.map((entry, index) => `
+      standings.innerHTML = snapshot.standings.map((entry, index) => {{
+        const factionMetrics = snapshot.metrics?.factions?.[entry.faction] || {{}};
+        const factionData = getFactionDataByName(entry.faction) || {{}};
+        const phase = factionMetrics.civilizational_phase
+          || entry.civilizational_phase
+          || factionData.civilizational_phase
+          || "pioneers";
+        const stage = getCivilizationalStage(phase);
+        const stageLabel = getCivilizationalStageShortLabel(phase);
+        return `
         <article class="standing-item bar selectable" data-faction="${{escapeHtml(entry.faction)}}" role="button" tabindex="0" aria-label="Inspect ${{escapeHtml(getFactionDisplayName(entry.faction))}}">
           <div class="card-header">
-            <strong>#${{index + 1}} ${{escapeHtml(getFactionDisplayName(entry.faction))}}</strong>
+            <strong>
+              #${{index + 1}} ${{escapeHtml(getFactionDisplayName(entry.faction))}}
+              <span class="standing-stage-line">
+                <span class="stage-indicator">
+                  <span class="stage-dot" style="background-color:${{stage.color}};"></span>
+                  ${{escapeHtml(stageLabel)}}
+                </span>
+              </span>
+            </strong>
             <span class="pill" style="background:${{colorByFaction[entry.faction]}}22; color:${{colorByFaction[entry.faction]}};">${{escapeHtml(snapshot.metrics?.factions?.[entry.faction]?.doctrine_label || getFactionDataByName(entry.faction)?.doctrine_label || "Forming")}}</span>
           </div>
           <div class="stat-grid compact">
@@ -6017,7 +6190,8 @@ def render_simulation_html(world):
           </div>
           <div class="standing-cta">Open Faction View</div>
         </article>
-      `).join("");
+      `;
+      }}).join("");
       for (const item of standings.querySelectorAll("[data-faction]")) {{
         item.addEventListener("click", () => {{
           selectFaction(item.dataset.faction, true);

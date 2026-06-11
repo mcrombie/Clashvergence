@@ -8,6 +8,7 @@ from src.calendar import (
     format_turn_label,
     is_year_end,
 )
+from src.civilization_cycle import update_civilization_cycle
 from src.config import (
     EMPIRE_FREE_REGIONS,
     EMPIRE_SCALE_COST,
@@ -306,6 +307,7 @@ def _run_year_end_phase(world):
     update_ideologies(world)
     update_rebel_faction_status(world)
     update_faction_polity_tiers(world)
+    update_civilization_cycle(world)
 
 
 def _run_diplomatic_update_phase(world, economy_snapshot):

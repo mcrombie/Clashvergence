@@ -327,6 +327,31 @@ def _serialize_observer_faction(
             _metric(metrics, "trade_collapse_exposure", faction.trade_collapse_exposure),
             3,
         ),
+        "civilizational_phase": _metric(
+            metrics,
+            "civilizational_phase",
+            faction.civilizational_phase,
+        ),
+        "civilizational_phase_turns": int(
+            _metric(metrics, "civilizational_phase_turns", faction.civilizational_phase_turns)
+            or 0
+        ),
+        "social_energy": _round_float(_metric(metrics, "social_energy", faction.social_energy), 3),
+        "religious_vitality": _round_float(
+            _metric(metrics, "religious_vitality", faction.religious_vitality),
+            3,
+        ),
+        "material_accumulation": _round_float(
+            _metric(metrics, "material_accumulation", faction.material_accumulation),
+            3,
+        ),
+        "intellectual_activity": _round_float(
+            _metric(metrics, "intellectual_activity", faction.intellectual_activity),
+            3,
+        ),
+        "revival_surge_turns": int(
+            _metric(metrics, "revival_surge_turns", faction.revival_surge_turns) or 0
+        ),
         "merchant_capacity": _round_float(_metric(metrics, "merchant_capacity", faction.merchant_capacity), 3),
         "iron_access": _round_float(_metric(metrics, "iron_access", 0.0), 3),
         "gold_access": _round_float(_metric(metrics, "gold_access", 0.0), 3),

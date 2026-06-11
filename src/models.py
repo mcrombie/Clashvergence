@@ -497,6 +497,14 @@ class Faction:
     famine_pressure: float = 0.0
     epidemic_pressure: float = 0.0
     trade_collapse_exposure: float = 0.0
+    # Civilizational cycle (Glubb / Brooks Adams system)
+    civilizational_phase: str = "pioneers"
+    civilizational_phase_turns: int = 0
+    social_energy: float = 0.80
+    religious_vitality: float = 0.70
+    material_accumulation: float = 0.10
+    intellectual_activity: float = 0.10
+    revival_surge_turns: int = 0
     manpower_pool: float = 0.0
     manpower_capacity: float = 0.0
     standing_forces: float = 0.0

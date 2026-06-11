@@ -3301,6 +3301,10 @@ def _restore_extinct_faction(
     former_owner: str,
     region_name: str,
 ) -> None:
+    from src.civilization_cycle import (
+        initialize_established_civilization_cycle,
+        initialize_rebel_civilization_cycle,
+    )
     from src.visibility import inherit_parent_visibility
 
     faction = world.factions[faction_name]
@@ -3331,6 +3335,10 @@ def _restore_extinct_faction(
         region=world.regions.get(region_name),
         claimant=faction.rebel_conflict_type == REBEL_CONFLICT_CIVIL_WAR,
     )
+    if faction.is_rebel:
+        initialize_rebel_civilization_cycle(faction)
+    else:
+        initialize_established_civilization_cycle(faction)
     inherit_parent_visibility(
         world,
         faction_name,
@@ -3425,6 +3433,7 @@ def _get_civil_war_display_name(
 
 
 def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -> tuple[str, bool]:
+    from src.civilization_cycle import initialize_rebel_civilization_cycle
     from src.doctrine import initialize_rebel_faction_doctrine
     from src.ideology import update_ideologies
     from src.internal_politics import update_elite_blocs
@@ -3490,6 +3499,7 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         independence_score=0.0,
         proto_state=True,
     )
+    initialize_rebel_civilization_cycle(world.factions[rebel_name])
     initialize_faction_succession_state(
         world.factions[rebel_name],
         parent_faction=former_faction,

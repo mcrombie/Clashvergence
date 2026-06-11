@@ -51,6 +51,8 @@ def _activate_faction_arrival(
     faction_name: str,
     arrival: dict,
 ) -> Event:
+    from src.civilization_cycle import initialize_established_civilization_cycle
+
     if faction_name not in world.factions:
         raise ValueError(f"Arrival references unknown faction: {faction_name}")
 
@@ -72,6 +74,7 @@ def _activate_faction_arrival(
             is_homeland=False,
         )
     _initialize_arrival_doctrine(world, faction_name, region_name)
+    initialize_established_civilization_cycle(faction)
 
     if faction_name in world.inactive_factions:
         world.inactive_factions.remove(faction_name)
