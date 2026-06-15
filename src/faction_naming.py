@@ -29,8 +29,8 @@ AI_FACTION_NAMING_ENABLED = os.getenv(
     "0",
 ).lower() in {"1", "true", "yes", "on"}
 
-DEFAULT_POLITY_TIER = "tribe"
-DEFAULT_GOVERNMENT_FORM = "council"
+DEFAULT_POLITY_TIER = "band"
+DEFAULT_GOVERNMENT_FORM = "leader"
 
 SOURCE_TRADITIONS = {
     "roman": {

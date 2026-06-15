@@ -49,6 +49,7 @@ from src.shocks import (
     resolve_trade_network_shocks,
     update_shock_rollups,
 )
+from src.social_forms import is_band_faction, update_nomadic_social_forms
 from src.visibility import refresh_all_faction_visibility, refresh_faction_visibility
 from src.metrics import record_turn_metrics
 from src.player_actions import ActionOption, apply_action_option
@@ -194,7 +195,10 @@ def _execute_single_action(world, faction_name, action_name, target_region_name,
         success = expand(faction_name, target_region_name, world)
         if verbose:
             if success:
-                print(f"{faction_name} expanded into {target_region_name}")
+                if is_band_faction(world.factions.get(faction_name)):
+                    print(f"{faction_name} migrated into {target_region_name}")
+                else:
+                    print(f"{faction_name} expanded into {target_region_name}")
             else:
                 print(f"{faction_name} failed to expand into {target_region_name}")
 
@@ -306,6 +310,7 @@ def _run_year_end_phase(world):
     update_elite_blocs(world)
     update_ideologies(world)
     update_rebel_faction_status(world)
+    update_nomadic_social_forms(world)
     update_faction_polity_tiers(world)
     update_civilization_cycle(world)
 

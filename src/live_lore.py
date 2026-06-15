@@ -44,6 +44,9 @@ def _format_live_event(world, event) -> str:
 
     if event.type == "expand":
         return f"{date}: {actor} expanded into {region}."
+    if event.type == "band_migration":
+        previous_region = event.get("previous_camp_region", "its prior camp")
+        return f"{date}: {actor} moved camp from {previous_region} into {region}."
     if event.type == "attack":
         defender = _display_name(world, event.get("defender"))
         outcome = "captured" if event.get("success", False) else "failed against"
@@ -55,6 +58,11 @@ def _format_live_event(world, event) -> str:
         return (
             f"{date}: {actor} advanced into "
             f"{event.get('new_government_type', 'new institutions')}."
+        )
+    if event.type == "social_form_transition":
+        return (
+            f"{date}: {actor} settled into "
+            f"{event.get('new_government_type', 'a tribal order')}."
         )
     if event.type == "unrest_secession":
         rebel = _display_name(world, event.get("rebel_faction"))

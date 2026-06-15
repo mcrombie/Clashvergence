@@ -74,6 +74,9 @@ from src.world import create_world
 
 
 class HeartlandSystemTests(unittest.TestCase):
+    def _settle_faction_as_tribe(self, world, faction_name):
+        world.factions[faction_name].identity.set_government_structure("tribe", "council")
+
     def _spawn_rebel_from_region(self, world, faction_name, region_name="M"):
         region = world.regions[region_name]
         region.owner = faction_name
@@ -142,6 +145,8 @@ class HeartlandSystemTests(unittest.TestCase):
         faction_names = list(world.factions)
         attacker_name = faction_names[0]
         defender_name = faction_names[1]
+        self._settle_faction_as_tribe(world, attacker_name)
+        self._settle_faction_as_tribe(world, defender_name)
 
         for faction in world.factions.values():
             faction.treasury = 1
@@ -168,6 +173,7 @@ class HeartlandSystemTests(unittest.TestCase):
     def test_frontier_region_promotes_to_core_after_long_hold(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
+        self._settle_faction_as_tribe(world, faction_name)
         region = world.regions["M"]
         region.owner = faction_name
         region.integrated_owner = faction_name
@@ -1327,6 +1333,7 @@ class HeartlandSystemTests(unittest.TestCase):
         faction_name = next(iter(world.factions))
         region = world.regions["M"]
         owner = world.factions[faction_name]
+        self._settle_faction_as_tribe(world, faction_name)
         claimant_name = f"{faction_name} Claimant"
         world.factions[claimant_name] = type(owner)(
             name=claimant_name,
@@ -1361,6 +1368,7 @@ class HeartlandSystemTests(unittest.TestCase):
 
         baseline_world = create_world(map_name="thirteen_region_ring", num_factions=4)
         baseline_faction = next(iter(baseline_world.factions))
+        self._settle_faction_as_tribe(baseline_world, baseline_faction)
         baseline_region = baseline_world.regions["M"]
         baseline_owner = baseline_world.factions[baseline_faction]
         baseline_region.owner = baseline_faction
@@ -1425,6 +1433,7 @@ class HeartlandSystemTests(unittest.TestCase):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
         owner = world.factions[faction_name]
+        self._settle_faction_as_tribe(world, faction_name)
         claimant_name = f"{faction_name} Claimant"
         world.factions[claimant_name] = type(owner)(
             name=claimant_name,
@@ -1702,6 +1711,7 @@ class HeartlandSystemTests(unittest.TestCase):
     def test_frontier_friction_reduces_income_and_attack_projection(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
+        self._settle_faction_as_tribe(world, faction_name)
         homeland_region = next(
             region
             for region in world.regions.values()
@@ -1735,6 +1745,7 @@ class HeartlandSystemTests(unittest.TestCase):
     def test_unrest_reduces_income_and_increases_maintenance(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         faction_name = next(iter(world.factions))
+        self._settle_faction_as_tribe(world, faction_name)
         region = world.regions["M"]
         region.owner = faction_name
         region.integrated_owner = faction_name
@@ -2357,6 +2368,8 @@ class HeartlandSystemTests(unittest.TestCase):
         faction_names = list(world.factions)
         attacker_name = faction_names[0]
         defender_name = faction_names[1]
+        self._settle_faction_as_tribe(world, attacker_name)
+        self._settle_faction_as_tribe(world, defender_name)
         target_region = world.regions["B"]
         target_region.owner = defender_name
         target_region.integrated_owner = defender_name

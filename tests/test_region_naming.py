@@ -12,6 +12,9 @@ from src.region_naming import apply_region_name_layer, assign_region_founding_na
 
 
 class RegionNamingTests(unittest.TestCase):
+    def _settle_faction_as_tribe(self, world, faction_name):
+        world.factions[faction_name].identity.set_government_structure("tribe", "council")
+
     def test_map_authored_region_name_is_preserved_on_world_creation(self):
         map_name = "_authored_region_name_test"
         MAPS[map_name] = {
@@ -64,6 +67,8 @@ class RegionNamingTests(unittest.TestCase):
 
         expanded = expand(attacker_name, "M", world)
         self.assertTrue(expanded)
+        self._settle_faction_as_tribe(world, attacker_name)
+        self._settle_faction_as_tribe(world, defender_name)
 
         named_region = world.regions["M"]
         founded_name = named_region.display_name
@@ -374,6 +379,8 @@ class RegionNamingTests(unittest.TestCase):
 
         world.factions[attacker_name].treasury = 10
         world.factions[defender_name].treasury = 1
+        self._settle_faction_as_tribe(world, attacker_name)
+        self._settle_faction_as_tribe(world, defender_name)
 
         attackable_regions = sorted(get_attackable_regions(attacker_name, world))
         if not attackable_regions:

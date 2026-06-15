@@ -95,10 +95,10 @@ class FactionNamingTests(unittest.TestCase):
             self.assertEqual(identity.internal_id, f"Faction{index}")
             self.assertTrue(identity.culture_name)
             self.assertTrue(identity.language_profile.family_name)
-            self.assertEqual(identity.polity_tier, "tribe")
-            self.assertEqual(identity.government_form, "council")
-            self.assertEqual(identity.government_type, "Tribe")
-            self.assertEqual(identity.display_name, f"{identity.culture_name} Tribe")
+            self.assertEqual(identity.polity_tier, "band")
+            self.assertEqual(identity.government_form, "leader")
+            self.assertEqual(identity.government_type, "Band")
+            self.assertEqual(identity.display_name, f"{identity.culture_name} Band")
             self.assertTrue(identity.source_traditions)
             self.assertIn(identity.generation_method, {"curated_source_fusion", "ai_fused_sources"})
             self.assertTrue(identity.candidate_pool)
@@ -160,7 +160,7 @@ class FactionNamingTests(unittest.TestCase):
         )[0]
 
         self.assertEqual(identity.culture_name, "Boueni")
-        self.assertEqual(identity.display_name, "Boueni Tribe")
+        self.assertEqual(identity.display_name, "Boueni Band")
         self.assertEqual(identity.language_profile.family_name, "Boueni")
         self.assertEqual(identity.generation_method, "map_language_family_override")
         self.assertFalse(identity.ai_generated)
@@ -256,7 +256,7 @@ class FactionNamingTests(unittest.TestCase):
             identity = generate_faction_identities(1, naming_seed="ai_case")[0]
 
         self.assertEqual(identity.culture_name, "Altherand")
-        self.assertEqual(identity.display_name, "Altherand Tribe")
+        self.assertEqual(identity.display_name, "Altherand Band")
         self.assertTrue(identity.ai_generated)
         self.assertEqual(identity.generation_method, "ai_fused_sources")
 

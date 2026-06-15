@@ -12,6 +12,7 @@ from src.ideology import ALL_IDEOLOGIES, get_faction_ideology_summary
 from src.military import refresh_military_state
 from src.movement import get_faction_seafaring_level, get_maritime_reachable_region_names
 from src.region_state import get_region_core_status
+from src.social_forms import get_band_camp_region_name
 from src.technology import (
     ALL_TECHNOLOGIES,
     TECH_COPPER_WORKING,
@@ -54,6 +55,7 @@ def build_turn_metrics(world, economy_snapshot=None):
         attacks = 0
         expansions = 0
         developments = 0
+        band_migrations = 0
         maritime_attacks = 0
         maritime_expansions = 0
         homeland_regions = 0
@@ -105,6 +107,8 @@ def build_turn_metrics(world, economy_snapshot=None):
                 expansions += 1
                 if event.details.get("maritime_operation"):
                     maritime_expansions += 1
+            elif event.type == "band_migration":
+                band_migrations += 1
             elif event.type in {"develop", "invest"}:
                 developments += 1
 
@@ -167,6 +171,7 @@ def build_turn_metrics(world, economy_snapshot=None):
             "maritime_attack_reach": maritime_attack_reach,
             "developments": developments,
             "investments": developments,
+            "band_migrations": band_migrations,
             "military_track_used": military_track_used,
             "admin_track_used": admin_track_used,
             "dual_track_qualified": dual_track_qualified,
@@ -226,6 +231,13 @@ def build_turn_metrics(world, economy_snapshot=None):
             },
             "polity_tier": faction.polity_tier,
             "government_form": faction.government_form,
+            "camp_region": get_band_camp_region_name(world, faction_name),
+            "tribalization_progress": round(float(faction.tribalization_progress or 0.0), 3),
+            "band_settled_turns": int(faction.band_settled_turns or 0),
+            "migration_pressure": round(float(faction.migration_pressure or 0.0), 3),
+            "migration_cooldown_turns": int(faction.migration_cooldown_turns or 0),
+            "last_migration_reason": faction.last_migration_reason,
+            "last_migration_turn": faction.last_migration_turn,
             "dynasty_name": faction.succession.dynasty_name,
             "ruler_name": faction.succession.ruler_name,
             "ruler_age": int(faction.succession.ruler_age or 0),

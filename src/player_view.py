@@ -9,6 +9,7 @@ from src.faction_arrivals import is_faction_inactive
 from src.map_visualization import build_map_layout, get_map_edges
 from src.player_actions import get_available_actions
 from src.region_naming import format_region_reference
+from src.social_forms import get_band_camp_region_name
 from src.visibility import (
     faction_knows_faction,
     get_faction_known_regions,
@@ -212,6 +213,16 @@ def _serialize_observer_summary(
             for faction_name in active_faction_names
             if world.factions[faction_name].is_rebel
         ),
+        "band_factions": sum(
+            1
+            for faction_name in active_faction_names
+            if world.factions[faction_name].polity_tier == "band"
+        ),
+        "tribe_factions": sum(
+            1
+            for faction_name in active_faction_names
+            if world.factions[faction_name].polity_tier == "tribe"
+        ),
         "owned_regions": owned_regions,
         "unowned_regions": max(0, total_regions - owned_regions),
         "total_regions": total_regions,
@@ -259,6 +270,21 @@ def _serialize_observer_faction(
         "doctrine_label": faction.doctrine_label,
         "government_type": faction.government_type,
         "polity_tier": faction.polity_tier,
+        "camp_region": _metric(metrics, "camp_region", get_band_camp_region_name(world, faction_name)),
+        "tribalization_progress": _round_float(
+            _metric(metrics, "tribalization_progress", faction.tribalization_progress),
+            3,
+        ),
+        "band_settled_turns": int(_metric(metrics, "band_settled_turns", faction.band_settled_turns) or 0),
+        "migration_pressure": _round_float(
+            _metric(metrics, "migration_pressure", faction.migration_pressure),
+            3,
+        ),
+        "migration_cooldown_turns": int(
+            _metric(metrics, "migration_cooldown_turns", faction.migration_cooldown_turns) or 0
+        ),
+        "last_migration_reason": _metric(metrics, "last_migration_reason", faction.last_migration_reason),
+        "last_migration_turn": _metric(metrics, "last_migration_turn", faction.last_migration_turn),
         "culture_name": faction.culture_name,
         "language_family": faction.identity.language_profile.family_name if faction.identity else None,
         "is_rebel": faction.is_rebel,
@@ -482,6 +508,13 @@ def _serialize_player_faction(world, faction_name: str) -> dict[str, Any]:
         "doctrine_label": faction.doctrine_label,
         "government_type": faction.government_type,
         "polity_tier": faction.polity_tier,
+        "camp_region": get_band_camp_region_name(world, faction_name),
+        "tribalization_progress": round(float(faction.tribalization_progress or 0.0), 3),
+        "band_settled_turns": int(faction.band_settled_turns or 0),
+        "migration_pressure": round(float(faction.migration_pressure or 0.0), 3),
+        "migration_cooldown_turns": int(faction.migration_cooldown_turns or 0),
+        "last_migration_reason": faction.last_migration_reason,
+        "last_migration_turn": faction.last_migration_turn,
         "economic_identity": faction.economic_identity,
         "economic_identity_secondary": faction.economic_identity_secondary,
         "food_stored": round(float(faction.food_stored or 0.0), 3),

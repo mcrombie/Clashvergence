@@ -98,6 +98,15 @@ from src.resources import (
     format_resource_map,
 )
 from src.region_naming import apply_region_name_layer, assign_region_founding_name, format_region_reference
+from src.social_forms import (
+    BAND_MIGRATION_COST,
+    BAND_MIGRATION_MIN_REMAINDER,
+    BAND_MIGRATION_POPULATION_SHARE,
+    enforce_band_region_limit,
+    get_band_camp_region_name,
+    is_band_faction,
+    record_band_migration,
+)
 from src.terrain import (
     get_seasonal_terrain_attack_projection_modifier,
     get_seasonal_terrain_defense_bonus,
@@ -212,6 +221,9 @@ def get_expandable_regions(faction_name, world):
 
 def get_attackable_regions(faction_name, world):
     """Returns adjacent enemy-owned regions the faction can attack."""
+
+    if is_band_faction(world.factions.get(faction_name)):
+        return []
 
     attackable_regions: set[str] = set()
 
@@ -1861,13 +1873,17 @@ def expand(faction_name, target_region_name, world):
 
     faction = world.factions[faction_name]
 
-    if faction.treasury < EXPANSION_COST:
+    is_band_migration = is_band_faction(faction)
+    expansion_cost = BAND_MIGRATION_COST if is_band_migration else EXPANSION_COST
+
+    if faction.treasury < expansion_cost:
         return False
 
     if target_region_name not in get_expandable_regions(faction_name, world):
         return False
 
     treasury_before = faction.treasury
+    previous_camp_region_name = get_band_camp_region_name(world, faction_name) if is_band_migration else None
     rank_before = get_faction_rank(world, faction_name)
     owner_before = world.regions[target_region_name].owner
     score_components = get_expand_target_score_components(
@@ -1890,20 +1906,29 @@ def expand(faction_name, target_region_name, world):
     )
     maritime_expansion = bool(score_components.get("maritime_operation"))
     target_population_before = world.regions[target_region_name].population
-    faction.treasury -= EXPANSION_COST
+    faction.treasury -= expansion_cost
     handle_region_owner_change(world.regions[target_region_name], faction_name)
     transferred_population = 0
     if population_source is not None and population_source.population > 0:
-        transfer_factor = (
-            MARITIME_EXPANSION_POPULATION_TRANSFER_FACTOR
-            if maritime_expansion
-            else 1.0
-        )
-        transferred_population = max(
-            max(8, int(round(POPULATION_EXPANSION_TRANSFER_MIN * transfer_factor))),
-            int(round(population_source.population * POPULATION_EXPANSION_TRANSFER_RATIO * transfer_factor)),
-        )
-        transferred_population = min(transferred_population, population_source.population)
+        if is_band_migration:
+            mobile_population = int(round(population_source.population * BAND_MIGRATION_POPULATION_SHARE))
+            if population_source.population > BAND_MIGRATION_MIN_REMAINDER:
+                mobile_population = min(
+                    mobile_population,
+                    population_source.population - BAND_MIGRATION_MIN_REMAINDER,
+                )
+            transferred_population = max(0, mobile_population)
+        else:
+            transfer_factor = (
+                MARITIME_EXPANSION_POPULATION_TRANSFER_FACTOR
+                if maritime_expansion
+                else 1.0
+            )
+            transferred_population = max(
+                max(8, int(round(POPULATION_EXPANSION_TRANSFER_MIN * transfer_factor))),
+                int(round(population_source.population * POPULATION_EXPANSION_TRANSFER_RATIO * transfer_factor)),
+            )
+            transferred_population = min(transferred_population, population_source.population)
         transferred_population = transfer_region_population(
             population_source,
             world.regions[target_region_name],
@@ -1915,6 +1940,22 @@ def expand(faction_name, target_region_name, world):
         faction_name,
         is_homeland=False,
     )
+    abandoned_regions: list[str] = []
+    if is_band_migration:
+        abandoned_regions = enforce_band_region_limit(
+            world,
+            faction_name,
+            preferred_region_name=target_region_name,
+            reason="camp_relocation",
+            emit_event=False,
+        )
+        record_band_migration(
+            world,
+            faction_name,
+            target_region_name=target_region_name,
+            previous_region_name=previous_camp_region_name,
+            abandoned_regions=abandoned_regions,
+        )
     rank_after = get_faction_rank(world, faction_name)
     rank_change = rank_before - rank_after
     unique_lead_after = has_unique_lead(world, faction_name)
@@ -1939,14 +1980,26 @@ def expand(faction_name, target_region_name, world):
         importance_tier,
     )
     narrative_tags = [tag for tag in expand_tags if tag not in {"expansion", "territory_gain"}]
+    event_type = "band_migration" if is_band_migration else "expand"
+    event_tags = (
+        ["band", "migration", "camp_relocation"]
+        + [tag for tag in narrative_tags if tag not in {"band", "migration"}]
+        if is_band_migration
+        else expand_tags
+    )
 
     world.events.append(Event(
         turn=world.turn,
-        type="expand",
+        type=event_type,
         faction=faction_name,
         region=target_region_name,
         details={
-            "cost": EXPANSION_COST,
+            "cost": expansion_cost,
+            "migration": is_band_migration,
+            "previous_camp_region": previous_camp_region_name,
+            "abandoned_regions": abandoned_regions,
+            "tribalization_progress": round(float(faction.tribalization_progress or 0.0), 3),
+            "migration_pressure": round(float(faction.migration_pressure or 0.0), 3),
             "resources": score_components["resources"],
             "taxable_value": score_components["taxable_value"],
             "raw_taxable_value": score_components.get("raw_taxable_value", score_components["taxable_value"]),
@@ -1997,8 +2050,8 @@ def expand(faction_name, target_region_name, world):
         },
         impact={
             "owner_after": faction_name,
-            "treasury_change": -EXPANSION_COST,
-            "regions_gained": 1,
+            "treasury_change": -expansion_cost,
+            "regions_gained": 0 if is_band_migration else 1,
             "income_gain": income_gain,
             "population_change": world.regions[target_region_name].population - target_population_before,
             "rank_after": rank_after,
@@ -2011,7 +2064,7 @@ def expand(faction_name, target_region_name, world):
             "summary_reason": summary_reason,
             "narrative_tags": narrative_tags,
         },
-        tags=expand_tags,
+        tags=event_tags,
         significance=float(score_components["score"]),
     ))
 
@@ -2022,6 +2075,9 @@ def attack(faction_name, target_region_name, world):
     """Attempts a simple attack on an adjacent enemy-held region."""
 
     if target_region_name not in world.regions:
+        return False
+
+    if is_band_faction(world.factions.get(faction_name)):
         return False
 
     if target_region_name not in get_attackable_regions(faction_name, world):

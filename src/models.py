@@ -505,6 +505,12 @@ class Faction:
     material_accumulation: float = 0.10
     intellectual_activity: float = 0.10
     revival_surge_turns: int = 0
+    tribalization_progress: float = 0.0
+    band_settled_turns: int = 0
+    migration_pressure: float = 0.0
+    migration_cooldown_turns: int = 0
+    last_migration_reason: str = ""
+    last_migration_turn: int | None = None
     manpower_pool: float = 0.0
     manpower_capacity: float = 0.0
     standing_forces: float = 0.0

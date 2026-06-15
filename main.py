@@ -348,14 +348,18 @@ def format_event(event, world):
     return f"{time_label}: {event}"
 
 
-def build_results_report(world, map_name, num_turns, starting_treasuries):
+def build_results_report(world, map_name, num_turns, starting_treasuries, setup_lines=None):
     """Builds a detailed simulation report."""
     lines = []
     competition = analyze_competition_metrics(world)
 
     lines.append("Detailed Simulation Results")
     lines.append("")
-    lines.extend(build_simulation_setup(world, map_name, num_turns, starting_treasuries))
+    lines.extend(
+        setup_lines
+        if setup_lines is not None
+        else build_simulation_setup(world, map_name, num_turns, starting_treasuries)
+    )
     lines.append("")
     lines.append(build_chronicle(world))
     lines.append("")
@@ -668,6 +672,7 @@ def main():
         faction_name: faction.treasury
         for faction_name, faction in world.factions.items()
     }
+    setup_lines = build_simulation_setup(world, map_name, num_turns, starting_treasuries)
     live_lore_enabled = args.live_lore or args.live_lore_delay > 0
     live_lore_delay = max(0.0, float(args.live_lore_delay or 0.0))
     live_lore_output = None
@@ -706,7 +711,13 @@ def main():
             status="complete",
         )
     chronicle = build_chronicle(world)
-    results = build_results_report(world, map_name, num_turns, starting_treasuries)
+    results = build_results_report(
+        world,
+        map_name,
+        num_turns,
+        starting_treasuries,
+        setup_lines=setup_lines,
+    )
     print(results)
 
     RESULTS_OUTPUT.parent.mkdir(parents=True, exist_ok=True)

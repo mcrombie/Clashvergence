@@ -23,9 +23,11 @@ MAJOR_EVENT_TYPES = {
     "succession_crisis",
     "religious_reform",
     "polity_advance",
+    "social_form_transition",
     "regime_agitation",
     "migration_wave",
     "refugee_wave",
+    "band_migration",
     "unrest_crisis",
     "unrest_disturbance",
     "diplomacy_tributary",
@@ -42,11 +44,13 @@ EVENT_TYPE_BASE_WEIGHTS = {
     "war_declared": 4.5,
     "religious_reform": 4.2,
     "polity_advance": 4.0,
+    "social_form_transition": 3.6,
     "succession": 3.8,
     "attack": 3.6,
     "regime_agitation": 3.4,
     "refugee_wave": 3.4,
     "migration_wave": 2.8,
+    "band_migration": 2.6,
     "expand": 2.8,
     "diplomacy_tributary": 2.6,
     "diplomacy_alliance": 2.2,
@@ -69,10 +73,12 @@ EVENT_PRIORITY = {
             "war_declared",
             "religious_reform",
             "polity_advance",
+            "social_form_transition",
             "attack",
             "regime_agitation",
             "refugee_wave",
             "migration_wave",
+            "band_migration",
             "expand",
             "succession",
             "diplomacy_tributary",
@@ -249,9 +255,9 @@ def get_phase_ranges(total_turns: int) -> list[tuple[str, int, int]]:
 def _phase_event_bucket(event_type: str) -> str:
     if event_type in {"attack", "war_declared", "war_peace", "diplomacy_rivalry"}:
         return "warfare"
-    if event_type in {"expand"}:
+    if event_type in {"expand", "band_migration"}:
         return "expansion"
-    if event_type in {"develop", "invest", "polity_advance", "diplomacy_alliance", "diplomacy_tributary"}:
+    if event_type in {"develop", "invest", "polity_advance", "social_form_transition", "diplomacy_alliance", "diplomacy_tributary"}:
         return "state-building"
     if event_type in {"religious_reform"}:
         return "religious"
@@ -525,6 +531,10 @@ def _summarize_turning_point_event(world, event) -> str | None:
         new_government = event.get("new_government_type") or "new institutions"
         return f"On {turn_text}, {actor} advanced from {old_tier} to {new_tier}, emerging as a {new_government}."
 
+    if event.type == "social_form_transition":
+        new_government = event.get("new_government_type") or "tribal institutions"
+        return f"On {turn_text}, {actor} settled from band life into {new_government}."
+
     if event.type == "regime_agitation":
         sponsor = _display_name(world, event.get("lead_sponsor"))
         return f"On {turn_text}, outside regime agitation destabilized {region or 'a border region'} under {actor}, with pressure led by {sponsor}."
@@ -550,6 +560,10 @@ def _summarize_turning_point_event(world, event) -> str | None:
         elif strategic_role == "frontier":
             role_text = ", opening a new frontier"
         return f"On {turn_text}, {actor} claimed {region or 'new territory'}{role_text}."
+
+    if event.type == "band_migration":
+        previous_region = event.get("previous_camp_region") or "its previous camp"
+        return f"On {turn_text}, {actor} moved camp from {previous_region} into {region or 'new ground'}."
 
     if event.type in {"develop", "invest"}:
         taxable_change = float(event.get("taxable_change", 0.0) or 0.0)

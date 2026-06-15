@@ -61,6 +61,7 @@ from src.narrative import (
 from src.resources import format_resource_map
 from src.region_naming import format_region_reference, get_region_display_name
 from src.shocks import get_region_shock_summary
+from src.social_forms import get_band_camp_region_name
 from src.technology import format_technology_map, normalize_technology_map
 from src.terrain import format_terrain_label, get_seasonal_terrain_note
 from src.urban import format_urban_specialization
@@ -293,6 +294,9 @@ def _get_event_title(event, world):
         region_reference = format_region_reference(world.regions[event.region], include_code=True)
     if event.type == "expand":
         return f"{faction_name} expanded into {region_reference}"
+    if event.type == "band_migration":
+        previous_region = event.get("previous_camp_region") or "its prior camp"
+        return f"{faction_name} moved camp from {previous_region} into {region_reference}"
     if event.type == "attack":
         defender = _get_faction_display_name(world, event.get("defender")) if event.get("defender") else "Unknown"
         if event.get("port_blockaded"):
@@ -371,6 +375,11 @@ def _get_event_title(event, world):
         return (
             f"{faction_name} advanced from {event.get('old_government_type', event.get('old_polity_tier', 'tribe'))} "
             f"to {event.get('new_government_type', event.get('new_polity_tier', 'chiefdom'))}"
+        )
+    if event.type == "social_form_transition":
+        return (
+            f"{faction_name} settled into a {event.get('new_government_type', event.get('to', 'tribe')).lower()} "
+            f"after years of band life"
         )
     if event.type == "succession":
         if event.get("succession_type") == "crisis":
@@ -702,6 +711,11 @@ def _get_event_summary(event, world):
     if event.type == "polity_advance":
         return (
             f"Settlement growth and accumulated surplus pushed the realm into a more sophisticated political tier."
+            + terrain_text
+        )
+    if event.type == "social_form_transition":
+        return (
+            f"A mobile band accumulated enough continuity, population, and settlement depth to become a tribe."
             + terrain_text
         )
     if event.type == "diplomacy_rivalry":
@@ -1121,7 +1135,7 @@ def build_simulation_snapshots(world):
             if event.region is None:
                 continue
 
-            if event.type == "expand":
+            if event.type in {"expand", "band_migration"}:
                 region_state[event.region]["owner"] = event.faction
                 region_state[event.region]["display_name"] = event.get(
                     "region_display_name",
@@ -1135,6 +1149,12 @@ def build_simulation_snapshots(world):
                     world.regions[event.region].original_namer_faction_id
                 )
                 changed_regions.append(event.region)
+                if event.type == "band_migration":
+                    for abandoned_region_name in event.get("abandoned_regions", []) or []:
+                        if abandoned_region_name not in region_state:
+                            continue
+                        region_state[abandoned_region_name]["owner"] = None
+                        changed_regions.append(abandoned_region_name)
             elif event.type == "attack":
                 contested_regions.append(event.region)
                 if event.get("success", False):
@@ -1551,6 +1571,13 @@ def build_simulation_view_model(world):
             "government_type": world.factions[faction_name].government_type,
             "polity_tier": world.factions[faction_name].polity_tier,
             "government_form": world.factions[faction_name].government_form,
+            "camp_region": get_band_camp_region_name(world, faction_name),
+            "tribalization_progress": round(float(world.factions[faction_name].tribalization_progress or 0.0), 3),
+            "band_settled_turns": int(world.factions[faction_name].band_settled_turns or 0),
+            "migration_pressure": round(float(world.factions[faction_name].migration_pressure or 0.0), 3),
+            "migration_cooldown_turns": int(world.factions[faction_name].migration_cooldown_turns or 0),
+            "last_migration_reason": world.factions[faction_name].last_migration_reason,
+            "last_migration_turn": world.factions[faction_name].last_migration_turn,
             "dynasty_name": world.factions[faction_name].succession.dynasty_name,
             "ruler_name": world.factions[faction_name].succession.ruler_name,
             "ruler_age": int(world.factions[faction_name].succession.ruler_age or 0),
@@ -4315,6 +4342,12 @@ def render_simulation_html(world):
       if (type === "expand") {{
         return {{ symbol: "◌", className: "event-icon-expand", label: "Expansion" }};
       }}
+      if (type === "band_migration") {{
+        return {{ symbol: "M", className: "event-icon-expand", label: "Band Migration" }};
+      }}
+      if (type === "social_form_transition") {{
+        return {{ symbol: "T", className: "event-icon-develop", label: "Social Form" }};
+      }}
       if (type === "develop" || type === "invest") {{
         return {{ symbol: "▲", className: "event-icon-develop", label: "Development" }};
       }}
@@ -5720,6 +5753,12 @@ def render_simulation_html(world):
       const civilizationalStageColor = civilizationalStage.color;
       const civilizationalStageTurns = Number(metrics.civilizational_phase_turns ?? faction.civilizational_phase_turns ?? 0);
       const revivalSurgeTurns = Number(metrics.revival_surge_turns ?? faction.revival_surge_turns ?? 0);
+      const campRegion = metrics.camp_region || faction.camp_region || null;
+      const tribalizationProgress = Number(metrics.tribalization_progress ?? faction.tribalization_progress ?? 0);
+      const bandSettledTurns = Number(metrics.band_settled_turns ?? faction.band_settled_turns ?? 0);
+      const migrationPressure = Number(metrics.migration_pressure ?? faction.migration_pressure ?? 0);
+      const migrationCooldownTurns = Number(metrics.migration_cooldown_turns ?? faction.migration_cooldown_turns ?? 0);
+      const lastMigrationReason = metrics.last_migration_reason || faction.last_migration_reason || "None";
       const cycleMetricsMarkup = [
         ["Social Energy", Number(metrics.social_energy ?? faction.social_energy ?? 0)],
         ["Religious Vitality", Number(metrics.religious_vitality ?? faction.religious_vitality ?? 0)],
@@ -5857,6 +5896,7 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Military Institution:</strong> Forces ${{Number(metrics.standing_forces || faction.standing_forces || 0).toFixed(1)}} / Manpower ${{Number(metrics.manpower_pool || faction.manpower_pool || 0).toFixed(1)}} of ${{Number(metrics.manpower_capacity || faction.manpower_capacity || 0).toFixed(1)}} | quality ${{Number(metrics.army_quality || faction.army_quality || 0).toFixed(2)}} / readiness ${{Number(metrics.military_readiness || faction.military_readiness || 0).toFixed(2)}} | logistics ${{Number(metrics.logistics_capacity || faction.logistics_capacity || 0).toFixed(1)}} range ${{Number(metrics.logistics_radius || faction.logistics_radius || 0).toFixed(1)}} / navy ${{Number(metrics.naval_power || faction.naval_power || 0).toFixed(1)}}</div>
             <div class="metric-line"><strong>Campaign Supply:</strong> Draw ${{Number(metrics.campaign_supply_draw || faction.campaign_supply_draw || 0).toFixed(2)}} / crisis ${{Number(metrics.campaign_supply_crisis || faction.campaign_supply_crisis || 0).toFixed(2)}} | weapon quality ${{Number(metrics.weapons_quality_bonus || faction.weapons_quality_bonus || 0).toFixed(2)}} | cost pressure ${{Number(metrics.campaign_cost_pressure || faction.campaign_cost_pressure || 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Migration:</strong> In ${{Number(metrics.migration_inflow || 0).toFixed(0)}} / Out ${{Number(metrics.migration_outflow || 0).toFixed(0)}} | Refugees ${{Number(metrics.refugee_inflow || 0).toFixed(0)}} in / ${{Number(metrics.refugee_outflow || 0).toFixed(0)}} out | Frontier settlers ${{Number(metrics.frontier_settlers || 0).toFixed(0)}}</div>
+            <div class="metric-line"><strong>Band Mobility:</strong> pressure ${{migrationPressure.toFixed(2)}} | cooldown ${{migrationCooldownTurns}} | last ${{escapeHtml(lastMigrationReason)}}</div>
             <div class="metric-line"><strong>Administration:</strong> Capacity ${{Number(metrics.administrative_capacity || 0).toFixed(2)}} / Load ${{Number(metrics.administrative_load || 0).toFixed(2)}} | Efficiency ${{Number((metrics.administrative_efficiency || 0) * 100).toFixed(0)}}% | Reach ${{Number((metrics.administrative_reach || 0) * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Overextension:</strong> ${{Number(metrics.administrative_overextension || 0).toFixed(2)}} | Penalty ${{Number(metrics.administrative_overextension_penalty || 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Trade Warfare:</strong> Damage ${{Number(metrics.trade_warfare_damage || 0).toFixed(2)}} | Blockade losses ${{Number(metrics.trade_blockade_losses || 0).toFixed(2)}} | Corridor exposure ${{Number((metrics.trade_corridor_exposure || 0) * 100).toFixed(0)}}%</div>
@@ -5982,6 +6022,14 @@ def render_simulation_html(world):
                 <div class="detail-row">
                   <div class="detail-label">Tier / Government</div>
                   <div class="detail-value">${{escapeHtml(faction.polity_tier || "tribe")}} / ${{escapeHtml(faction.government_form || "council")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Camp Region</div>
+                  <div class="detail-value">${{escapeHtml(campRegion || "None")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Tribalization</div>
+                  <div class="detail-value">${{Math.round(tribalizationProgress * 100)}}% / ${{bandSettledTurns}} settled years</div>
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">Primary Ethnicity</div>

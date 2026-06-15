@@ -2264,6 +2264,7 @@ def update_region_settlement_levels(world: WorldState) -> None:
 
 
 def get_faction_settlement_profile(world: WorldState, faction_name: str) -> dict[str, float | int]:
+    faction = world.factions.get(faction_name)
     profile = {
         "owned_regions": 0,
         "population": 0,
@@ -2279,6 +2280,8 @@ def get_faction_settlement_profile(world: WorldState, faction_name: str) -> dict
         "total_road": 0.0,
         "total_market": 0.0,
         "total_administrative_support": 0.0,
+        "tribalization_progress": round(float(getattr(faction, "tribalization_progress", 0.0) or 0.0), 3),
+        "band_settled_turns": int(getattr(faction, "band_settled_turns", 0) or 0),
     }
 
     for region in world.regions.values():
@@ -2323,10 +2326,16 @@ def get_faction_settlement_profile(world: WorldState, faction_name: str) -> dict
 
 
 def _qualifies_for_tribe(profile: dict[str, float | int]) -> bool:
-    return profile["owned_regions"] >= 1 and (
+    return (
+        profile["owned_regions"] >= 1
+        and profile.get("tribalization_progress", 0.0) >= 1.0
+        and profile.get("band_settled_turns", 0) >= 3
+        and profile["population"] >= 120
+        and (
         profile["rural_regions"] >= 1
         or profile["town_regions"] >= 1
         or profile["city_regions"] >= 1
+        )
     )
 
 

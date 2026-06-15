@@ -347,9 +347,9 @@ def _event_family(event_type: str) -> str:
         return "fracture"
     if event_type in {"diplomacy_tributary", "diplomacy_alliance", "diplomacy_rivalry"}:
         return "diplomacy"
-    if event_type in {"migration_wave", "refugee_wave"}:
+    if event_type in {"migration_wave", "refugee_wave", "band_migration"}:
         return "migration"
-    if event_type in {"develop", "invest", "polity_advance", "religious_reform"}:
+    if event_type in {"develop", "invest", "polity_advance", "social_form_transition", "religious_reform"}:
         return "statecraft"
     if event_type == "expand":
         return "expansion"
@@ -366,11 +366,13 @@ def _event_score(event) -> float:
         "diplomacy_tributary": 5.2,
         "religious_reform": 5.0,
         "polity_advance": 4.8,
+        "social_form_transition": 4.1,
         "diplomacy_rivalry": 4.6,
         "attack": 4.5,
         "regime_agitation": 4.2,
         "refugee_wave": 4.0,
         "migration_wave": 3.8,
+        "band_migration": 3.4,
         "expand": 3.4,
         "succession": 3.3,
         "diplomacy_alliance": 3.2,
@@ -470,11 +472,17 @@ def _build_event_brief(world, event) -> str:
         return f"On {turn_text}, {actor} broke from {old_religion} and raised {new_religion}."
     if event.type == "polity_advance":
         return f"On {turn_text}, {actor} advanced into a higher polity tier."
+    if event.type == "social_form_transition":
+        new_government = event.get("new_government_type") or "tribal institutions"
+        return f"On {turn_text}, {actor} settled from band life into {new_government}."
     if event.type in {"migration_wave", "refugee_wave"}:
         moved = int(event.get("population_moved", 0) or 0)
         destination = _region_reference(world, event.get("top_destination")) or event.get("top_destination")
         destination_text = f" toward {destination}" if destination else ""
         return f"On {turn_text}, movement from {region_name or 'a troubled province'} sent {moved} people{destination_text}."
+    if event.type == "band_migration":
+        previous_region = event.get("previous_camp_region") or "its previous camp"
+        return f"On {turn_text}, {actor} moved camp from {previous_region} into {region_name or 'new ground'}."
     if event.type == "expand":
         return f"On {turn_text}, {actor} claimed {region_name or 'new territory'}."
     if event.type == "attack":
@@ -564,6 +572,13 @@ def _build_key_event_digest(world, *, limit: int = 24) -> list[dict]:
             "old_polity_tier",
             "new_polity_tier",
             "new_government_type",
+            "from",
+            "to",
+            "previous_camp_region",
+            "abandoned_regions",
+            "tribalization_progress",
+            "settled_turns",
+            "migration_pressure",
             "project_type",
             "resource_focus",
             "taxable_change",
