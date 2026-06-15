@@ -260,6 +260,7 @@ def _serialize_observer_faction(
         "government_type": faction.government_type,
         "polity_tier": faction.polity_tier,
         "culture_name": faction.culture_name,
+        "language_family": faction.identity.language_profile.family_name if faction.identity else None,
         "is_rebel": faction.is_rebel,
         "origin_faction": faction.origin_faction,
         "economic_identity": _metric(metrics, "economic_identity", faction.economic_identity),
