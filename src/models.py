@@ -176,6 +176,12 @@ class FactionIdeologyState:
 
 
 @dataclass
+class FactionAgenda:
+    agenda_type: str
+    params: dict = field(default_factory=dict)
+
+
+@dataclass
 class EliteBloc:
     bloc_type: str
     name: str
@@ -567,6 +573,7 @@ class Faction:
     known_factions: list[str] = field(default_factory=list)
     military_track_used: bool = False
     admin_track_used: bool = False
+    agenda: FactionAgenda | None = None
 
     def __post_init__(self):
         if self.starting_treasury == 0:

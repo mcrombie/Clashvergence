@@ -544,6 +544,31 @@ def _maybe_roam_exploratory_band(
 ) -> Event | None:
     from src.actions import get_expandable_regions
 
+    # Agenda-driven steering: path toward the settlement target(s) if not there yet.
+    agenda = faction.agenda
+    if agenda is not None:
+        agenda_targets: list[str] = []
+        if agenda.agenda_type == "settle_region" and agenda.params.get("target_region"):
+            agenda_targets = [agenda.params["target_region"]]
+        elif agenda.agenda_type == "hold_regions" and agenda.params.get("regions"):
+            agenda_targets = list(agenda.params["regions"])
+        reachable_targets = [t for t in agenda_targets if t in world.regions]
+        if reachable_targets and camp_region.name not in reachable_targets:
+            for target in reachable_targets:
+                next_step = _find_roaming_path_step(
+                    world,
+                    faction_name,
+                    start_region_name=camp_region.name,
+                    target_region_name=target,
+                )
+                if next_step is not None:
+                    return migrate_band_to_region(
+                        world,
+                        faction_name,
+                        next_step,
+                        reason="agenda_migration",
+                    )
+
     if (
         int(faction.band_roaming_turns or 0) >= BAND_HOMELAND_MIN_ROAMING_TURNS
         and faction.best_homeland_candidate
@@ -573,12 +598,14 @@ def _maybe_roam_exploratory_band(
         for region in candidates
         if region.name not in set(faction.band_explored_regions or [])
     ]
+    is_explorer = faction.agenda is not None and faction.agenda.agenda_type == "explore"
+    unvisited_bonus = 6.0 if is_explorer else 2.4
     current_appeal = _score_homeland_appeal(world, faction, camp_region)
     best_candidate = max(
         unvisited_candidates or candidates,
         key=lambda region: (
             _score_homeland_appeal(world, faction, region)
-            + (2.4 if region.name not in set(faction.band_explored_regions or []) else 0.0),
+            + (unvisited_bonus if region.name not in set(faction.band_explored_regions or []) else 0.0),
             len(region.neighbors),
             region.name,
         ),
@@ -643,16 +670,36 @@ def _get_roaming_neighbors(world: WorldState, region_name: str) -> list[str]:
 
 
 def _band_should_choose_homeland(faction: Faction, camp_region: Region) -> bool:
-    if int(faction.band_roaming_turns or 0) < BAND_HOMELAND_MIN_ROAMING_TURNS:
+    min_roaming = BAND_HOMELAND_MIN_ROAMING_TURNS
+    if faction.agenda is not None and faction.agenda.agenda_type == "explore":
+        min_roaming = 15
+    if int(faction.band_roaming_turns or 0) < min_roaming:
         return False
     if faction.best_homeland_candidate != camp_region.name:
         return False
+    if faction.agenda is not None:
+        if (
+            faction.agenda.agenda_type == "settle_region"
+            and faction.agenda.params.get("target_region")
+            and camp_region.name != faction.agenda.params["target_region"]
+        ):
+            return False
+        if (
+            faction.agenda.agenda_type == "hold_regions"
+            and faction.agenda.params.get("regions")
+            and camp_region.name not in faction.agenda.params["regions"]
+        ):
+            return False
+        if faction.agenda.agenda_type == "expand_territory":
+            return False
     return float(faction.best_homeland_appeal or 0.0) >= BAND_HOMELAND_APPEAL_THRESHOLD
 
 
 def _band_should_become_nomadic_tribe(faction: Faction) -> bool:
     if int(faction.band_roaming_turns or 0) < BAND_NOMADIC_TRIBE_MIN_ROAMING_TURNS:
         return False
+    if faction.agenda is not None and faction.agenda.agenda_type == "expand_territory":
+        return True
     return float(faction.best_homeland_appeal or 0.0) < BAND_NOMADIC_TRIBE_APPEAL_CEILING
 
 

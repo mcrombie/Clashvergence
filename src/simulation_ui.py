@@ -1758,6 +1758,14 @@ def build_simulation_view_model(world):
                 faction_name,
                 internal_id=world.factions[faction_name].internal_id,
             ),
+            "agenda": (
+                {
+                    "agenda_type": world.factions[faction_name].agenda.agenda_type,
+                    "params": world.factions[faction_name].agenda.params,
+                }
+                if world.factions[faction_name].agenda is not None
+                else None
+            ),
         }
         for faction_name in sorted(world.factions, key=natural_sort_key)
     ]
@@ -5721,6 +5729,38 @@ def render_simulation_html(world):
       }});
     }}
 
+    function formatAgendaLabel(agenda) {{
+      if (!agenda || !agenda.agenda_type) return null;
+      const p = agenda.params || {{}};
+      switch (agenda.agenda_type) {{
+        case "explore":
+          return "Explore as much of the continent as possible";
+        case "settle_region":
+          return p.target_region ? `Settle in ${{escapeHtml(p.target_region)}}` : "Settle in a target region";
+        case "hold_regions": {{
+          const regions = (p.regions || []).map((r) => escapeHtml(r));
+          return regions.length ? `Hold ${{regions.join(" and ")}}` : "Hold key regions";
+        }}
+        case "expand_territory":
+          return "Expand territory as much as possible";
+        case "contiguous_terrain":
+          return p.terrain ? `Dominate a contiguous block of ${{escapeHtml(p.terrain)}} regions` : "Build a contiguous terrain bloc";
+        case "trade":
+          return "Pursue trade and diplomatic connections";
+        case "defend_region":
+          return p.region ? `Never lose ${{escapeHtml(p.region)}}` : "Defend a core region unconditionally";
+        case "conquer":
+          return "Conquer as much territory as possible";
+        case "imperial": {{
+          const target = p.region_target ? ` to ${{p.region_target}}+ regions` : "";
+          const trib = p.prefer_tributaries ? ", preferring tributaries" : "";
+          return `Imperial expansion${{target}}${{trib}}`;
+        }}
+        default:
+          return escapeHtml(agenda.agenda_type);
+      }}
+    }}
+
     function renderSelectedFactionView(snapshot) {{
       const selected = getSelectedFactionContext(snapshot);
       if (!selected) {{
@@ -5850,6 +5890,12 @@ def render_simulation_html(world):
                 homeland ${{escapeHtml(homelandRegion || "None")}} |
                 terrain identity ${{escapeHtml(metrics.terrain_identity || "Unknown")}}.
               </p>
+              ${{(() => {{
+                const agendaLabel = !faction.is_rebel && formatAgendaLabel(faction.agenda);
+                return agendaLabel
+                  ? `<div class="metric-line"><strong>Scenario Agenda:</strong> ${{agendaLabel}}</div>`
+                  : "";
+              }})()}}
               <div class="region-focus-kpis">
                 <div class="stat-chip">
                   <div class="stat-label">Expansion</div>

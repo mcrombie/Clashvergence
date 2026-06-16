@@ -46,6 +46,17 @@ def apply_due_faction_arrivals(world: WorldState) -> list[Event]:
     return arrival_events
 
 
+def _apply_arrival_technologies(faction, initial_technologies: dict) -> None:
+    if not initial_technologies:
+        return
+    for tech_key, value in initial_technologies.items():
+        clamped = max(0.0, min(1.0, float(value)))
+        current_known = faction.known_technologies.get(tech_key, 0.0)
+        current_institutional = faction.institutional_technologies.get(tech_key, 0.0)
+        faction.known_technologies[tech_key] = max(current_known, clamped)
+        faction.institutional_technologies[tech_key] = max(current_institutional, clamped)
+
+
 def _activate_faction_arrival(
     world: WorldState,
     faction_name: str,
@@ -74,6 +85,7 @@ def _activate_faction_arrival(
             is_homeland=False,
         )
     _initialize_arrival_doctrine(world, faction_name, region_name)
+    _apply_arrival_technologies(faction, arrival.get("initial_technologies") or {})
     initialize_established_civilization_cycle(faction)
 
     if faction_name in world.inactive_factions:

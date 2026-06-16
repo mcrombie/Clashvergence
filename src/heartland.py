@@ -23,6 +23,8 @@ from src.administration import (
     refresh_administrative_state,
 )
 from src.config import (
+    ADMIN_DISTANCE_UNREST_FACTOR,
+    ADMIN_DISTANCE_UNREST_THRESHOLD,
     ADMIN_INTEGRATION_AUTONOMY_FACTOR,
     ADMIN_INTEGRATION_EFFICIENCY_FACTOR,
     ADMIN_INTEGRATION_SUPPORT_FACTOR,
@@ -4265,6 +4267,10 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         - (float(owner_faction.religion.religious_tolerance or 0.0) * RELIGION_TOLERANCE_UNREST_REDUCTION),
     )
     administrative_pressure = float(region.administrative_autonomy or 0.0) * ADMIN_UNREST_AUTONOMY_FACTOR
+    distance_pressure = max(
+        0.0,
+        float(region.administrative_distance or 0.0) - ADMIN_DISTANCE_UNREST_THRESHOLD,
+    ) * ADMIN_DISTANCE_UNREST_FACTOR
     elite_pressure = get_faction_elite_effects(owner_faction).get("unrest_pressure", 0.0)
     ideology_pressure = get_faction_ideology_effects(owner_faction).get("unrest_pressure", 0.0)
     stability_divisor = max(0.5, get_faction_stability_modifier(owner_faction))
@@ -4280,6 +4286,7 @@ def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
         + succession_pressure
         + religion_pressure
         + administrative_pressure
+        + distance_pressure
         + elite_pressure
         + ideology_pressure
         + get_region_unrest_shock_pressure(region, world)

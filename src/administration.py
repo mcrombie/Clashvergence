@@ -10,6 +10,8 @@ from src.config import (
     ADMIN_CAPITAL_ISOLATION_MARITIME_MITIGATION_FACTOR,
     ADMIN_CAPITAL_ISOLATION_MAX_PENALTY,
     ADMIN_CAPITAL_ISOLATION_TURN_PENALTY,
+    ADMIN_DISTANCE_CAP,
+    ADMIN_DISTANCE_DEPTH_QUADRATIC,
     ADMIN_DISTANCE_PER_ROUTE_DEPTH,
     ADMIN_FOREIGN_BORDER_DISTANCE,
     ADMIN_HOSTILE_BORDER_DISTANCE,
@@ -279,7 +281,8 @@ def get_region_administrative_distance(region: Region, world: WorldState) -> flo
     if region.owner is None or get_region_core_status(region) == "homeland":
         return 0.0
 
-    distance = float(region.resource_route_depth or 0) * ADMIN_DISTANCE_PER_ROUTE_DEPTH
+    depth = float(region.resource_route_depth or 0)
+    distance = depth * ADMIN_DISTANCE_PER_ROUTE_DEPTH + (depth ** 1.5) * ADMIN_DISTANCE_DEPTH_QUADRATIC
     if not region.resource_route_depth:
         distance += 0.1 if get_region_core_status(region) == "frontier" else 0.04
     if region.resource_route_mode in {"sea", "river"}:
@@ -295,7 +298,7 @@ def get_region_administrative_distance(region: Region, world: WorldState) -> flo
         if relation in {"rival", "war", "truce"}:
             distance += ADMIN_HOSTILE_BORDER_DISTANCE
 
-    return round(min(2.2, distance), 3)
+    return round(min(ADMIN_DISTANCE_CAP, distance), 3)
 
 
 def get_region_administrative_burden(region: Region, world: WorldState) -> float:

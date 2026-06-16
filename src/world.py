@@ -16,7 +16,7 @@ from src.population import (
 )
 from src.religion import initialize_religious_legitimacy
 from src.succession import initialize_dynastic_politics
-from src.models import Region, WorldState
+from src.models import FactionAgenda, Region, WorldState
 from src.maps import MAPS
 from src.map_generator import build_generated_map_definition, is_generated_map_name
 from src.region_naming import assign_region_founding_name
@@ -42,6 +42,42 @@ def _reset_owned_region_populations(world: WorldState) -> None:
         primary_ethnicity = world.factions[region.owner].primary_ethnicity
         if primary_ethnicity is not None:
             seed_region_ethnicity(region, primary_ethnicity)
+
+
+def _translate_faction_agendas(
+    map_definition: dict,
+    owner_name_map: dict[str, str],
+) -> dict[str, FactionAgenda]:
+    agendas: dict[str, FactionAgenda] = {}
+    for internal_id, raw in (map_definition.get("faction_agendas") or {}).items():
+        if not raw:
+            continue
+        agenda_type = raw.get("agenda_type")
+        if not agenda_type:
+            continue
+        faction_name = owner_name_map.get(internal_id)
+        if faction_name is None:
+            continue
+        agendas[faction_name] = FactionAgenda(
+            agenda_type=agenda_type,
+            params=dict(raw.get("params") or {}),
+        )
+    return agendas
+
+
+def _translate_faction_initial_technologies(
+    map_definition: dict,
+    owner_name_map: dict[str, str],
+) -> dict[str, dict]:
+    result: dict[str, dict] = {}
+    for internal_id, tech_dict in (map_definition.get("faction_initial_technologies") or {}).items():
+        if not tech_dict:
+            continue
+        faction_name = owner_name_map.get(internal_id)
+        if faction_name is None:
+            continue
+        result[faction_name] = dict(tech_dict)
+    return result
 
 
 def _translate_faction_arrivals(map_definition: dict, owner_name_map: dict[str, str]) -> dict[str, dict]:
@@ -118,6 +154,18 @@ def create_world(
         for faction_name, faction in factions.items()
     }
     faction_arrivals = _translate_faction_arrivals(map_definition, owner_name_map)
+    faction_agendas = _translate_faction_agendas(map_definition, owner_name_map)
+    for faction_name, agenda in faction_agendas.items():
+        if faction_name in factions:
+            factions[faction_name].agenda = agenda
+    faction_initial_technologies = _translate_faction_initial_technologies(map_definition, owner_name_map)
+    for faction_name, tech_dict in faction_initial_technologies.items():
+        if faction_name in factions:
+            faction = factions[faction_name]
+            for tech_key, value in tech_dict.items():
+                clamped = max(0.0, min(1.0, float(value)))
+                faction.known_technologies[tech_key] = max(faction.known_technologies.get(tech_key, 0.0), clamped)
+                faction.institutional_technologies[tech_key] = max(faction.institutional_technologies.get(tech_key, 0.0), clamped)
     inactive_factions = sorted(
         faction_name
         for faction_name, arrival in faction_arrivals.items()

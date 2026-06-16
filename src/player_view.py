@@ -447,6 +447,14 @@ def _serialize_observer_faction(
         "rivals": list(diplomacy.get("rivals", []))[:8],
         "tributaries": list(diplomacy.get("tributaries", []))[:8],
         "claim_disputes": list(diplomacy.get("claim_disputes", []))[:8],
+        "agenda": (
+            {
+                "agenda_type": faction.agenda.agenda_type,
+                "params": dict(faction.agenda.params),
+            }
+            if faction.agenda is not None
+            else None
+        ),
     }
 
 
