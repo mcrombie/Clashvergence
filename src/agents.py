@@ -141,6 +141,8 @@ def _get_frontier_pressure(
         return _clamp(pressure * CHAOS_PIONEER_FRONTIER_PRESSURE_MULT, 0.0, CHAOS_PIONEER_FRONTIER_PRESSURE_CAP)
     if "militarist_pioneers" in faction.faction_traits:
         return _clamp(pressure * MILITARIST_PIONEERS_FRONTIER_PRESSURE_MULT, 0.0, MILITARIST_PIONEERS_FRONTIER_PRESSURE_CAP)
+    if faction.social_form == "nomadic_tribe":
+        return _clamp((pressure * 1.35) + 0.1, 0.0, 0.76)
     return _clamp(pressure, 0.0, 0.52)
 
 
@@ -348,7 +350,11 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
     developable_regions = get_developable_regions(faction_name, world)
 
     can_attack = bool(attackable_regions) and faction.treasury >= ATTACK_COST
-    can_expand = bool(expandable_regions) and faction.treasury >= EXPANSION_COST
+    can_expand = (
+        bool(expandable_regions)
+        and faction.treasury >= EXPANSION_COST
+        and faction.polity_tier != "band"
+    )
     can_develop = bool(developable_regions)
 
     best_attack_target = None
@@ -437,6 +443,8 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
         expand_utility += biases["expand"]
         if "chaos_pioneers" in faction.faction_traits:
             expand_utility += CHAOS_PIONEER_EXPAND_UTILITY_BONUS
+        if faction.social_form == "nomadic_tribe":
+            expand_utility += 0.16
         if "militarist_pioneers" in faction.faction_traits:
             expand_utility += MILITARIST_PIONEERS_EXPAND_BONUS
         if "militarist_isolationist" in faction.faction_traits:

@@ -105,6 +105,7 @@ from src.social_forms import (
     enforce_band_region_limit,
     get_band_camp_region_name,
     is_band_faction,
+    is_nomadic_tribe,
     record_band_migration,
 )
 from src.terrain import (
@@ -1607,6 +1608,7 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         if faction is not None
         else 0.0
     )
+    nomadic_tribe_bonus = 1.35 if is_nomadic_tribe(faction) else 0.0
     score = (
         (target_value * 2)
         + len(region.neighbors)
@@ -1620,6 +1622,7 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         + economic_identity_bonus
         + maritime_modifier
         + faction_trait_bonus
+        + nomadic_tribe_bonus
     )
 
     return {
@@ -1663,6 +1666,7 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         "core_status": region_core_status,
         "resource_need_bonus": resource_need_bonus,
         "faction_trait_bonus": round(faction_trait_bonus, 3),
+        "nomadic_tribe_bonus": round(nomadic_tribe_bonus, 3),
         "connection_mode": "sea" if maritime_route is not None else "land",
         "maritime_operation": maritime_route is not None,
         "maritime_route_source": (
@@ -1874,7 +1878,13 @@ def expand(faction_name, target_region_name, world):
     faction = world.factions[faction_name]
 
     is_band_migration = is_band_faction(faction)
-    expansion_cost = BAND_MIGRATION_COST if is_band_migration else EXPANSION_COST
+    expansion_cost = (
+        BAND_MIGRATION_COST
+        if is_band_migration
+        else max(BAND_MIGRATION_COST, EXPANSION_COST - 1)
+        if is_nomadic_tribe(faction)
+        else EXPANSION_COST
+    )
 
     if faction.treasury < expansion_cost:
         return False

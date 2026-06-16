@@ -1571,6 +1571,18 @@ def build_simulation_view_model(world):
             "government_type": world.factions[faction_name].government_type,
             "polity_tier": world.factions[faction_name].polity_tier,
             "government_form": world.factions[faction_name].government_form,
+            "social_form": world.factions[faction_name].social_form or world.factions[faction_name].polity_tier,
+            "homeland_region": world.factions[faction_name].chosen_homeland_region,
+            "homeland_appeal": round(float(world.factions[faction_name].homeland_appeal or 0.0), 3),
+            "homeland_claim_source": world.factions[faction_name].homeland_claim_source,
+            "band_roaming_turns": int(world.factions[faction_name].band_roaming_turns or 0),
+            "band_explored_regions": list(world.factions[faction_name].band_explored_regions or []),
+            "best_homeland_candidate": world.factions[faction_name].best_homeland_candidate,
+            "best_homeland_appeal": round(float(world.factions[faction_name].best_homeland_appeal or 0.0), 3),
+            "nomadic_identity_regions": list(world.factions[faction_name].nomadic_identity_regions or []),
+            "nomadic_fragmentation_pressure": round(float(world.factions[faction_name].nomadic_fragmentation_pressure or 0.0), 3),
+            "nomadic_fragmentation_turns": int(world.factions[faction_name].nomadic_fragmentation_turns or 0),
+            "nomadic_fragmentation_cooldown_turns": int(world.factions[faction_name].nomadic_fragmentation_cooldown_turns or 0),
             "camp_region": get_band_camp_region_name(world, faction_name),
             "tribalization_progress": round(float(world.factions[faction_name].tribalization_progress or 0.0), 3),
             "band_settled_turns": int(world.factions[faction_name].band_settled_turns or 0),
@@ -3327,6 +3339,12 @@ def render_simulation_html(world):
       }}
       const faction = getFactionDataByName(factionName);
       return faction ? (faction.display_name || faction.name) : factionName;
+    }}
+
+    function formatSocialForm(value) {{
+      return String(value || "unknown")
+        .replaceAll("_", " ")
+        .replace(/\\b\\w/g, (letter) => letter.toUpperCase());
     }}
 
     function formatDoctrineLabel(label) {{
@@ -5754,8 +5772,17 @@ def render_simulation_html(world):
       const civilizationalStageTurns = Number(metrics.civilizational_phase_turns ?? faction.civilizational_phase_turns ?? 0);
       const revivalSurgeTurns = Number(metrics.revival_surge_turns ?? faction.revival_surge_turns ?? 0);
       const campRegion = metrics.camp_region || faction.camp_region || null;
+      const socialForm = metrics.social_form || faction.social_form || faction.polity_tier || "unknown";
+      const homelandRegion = metrics.homeland_region || faction.homeland_region || null;
+      const homelandAppeal = Number(metrics.homeland_appeal ?? faction.homeland_appeal ?? 0);
+      const bestHomelandCandidate = metrics.best_homeland_candidate || faction.best_homeland_candidate || null;
+      const bestHomelandAppeal = Number(metrics.best_homeland_appeal ?? faction.best_homeland_appeal ?? 0);
+      const exploredRegions = metrics.band_explored_regions || faction.band_explored_regions || [];
+      const identityRegions = metrics.nomadic_identity_regions || faction.nomadic_identity_regions || [];
+      const fragmentationPressure = Number(metrics.nomadic_fragmentation_pressure ?? faction.nomadic_fragmentation_pressure ?? 0);
       const tribalizationProgress = Number(metrics.tribalization_progress ?? faction.tribalization_progress ?? 0);
       const bandSettledTurns = Number(metrics.band_settled_turns ?? faction.band_settled_turns ?? 0);
+      const bandRoamingTurns = Number(metrics.band_roaming_turns ?? faction.band_roaming_turns ?? 0);
       const migrationPressure = Number(metrics.migration_pressure ?? faction.migration_pressure ?? 0);
       const migrationCooldownTurns = Number(metrics.migration_cooldown_turns ?? faction.migration_cooldown_turns ?? 0);
       const lastMigrationReason = metrics.last_migration_reason || faction.last_migration_reason || "None";
@@ -5805,7 +5832,7 @@ def render_simulation_html(world):
               Filled regions are currently inside the faction's realm.
             </p>
             <div class="summary-card" style="background:${{faction.color}}14; border-color:${{faction.color}}44;">
-              <p class="summary-copy">${{escapeHtml(polityStatus)}} rooted in ${{escapeHtml(metrics.homeland_identity || faction.homeland_identity || "Unknown homeland")}}.</p>
+              <p class="summary-copy">${{escapeHtml(polityStatus)}} | ${{escapeHtml(formatSocialForm(socialForm))}}${{homelandRegion ? ` with homeland at ${{escapeHtml(homelandRegion)}}` : " with no central homeland"}}.</p>
               ${{hasRecordedMetrics ? "" : `<div class="panel-note">Opening turn snapshot: posture and diplomacy metrics begin after the first turn resolves.</div>`}}
             </div>
           </article>
@@ -5819,7 +5846,8 @@ def render_simulation_html(world):
                 <span class="pill" style="background:${{faction.color}}22; color:${{faction.color}};">${{formatDoctrineLabel(metrics.doctrine_label)}}</span>
               </div>
               <p class="region-focus-subtitle">
-                ${{escapeHtml(faction.government_form || "Unknown government")}} polity | homeland ${{escapeHtml(metrics.homeland_identity || faction.homeland_identity || "Unknown")}} |
+                ${{escapeHtml(faction.government_form || "Unknown government")}} polity | ${{escapeHtml(formatSocialForm(socialForm))}} |
+                homeland ${{escapeHtml(homelandRegion || "None")}} |
                 terrain identity ${{escapeHtml(metrics.terrain_identity || "Unknown")}}.
               </p>
               <div class="region-focus-kpis">
@@ -5896,7 +5924,10 @@ def render_simulation_html(world):
             <div class="metric-line"><strong>Military Institution:</strong> Forces ${{Number(metrics.standing_forces || faction.standing_forces || 0).toFixed(1)}} / Manpower ${{Number(metrics.manpower_pool || faction.manpower_pool || 0).toFixed(1)}} of ${{Number(metrics.manpower_capacity || faction.manpower_capacity || 0).toFixed(1)}} | quality ${{Number(metrics.army_quality || faction.army_quality || 0).toFixed(2)}} / readiness ${{Number(metrics.military_readiness || faction.military_readiness || 0).toFixed(2)}} | logistics ${{Number(metrics.logistics_capacity || faction.logistics_capacity || 0).toFixed(1)}} range ${{Number(metrics.logistics_radius || faction.logistics_radius || 0).toFixed(1)}} / navy ${{Number(metrics.naval_power || faction.naval_power || 0).toFixed(1)}}</div>
             <div class="metric-line"><strong>Campaign Supply:</strong> Draw ${{Number(metrics.campaign_supply_draw || faction.campaign_supply_draw || 0).toFixed(2)}} / crisis ${{Number(metrics.campaign_supply_crisis || faction.campaign_supply_crisis || 0).toFixed(2)}} | weapon quality ${{Number(metrics.weapons_quality_bonus || faction.weapons_quality_bonus || 0).toFixed(2)}} | cost pressure ${{Number(metrics.campaign_cost_pressure || faction.campaign_cost_pressure || 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Migration:</strong> In ${{Number(metrics.migration_inflow || 0).toFixed(0)}} / Out ${{Number(metrics.migration_outflow || 0).toFixed(0)}} | Refugees ${{Number(metrics.refugee_inflow || 0).toFixed(0)}} in / ${{Number(metrics.refugee_outflow || 0).toFixed(0)}} out | Frontier settlers ${{Number(metrics.frontier_settlers || 0).toFixed(0)}}</div>
-            <div class="metric-line"><strong>Band Mobility:</strong> pressure ${{migrationPressure.toFixed(2)}} | cooldown ${{migrationCooldownTurns}} | last ${{escapeHtml(lastMigrationReason)}}</div>
+            <div class="metric-line"><strong>Social Form:</strong> ${{escapeHtml(formatSocialForm(socialForm))}} | homeland ${{escapeHtml(homelandRegion || "None")}} | appeal ${{homelandAppeal.toFixed(2)}}</div>
+            <div class="metric-line"><strong>Band Mobility:</strong> pressure ${{migrationPressure.toFixed(2)}} | roaming years ${{bandRoamingTurns}} | settled years ${{bandSettledTurns}} | cooldown ${{migrationCooldownTurns}} | last ${{escapeHtml(lastMigrationReason)}}</div>
+            <div class="metric-line"><strong>Homeland Search:</strong> best ${{escapeHtml(bestHomelandCandidate || "None")}} (${{bestHomelandAppeal.toFixed(2)}}) | explored ${{exploredRegions.length ? exploredRegions.map((region) => escapeHtml(region)).join(", ") : "None"}}</div>
+            <div class="metric-line"><strong>Nomadic Identity:</strong> regions ${{identityRegions.length ? identityRegions.map((region) => escapeHtml(region)).join(", ") : "None"}} | fragmentation ${{fragmentationPressure.toFixed(2)}}</div>
             <div class="metric-line"><strong>Administration:</strong> Capacity ${{Number(metrics.administrative_capacity || 0).toFixed(2)}} / Load ${{Number(metrics.administrative_load || 0).toFixed(2)}} | Efficiency ${{Number((metrics.administrative_efficiency || 0) * 100).toFixed(0)}}% | Reach ${{Number((metrics.administrative_reach || 0) * 100).toFixed(0)}}%</div>
             <div class="metric-line"><strong>Overextension:</strong> ${{Number(metrics.administrative_overextension || 0).toFixed(2)}} | Penalty ${{Number(metrics.administrative_overextension_penalty || 0).toFixed(2)}}</div>
             <div class="metric-line"><strong>Trade Warfare:</strong> Damage ${{Number(metrics.trade_warfare_damage || 0).toFixed(2)}} | Blockade losses ${{Number(metrics.trade_blockade_losses || 0).toFixed(2)}} | Corridor exposure ${{Number((metrics.trade_corridor_exposure || 0) * 100).toFixed(0)}}%</div>
@@ -6024,6 +6055,10 @@ def render_simulation_html(world):
                   <div class="detail-value">${{escapeHtml(faction.polity_tier || "tribe")}} / ${{escapeHtml(faction.government_form || "council")}}</div>
                 </div>
                 <div class="detail-row">
+                  <div class="detail-label">Social Form</div>
+                  <div class="detail-value">${{escapeHtml(formatSocialForm(socialForm))}}</div>
+                </div>
+                <div class="detail-row">
                   <div class="detail-label">Camp Region</div>
                   <div class="detail-value">${{escapeHtml(campRegion || "None")}}</div>
                 </div>
@@ -6037,7 +6072,11 @@ def render_simulation_html(world):
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">Homeland</div>
-                  <div class="detail-value">${{escapeHtml(metrics.homeland_identity)}}</div>
+                  <div class="detail-value">${{escapeHtml(homelandRegion || "None")}}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">Homeland Appeal</div>
+                  <div class="detail-value">${{homelandAppeal.toFixed(2)}} / best ${{escapeHtml(bestHomelandCandidate || "None")}}</div>
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">Terrain Identity</div>

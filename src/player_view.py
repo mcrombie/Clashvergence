@@ -270,6 +270,35 @@ def _serialize_observer_faction(
         "doctrine_label": faction.doctrine_label,
         "government_type": faction.government_type,
         "polity_tier": faction.polity_tier,
+        "social_form": _metric(metrics, "social_form", faction.social_form or faction.polity_tier),
+        "homeland_region": _metric(metrics, "homeland_region", faction.chosen_homeland_region),
+        "homeland_appeal": _round_float(_metric(metrics, "homeland_appeal", faction.homeland_appeal), 3),
+        "homeland_claim_source": _metric(metrics, "homeland_claim_source", faction.homeland_claim_source),
+        "band_roaming_turns": int(_metric(metrics, "band_roaming_turns", faction.band_roaming_turns) or 0),
+        "band_explored_regions": list(_metric(metrics, "band_explored_regions", faction.band_explored_regions) or []),
+        "best_homeland_candidate": _metric(metrics, "best_homeland_candidate", faction.best_homeland_candidate),
+        "best_homeland_appeal": _round_float(
+            _metric(metrics, "best_homeland_appeal", faction.best_homeland_appeal),
+            3,
+        ),
+        "nomadic_identity_regions": list(
+            _metric(metrics, "nomadic_identity_regions", faction.nomadic_identity_regions) or []
+        ),
+        "nomadic_fragmentation_pressure": _round_float(
+            _metric(metrics, "nomadic_fragmentation_pressure", faction.nomadic_fragmentation_pressure),
+            3,
+        ),
+        "nomadic_fragmentation_turns": int(
+            _metric(metrics, "nomadic_fragmentation_turns", faction.nomadic_fragmentation_turns) or 0
+        ),
+        "nomadic_fragmentation_cooldown_turns": int(
+            _metric(
+                metrics,
+                "nomadic_fragmentation_cooldown_turns",
+                faction.nomadic_fragmentation_cooldown_turns,
+            )
+            or 0
+        ),
         "camp_region": _metric(metrics, "camp_region", get_band_camp_region_name(world, faction_name)),
         "tribalization_progress": _round_float(
             _metric(metrics, "tribalization_progress", faction.tribalization_progress),
@@ -508,6 +537,18 @@ def _serialize_player_faction(world, faction_name: str) -> dict[str, Any]:
         "doctrine_label": faction.doctrine_label,
         "government_type": faction.government_type,
         "polity_tier": faction.polity_tier,
+        "social_form": faction.social_form or faction.polity_tier,
+        "homeland_region": faction.chosen_homeland_region,
+        "homeland_appeal": round(float(faction.homeland_appeal or 0.0), 3),
+        "homeland_claim_source": faction.homeland_claim_source,
+        "band_roaming_turns": int(faction.band_roaming_turns or 0),
+        "band_explored_regions": list(faction.band_explored_regions or []),
+        "best_homeland_candidate": faction.best_homeland_candidate,
+        "best_homeland_appeal": round(float(faction.best_homeland_appeal or 0.0), 3),
+        "nomadic_identity_regions": list(faction.nomadic_identity_regions or []),
+        "nomadic_fragmentation_pressure": round(float(faction.nomadic_fragmentation_pressure or 0.0), 3),
+        "nomadic_fragmentation_turns": int(faction.nomadic_fragmentation_turns or 0),
+        "nomadic_fragmentation_cooldown_turns": int(faction.nomadic_fragmentation_cooldown_turns or 0),
         "camp_region": get_band_camp_region_name(world, faction_name),
         "tribalization_progress": round(float(faction.tribalization_progress or 0.0), 3),
         "band_settled_turns": int(faction.band_settled_turns or 0),

@@ -507,6 +507,18 @@ class Faction:
     revival_surge_turns: int = 0
     tribalization_progress: float = 0.0
     band_settled_turns: int = 0
+    social_form: str = ""
+    chosen_homeland_region: str | None = None
+    homeland_appeal: float = 0.0
+    homeland_claim_source: str = ""
+    band_roaming_turns: int = 0
+    band_explored_regions: list[str] = field(default_factory=list)
+    best_homeland_candidate: str | None = None
+    best_homeland_appeal: float = 0.0
+    nomadic_identity_regions: list[str] = field(default_factory=list)
+    nomadic_fragmentation_pressure: float = 0.0
+    nomadic_fragmentation_turns: int = 0
+    nomadic_fragmentation_cooldown_turns: int = 0
     migration_pressure: float = 0.0
     migration_cooldown_turns: int = 0
     last_migration_reason: str = ""
