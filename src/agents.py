@@ -1,3 +1,5 @@
+import random
+
 from src.actions import (
     get_attack_target_score_components,
     get_attackable_regions,
@@ -217,13 +219,16 @@ def _get_identity_action_bias(faction, action_name: str) -> float:
 def _score_expandable_regions(faction_name, expandable_regions, world):
     if not expandable_regions:
         return (0.0, None, None)
-    best_region = max(
-        expandable_regions,
-        key=lambda region_name: (
-            score_expand_target_for_faction(region_name, faction_name, world),
-            region_name,
-        ),
-    )
+    scored = [
+        (score_expand_target_for_faction(r, faction_name, world), r)
+        for r in expandable_regions
+    ]
+    best_score = max(s for s, _ in scored)
+    # Allow randomness among near-optimal targets so different seeds produce
+    # genuinely different expansion patterns, not always the same deterministic choice.
+    threshold = max(1.5, best_score * 0.12)
+    near_optimal = [r for s, r in scored if s >= best_score - threshold]
+    best_region = random.choice(near_optimal)
     components = get_expand_target_score_components(
         best_region,
         world,

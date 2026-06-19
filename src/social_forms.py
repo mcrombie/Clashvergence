@@ -514,6 +514,19 @@ def _score_homeland_appeal(world: WorldState, faction: Faction, region: Region) 
         + population_anchor
         + open_frontier
     )
+    # Strongly prefer agenda target regions so they always win the best_homeland_candidate race,
+    # even if they're desert/low-resource (e.g. Pyrosi targeting West/East Pyros).
+    if faction.agenda is not None:
+        if (
+            faction.agenda.agenda_type == "settle_region"
+            and region.name == faction.agenda.params.get("target_region")
+        ):
+            appeal += 8.0
+        elif (
+            faction.agenda.agenda_type == "hold_regions"
+            and region.name in (faction.agenda.params.get("regions") or [])
+        ):
+            appeal += 8.0
     return round(appeal, 3)
 
 
@@ -730,10 +743,24 @@ def _choose_band_homeland(
     faction_name: str,
     camp_region: Region,
 ) -> Event:
+    from src.climate import normalize_climate
+    from src.doctrine import compute_faction_doctrine_profile
+    from src.terrain import normalize_terrain_tags
+
     faction = world.factions[faction_name]
     root_name = _region_identity_root(camp_region)
     faction.social_form = "sedentary_band"
     faction.chosen_homeland_region = camp_region.name
+    # Sync doctrine homeland to the actual settled region so climate/terrain affinity
+    # in future expansion scoring reflects this homeland, not the arrival entry point.
+    faction.doctrine_state.homeland_region = camp_region.name
+    faction.doctrine_state.homeland_climate = normalize_climate(camp_region.climate)
+    faction.doctrine_state.homeland_terrain_tags = normalize_terrain_tags(
+        camp_region.terrain_tags or ["plains"]
+    )
+    faction.doctrine_profile = compute_faction_doctrine_profile(
+        faction, total_regions=len(world.regions)
+    )
     faction.homeland_appeal = float(faction.best_homeland_appeal or _score_homeland_appeal(world, faction, camp_region))
     faction.homeland_claim_source = "settled_band"
     faction.band_settled_turns = 0

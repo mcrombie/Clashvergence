@@ -181,7 +181,10 @@ def _get_expansion_climate_components(region, faction, doctrine_alignment):
     if str(get_climate_profile(region.climate)["group"]) == "E":
         harshness_penalty += (1.0 - adaptation) * 2.5
     affinity_modifier = (climate_affinity - 0.55) * 1.2
-    climate_modifier = baseline_modifier + affinity_modifier - harshness_penalty
+    # Direct bonus for regions climatically similar to the faction's homeland;
+    # without this, resource/neighbor bonuses routinely outweigh climate preference.
+    homeland_similarity_bonus = (homeland_similarity - 0.4) * 4.0
+    climate_modifier = baseline_modifier + affinity_modifier - harshness_penalty + homeland_similarity_bonus
     return {
         "climate_expansion_modifier": round(climate_modifier, 3),
         "climate_baseline_modifier": round(baseline_modifier, 3),
