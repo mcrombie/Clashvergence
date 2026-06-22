@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -13,7 +14,7 @@ from src.interactive_driver import (
     build_interactive_state_payload,
     submit_player_action,
 )
-from src.player_view import build_observer_snapshot
+from src.player_view import build_observer_snapshot, build_world_builder_snapshot
 from src.session import RunSession, advance_one_turn
 from src.world_serialization import deserialize_world, serialize_world
 
@@ -85,7 +86,10 @@ class GameRequestHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/world":
             with self.server.session_lock:
-                payload = build_observer_snapshot(self.server.session.world)
+                payload = build_world_builder_snapshot(
+                    self.server.session.world,
+                    self.server.session.config.player_faction,
+                )
                 payload["ok"] = True
             self._send_json(payload)
             return
@@ -113,8 +117,35 @@ class GameRequestHandler(BaseHTTPRequestHandler):
                 return
             with self.server.session_lock:
                 self.server.session.world = new_world
+                self.server.session.config = replace(
+                    self.server.session.config,
+                    mode="observer-server",
+                    player_faction=None,
+                )
                 payload = build_observer_snapshot(self.server.session.world)
                 payload["ok"] = True
+            self._send_json(payload)
+            return
+
+        if path == "/api/perspective":
+            requested_faction = body.get("faction")
+            if requested_faction is not None:
+                requested_faction = str(requested_faction).strip() or None
+
+            with self.server.session_lock:
+                session = self.server.session
+                if requested_faction is not None and requested_faction not in session.world.factions:
+                    self._send_error_json(
+                        HTTPStatus.BAD_REQUEST,
+                        f"Unknown faction: {requested_faction}",
+                    )
+                    return
+                session.config = replace(
+                    session.config,
+                    mode="game-server" if requested_faction else "observer-server",
+                    player_faction=requested_faction,
+                )
+                payload = build_game_state_payload(session)
             self._send_json(payload)
             return
 

@@ -34,6 +34,30 @@ BAND_HOMELAND_APPEAL_THRESHOLD = 11.5
 BAND_NOMADIC_TRIBE_APPEAL_CEILING = 10.0
 NOMADIC_TRIBE_FRAGMENTATION_THRESHOLD = 0.62
 NOMADIC_TRIBE_FRAGMENTATION_COOLDOWN = 3
+NOMADIC_SPLINTER_BAND_EPITHETS = (
+    "Wayfarer",
+    "Trail",
+    "Wind",
+    "Dawn",
+    "River",
+    "Stone",
+    "Reed",
+    "Ash",
+    "Hearth",
+    "Moon",
+    "Sun",
+    "Vale",
+)
+NOMADIC_SPLINTER_BAND_SECONDARIES = (
+    "Path",
+    "Road",
+    "Ridge",
+    "Steppe",
+    "Hollow",
+    "Spring",
+    "Cairn",
+    "Crossing",
+)
 
 REGION_FEATURE_WORDS = {
     "basin",
@@ -1032,7 +1056,7 @@ def _split_nomadic_tribe(
         ),
     )
     root_name = _region_identity_root(split_region)
-    display_name = _unique_faction_name(world, f"{root_name} Band")
+    display_name = _unique_nomadic_splinter_band_name(world, root_name)
     internal_id = f"{faction.internal_id}_split_{world.turn}_{len(world.factions) + 1}"
     language_profile = (
         deepcopy(faction.identity.language_profile)
@@ -1093,6 +1117,40 @@ def _split_nomadic_tribe(
     )
     world.events.append(event)
     return event
+
+
+def _unique_nomadic_splinter_band_name(world: WorldState, root_name: str) -> str:
+    root = (root_name or "Nomadic").strip() or "Nomadic"
+    for epithet in NOMADIC_SPLINTER_BAND_EPITHETS:
+        candidate = f"{root} {epithet} Band"
+        if candidate not in world.factions:
+            return candidate
+
+    for first in NOMADIC_SPLINTER_BAND_EPITHETS:
+        for second in NOMADIC_SPLINTER_BAND_SECONDARIES:
+            candidate = f"{root} {first}{second} Band"
+            if candidate not in world.factions:
+                return candidate
+
+    index = 0
+    while True:
+        suffix = _alphabetic_suffix(index)
+        candidate = f"{root} Far-Road {suffix} Band"
+        if candidate not in world.factions:
+            return candidate
+        index += 1
+
+
+def _alphabetic_suffix(index: int) -> str:
+    letters = []
+    value = max(0, index)
+    while True:
+        value, remainder = divmod(value, 26)
+        letters.append(chr(ord("A") + remainder))
+        if value == 0:
+            break
+        value -= 1
+    return "".join(reversed(letters))
 
 
 def _unique_faction_name(world: WorldState, base_name: str) -> str:

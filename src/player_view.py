@@ -158,6 +158,174 @@ def build_observer_snapshot(world) -> dict[str, Any]:
     }
 
 
+def build_world_builder_snapshot(world, faction_name: str | None = None) -> dict[str, Any]:
+    """Build the World Builder simulation payload for observer or faction view."""
+    if not faction_name:
+        snapshot = build_observer_snapshot(world)
+        snapshot["view_mode"] = "observer"
+        snapshot["player_faction"] = None
+        return snapshot
+
+    player_view = build_player_view_model(world, faction_name)
+    player_faction = dict(player_view["player_faction"])
+    player_faction["owned_regions"] = int(player_faction.get("owned_region_count", 0) or 0)
+    known_factions = {
+        item["name"]: item
+        for item in player_view.get("known_factions", [])
+        if item.get("name")
+    }
+    known_factions[player_faction["name"]] = player_faction
+
+    regions = [
+        _player_region_to_world_builder_region(region)
+        for region in player_view.get("known_regions", [])
+    ]
+    factions = [
+        _player_known_faction_to_world_builder_faction(
+            item,
+            player_faction=player_faction,
+        )
+        for item in sorted(
+            known_factions.values(),
+            key=lambda faction: (faction.get("display_name") or faction.get("name") or ""),
+        )
+    ]
+    visible_events = player_view.get("recent_visible_events", [])
+    visibility = player_view.get("visibility", {})
+    controlled_regions = [
+        region
+        for region in regions
+        if region.get("visibility") == "controlled"
+    ]
+
+    return {
+        "turn": player_view["turn"],
+        "turn_label": player_view["turn_label"],
+        "view_mode": "player",
+        "player_faction": player_faction,
+        "known_factions": list(known_factions.values()),
+        "available_actions": list(player_view.get("available_actions", [])),
+        "visibility": visibility,
+        "notes": list(player_view.get("notes", [])),
+        "summary": _serialize_player_summary(
+            player_faction=player_faction,
+            known_factions=factions,
+            known_regions=regions,
+            visibility=visibility,
+            recent_event_count=len(visible_events),
+        ),
+        "factions": factions,
+        "regions": regions,
+        "recent_events": visible_events,
+        "hot_regions": _serialize_player_hot_regions(controlled_regions),
+        "active_wars": [],
+        "active_shocks": [],
+    }
+
+
+def _player_known_faction_to_world_builder_faction(
+    faction: dict[str, Any],
+    *,
+    player_faction: dict[str, Any],
+) -> dict[str, Any]:
+    if faction.get("name") == player_faction.get("name"):
+        output = dict(player_faction)
+        output["owned_regions"] = int(output.get("owned_region_count", 0) or 0)
+        output.setdefault("language_family", None)
+        return output
+
+    relationship = str(faction.get("relationship") or "known")
+    return {
+        "name": faction.get("name"),
+        "display_name": faction.get("display_name") or faction.get("name"),
+        "relationship": relationship,
+        "treasury": 0,
+        "owned_regions": 0,
+        "population": 0,
+        "doctrine_label": relationship.replace("_", " ").title(),
+    }
+
+
+def _player_region_to_world_builder_region(region: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "name": region["name"],
+        "display_name": region.get("display_name") or region["name"],
+        "owner": region.get("owner"),
+        "population": int(region.get("population", 0) or 0),
+        "resources": int(region.get("resources", 0) or 0),
+        "unrest": _round_float(region.get("unrest", 0.0), 3),
+        "visibility": region.get("visibility", "known"),
+        "population_estimate": region.get("population_estimate"),
+        "resource_estimate": region.get("resource_estimate"),
+        "unrest_estimate": region.get("unrest_estimate"),
+        "climate": region.get("climate"),
+    }
+
+
+def _serialize_player_summary(
+    *,
+    player_faction: dict[str, Any],
+    known_factions: list[dict[str, Any]],
+    known_regions: list[dict[str, Any]],
+    visibility: dict[str, Any],
+    recent_event_count: int,
+) -> dict[str, Any]:
+    controlled_regions = [
+        region
+        for region in known_regions
+        if region.get("visibility") == "controlled"
+    ]
+    known_region_count = int(visibility.get("known_region_count", len(known_regions)) or 0)
+    total_region_count = int(visibility.get("total_region_count", known_region_count) or 0)
+    total_unrest = sum(float(region.get("unrest", 0.0) or 0.0) for region in controlled_regions)
+    return {
+        "active_factions": len(known_factions),
+        "successor_factions": 0,
+        "owned_regions": int(player_faction.get("owned_region_count", 0) or 0),
+        "unowned_regions": max(0, total_region_count - known_region_count),
+        "total_regions": total_region_count,
+        "total_population": int(player_faction.get("population", 0) or 0),
+        "total_treasury": _round_float(player_faction.get("treasury", 0.0), 3),
+        "average_unrest": _round_float(total_unrest / max(1, len(controlled_regions)), 3),
+        "high_unrest_regions": sum(
+            1
+            for region in controlled_regions
+            if float(region.get("unrest", 0.0) or 0.0) >= 0.65
+        ),
+        "active_wars": 0,
+        "active_shocks": 0,
+        "alliances": sum(1 for faction in known_factions if faction.get("relationship") == "alliance"),
+        "pacts": sum(1 for faction in known_factions if faction.get("relationship") == "non_aggression_pact"),
+        "rivalries": sum(1 for faction in known_factions if faction.get("relationship") == "rival"),
+        "tributaries": sum(1 for faction in known_factions if faction.get("relationship") == "tributary"),
+        "total_events": recent_event_count,
+        "recent_events": recent_event_count,
+    }
+
+
+def _serialize_player_hot_regions(regions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    hot_regions = []
+    for region in regions:
+        unrest = _round_float(region.get("unrest", 0.0), 3)
+        if unrest <= 0.05:
+            continue
+        hot_regions.append(
+            {
+                "name": region["name"],
+                "display_name": region.get("display_name") or region["name"],
+                "owner": region.get("owner"),
+                "population": int(region.get("population", 0) or 0),
+                "unrest": unrest,
+                "food_deficit": 0,
+                "trade_warfare_pressure": 0,
+                "climate_anomaly": 0,
+                "shock_exposure": 0,
+                "pressure": unrest,
+            }
+        )
+    return sorted(hot_regions, key=lambda item: (-item["pressure"], item["display_name"]))[:8]
+
+
 def _latest_metrics_for(world, faction_name: str) -> dict[str, Any]:
     if not world.metrics:
         return {}

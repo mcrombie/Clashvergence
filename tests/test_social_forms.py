@@ -11,6 +11,7 @@ from src.social_forms import (
     get_band_camp_region_name,
     is_nomadic_tribe,
     update_nomadic_social_forms,
+    _unique_nomadic_splinter_band_name,
 )
 from src.world import create_world
 
@@ -177,6 +178,23 @@ class SocialFormTests(unittest.TestCase):
         self.assertIn(splinter_name, world.factions)
         self.assertEqual(world.factions[splinter_name].polity_tier, "band")
         self.assertEqual(world.factions[splinter_name].social_form, "nomadic_band")
+        self.assertNotRegex(splinter_name, r"\d+$")
+
+    def test_nomadic_splinter_band_names_use_distinct_epithets(self):
+        world = create_world(map_name="thirteen_region_ring", num_factions=4, seed="nomadic-splinter-names")
+        prototype = next(iter(world.factions.values()))
+
+        first_name = _unique_nomadic_splinter_band_name(world, "Mithala")
+        world.factions[first_name] = prototype
+        second_name = _unique_nomadic_splinter_band_name(world, "Mithala")
+
+        self.assertNotEqual(first_name, second_name)
+        self.assertTrue(first_name.startswith("Mithala "))
+        self.assertTrue(second_name.startswith("Mithala "))
+        self.assertTrue(first_name.endswith(" Band"))
+        self.assertTrue(second_name.endswith(" Band"))
+        self.assertNotRegex(first_name, r"\d")
+        self.assertNotRegex(second_name, r"\d")
 
     def test_band_state_is_exposed_in_metrics_observer_and_html(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4, seed="band-visibility")

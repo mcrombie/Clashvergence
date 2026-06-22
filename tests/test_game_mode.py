@@ -387,6 +387,86 @@ def test_game_server_observer_advance_endpoint_uses_ai_turn():
             shutil.rmtree(scratch_path)
 
 
+def test_game_server_perspective_endpoint_switches_world_builder_view():
+    scratch_path = Path("tests/.tmp_perspective_server")
+    if scratch_path.exists():
+        shutil.rmtree(scratch_path)
+
+    server = None
+    thread = None
+    try:
+        world = create_world(
+            map_name="thirteen_region_ring",
+            num_factions=4,
+            seed="perspective-server",
+        )
+        faction_name = next(iter(world.factions))
+        session = create_session_from_world(
+            RunConfig(
+                map_name="thirteen_region_ring",
+                num_factions=4,
+                seed="perspective-server",
+                mode="observer-server",
+                player_faction=None,
+            ),
+            world,
+            run_dir=scratch_path,
+        )
+        server = create_game_server(session, host="127.0.0.1", port=0)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        host, port = server.server_address
+
+        connection = http.client.HTTPConnection(host, port, timeout=120)
+        connection.request(
+            "POST",
+            "/api/perspective",
+            body=json.dumps({"faction": faction_name}),
+            headers={"Content-Type": "application/json"},
+        )
+        response = connection.getresponse()
+        switch_payload = json.loads(response.read().decode("utf-8"))
+
+        assert response.status == 200
+        assert switch_payload["ok"] is True
+        assert switch_payload["config"]["player_faction"] == faction_name
+        assert switch_payload["state"]["player_faction"]["name"] == faction_name
+
+        connection.request("GET", "/api/world")
+        response = connection.getresponse()
+        player_world = json.loads(response.read().decode("utf-8"))
+
+        assert response.status == 200
+        assert player_world["ok"] is True
+        assert player_world["view_mode"] == "player"
+        assert player_world["player_faction"]["name"] == faction_name
+        assert player_world["available_actions"]
+        assert len(player_world["regions"]) < len(world.regions)
+
+        connection.request(
+            "POST",
+            "/api/perspective",
+            body=json.dumps({"faction": None}),
+            headers={"Content-Type": "application/json"},
+        )
+        response = connection.getresponse()
+        observer_payload = json.loads(response.read().decode("utf-8"))
+        connection.close()
+
+        assert response.status == 200
+        assert observer_payload["ok"] is True
+        assert observer_payload["config"]["player_faction"] is None
+        assert "summary" in observer_payload["state"]
+    finally:
+        if server is not None:
+            server.shutdown()
+            server.server_close()
+        if thread is not None:
+            thread.join(timeout=10)
+        if scratch_path.exists():
+            shutil.rmtree(scratch_path)
+
+
 def test_game_server_load_accepts_large_world_builder_save_payload():
     scratch_path = Path("tests/.tmp_game_server_large_load")
     if scratch_path.exists():
