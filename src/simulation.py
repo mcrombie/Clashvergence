@@ -2,7 +2,7 @@ import random
 
 from src.administration import refresh_administrative_state
 from src.agents import choose_action, choose_actions, evaluate_action_diagnostics
-from src.actions import attack, develop, expand
+from src.actions import attack, develop, expand, explore
 from src.calendar import (
     SEASONAL_TIME_STEP_YEARS,
     format_turn_label,
@@ -210,6 +210,14 @@ def _execute_single_action(world, faction_name, action_name, target_region_name,
             else:
                 print(f"{faction_name} attacked {target_region_name} but failed")
 
+    elif action_name == "explore":
+        success = explore(faction_name, target_region_name, world)
+        if verbose:
+            if success:
+                print(f"{faction_name} explored from {target_region_name}")
+            else:
+                print(f"{faction_name} failed to explore from {target_region_name}")
+
     elif action_name in {"develop", "invest"}:
         success = develop(faction_name, target_region_name, world)
         if verbose:
@@ -267,7 +275,7 @@ def _run_faction_action_phase(
                     target_region_name,
                     verbose=verbose,
                 )
-                if action_name in {"expand", "attack"}:
+                if action_name in {"expand", "attack", "explore"}:
                     faction.military_track_used = True
                 elif action_name in {"develop", "invest"}:
                     faction.admin_track_used = True

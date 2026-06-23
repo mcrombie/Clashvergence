@@ -1228,6 +1228,7 @@ def _new_action_phase_bucket():
         "utilities": {
             "attack": [],
             "expand": [],
+            "explore": [],
             "develop": [],
         },
         "attack_scores": [],
@@ -1241,6 +1242,8 @@ def _new_action_phase_bucket():
         "attack_foreign_gateway_bonuses": [],
         "attack_diplomacy_statuses": Counter(),
         "expand_scores": [],
+        "explore_scores": [],
+        "explore_revealed_counts": [],
         "frontier_pressures": [],
         "develop_scores": [],
         "acute_development_needs": [],
@@ -1273,6 +1276,10 @@ def _summarize_action_phase_bucket(bucket):
         ),
         "selected_expand_rate": _ratio(
             bucket["selected_action_counts"].get("expand", 0),
+            selected_total,
+        ),
+        "selected_explore_rate": _ratio(
+            bucket["selected_action_counts"].get("explore", 0),
             selected_total,
         ),
         "selected_develop_rate": _ratio(
@@ -1312,6 +1319,11 @@ def _summarize_action_phase_bucket(bucket):
             "samples": len(bucket["expand_scores"]),
             "average_score": _average(bucket["expand_scores"]),
             "average_frontier_pressure": _average(bucket["frontier_pressures"]),
+        },
+        "explore_candidate": {
+            "samples": len(bucket["explore_scores"]),
+            "average_score": _average(bucket["explore_scores"]),
+            "average_revealed_regions": _average(bucket["explore_revealed_counts"]),
         },
         "develop_candidate": {
             "samples": len(bucket["develop_scores"]),
@@ -1373,7 +1385,7 @@ def build_action_incentive_diagnostics(action_diagnostics):
                 _normalize_action_name(action_name): _safe_number(value)
                 for action_name, value in record.get("utilities", {}).items()
             }
-            for action_name in ("attack", "expand", "develop"):
+            for action_name in ("attack", "expand", "explore", "develop"):
                 if action_name in utilities:
                     bucket["utilities"][action_name].append(utilities[action_name])
             if utilities:
@@ -1432,6 +1444,13 @@ def build_action_incentive_diagnostics(action_diagnostics):
                     _safe_number(
                         record.get("pressures", {}).get("frontier_pressure", 0.0)
                     )
+                )
+
+            explore = components.get("explore") or {}
+            if targets.get("explore"):
+                bucket["explore_scores"].append(_safe_number(explore.get("score", 0.0)))
+                bucket["explore_revealed_counts"].append(
+                    _safe_number(explore.get("revealed_region_count", 0.0))
                 )
 
             develop = components.get("develop") or {}
@@ -1922,6 +1941,10 @@ def summarize_pressure_diagnostics(run_diagnostics):
                 run_diagnostics,
                 ("action_incentives", "average_utilities", "expand"),
             ),
+            "average_explore_utility": _average_nested(
+                run_diagnostics,
+                ("action_incentives", "average_utilities", "explore"),
+            ),
             "average_develop_utility": _average_nested(
                 run_diagnostics,
                 ("action_incentives", "average_utilities", "develop"),
@@ -1975,6 +1998,20 @@ def summarize_pressure_diagnostics(run_diagnostics):
                         "action_incentives",
                         "expand_candidate",
                         "average_frontier_pressure",
+                    ),
+                ),
+            },
+            "explore_candidate": {
+                "average_score": _average_nested(
+                    run_diagnostics,
+                    ("action_incentives", "explore_candidate", "average_score"),
+                ),
+                "average_revealed_regions": _average_nested(
+                    run_diagnostics,
+                    (
+                        "action_incentives",
+                        "explore_candidate",
+                        "average_revealed_regions",
                     ),
                 ),
             },
@@ -2428,6 +2465,7 @@ def format_setting_report(result):
     selected_actions_total = sum(selected_action_counts.values())
     attack_candidate = action_incentives.get("attack_candidate", {})
     expand_candidate = action_incentives.get("expand_candidate", {})
+    explore_candidate = action_incentives.get("explore_candidate", {})
     develop_candidate = action_incentives.get("develop_candidate", {})
     bloc_bias = action_incentives.get("bloc_bias", {})
     correlations = propagation.get("correlations", {})
@@ -2503,6 +2541,7 @@ def format_setting_report(result):
         f"  Action incentives: attack "
         f"{_ratio(selected_action_counts.get('attack', 0), selected_actions_total):.2%} | "
         f"expand {_ratio(selected_action_counts.get('expand', 0), selected_actions_total):.2%} | "
+        f"explore {_ratio(selected_action_counts.get('explore', 0), selected_actions_total):.2%} | "
         f"develop {_ratio(selected_action_counts.get('develop', 0), selected_actions_total):.2%} | "
         f"best-utility selected {action_incentives.get('best_utility_selection_rate', 0.0):.2%} | "
         f"dual-track qualified {action_incentives.get('dual_track_qualified_rate', 0.0):.2%}"
@@ -2512,6 +2551,8 @@ def format_setting_report(result):
         f"/ success {attack_candidate.get('average_success_chance', 0.0):.2%} | "
         f"expand score {expand_candidate.get('average_score', 0.0):.2f} "
         f"/ frontier {expand_candidate.get('average_frontier_pressure', 0.0):.3f} | "
+        f"explore score {explore_candidate.get('average_score', 0.0):.2f} "
+        f"/ revealed {explore_candidate.get('average_revealed_regions', 0.0):.2f} | "
         f"develop score {develop_candidate.get('average_score', 0.0):.2f} "
         f"/ acute need {develop_candidate.get('average_acute_development_need', 0.0):.3f}"
     )

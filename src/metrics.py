@@ -54,6 +54,7 @@ def build_turn_metrics(world, economy_snapshot=None):
     for faction_name, faction in world.factions.items():
         attacks = 0
         expansions = 0
+        explorations = 0
         developments = 0
         band_migrations = 0
         maritime_attacks = 0
@@ -107,6 +108,8 @@ def build_turn_metrics(world, economy_snapshot=None):
                 expansions += 1
                 if event.details.get("maritime_operation"):
                     maritime_expansions += 1
+            elif event.type == "explore":
+                explorations += 1
             elif event.type == "band_migration":
                 band_migrations += 1
             elif event.type in {"develop", "invest"}:
@@ -138,7 +141,7 @@ def build_turn_metrics(world, economy_snapshot=None):
             if "population" not in economy_data:
                 total_population += region.population
 
-        military_track_used = bool(getattr(faction, "military_track_used", False) or attacks or expansions)
+        military_track_used = bool(getattr(faction, "military_track_used", False) or attacks or expansions or explorations)
         admin_track_used = bool(getattr(faction, "admin_track_used", False) or developments)
         dual_track_qualified = bool(
             not faction.proto_state
@@ -164,6 +167,7 @@ def build_turn_metrics(world, economy_snapshot=None):
             "total_surplus": round(total_surplus, 2),
             "attacks": attacks,
             "expansions": expansions,
+            "explorations": explorations,
             "maritime_attacks": maritime_attacks,
             "maritime_expansions": maritime_expansions,
             "maritime_actions": maritime_attacks + maritime_expansions,

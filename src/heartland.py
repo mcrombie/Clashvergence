@@ -29,6 +29,7 @@ from src.config import (
     ADMIN_INTEGRATION_EFFICIENCY_FACTOR,
     ADMIN_INTEGRATION_SUPPORT_FACTOR,
     ADMIN_UNREST_AUTONOMY_FACTOR,
+    BAND_TRIBALIZATION_MIN_POPULATION,
     MIGRATION_ATTRACTION_CITY_BONUS,
     MIGRATION_ATTRACTION_CORE_BONUS,
     MIGRATION_ATTRACTION_DEVELOPMENT_FACTOR,
@@ -2250,8 +2251,6 @@ def get_region_settlement_level(region: Region, world: WorldState | None = None)
         region.population >= 100000
         and surplus >= 2.5
         and unrest < 3.5
-        and core_status in {"homeland", "core"}
-        and (core_status == "homeland" or ownership_turns >= 6)
     ):
         return "city"
 
@@ -2341,12 +2340,7 @@ def _qualifies_for_tribe(profile: dict[str, float | int]) -> bool:
         profile["owned_regions"] >= 1
         and profile.get("tribalization_progress", 0.0) >= 1.0
         and profile.get("band_settled_turns", 0) >= 3
-        and profile["population"] >= 10000
-        and (
-        profile["rural_regions"] >= 1
-        or profile["town_regions"] >= 1
-        or profile["city_regions"] >= 1
-        )
+        and profile["population"] >= BAND_TRIBALIZATION_MIN_POPULATION
     )
 
 

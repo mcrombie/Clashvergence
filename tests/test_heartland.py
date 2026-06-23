@@ -3,10 +3,12 @@ import unittest
 from unittest.mock import patch
 
 from src.config import (
+    BAND_STARTING_POPULATION,
     MIN_TREASURY_CONCENTRATION,
     REBEL_FULL_INDEPENDENCE_THRESHOLD,
     REBEL_INDEPENDENCE_TREASURY_BONUS,
     REBEL_MATURE_GOVERNMENT_TYPE,
+    SUCCESSION_CLAIMANT_REGION_MIN_POPULATION,
     SUCCESSION_FORCED_AGE,
     UNREST_SECESSION_CRISIS_TURNS,
     UNREST_SECESSION_THRESHOLD,
@@ -137,9 +139,9 @@ class HeartlandSystemTests(unittest.TestCase):
         owned_region = next(region for region in world.regions.values() if region.owner is not None)
         unowned_region = next(region for region in world.regions.values() if region.owner is None)
 
-        self.assertGreaterEqual(owned_region.population, 10000)
+        self.assertEqual(owned_region.population, BAND_STARTING_POPULATION)
         self.assertLess(get_region_population_pressure(owned_region), 0.3)
-        self.assertGreater(unowned_region.population, 0)
+        self.assertEqual(unowned_region.population, BAND_STARTING_POPULATION)
         self.assertEqual(get_region_settlement_level(unowned_region, world), "wild")
 
         owned_region.population = 7999
@@ -148,6 +150,26 @@ class HeartlandSystemTests(unittest.TestCase):
 
         owned_region.population = 8000
         self.assertEqual(get_region_settlement_level(owned_region, world), "rural")
+
+    def test_city_can_emerge_outside_core_status(self):
+        region = Region(
+            name="A",
+            neighbors=["B", "C", "D"],
+            owner="FactionA",
+            resources=3,
+            population=100000,
+            resource_monetized_value=6.0,
+            terrain_tags=["plains"],
+            core_status="frontier",
+            ownership_turns=1,
+            unrest=1.0,
+        )
+        world = WorldState(
+            regions={"A": region},
+            factions={"FactionA": Faction(name="FactionA")},
+        )
+
+        self.assertEqual(get_region_settlement_level(region, world), "city")
 
     def test_world_initializes_homeland_and_core_regions(self):
         world = create_world(map_name="thirty_seven_region_ring", num_factions=4)
@@ -562,7 +584,7 @@ class HeartlandSystemTests(unittest.TestCase):
             region.integrated_owner = faction_name
             region.core_status = "core"
             region.integration_score = CORE_INTEGRATION_SCORE + 1.0
-            region.population = max(region.population, 160)
+            region.population = max(region.population, SUCCESSION_CLAIMANT_REGION_MIN_POPULATION)
             seed_region_ethnicity(region, faction.primary_ethnicity)
             region.unrest = 6.5
 
@@ -788,19 +810,12 @@ class HeartlandSystemTests(unittest.TestCase):
         unowned_region = world.regions["C"]
         faction_name = owned_region.owner
 
-        self.assertEqual(
-            owned_region.population,
-            estimate_region_population(
-                owned_region.resources,
-                len(owned_region.neighbors),
-                owner=owned_region.owner,
-            ),
-        )
+        self.assertEqual(owned_region.population, BAND_STARTING_POPULATION)
         self.assertEqual(
             get_region_dominant_ethnicity(owned_region),
             world.factions[faction_name].primary_ethnicity,
         )
-        self.assertGreater(unowned_region.population, 0)
+        self.assertEqual(unowned_region.population, BAND_STARTING_POPULATION)
         self.assertEqual(unowned_region.ethnic_composition, {})
 
     def test_population_growth_responds_to_unrest(self):

@@ -4,6 +4,7 @@ from collections import deque
 from copy import deepcopy
 import re
 
+from src.config import BAND_TRIBALIZATION_MIN_POPULATION
 from src.heartland import (
     CONQUEST_INTEGRATION_SCORE,
     CORE_INTEGRATION_SCORE,
@@ -23,11 +24,10 @@ from src.region_state import get_region_core_status
 
 
 BAND_MIGRATION_COST = 1
-BAND_MIGRATION_POPULATION_SHARE = 0.86
-BAND_MIGRATION_MIN_REMAINDER = 18
+BAND_MIGRATION_POPULATION_SHARE = 1.0
+BAND_MIGRATION_MIN_REMAINDER = 0
 BAND_TRIBALIZATION_THRESHOLD = 1.0
 BAND_TRIBALIZATION_MIN_SETTLED_TURNS = 3
-BAND_TRIBALIZATION_MIN_POPULATION = 10000
 BAND_HOMELAND_MIN_ROAMING_TURNS = 3
 BAND_NOMADIC_TRIBE_MIN_ROAMING_TURNS = 5
 BAND_HOMELAND_APPEAL_THRESHOLD = 11.5
@@ -928,7 +928,6 @@ def _band_is_ready_to_tribalize(faction: Faction, camp_region: Region) -> bool:
         and float(faction.tribalization_progress or 0.0) >= BAND_TRIBALIZATION_THRESHOLD
         and int(faction.band_settled_turns or 0) >= BAND_TRIBALIZATION_MIN_SETTLED_TURNS
         and camp_region.population >= BAND_TRIBALIZATION_MIN_POPULATION
-        and camp_region.settlement_level in {"rural", "town", "city"}
     )
 
 

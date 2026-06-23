@@ -33,7 +33,7 @@ def test_player_actions_are_visible_and_legal():
     action_ids = {option.action_id for option in options}
 
     assert "skip" in action_ids
-    assert all(option.action_type in {"expand", "attack", "develop", "skip"} for option in options)
+    assert all(option.action_type in {"expand", "attack", "explore", "develop", "skip"} for option in options)
 
     develop_option = next(option for option in options if option.action_type == "develop")
     assert develop_option.target_region in world.regions

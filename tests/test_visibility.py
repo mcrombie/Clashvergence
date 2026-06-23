@@ -1,6 +1,8 @@
 import unittest
 
+from src.actions import explore, get_explorable_regions
 from src.heartland import create_rebel_faction
+from src.models import Faction, Region, WorldState
 from src.visibility import refresh_faction_visibility
 from src.world import create_world
 
@@ -48,6 +50,36 @@ class VisibilityTests(unittest.TestCase):
         self.assertTrue(parent_known_before.issubset(set(rebel_faction.known_regions)))
         self.assertIn("M", rebel_faction.known_regions)
         self.assertIn("E", rebel_faction.known_regions)
+
+    def test_explore_reveals_unknown_neighbors_without_claiming_target(self):
+        world = WorldState(
+            regions={
+                "A": Region(name="A", neighbors=["B"], owner="FactionA", resources=3),
+                "B": Region(name="B", neighbors=["A", "C", "D"], owner=None, resources=2),
+                "C": Region(name="C", neighbors=["B"], owner=None, resources=2),
+                "D": Region(name="D", neighbors=["B"], owner="FactionB", resources=2),
+            },
+            factions={
+                "FactionA": Faction(name="FactionA", treasury=0),
+                "FactionB": Faction(name="FactionB", treasury=0),
+            },
+        )
+        faction = world.factions["FactionA"]
+        faction.known_regions = ["A", "B"]
+        faction.visible_regions = ["A", "B"]
+        faction.known_factions = ["FactionA"]
+
+        self.assertIn("B", get_explorable_regions("FactionA", world))
+        self.assertTrue(explore("FactionA", "B", world))
+
+        self.assertIsNone(world.regions["B"].owner)
+        self.assertIn("C", faction.known_regions)
+        self.assertIn("D", faction.known_regions)
+        self.assertIn("FactionB", faction.known_factions)
+        event = world.events[-1]
+        self.assertEqual(event.type, "explore")
+        self.assertEqual(event.details["revealed_region_count"], 2)
+        self.assertEqual(event.impact["frontier_regions_revealed"], 1)
 
 
 if __name__ == "__main__":

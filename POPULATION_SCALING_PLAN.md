@@ -129,6 +129,9 @@ With these values:
 Typical ceiling: productive capacity 4 × 50,000 = **200,000 per region**. Starting populations
 (~12,000) begin at 6% of ceiling — growth runs as near-exponential for centuries before slowing.
 
+Band-scale exception: generated bands and unowned wild regions start around **50 people**.
+The regional 50× estimator applies once a society is no longer operating as a mobile band.
+
 **Settlement level thresholds** (calibrated to expected gameplay populations):
 
 | Level | Old | New | Reached at (r=0.003) |
@@ -141,7 +144,7 @@ Typical ceiling: productive capacity 4 × 50,000 = **200,000 per region**. Start
 
 | Tier | Old | New | Reached at (3-region faction, r=0.003) |
 |---|---|---|---|
-| band → tribe | 120 | **10,000** | Before year 0 (gated by `tribalization_progress`) |
+| band → tribe | 120 | **125** | Around 100–150 people (gated by `tribalization_progress`) |
 | tribe → chiefdom | 360 | **50,000** | ~Year 100 ✓ |
 | chiefdom → state | 900 | **250,000** | ~Year 250 (also requires city, infrastructure) |
 
@@ -244,7 +247,7 @@ After implementation:
      (same as current: 12,000 / 6,900 ≈ 1.74 vs. 250 / 138 ≈ 1.81).
 
 3. Confirm settlement levels advance naturally:
-   - Most starting regions should be `rural` from turn 1.
+   - Starting band camps remain `wild`; settled non-band regions should be `rural` from turn 1.
    - First `town` regions should appear around turn 80–120.
    - First `city` should appear around turn 200–250.
 

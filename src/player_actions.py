@@ -7,12 +7,15 @@ from src.actions import (
     attack,
     develop,
     expand,
+    explore,
     get_attack_target_score_components,
     get_attackable_regions,
     get_developable_regions,
     get_development_target_score_components,
     get_expand_target_score_components,
     get_expandable_regions,
+    get_explore_target_score_components,
+    get_explorable_regions,
 )
 from src.config import ATTACK_COST, EXPANSION_COST
 from src.region_naming import format_region_reference
@@ -50,6 +53,9 @@ def get_available_actions(world, faction_name: str, *, include_skip: bool = True
     if faction.treasury >= ATTACK_COST:
         for region_name in get_attackable_regions(faction_name, world):
             options.append(_build_attack_option(world, faction_name, region_name))
+
+    for region_name in get_explorable_regions(faction_name, world):
+        options.append(_build_explore_option(world, faction_name, region_name))
 
     for region_name in get_developable_regions(faction_name, world):
         options.append(_build_develop_option(world, faction_name, region_name))
@@ -109,6 +115,8 @@ def apply_action_option(world, faction_name: str, action: ActionOption | str) ->
         return expand(faction_name, action_option.target_region, world)
     if action_option.action_type == "attack":
         return attack(faction_name, action_option.target_region, world)
+    if action_option.action_type == "explore":
+        return explore(faction_name, action_option.target_region, world)
     if action_option.action_type == "develop":
         return develop(faction_name, action_option.target_region, world)
 
@@ -166,6 +174,32 @@ def _build_attack_option(world, faction_name: str, region_name: str) -> ActionOp
             "diplomacy_status": components.get("diplomacy_status"),
             "terrain_label": components.get("terrain_label"),
             "core_status": components.get("core_status"),
+        },
+    )
+
+
+def _build_explore_option(world, faction_name: str, region_name: str) -> ActionOption:
+    region = world.regions[region_name]
+    components = get_explore_target_score_components(region_name, faction_name, world)
+    reveal_count = int(components.get("revealed_region_count", 0) or 0)
+    unowned_count = int(components.get("revealed_unowned_count", 0) or 0)
+    return ActionOption(
+        action_id=f"explore:{region_name}",
+        action_type="explore",
+        target_region=region_name,
+        label=f"Explore from {format_region_reference(region, include_code=True)}",
+        visible_reason=(
+            f"Scout beyond known territory; expected to reveal {reveal_count} region"
+            f"{'' if reveal_count == 1 else 's'}, including {unowned_count} unclaimed."
+        ),
+        known_cost=0.0,
+        score=float(components.get("score", 0.0)),
+        details={
+            "revealed_region_count": reveal_count,
+            "revealed_unowned_count": unowned_count,
+            "revealed_faction_count": components.get("revealed_faction_count", 0),
+            "maritime_reveal_count": components.get("maritime_reveal_count", 0),
+            "frontier_component_size": components.get("frontier_component_size", 0),
         },
     )
 

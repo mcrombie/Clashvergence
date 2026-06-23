@@ -9,8 +9,8 @@ from src.factions import create_factions, validate_map_factions
 from src.integration import initialize_heartlands, initialize_region_history
 from src.internal_politics import initialize_elite_blocs
 from src.ideology import initialize_ideologies
+from src.config import BAND_STARTING_POPULATION
 from src.population import (
-    estimate_region_base_population_from_resource_profile,
     estimate_region_population_from_resource_profile,
     update_region_settlement_levels,
 )
@@ -29,16 +29,27 @@ from src.urban import update_urban_specializations
 from src.visibility import initialize_faction_visibility
 
 
+def _estimate_region_initial_population(world: WorldState, region: Region) -> int:
+    if region.owner is None:
+        return BAND_STARTING_POPULATION
+    faction = world.factions.get(region.owner)
+    if faction is not None and faction.polity_tier == "band":
+        return BAND_STARTING_POPULATION
+    return estimate_region_population_from_resource_profile(
+        region,
+        owner=region.owner,
+    )
+
+
 def _reset_region_populations(world: WorldState) -> None:
     for region in world.regions.values():
         if region.owner is None:
-            region.population = estimate_region_base_population_from_resource_profile(region)
+            region.population = BAND_STARTING_POPULATION
+            region.ethnic_composition = {}
             continue
-        region.population = estimate_region_population_from_resource_profile(
-            region,
-            owner=region.owner,
-        )
-        primary_ethnicity = world.factions[region.owner].primary_ethnicity
+        region.population = _estimate_region_initial_population(world, region)
+        faction = world.factions.get(region.owner)
+        primary_ethnicity = faction.primary_ethnicity if faction is not None else None
         if primary_ethnicity is not None:
             seed_region_ethnicity(region, primary_ethnicity)
 
@@ -233,10 +244,7 @@ def create_world(
     for region_name, region in world.regions.items():
         if region.owner is None:
             continue
-        region.population = estimate_region_population_from_resource_profile(
-            region,
-            owner=region.owner,
-        )
+        region.population = _estimate_region_initial_population(world, region)
 
         owned_count = homeland_assigned.get(region.owner, 0)
         assign_region_founding_name(

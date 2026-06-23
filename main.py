@@ -151,6 +151,16 @@ def format_event(event, world):
             f"treasury_after={event.get('treasury_after', 0)}{terrain_text}{seasonal_text})"
         )
 
+    if event["type"] == "explore":
+        revealed = event.get("revealed_region_count", 0)
+        unowned = event.get("revealed_unowned_count", 0)
+        contacts = event.get("revealed_faction_count", 0)
+        return (
+            f"{time_label}: {faction_name} explored from {region_reference} "
+            f"(revealed={revealed}, unclaimed={unowned}, contacts={contacts}, "
+            f"score={event.get('score', 0):.2f}{terrain_text}{seasonal_text})"
+        )
+
     if event["type"] in {"invest", "develop"}:
         project_type = event.get("project_type", "development").replace("_", " ")
         resource_focus = event.get("resource_focus")

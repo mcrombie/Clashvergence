@@ -1,6 +1,7 @@
 import unittest
 
 from src.actions import attack, expand, get_attackable_regions, get_expandable_regions
+from src.config import BAND_STARTING_POPULATION, BAND_TRIBALIZATION_MIN_POPULATION
 from src.integration import handle_region_owner_change
 from src.metrics import build_turn_metrics
 from src.player_view import build_observer_snapshot
@@ -33,7 +34,9 @@ class SocialFormTests(unittest.TestCase):
             self.assertEqual(faction.government_form, "leader")
             self.assertEqual(faction.government_type, "Band")
             self.assertEqual(len(_owned_region_names(world, faction_name)), 1)
-            self.assertIsNotNone(get_band_camp_region_name(world, faction_name))
+            camp_region_name = get_band_camp_region_name(world, faction_name)
+            self.assertIsNotNone(camp_region_name)
+            self.assertEqual(world.regions[camp_region_name].population, BAND_STARTING_POPULATION)
 
     def test_band_expansion_relocates_camp_instead_of_adding_region(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4, seed="band-migration")
@@ -48,7 +51,10 @@ class SocialFormTests(unittest.TestCase):
 
         self.assertEqual(_owned_region_names(world, faction_name), [target_region])
         self.assertIsNone(world.regions[old_camp].owner)
-        self.assertGreater(world.regions[target_region].population, 0)
+        self.assertEqual(
+            world.regions[target_region].population,
+            BAND_STARTING_POPULATION * 2,
+        )
         self.assertLess(world.regions[old_camp].population, old_population)
         self.assertEqual(world.events[-1].type, "band_migration")
         self.assertEqual(world.events[-1].details["previous_camp_region"], old_camp)
@@ -70,8 +76,8 @@ class SocialFormTests(unittest.TestCase):
         faction_name = next(iter(world.factions))
         faction = world.factions[faction_name]
         camp_region = world.regions[get_band_camp_region_name(world, faction_name)]
-        camp_region.population = 13000
-        camp_region.settlement_level = "rural"
+        camp_region.population = BAND_TRIBALIZATION_MIN_POPULATION + 5
+        camp_region.settlement_level = "wild"
         camp_region.food_deficit = 0.0
         camp_region.unrest = 0.0
         faction.tribalization_progress = 0.95
@@ -121,8 +127,8 @@ class SocialFormTests(unittest.TestCase):
         camp_name = get_band_camp_region_name(world, faction_name)
         camp_region = world.regions[camp_name]
         camp_region.display_name = "Ganesh Plains"
-        camp_region.population = 13000
-        camp_region.settlement_level = "rural"
+        camp_region.population = BAND_TRIBALIZATION_MIN_POPULATION + 5
+        camp_region.settlement_level = "wild"
         faction.social_form = "nomadic_band"
         faction.band_roaming_turns = BAND_HOMELAND_MIN_ROAMING_TURNS
         faction.best_homeland_candidate = camp_name

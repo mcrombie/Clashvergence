@@ -66,9 +66,12 @@ from src.military import (
     refresh_military_state,
 )
 from src.movement import (
+    get_faction_seafaring_level,
     get_maritime_reachable_region_names,
+    get_maritime_threshold,
     get_maritime_route,
     has_land_connection,
+    region_supports_maritime_access,
 )
 from src.population import (
     apply_region_population_loss,
@@ -122,7 +125,12 @@ from src.technology import (
     get_region_institutional_technology,
     get_region_technology_adoption,
 )
-from src.visibility import faction_knows_region
+from src.visibility import (
+    establish_faction_contact,
+    faction_knows_region,
+    get_faction_known_regions,
+    reveal_regions_for_faction,
+)
 
 
 TRADE_WARFARE_MAX_PRESSURE = 1.0
@@ -264,6 +272,81 @@ def get_attackable_regions(faction_name, world):
             attackable_regions.add(region_name)
 
     return sorted(attackable_regions)
+
+
+def _get_exploration_known_regions(faction_name, world) -> set[str]:
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return set()
+    if (
+        not faction.known_regions
+        and not faction.visible_regions
+        and not faction.known_factions
+    ):
+        return set()
+    known_regions = get_faction_known_regions(world, faction_name)
+    known_regions.update(faction.visible_regions or [])
+    known_regions.update(
+        region.name
+        for region in world.regions.values()
+        if region.owner == faction_name
+    )
+    return known_regions
+
+
+def get_exploration_reveal_regions(faction_name, target_region_name, world) -> list[str]:
+    """Return unknown regions a faction would learn by scouting a known target."""
+    faction = world.factions.get(faction_name)
+    target = world.regions.get(target_region_name)
+    if faction is None or target is None:
+        return []
+    if is_band_faction(faction):
+        return []
+
+    known_regions = _get_exploration_known_regions(faction_name, world)
+    if target_region_name not in known_regions:
+        return []
+    if target.owner not in {None, faction_name}:
+        return []
+
+    revealable: set[str] = set()
+    for neighbor_name in target.neighbors:
+        if neighbor_name not in known_regions and neighbor_name in world.regions:
+            revealable.add(neighbor_name)
+
+    if (
+        region_supports_maritime_access(target)
+        and get_faction_seafaring_level(world, faction_name) >= get_maritime_threshold("contact")
+    ):
+        for a_name, b_name in world.sea_links:
+            if target_region_name not in {a_name, b_name}:
+                continue
+            other_name = b_name if a_name == target_region_name else a_name
+            other = world.regions.get(other_name)
+            if (
+                other is not None
+                and other_name not in known_regions
+                and region_supports_maritime_access(other)
+            ):
+                revealable.add(other_name)
+
+    return sorted(revealable)
+
+
+def get_explorable_regions(faction_name, world):
+    """Return known owned or unclaimed regions that can reveal unknown neighbors."""
+    faction = world.factions.get(faction_name)
+    if faction is None or is_band_faction(faction):
+        return []
+    known_regions = _get_exploration_known_regions(faction_name, world)
+    explorable = []
+    for region_name in known_regions:
+        region = world.regions.get(region_name)
+        if region is None or region.owner not in {None, faction_name}:
+            continue
+        if get_exploration_reveal_regions(faction_name, region_name, world):
+            explorable.append(region_name)
+    return sorted(explorable)
 
 
 def _get_region_resource_interest(region, faction_name, world) -> int:
@@ -1540,6 +1623,94 @@ def _get_faction_trait_expansion_bonus(faction, region) -> float:
     return bonus
 
 
+def _get_unowned_frontier_component_size(region_name, world) -> int:
+    """Count the connected unowned frontier opened by claiming this target."""
+    target = world.regions.get(region_name)
+    if target is None or target.owner is not None:
+        return 0
+
+    sea_neighbors: dict[str, set[str]] = {}
+    for a_name, b_name in world.sea_links:
+        sea_neighbors.setdefault(a_name, set()).add(b_name)
+        sea_neighbors.setdefault(b_name, set()).add(a_name)
+
+    seen = {region_name}
+    queue = [region_name]
+    while queue:
+        current_name = queue.pop(0)
+        current = world.regions.get(current_name)
+        if current is None:
+            continue
+        linked_names = list(current.neighbors) + list(sea_neighbors.get(current_name, set()))
+        for neighbor_name in linked_names:
+            neighbor = world.regions.get(neighbor_name)
+            if neighbor is None or neighbor.owner is not None or neighbor_name in seen:
+                continue
+            seen.add(neighbor_name)
+            queue.append(neighbor_name)
+
+    return len(seen)
+
+
+def get_explore_target_score_components(region_name, faction_name, world):
+    """Returns scoring details for scouting from a known frontier region."""
+    region = world.regions[region_name]
+    revealed_regions = get_exploration_reveal_regions(faction_name, region_name, world)
+    revealed_unowned = [
+        revealed_name
+        for revealed_name in revealed_regions
+        if world.regions[revealed_name].owner is None
+    ]
+    revealed_factions = sorted(
+        {
+            world.regions[revealed_name].owner
+            for revealed_name in revealed_regions
+            if world.regions[revealed_name].owner is not None
+            and world.regions[revealed_name].owner != faction_name
+        }
+    )
+    sea_link_names = {
+        b_name if a_name == region_name else a_name
+        for a_name, b_name in world.sea_links
+        if region_name in {a_name, b_name}
+    }
+    maritime_reveals = [
+        revealed_name
+        for revealed_name in revealed_regions
+        if revealed_name in sea_link_names
+    ]
+    frontier_component_size = (
+        _get_unowned_frontier_component_size(region_name, world)
+        if region.owner is None
+        else 0
+    )
+    frontier_depth_bonus = min(4.0, max(0, frontier_component_size - 4) * 0.2)
+    target_unclaimed_bonus = 0.8 if region.owner is None else 0.0
+    score = (
+        len(revealed_regions) * 2.6
+        + len(revealed_unowned) * 1.2
+        + len(revealed_factions) * 1.0
+        + len(maritime_reveals) * 0.7
+        + target_unclaimed_bonus
+        + frontier_depth_bonus
+    )
+    return {
+        "revealed_regions": revealed_regions,
+        "revealed_region_count": len(revealed_regions),
+        "revealed_unowned_regions": revealed_unowned,
+        "revealed_unowned_count": len(revealed_unowned),
+        "revealed_factions": revealed_factions,
+        "revealed_faction_count": len(revealed_factions),
+        "maritime_reveals": maritime_reveals,
+        "maritime_reveal_count": len(maritime_reveals),
+        "frontier_component_size": frontier_component_size,
+        "frontier_depth_bonus": round(frontier_depth_bonus, 3),
+        "target_owner": region.owner,
+        "target_unclaimed": region.owner is None,
+        "score": score,
+    }
+
+
 def get_expand_target_score_components(region_name, world, faction_name=None):
     """Returns the scoring breakdown for an expansion target."""
 
@@ -1612,6 +1783,9 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         else 0.0
     )
     nomadic_tribe_bonus = 1.35 if is_nomadic_tribe(faction) else 0.0
+    frontier_component_size = _get_unowned_frontier_component_size(region_name, world)
+    frontier_depth_regions = max(0, frontier_component_size - 1 - unclaimed_neighbors)
+    frontier_unlock_bonus = min(5.0, frontier_depth_regions * 0.35)
     score = (
         (target_value * 2)
         + len(region.neighbors)
@@ -1626,6 +1800,7 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         + maritime_modifier
         + faction_trait_bonus
         + nomadic_tribe_bonus
+        + frontier_unlock_bonus
     )
 
     return {
@@ -1670,6 +1845,9 @@ def get_expand_target_score_components(region_name, world, faction_name=None):
         "resource_need_bonus": resource_need_bonus,
         "faction_trait_bonus": round(faction_trait_bonus, 3),
         "nomadic_tribe_bonus": round(nomadic_tribe_bonus, 3),
+        "frontier_component_size": frontier_component_size,
+        "frontier_depth_regions": frontier_depth_regions,
+        "frontier_unlock_bonus": round(frontier_unlock_bonus, 3),
         "connection_mode": "sea" if maritime_route is not None else "land",
         "maritime_operation": maritime_route is not None,
         "maritime_route_source": (
@@ -1698,6 +1876,10 @@ def get_expand_event_tags(score_components):
         tags.append("high_value")
     if score_components["unclaimed_neighbors"] >= 2:
         tags.append("frontier")
+    if score_components.get("frontier_component_size", 0) >= 6:
+        tags.append("frontier_gateway")
+    if score_components.get("frontier_component_size", 0) >= 12:
+        tags.append("large_frontier_component")
     if (
         score_components.get("climate_harshness", 0.0) >= 0.65
         and score_components.get("climate_affinity", 1.0) < 0.6
@@ -2021,6 +2203,9 @@ def expand(faction_name, target_region_name, world):
             "economic_identity_target_bonus": score_components.get("economic_identity_target_bonus", 0.0),
             "neighbors": score_components["neighbors"],
             "unclaimed_neighbors": score_components["unclaimed_neighbors"],
+            "frontier_component_size": score_components.get("frontier_component_size", 0),
+            "frontier_depth_regions": score_components.get("frontier_depth_regions", 0),
+            "frontier_unlock_bonus": score_components.get("frontier_unlock_bonus", 0.0),
             "score": score_components["score"],
             "terrain_tags": score_components["terrain_tags"],
             "terrain_label": score_components["terrain_label"],
@@ -2081,6 +2266,74 @@ def expand(faction_name, target_region_name, world):
         significance=float(score_components["score"]),
     ))
 
+    return True
+
+
+def explore(faction_name, target_region_name, world):
+    """Scout from a known owned or unclaimed region, revealing nearby unknown regions."""
+    if target_region_name not in get_explorable_regions(faction_name, world):
+        return False
+
+    score_components = get_explore_target_score_components(
+        target_region_name,
+        faction_name,
+        world,
+    )
+    revealed_regions = list(score_components["revealed_regions"])
+    if not revealed_regions:
+        return False
+
+    reveal_regions_for_faction(world, faction_name, revealed_regions)
+    revealed_factions = []
+    for region_name in revealed_regions:
+        owner_name = world.regions[region_name].owner
+        if owner_name is None or owner_name == faction_name:
+            continue
+        establish_faction_contact(world, faction_name, owner_name)
+        if owner_name not in revealed_factions:
+            revealed_factions.append(owner_name)
+
+    tags = ["exploration", "scouting"]
+    if score_components["revealed_unowned_count"] > 0:
+        tags.append("frontier_survey")
+    if score_components["revealed_faction_count"] > 0:
+        tags.append("contact")
+    if score_components["maritime_reveal_count"] > 0:
+        tags.append("maritime")
+    if score_components["frontier_component_size"] >= 8:
+        tags.append("frontier_gateway")
+
+    world.events.append(Event(
+        turn=world.turn,
+        type="explore",
+        faction=faction_name,
+        region=target_region_name,
+        details={
+            "revealed_regions": revealed_regions,
+            "revealed_region_count": len(revealed_regions),
+            "revealed_unowned_regions": score_components["revealed_unowned_regions"],
+            "revealed_unowned_count": score_components["revealed_unowned_count"],
+            "revealed_factions": sorted(revealed_factions),
+            "revealed_faction_count": len(revealed_factions),
+            "maritime_reveals": score_components["maritime_reveals"],
+            "maritime_reveal_count": score_components["maritime_reveal_count"],
+            "frontier_component_size": score_components["frontier_component_size"],
+            "frontier_depth_bonus": score_components["frontier_depth_bonus"],
+            "target_unclaimed": score_components["target_unclaimed"],
+            "score": score_components["score"],
+            "region_reference": format_region_reference(
+                world.regions[target_region_name],
+                include_code=True,
+            ),
+        },
+        impact={
+            "knowledge_gained": len(revealed_regions),
+            "frontier_regions_revealed": score_components["revealed_unowned_count"],
+            "contacts_made": len(revealed_factions),
+        },
+        tags=tags,
+        significance=float(score_components["score"]),
+    ))
     return True
 
 

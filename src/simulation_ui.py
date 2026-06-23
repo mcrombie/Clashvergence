@@ -294,6 +294,8 @@ def _get_event_title(event, world):
         region_reference = format_region_reference(world.regions[event.region], include_code=True)
     if event.type == "expand":
         return f"{faction_name} expanded into {region_reference}"
+    if event.type == "explore":
+        return f"{faction_name} scouted from {region_reference}"
     if event.type == "band_migration":
         previous_region = event.get("previous_camp_region") or "its prior camp"
         return f"{faction_name} moved camp from {previous_region} into {region_reference}"
@@ -4368,6 +4370,9 @@ def render_simulation_html(world):
       if (type === "expand") {{
         return {{ symbol: "◌", className: "event-icon-expand", label: "Expansion" }};
       }}
+      if (type === "explore") {{
+        return {{ symbol: "S", className: "event-icon-expand", label: "Exploration" }};
+      }}
       if (type === "band_migration") {{
         return {{ symbol: "M", className: "event-icon-expand", label: "Band Migration" }};
       }}
@@ -6514,6 +6519,4 @@ def write_simulation_html(world, output_path=SIMULATION_VIEWER_OUTPUT):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(render_simulation_html(world), encoding="utf-8")
     return output_path
-
-
 

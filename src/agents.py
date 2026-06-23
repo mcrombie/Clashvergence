@@ -6,8 +6,11 @@ from src.actions import (
     get_developable_regions,
     get_development_target_score_components,
     expand,
+    explore,
     get_expand_target_score_components,
     get_expandable_regions,
+    get_explore_target_score_components,
+    get_explorable_regions,
 )
 from src.calendar import get_annual_campaign_modifier, get_annual_dominant_season
 from src.climate import get_climate_expansion_modifier
@@ -38,6 +41,11 @@ MILITARIST_PIONEERS_FRONTIER_PRESSURE_CAP = 0.72
 MILITARIST_PIONEERS_FRONTIER_PRESSURE_MULT = 1.4
 MILITARIST_PIONEERS_EXPAND_BONUS = 0.14
 MILITARIST_PIONEERS_ATTACK_BONUS = 0.22
+
+FRONTIER_PRESSURE_CAP = 0.70
+FRONTIER_SETTLEMENT_PRESSURE_START_TURN = 60
+FRONTIER_COMPONENT_PRESSURE_CAP = 0.24
+FRONTIER_UNCLAIMED_RATIO_PRESSURE_CAP = 0.28
 from src.internal_politics import (
     BLOC_ADMIN_PROJECT_BIAS,
     BLOC_PREFERRED_TRACK,
@@ -70,8 +78,33 @@ def _normalize_develop_score(score):
     return _clamp(score / 12, 0.0, 1.0)
 
 
+def _normalize_explore_score(score):
+    return _clamp((score - 1) / 8, 0.0, 1.0)
+
+
 def _get_owned_region_count(faction_name, world):
     return sum(1 for region in world.regions.values() if region.owner == faction_name)
+
+
+def _get_unowned_region_ratio(world) -> float:
+    total_regions = len(world.regions)
+    if total_regions <= 0:
+        return 0.0
+    unowned_regions = sum(1 for region in world.regions.values() if region.owner is None)
+    return unowned_regions / total_regions
+
+
+def _get_frontier_component_pressure(best_expand_components) -> float:
+    if not best_expand_components:
+        return 0.0
+    component_size = int(best_expand_components.get("frontier_component_size", 0) or 0)
+    depth_regions = int(best_expand_components.get("frontier_depth_regions", 0) or 0)
+    if component_size <= 4 and depth_regions <= 0:
+        return 0.0
+    return min(
+        FRONTIER_COMPONENT_PRESSURE_CAP,
+        max(0, component_size - 4) * 0.012 + max(0, depth_regions) * 0.006,
+    )
 
 
 def _get_faction_dominant_season(faction_name, world):
@@ -113,6 +146,7 @@ def _get_frontier_pressure(
     *,
     expandable_regions,
     best_expand_score,
+    best_expand_components=None,
 ):
     if not expandable_regions:
         return 0.0
@@ -128,6 +162,13 @@ def _get_frontier_pressure(
 
     pressure += min(0.12, len(expandable_regions) * 0.018)
     pressure += min(0.14, max(0.0, best_expand_score - 11.0) * 0.014)
+    pressure += _get_frontier_component_pressure(best_expand_components)
+    if world.turn >= FRONTIER_SETTLEMENT_PRESSURE_START_TURN:
+        unowned_ratio = _get_unowned_region_ratio(world)
+        late_pressure = min(FRONTIER_UNCLAIMED_RATIO_PRESSURE_CAP, unowned_ratio * 0.55)
+        if world.turn >= FRONTIER_SETTLEMENT_PRESSURE_START_TURN * 2:
+            late_pressure += min(0.08, unowned_ratio * 0.25)
+        pressure += late_pressure
 
     if faction.treasury >= EXPANSION_COST:
         pressure += 0.06
@@ -145,7 +186,7 @@ def _get_frontier_pressure(
         return _clamp(pressure * MILITARIST_PIONEERS_FRONTIER_PRESSURE_MULT, 0.0, MILITARIST_PIONEERS_FRONTIER_PRESSURE_CAP)
     if faction.social_form == "nomadic_tribe":
         return _clamp((pressure * 1.35) + 0.1, 0.0, 0.76)
-    return _clamp(pressure, 0.0, 0.52)
+    return _clamp(pressure, 0.0, FRONTIER_PRESSURE_CAP)
 
 
 def _get_acute_development_need(faction):
@@ -239,6 +280,20 @@ def _score_expandable_regions(faction_name, expandable_regions, world):
         best_region,
         components,
     )
+
+
+def _score_explorable_regions(faction_name, explorable_regions, world):
+    if not explorable_regions:
+        return (0.0, None, None)
+    best_region = max(
+        explorable_regions,
+        key=lambda region_name: (
+            get_explore_target_score_components(region_name, faction_name, world)["score"],
+            region_name,
+        ),
+    )
+    components = get_explore_target_score_components(best_region, faction_name, world)
+    return (components["score"], best_region, components)
 
 
 def _score_attackable_regions(faction_name, attackable_regions, world):
@@ -352,6 +407,7 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
 
     attackable_regions = get_attackable_regions(faction_name, world)
     expandable_regions = get_expandable_regions(faction_name, world)
+    explorable_regions = get_explorable_regions(faction_name, world)
     developable_regions = get_developable_regions(faction_name, world)
 
     can_attack = bool(attackable_regions) and faction.treasury >= ATTACK_COST
@@ -360,6 +416,7 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
         and faction.treasury >= EXPANSION_COST
         and faction.polity_tier != "band"
     )
+    can_explore = bool(explorable_regions) and faction.polity_tier != "band"
     can_develop = bool(developable_regions)
 
     best_attack_target = None
@@ -368,6 +425,9 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
     best_expand_target = None
     best_expand_score = 0
     best_expand_components = None
+    best_explore_target = None
+    best_explore_score = 0
+    best_explore_components = None
     best_develop_target = None
     best_develop_components = None
     action_utilities = {}
@@ -386,11 +446,19 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
             world,
         )
 
+    if can_explore:
+        best_explore_score, best_explore_target, best_explore_components = _score_explorable_regions(
+            faction_name,
+            explorable_regions,
+            world,
+        )
+
     frontier_pressure = _get_frontier_pressure(
         faction_name,
         world,
         expandable_regions=expandable_regions,
         best_expand_score=best_expand_score,
+        best_expand_components=best_expand_components,
     )
 
     acute_development_need = 0.0
@@ -458,6 +526,26 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
             expand_utility -= DEVELOPMENTAL_RELIGIOUS_EXPAND_PENALTY
         action_utilities["expand"] = expand_utility
 
+    if can_explore:
+        explore_utility = (
+            _normalize_explore_score(best_explore_score)
+            * (0.48 + (doctrine.expansion_posture * 0.24))
+            * _get_expansion_personality(faction)
+            + ((1.0 - doctrine.insularity) * 0.05)
+            + frontier_pressure * 0.25
+        )
+        if faction.treasury < EXPANSION_COST:
+            explore_utility += 0.12
+        if can_expand:
+            explore_utility -= _normalize_expand_score(best_expand_score) * 0.22
+        if "chaos_pioneers" in faction.faction_traits:
+            explore_utility += 0.08
+        if "militarist_pioneers" in faction.faction_traits:
+            explore_utility += 0.06
+        if "militarist_isolationist" in faction.faction_traits:
+            explore_utility -= 0.08
+        action_utilities["explore"] = explore_utility
+
     if can_develop and best_develop_target is not None:
         acute_development_need = _get_acute_development_need(faction)
         develop_need = acute_development_need + _normalize_develop_score(best_develop_score)
@@ -483,11 +571,13 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
         "targets": {
             "attack": best_attack_target,
             "expand": best_expand_target,
+            "explore": best_explore_target,
             "develop": best_develop_target,
         },
         "components": {
             "attack": best_attack_components or {},
             "expand": best_expand_components or {},
+            "explore": best_explore_components or {},
             "develop": best_develop_components or {},
         },
         "pressures": {
@@ -497,6 +587,7 @@ def _evaluate_action_utilities(faction_name, world, bloc_biases=None):
         "bloc_biases": biases,
         "can_attack": can_attack,
         "can_expand": can_expand,
+        "can_explore": can_explore,
         "can_develop": can_develop,
     }
 
@@ -514,6 +605,8 @@ def _select_single_action(evaluation):
 
     if evaluation["can_expand"]:
         return ("expand", targets["expand"])
+    if evaluation["can_explore"]:
+        return ("explore", targets["explore"])
     if evaluation["can_develop"]:
         return ("develop", targets["develop"])
     if evaluation["can_attack"]:
@@ -525,7 +618,7 @@ def _select_single_action(evaluation):
 def _select_dual_track_actions(evaluation):
     military_utilities = {
         action_name: evaluation["utilities"][action_name]
-        for action_name in ("attack", "expand")
+        for action_name in ("attack", "expand", "explore")
         if action_name in evaluation["utilities"]
     }
     actions = []
@@ -642,7 +735,7 @@ def _choose_military_action(faction_name, world, bloc_biases=None):
     evaluation = _evaluate_action_utilities(faction_name, world, bloc_biases=bloc_biases)
     military_utilities = {
         action_name: evaluation["utilities"][action_name]
-        for action_name in ("attack", "expand")
+        for action_name in ("attack", "expand", "explore")
         if action_name in evaluation["utilities"]
     }
     if not military_utilities:
