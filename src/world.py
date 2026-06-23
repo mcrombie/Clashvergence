@@ -10,7 +10,7 @@ from src.integration import initialize_heartlands, initialize_region_history
 from src.internal_politics import initialize_elite_blocs
 from src.ideology import initialize_ideologies
 from src.population import (
-    estimate_region_population,
+    estimate_region_base_population_from_resource_profile,
     estimate_region_population_from_resource_profile,
     update_region_settlement_levels,
 )
@@ -29,14 +29,13 @@ from src.urban import update_urban_specializations
 from src.visibility import initialize_faction_visibility
 
 
-def _reset_owned_region_populations(world: WorldState) -> None:
+def _reset_region_populations(world: WorldState) -> None:
     for region in world.regions.values():
         if region.owner is None:
-            region.population = 0
+            region.population = estimate_region_base_population_from_resource_profile(region)
             continue
-        region.population = estimate_region_population(
-            region.resources,
-            len(region.neighbors),
+        region.population = estimate_region_population_from_resource_profile(
+            region,
             owner=region.owner,
         )
         primary_ethnicity = world.factions[region.owner].primary_ethnicity
@@ -252,14 +251,14 @@ def create_world(
         homeland_assigned[region.owner] = owned_count + 1
 
     update_faction_resource_economy(world)
-    _reset_owned_region_populations(world)
+    _reset_region_populations(world)
     initialize_religious_legitimacy(world)
     update_region_settlement_levels(world)
     update_faction_resource_economy(world)
-    _reset_owned_region_populations(world)
+    _reset_region_populations(world)
     update_region_settlement_levels(world)
     update_faction_resource_economy(world)
-    _reset_owned_region_populations(world)
+    _reset_region_populations(world)
     update_region_settlement_levels(world)
     refresh_administrative_state(world)
     initialize_technology_state(world)

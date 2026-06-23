@@ -268,7 +268,7 @@ def _resource_readiness(region: Region, technology_key: str) -> float:
         )
     if technology_key == TECH_ORGANIZED_LEVIES:
         return _clamp(
-            min(1.0, region.population / 360.0) * 0.32
+            min(1.0, region.population / 18000.0) * 0.32
             + region.resource_effective_output.get(RESOURCE_COPPER, 0.0) * 0.08
             + region.resource_effective_output.get(RESOURCE_HORSES, 0.0) * 0.08
             + _settlement_factor(region) * 0.18

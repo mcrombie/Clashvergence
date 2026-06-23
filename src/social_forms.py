@@ -27,7 +27,7 @@ BAND_MIGRATION_POPULATION_SHARE = 0.86
 BAND_MIGRATION_MIN_REMAINDER = 18
 BAND_TRIBALIZATION_THRESHOLD = 1.0
 BAND_TRIBALIZATION_MIN_SETTLED_TURNS = 3
-BAND_TRIBALIZATION_MIN_POPULATION = 120
+BAND_TRIBALIZATION_MIN_POPULATION = 10000
 BAND_HOMELAND_MIN_ROAMING_TURNS = 3
 BAND_NOMADIC_TRIBE_MIN_ROAMING_TURNS = 5
 BAND_HOMELAND_APPEAL_THRESHOLD = 11.5
@@ -448,7 +448,7 @@ def calculate_band_migration_pressure(
     surplus_pressure = max(0.0, -get_region_surplus(camp_region, world)) * 0.16
     unrest_pressure = min(0.42, float(camp_region.unrest or 0.0) / 18.0)
     shock_pressure = min(0.25, float(camp_region.shock_exposure or 0.0) * 0.35)
-    crowding_pressure = max(0.0, (camp_region.population - 420) / 1400.0)
+    crowding_pressure = max(0.0, (camp_region.population - 21000) / 70000.0)
     return round(
         max(0.0, min(1.0, food_deficit_pressure + surplus_pressure + unrest_pressure + shock_pressure + crowding_pressure)),
         3,
@@ -510,9 +510,9 @@ def _clear_unsettled_band_homelands(world: WorldState, faction_name: str) -> Non
 
 
 def _score_band_camp_region(world: WorldState, region: Region) -> tuple[float, int, str]:
-    status_bonus = 90 if get_region_core_status(region) == "homeland" else 30 if get_region_core_status(region) == "core" else 0
+    status_bonus = 4500 if get_region_core_status(region) == "homeland" else 1500 if get_region_core_status(region) == "core" else 0
     return (
-        region.population + (get_region_surplus(region, world) * 35.0) + status_bonus,
+        region.population + (get_region_surplus(region, world) * 1750.0) + status_bonus,
         len(region.neighbors),
         region.name,
     )
@@ -529,7 +529,7 @@ def _score_homeland_appeal(world: WorldState, faction: Faction, region: Region) 
     surplus = get_region_surplus(region, world)
     stability = max(0.0, 6.0 - float(region.unrest or 0.0)) * 0.18
     food_security = max(0.0, surplus) * 0.42
-    population_anchor = min(1.6, region.population / 360.0)
+    population_anchor = min(1.6, region.population / 18000.0)
     open_frontier = min(1.5, components["unclaimed_neighbors"] * 0.35)
     appeal = (
         float(components["score"])
@@ -914,7 +914,7 @@ def _calculate_tribalization_gain(
         "town": 0.11,
         "city": 0.14,
     }.get(camp_region.settlement_level, 0.0)
-    population_bonus = min(0.1, camp_region.population / 2400.0)
+    population_bonus = min(0.1, camp_region.population / 120000.0)
     surplus_bonus = min(0.08, max(0.0, surplus) * 0.025)
     stability_bonus = max(0.0, 0.16 - pressure * 0.18)
     continuity_bonus = min(0.06, max(0, faction.band_settled_turns - 1) * 0.015)

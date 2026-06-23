@@ -140,7 +140,7 @@ def _best_base_region(regions: list[Region], bloc_type: str) -> str | None:
         )
     else:
         key = lambda region: (
-            region.population + (200 if get_region_core_status(region) == "homeland" else 0),
+            region.population + (10000 if get_region_core_status(region) == "homeland" else 0),
             region.name,
         )
     return max(regions, key=key).name
@@ -260,7 +260,7 @@ def _target_influence(faction: Faction, context: dict[str, float | int | list[Re
         return _clamp(
             0.04
             + urban_count * 0.075
-            + min(0.22, int(context["urban_population"]) / 2200.0)
+            + min(0.22, int(context["urban_population"]) / 110000.0)
             + float(faction.urban_network_value or 0.0) * 0.035,
             0.0,
             0.85,

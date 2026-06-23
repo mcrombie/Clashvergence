@@ -189,7 +189,7 @@ def _foreign_neighbor_count(region: Region, world: WorldState) -> int:
 
 
 def _urban_population_factor(region: Region) -> float:
-    return min(1.25, max(0.0, float(region.population or 0)) / 420.0)
+    return min(1.25, max(0.0, float(region.population or 0)) / 21000.0)
 
 
 def _average_technology(region: Region) -> float:

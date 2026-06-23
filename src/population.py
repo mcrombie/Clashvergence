@@ -7,6 +7,8 @@ giving callers a stable domain-specific import path.
 from src.heartland import (
     apply_region_population_loss,
     change_region_population,
+    estimate_region_base_population,
+    estimate_region_base_population_from_resource_profile,
     estimate_region_population,
     estimate_region_population_from_resource_profile,
     get_faction_settlement_profile,
@@ -21,4 +23,3 @@ from src.heartland import (
     update_region_populations,
     update_region_settlement_levels,
 )
-

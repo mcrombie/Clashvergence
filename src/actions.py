@@ -1179,7 +1179,7 @@ def _apply_defender_siege_supply_draw(world, defender_name: str, target_region) 
         }
     stockpiles = dict(defender.produced_good_stockpiles or {})
     current = max(0.0, float(stockpiles.get(PRODUCED_GOOD_PROVISIONS, 0.0) or 0.0))
-    draw = min(current, 0.06 + float(target_region.population or 0) / 5200.0 + float(target_region.garrison_strength or 0.0) * 0.025)
+    draw = min(current, 0.06 + float(target_region.population or 0) / 260000.0 + float(target_region.garrison_strength or 0.0) * 0.025)
     stockpiles[PRODUCED_GOOD_PROVISIONS] = round(max(0.0, current - draw), 3)
     defender.produced_good_stockpiles = stockpiles
     return {

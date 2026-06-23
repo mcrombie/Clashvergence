@@ -450,7 +450,7 @@ def _score_turning_point(event) -> float:
     if event.type == "unrest_secession":
         score += float(event.get("joined_region_count", 0) or 0) * 0.9
     if event.type in {"migration_wave", "refugee_wave"}:
-        score += min(3.0, float(event.get("population_moved", 0) or 0) / 40.0)
+        score += min(3.0, float(event.get("population_moved", 0) or 0) / 2000.0)
     if event.type == "war_peace":
         peace_term = str(event.get("peace_term", ""))
         if peace_term and peace_term != "white_peace":

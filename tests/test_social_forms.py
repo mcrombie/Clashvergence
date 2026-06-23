@@ -70,7 +70,7 @@ class SocialFormTests(unittest.TestCase):
         faction_name = next(iter(world.factions))
         faction = world.factions[faction_name]
         camp_region = world.regions[get_band_camp_region_name(world, faction_name)]
-        camp_region.population = 260
+        camp_region.population = 13000
         camp_region.settlement_level = "rural"
         camp_region.food_deficit = 0.0
         camp_region.unrest = 0.0
@@ -121,7 +121,7 @@ class SocialFormTests(unittest.TestCase):
         camp_name = get_band_camp_region_name(world, faction_name)
         camp_region = world.regions[camp_name]
         camp_region.display_name = "Ganesh Plains"
-        camp_region.population = 260
+        camp_region.population = 13000
         camp_region.settlement_level = "rural"
         faction.social_form = "nomadic_band"
         faction.band_roaming_turns = BAND_HOMELAND_MIN_ROAMING_TURNS

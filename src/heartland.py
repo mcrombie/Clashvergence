@@ -264,10 +264,10 @@ PER_TURN_FRONTIER_GAIN = 1.0
 PER_TURN_CORE_GAIN = 0.35
 SURPLUS_RESOURCE_YIELD = 2.5
 SURPLUS_CONNECTION_YIELD = 0.15
-SURPLUS_POPULATION_PRESSURE = 90.0
-SURPLUS_GROWTH_FACTOR = 0.003
-SURPLUS_MAX_GROWTH_BONUS = 0.018
-SURPLUS_MIN_GROWTH_PENALTY = -0.012
+SURPLUS_POPULATION_PRESSURE = 50000.0
+SURPLUS_GROWTH_FACTOR = 0.001
+SURPLUS_MAX_GROWTH_BONUS = 0.004
+SURPLUS_MIN_GROWTH_PENALTY = -0.004
 SETTLEMENT_LEVELS = ("wild", "rural", "town", "city")
 POLITY_TIER_ORDER = ("band", "tribe", "chiefdom", "state")
 SURPLUS_TERRAIN_PRODUCTIVITY = {
@@ -2141,6 +2141,13 @@ def estimate_region_population(
 ) -> int:
     if owner is None:
         return 0
+    return estimate_region_base_population(resources, neighbor_count)
+
+
+def estimate_region_base_population(
+    resources: float,
+    neighbor_count: int,
+) -> int:
     estimate = (
         POPULATION_BASE
         + (resources * POPULATION_PER_RESOURCE)
@@ -2163,13 +2170,8 @@ def _get_region_starting_resource_potential(region: Region) -> float:
     return total_value / 1.8
 
 
-def estimate_region_population_from_resource_profile(
-    region: Region,
-    *,
-    owner: str | None = None,
-) -> int:
+def estimate_region_base_population_from_resource_profile(region: Region) -> int:
     ensure_region_resource_state(region)
-    owner_name = owner if owner is not None else region.owner
     if any(region.resource_output.values()) or any(region.resource_effective_output.values()):
         resource_potential = float(region.resources)
     else:
@@ -2183,11 +2185,18 @@ def estimate_region_population_from_resource_profile(
                 established=region.resource_established,
             )),
         )
-    return estimate_region_population(
-        resource_potential,
-        len(region.neighbors),
-        owner=owner_name,
-    )
+    return estimate_region_base_population(resource_potential, len(region.neighbors))
+
+
+def estimate_region_population_from_resource_profile(
+    region: Region,
+    *,
+    owner: str | None = None,
+) -> int:
+    owner_name = owner if owner is not None else region.owner
+    if owner_name is None:
+        return 0
+    return estimate_region_base_population_from_resource_profile(region)
 
 
 def get_region_productive_capacity(region: Region, world: WorldState | None = None) -> float:
@@ -2238,7 +2247,7 @@ def get_region_settlement_level(region: Region, world: WorldState | None = None)
     ownership_turns = region.ownership_turns
 
     if (
-        region.population >= 320
+        region.population >= 100000
         and surplus >= 2.5
         and unrest < 3.5
         and core_status in {"homeland", "core"}
@@ -2247,14 +2256,14 @@ def get_region_settlement_level(region: Region, world: WorldState | None = None)
         return "city"
 
     if (
-        region.population >= 160
+        region.population >= 40000
         and surplus >= 1.5
         and unrest < 5.0
         and (core_status in {"homeland", "core"} or ownership_turns >= 3)
     ):
         return "town"
 
-    if region.population >= 35 and surplus >= -0.5 and unrest < 8.0:
+    if region.population >= 8000 and surplus >= -0.5 and unrest < 8.0:
         return "rural"
 
     return "wild"
@@ -2332,7 +2341,7 @@ def _qualifies_for_tribe(profile: dict[str, float | int]) -> bool:
         profile["owned_regions"] >= 1
         and profile.get("tribalization_progress", 0.0) >= 1.0
         and profile.get("band_settled_turns", 0) >= 3
-        and profile["population"] >= 120
+        and profile["population"] >= 10000
         and (
         profile["rural_regions"] >= 1
         or profile["town_regions"] >= 1
@@ -2344,7 +2353,7 @@ def _qualifies_for_tribe(profile: dict[str, float | int]) -> bool:
 def _qualifies_for_chiefdom(profile: dict[str, float | int]) -> bool:
     return (
         profile["owned_regions"] >= 3
-        and profile["population"] >= 360
+        and profile["population"] >= 50000
         and profile["total_surplus"] >= 3.5
         and profile["core_regions"] >= 1
         and (profile["town_regions"] + profile["city_regions"]) >= 1
@@ -2354,7 +2363,7 @@ def _qualifies_for_chiefdom(profile: dict[str, float | int]) -> bool:
 def _qualifies_for_state(profile: dict[str, float | int]) -> bool:
     return (
         profile["owned_regions"] >= 5
-        and profile["population"] >= 900
+        and profile["population"] >= 250000
         and profile["total_surplus"] >= 10.0
         and profile["city_regions"] >= 1
         and (profile["town_regions"] + profile["city_regions"]) >= 3
@@ -2702,12 +2711,12 @@ def _record_migration_move(
         target.frontier_settler_inflow += moved
         world.factions[target.owner].frontier_settlers += moved
         target.integration_score = round(
-            target.integration_score + ((moved / 100.0) * MIGRATION_FRONTIER_INTEGRATION_PER_100),
+            target.integration_score + ((moved / 5000.0) * MIGRATION_FRONTIER_INTEGRATION_PER_100),
             2,
         )
         set_region_unrest(
             target,
-            max(0.0, target.unrest - (MIGRATION_FRONTIER_UNREST_REDUCTION * (moved / 40.0))),
+            max(0.0, target.unrest - (MIGRATION_FRONTIER_UNREST_REDUCTION * (moved / 2000.0))),
         )
 
 
@@ -2727,7 +2736,7 @@ def _emit_migration_event(
         reverse=True,
     )[:3]
     top_destination_name = top_destinations[0][0] if top_destinations else None
-    event_type = "refugee_wave" if refugee_moved >= max(10, int(round(total_moved * 0.45))) else "migration_wave"
+    event_type = "refugee_wave" if refugee_moved >= max(500, int(round(total_moved * 0.45))) else "migration_wave"
     world.events.append(Event(
         turn=world.turn,
         type=event_type,
@@ -2807,7 +2816,7 @@ def resolve_population_migration(world: WorldState) -> None:
             target_capacity = _get_region_migration_capacity(target, world) - destination_capacity_used[target.name]
             if target_capacity <= 0:
                 continue
-            move_cap = max(4, int(round(score * 10 * migration_flow_modifier)))
+            move_cap = max(200, int(round(score * 500 * migration_flow_modifier)))
             move_amount = min(remaining - refugee_remaining, target_capacity, move_cap, source.population)
             if move_amount <= 0:
                 continue
@@ -2826,7 +2835,7 @@ def resolve_population_migration(world: WorldState) -> None:
             target_capacity = _get_region_migration_capacity(target, world) - destination_capacity_used[target.name]
             if target_capacity <= 0:
                 continue
-            move_cap = max(4, int(round(score * 9 * refugee_flow_modifier)))
+            move_cap = max(200, int(round(score * 450 * refugee_flow_modifier)))
             move_amount = min(refugee_remaining, target_capacity, move_cap, source.population)
             if move_amount <= 0:
                 continue
@@ -2850,7 +2859,7 @@ def resolve_population_migration(world: WorldState) -> None:
                 target_capacity = _get_region_migration_capacity(target, world) - destination_capacity_used[target.name]
                 if target_capacity <= 0:
                     continue
-                move_cap = max(3, int(round(score * 7 * migration_flow_modifier)))
+                move_cap = max(150, int(round(score * 350 * migration_flow_modifier)))
                 move_amount = min(remaining, target_capacity, move_cap, source.population)
                 if move_amount <= 0:
                     continue

@@ -68,7 +68,7 @@ def _frontier_edges(world: WorldState, faction_name: str, region) -> int:
 
 
 def _population_manpower(population: int) -> float:
-    return max(0.0, float(population or 0) / 28.0)
+    return max(0.0, float(population or 0) / 1400.0)
 
 
 def _output_ratio(output: float, shortage: float) -> float:

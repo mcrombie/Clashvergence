@@ -84,7 +84,7 @@ def get_maritime_route(
         ):
             continue
         score = (
-            float(source.population or 0) / 500.0
+            float(source.population or 0) / 25000.0
             + float(source.naval_base_level or 0.0) * 2.0
             + float(source.market_level or 0.0)
             + float(source.infrastructure_level or 0.0) * 0.5

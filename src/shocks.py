@@ -330,7 +330,7 @@ def _update_region_long_memory(world: WorldState) -> None:
             max(0.0, float(region.resource_output.get(RESOURCE_COPPER, 0.0)))
             + max(0.0, float(region.resource_output.get(RESOURCE_STONE, 0.0)))
         )
-        population_pressure = _clamp(float(region.population or 0) / 360.0, 0.0, 1.2)
+        population_pressure = _clamp(float(region.population or 0) / 18000.0, 0.0, 1.2)
 
         soil_loss = min(
             0.018,
@@ -491,10 +491,10 @@ def resolve_food_and_disease_shocks(world: WorldState) -> None:
             )
 
         epidemic_pressure = (
-            _clamp(float(region.population or 0) / 480.0, 0.0, 0.42)
+            _clamp(float(region.population or 0) / 24000.0, 0.0, 0.42)
             + {"wild": 0.0, "rural": 0.04, "town": 0.1, "city": 0.17}.get(region.settlement_level, 0.0)
             + _clamp(float(region.trade_throughput or 0.0) / 16.0, 0.0, 0.18)
-            + _clamp(float(region.refugee_inflow or 0) / 140.0, 0.0, 0.18)
+            + _clamp(float(region.refugee_inflow or 0) / 7000.0, 0.0, 0.18)
             + get_region_active_shock_intensity(world, region, SHOCK_FAMINE) * 0.2
             - resilience * 0.22
         )

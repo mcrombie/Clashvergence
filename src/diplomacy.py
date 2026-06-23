@@ -107,7 +107,7 @@ def _estimate_faction_power(world: WorldState, faction_name: str) -> float:
         population += region.population
     return round(
         (owned_regions * 3.4)
-        + (population / 110.0)
+        + (population / 5500.0)
         + (max(0.0, float(faction.treasury)) * 0.45)
         + (_get_polity_rank(faction.polity_tier) * 2.4)
         + (float(faction.force_projection or 0.0) * 0.18)

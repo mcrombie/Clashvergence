@@ -387,7 +387,7 @@ def _event_score(event) -> float:
     score += base_weights.get(event.type, 0.0)
 
     if event.type in {"migration_wave", "refugee_wave"}:
-        score += min(6.0, float(event.get("population_moved", 0) or 0) / 80.0)
+        score += min(6.0, float(event.get("population_moved", 0) or 0) / 4000.0)
     if event.type == "unrest_secession":
         score += float(event.get("joined_region_count", 0) or 0) * 0.75
     if event.type == "war_peace":

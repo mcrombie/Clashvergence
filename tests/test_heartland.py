@@ -47,8 +47,10 @@ from src.heartland import (
     get_region_dominant_ethnicity,
     get_region_ethnic_claimants,
     get_region_ethnic_integration_multiplier,
+    get_region_population_pressure,
     get_rebel_reclaim_bonus,
     get_region_ruling_ethnic_affinity,
+    get_region_settlement_level,
     get_region_unrest_pressure,
     resolve_dynastic_succession,
     resolve_population_migration,
@@ -128,6 +130,25 @@ class HeartlandSystemTests(unittest.TestCase):
         apply_unrest_secession(world, region)
         return region.owner, region
 
+    def test_population_scale_starts_with_growth_headroom(self):
+        self.assertEqual(estimate_region_population(3, 4, owner="FactionA"), 12350)
+
+        world = create_world(map_name="thirteen_region_ring", num_factions=4, seed="population-scale")
+        owned_region = next(region for region in world.regions.values() if region.owner is not None)
+        unowned_region = next(region for region in world.regions.values() if region.owner is None)
+
+        self.assertGreaterEqual(owned_region.population, 10000)
+        self.assertLess(get_region_population_pressure(owned_region), 0.3)
+        self.assertGreater(unowned_region.population, 0)
+        self.assertEqual(get_region_settlement_level(unowned_region, world), "wild")
+
+        owned_region.population = 7999
+        owned_region.unrest = 0.0
+        self.assertEqual(get_region_settlement_level(owned_region, world), "wild")
+
+        owned_region.population = 8000
+        self.assertEqual(get_region_settlement_level(owned_region, world), "rural")
+
     def test_world_initializes_homeland_and_core_regions(self):
         world = create_world(map_name="thirty_seven_region_ring", num_factions=4)
 
@@ -180,6 +201,7 @@ class HeartlandSystemTests(unittest.TestCase):
         region.integration_score = 1.0
         region.core_status = "frontier"
         region.ownership_turns = 1
+        seed_region_ethnicity(region, world.factions[faction_name].primary_ethnicity)
 
         for _ in range(5):
             update_region_integration(world)
@@ -677,7 +699,7 @@ class HeartlandSystemTests(unittest.TestCase):
     def test_state_tier_requires_mature_core_not_only_fast_growth(self):
         fast_growth_profile = {
             "owned_regions": 3,
-            "population": 620,
+            "population": 240000,
             "total_surplus": 7.0,
             "wild_regions": 0,
             "rural_regions": 1,
@@ -694,7 +716,7 @@ class HeartlandSystemTests(unittest.TestCase):
         mature_profile = {
             **fast_growth_profile,
             "owned_regions": 5,
-            "population": 940,
+            "population": 260000,
             "total_surplus": 10.5,
             "town_regions": 2,
             "city_regions": 1,
@@ -723,7 +745,7 @@ class HeartlandSystemTests(unittest.TestCase):
             region.integrated_owner = faction_name
             region.core_status = "core"
             region.integration_score = 8.0
-            region.population = 190
+            region.population = 50000
             region.settlement_level = "town"
             region.infrastructure_level = 0.35
             region.road_level = 0.25
@@ -732,7 +754,7 @@ class HeartlandSystemTests(unittest.TestCase):
             region.unrest = 1.0
             region.resource_monetized_value = 4.0
         owned[0].settlement_level = "city"
-        owned[0].population = 360
+        owned[0].population = 100000
 
         update_faction_polity_tiers(world)
 
@@ -760,7 +782,7 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertGreaterEqual(faction.succession.ruler_age, 18)
         self.assertNotEqual(faction.succession.dynasty_name, old_dynasty)
 
-    def test_world_seeds_population_only_for_starting_factions(self):
+    def test_world_seeds_population_for_all_regions_and_ethnicity_for_starting_factions(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         owned_region = world.regions["A"]
         unowned_region = world.regions["C"]
@@ -778,14 +800,14 @@ class HeartlandSystemTests(unittest.TestCase):
             get_region_dominant_ethnicity(owned_region),
             world.factions[faction_name].primary_ethnicity,
         )
-        self.assertEqual(unowned_region.population, 0)
+        self.assertGreater(unowned_region.population, 0)
         self.assertEqual(unowned_region.ethnic_composition, {})
 
     def test_population_growth_responds_to_unrest(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
         calm_region = world.regions["A"]
         crisis_region = world.regions["M"]
-        calm_region.population = 1000
+        calm_region.population = 10000
         calm_region.food_consumption = 10.0
         calm_region.food_deficit = 0.0
         calm_region.food_balance = 3.0
@@ -795,7 +817,7 @@ class HeartlandSystemTests(unittest.TestCase):
         crisis_region.population = calm_before
         crisis_region.food_consumption = 10.0
         crisis_region.food_deficit = 0.0
-        crisis_region.food_balance = 3.0
+        crisis_region.food_balance = 0.0
         crisis_before = crisis_region.population
         crisis_region.unrest = 10.0
 
@@ -812,8 +834,8 @@ class HeartlandSystemTests(unittest.TestCase):
                     neighbors=["B"],
                     owner="FactionA",
                     resources=3,
-                    population=220,
-                    ethnic_composition={"Alpha": 220},
+                    population=11000,
+                    ethnic_composition={"Alpha": 11000},
                     terrain_tags=["plains"],
                     climate="temperate",
                     core_status="core",
@@ -829,8 +851,8 @@ class HeartlandSystemTests(unittest.TestCase):
                     neighbors=["A"],
                     owner="FactionA",
                     resources=3,
-                    population=110,
-                    ethnic_composition={"Alpha": 110},
+                    population=5500,
+                    ethnic_composition={"Alpha": 5500},
                     terrain_tags=["plains"],
                     climate="temperate",
                     core_status="frontier",
@@ -856,8 +878,8 @@ class HeartlandSystemTests(unittest.TestCase):
 
         resolve_population_migration(world)
 
-        self.assertLess(source.population, 220)
-        self.assertGreater(target.population, 110)
+        self.assertLess(source.population, 11000)
+        self.assertGreater(target.population, 5500)
         self.assertGreater(target.frontier_settler_inflow, 0)
         self.assertGreater(world.factions["FactionA"].frontier_settlers, 0)
         self.assertGreater(target.integration_score, target_integration_before)
@@ -871,8 +893,8 @@ class HeartlandSystemTests(unittest.TestCase):
                     neighbors=["B"],
                     owner="FactionA",
                     resources=2,
-                    population=180,
-                    ethnic_composition={"Alpha": 180},
+                    population=9000,
+                    ethnic_composition={"Alpha": 9000},
                     terrain_tags=["plains"],
                     climate="temperate",
                     core_status="frontier",
@@ -887,8 +909,8 @@ class HeartlandSystemTests(unittest.TestCase):
                     neighbors=["A"],
                     owner="FactionB",
                     resources=3,
-                    population=140,
-                    ethnic_composition={"Beta": 140},
+                    population=7000,
+                    ethnic_composition={"Beta": 7000},
                     terrain_tags=["riverland", "plains"],
                     climate="temperate",
                     core_status="core",
@@ -984,8 +1006,8 @@ class HeartlandSystemTests(unittest.TestCase):
                     neighbors=["B"],
                     owner="FactionA",
                     resources=2,
-                    population=180,
-                    ethnic_composition={"Alpha": 180},
+                    population=9000,
+                    ethnic_composition={"Alpha": 9000},
                     terrain_tags=["plains"],
                     climate="temperate",
                     core_status="frontier",
@@ -1000,8 +1022,8 @@ class HeartlandSystemTests(unittest.TestCase):
                     neighbors=["A"],
                     owner="FactionB",
                     resources=3,
-                    population=140,
-                    ethnic_composition={"Beta": 140},
+                    population=7000,
+                    ethnic_composition={"Beta": 7000},
                     terrain_tags=["riverland", "plains"],
                     climate="temperate",
                     core_status="core",

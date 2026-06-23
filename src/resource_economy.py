@@ -302,7 +302,7 @@ RESOURCE_MONETIZATION_ROUTE_FACTOR = 0.12
 RESOURCE_MONETIZATION_BOTTLENECK_FACTOR = 0.08
 RESOURCE_MONETIZATION_HOMELAND_BONUS = 0.05
 RESOURCE_MONETIZATION_CORE_BONUS = 0.03
-TRADE_IMPORT_POPULATION_FACTOR = 0.003
+TRADE_IMPORT_POPULATION_FACTOR = 0.00006
 TRADE_IMPORT_MARKET_FACTOR = 0.12
 TRADE_IMPORT_STOREHOUSE_FACTOR = 0.05
 TRADE_IMPORT_SETTLEMENT_BONUSES = {
@@ -338,8 +338,8 @@ TOOLS_TAXABLE_VALUE_FACTOR = 0.65
 URBAN_SURPLUS_FOOD_INPUT_FACTOR = 0.42
 URBAN_SURPLUS_SALT_INPUT_FACTOR = 0.2
 URBAN_SURPLUS_TEXTILE_INPUT_FACTOR = 0.24
-URBAN_SURPLUS_CITY_POPULATION_FACTOR = 0.007
-URBAN_SURPLUS_TOWN_POPULATION_FACTOR = 0.004
+URBAN_SURPLUS_CITY_POPULATION_FACTOR = 0.00014
+URBAN_SURPLUS_TOWN_POPULATION_FACTOR = 0.00008
 URBAN_SURPLUS_TAXABLE_VALUE_FACTOR = 0.85
 TEXTILE_TAXABLE_ACCESS_FACTOR = 0.12
 IRON_GOODS_METAL_CAPACITY_FACTOR = 0.82
@@ -354,7 +354,7 @@ PROVISIONS_STOREHOUSE_FACTOR = 0.16
 PROVISIONS_LOGISTICS_FACTOR = 0.14
 CRAFTED_GOODS_MATERIAL_INPUT_FACTOR = 0.34
 CRAFTED_GOODS_TOOLS_INPUT_FACTOR = 0.26
-CRAFTED_GOODS_URBAN_FACTOR = 0.0038
+CRAFTED_GOODS_URBAN_FACTOR = 0.000076
 CRAFTED_GOODS_TAXABLE_VALUE_FACTOR = 1.15
 SHIPS_TIMBER_INPUT_FACTOR = 0.38
 SHIPS_TOOLS_INPUT_FACTOR = 0.24
@@ -651,7 +651,7 @@ def get_region_resource_workforce_factor(region: Region, world: WorldState | Non
     }.get(region.settlement_level, 0.0)
     base = 0.2 if region.owner is None else 0.35
     return _clamp(
-        (base + min(0.95, region.population / 180.0) + settlement_bonus)
+        (base + min(0.95, region.population / 9000.0) + settlement_bonus)
         * get_region_workforce_shock_factor(region, world),
         0.2,
         1.45,
@@ -782,7 +782,7 @@ def _get_domestic_resource_decay(region: Region, resource_name: str) -> float:
     decay = 0.0
     if region.owner is None:
         decay += 0.018
-    if region.population < 90:
+    if region.population < 4500:
         decay += 0.012
     if region.unrest >= UNREST_MODERATE_THRESHOLD:
         decay += 0.012
@@ -1075,7 +1075,7 @@ def _get_region_foreign_trade_gateway_quality(
         FOREIGN_TRADE_TEXTILE_GATEWAY_BONUS,
         region.resource_effective_output.get(RESOURCE_TEXTILES, 0.0) * 0.05,
     )
-    if region.population >= 180:
+    if region.population >= 9000:
         quality += 0.04
     quality *= _clamp(1.0 - (float(region.resource_isolation_factor or 0.0) * 0.55), 0.35, 1.0)
     quality *= _clamp(0.55 + (float(region.resource_route_bottleneck or 0.0) * 0.45), 0.4, 1.0)
@@ -1791,7 +1791,7 @@ def _get_region_route_step_cost(
         step_cost += RESOURCE_ROUTE_DISTURBANCE_STEP_PENALTY
     elif region.unrest_event_level == "crisis":
         step_cost += RESOURCE_ROUTE_CRISIS_STEP_PENALTY
-    if region.population < 90:
+    if region.population < 4500:
         step_cost += RESOURCE_ROUTE_POPULATION_STEP_PENALTY
 
     average_damage = sum(region.resource_damage.values()) / max(1, len(ALL_RESOURCES))
@@ -1828,9 +1828,9 @@ def _get_region_corridor_support_factor(
     elif region.settlement_level == "city":
         support += 0.04
 
-    if region.population < 60:
+    if region.population < 3000:
         support -= 0.08
-    elif region.population >= 180:
+    elif region.population >= 9000:
         support += 0.03
 
     support += min(0.16, region.infrastructure_level * RESOURCE_ROUTE_BOTTLENECK_INFRASTRUCTURE_BONUS)
@@ -1862,7 +1862,7 @@ def _is_region_maritime_port(region: Region) -> bool:
         region.storehouse_level >= 0.25,
         region.infrastructure_level >= 0.45,
         region.settlement_level in {"town", "city"},
-        region.population >= 125 and get_region_core_status(region) in {"homeland", "core"},
+        region.population >= 6250 and get_region_core_status(region) in {"homeland", "core"},
     ])
 
 
@@ -1881,7 +1881,7 @@ def _is_region_river_port(
         region.storehouse_level >= 0.2,
         region.infrastructure_level >= 0.35,
         region.settlement_level in {"town", "city"},
-        region.population >= 95 and get_region_core_status(region) in {"homeland", "core"},
+        region.population >= 4750 and get_region_core_status(region) in {"homeland", "core"},
     ])
 
 
@@ -3105,7 +3105,7 @@ def get_faction_resource_demand(
     avg_infrastructure = (
         sum(region.infrastructure_level for region in owned_regions) / max(1, len(owned_regions))
     )
-    food_demand = max(0.8, total_population / 138.0)
+    food_demand = max(0.8, total_population / 6900.0)
     mobility_demand = max(0.0, len(owned_regions) * 0.18 + frontier_regions * 0.1 + war_bias * 1.2)
     metal_demand = max(
         0.0,
@@ -3256,7 +3256,7 @@ def get_faction_salt_preservation_modifier(
 def get_region_food_demand(region: Region) -> float:
     if region.owner is None or region.population <= 0:
         return 0.0
-    return round(max(0.2, region.population / 138.0), 3)
+    return round(max(0.2, region.population / 6900.0), 3)
 
 
 def _get_owned_regions(world: WorldState, faction_name: str) -> list[Region]:
@@ -3502,7 +3502,7 @@ def _build_faction_produced_goods(
         effective_access.get(RESOURCE_GRAIN, 0.0)
         + (effective_access.get(RESOURCE_LIVESTOCK, 0.0) * 0.9)
         + (effective_access.get(RESOURCE_WILD_FOOD, 0.0) * 0.25)
-        - (sum(region.population for region in owned_regions) / 180.0),
+        - (sum(region.population for region in owned_regions) / 9000.0),
     )
     preservation_input = effective_access.get(RESOURCE_SALT, 0.0) * URBAN_SURPLUS_SALT_INPUT_FACTOR
     textile_input = effective_access.get(RESOURCE_TEXTILES, 0.0) * URBAN_SURPLUS_TEXTILE_INPUT_FACTOR
