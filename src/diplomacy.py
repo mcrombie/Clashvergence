@@ -4,9 +4,14 @@ from itertools import combinations
 
 from src.calendar import SEASONAL_TIME_STEP_YEARS
 from src.config import (
+    ACTION_CAPACITY_LARGE_THRESHOLD,
     DIPLOMACY_ALLIANCE_ATTACK_PENALTY,
     DIPLOMACY_ALLIANCE_BREAK_THRESHOLD,
     DIPLOMACY_ALLIANCE_THRESHOLD,
+    DIPLOMACY_DEMAND_TRIBUTE_GRIEVANCE,
+    DIPLOMACY_ENVOY_INTEGRATION_BOOST,
+    DIPLOMACY_ENVOY_RELATIONSHIP_BOOST,
+    DIPLOMACY_PROPOSE_ALLIANCE_SCORE_BOOST,
     DIPLOMACY_ETHNIC_CLAIM_PRESSURE_MAX,
     DIPLOMACY_ETHNIC_CLAIM_PRESSURE_PER_REGION,
     DIPLOMACY_ATTACK_GRIEVANCE_FAILURE,
@@ -52,6 +57,7 @@ from src.config import (
     DIPLOMACY_TRIBUTARY_ATTACK_PENALTY,
     DIPLOMACY_TRIBUTARY_MIN_POWER_RATIO,
     DIPLOMACY_TRIBUTARY_TRIBUTE_SHARE,
+    PROJECT_DURATIONS,
     DIPLOMACY_WAR_ATTACK_SCORE_FAILURE,
     DIPLOMACY_WAR_ATTACK_SCORE_SUCCESS,
     DIPLOMACY_WAR_BLOCKADE_BONUS,
@@ -70,7 +76,7 @@ from src.config import (
     DIPLOMACY_VASSAL_MIN_POWER_RATIO,
     DIPLOMACY_VASSAL_TRIBUTE_SHARE,
 )
-from src.models import Event, RelationshipState, WarState, WorldState
+from src.models import ActionProject, Event, RelationshipState, WarState, WorldState
 from src.military import refresh_military_state
 from src.visibility import faction_knows_faction
 from src.ideology import get_ideological_diplomacy_modifier
@@ -1480,3 +1486,257 @@ def get_faction_diplomacy_summary(world: WorldState, faction_name: str) -> dict[
             for name, regions in sorted(claim_disputes.items(), key=lambda item: (-item[1], item[0]))
         ],
     }
+
+
+# ---------------------------------------------------------------------------
+# Diplomacy track actions (Phase 4)
+# ---------------------------------------------------------------------------
+
+def get_diplomacy_candidates(faction_name: str, world: WorldState) -> list[str]:
+    """Return known factions that can be diplomacy targets (excludes self)."""
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return []
+    known = set(faction.known_factions)
+    return [name for name in world.factions if name != faction_name and name in known]
+
+
+def get_diplomacy_target_score_components(
+    faction_name: str,
+    target_name: str,
+    action_type: str,
+    world: WorldState,
+) -> dict:
+    """Score a diplomatic target for the given action type. Negative score = invalid."""
+    state = get_relationship_state(world, faction_name, target_name)
+    status = get_relationship_status(world, faction_name, target_name)
+    rel_score = state.score
+    power_a = _estimate_faction_power(world, faction_name)
+    power_b = _estimate_faction_power(world, target_name)
+    power_ratio = power_a / max(0.1, power_b)
+
+    faction_regions = {r for r, reg in world.regions.items() if reg.owner == faction_name}
+    target_regions = {r for r, reg in world.regions.items() if reg.owner == target_name}
+    border_count = sum(
+        1 for r in faction_regions
+        if any(n in target_regions for n in world.regions[r].neighbors)
+    )
+
+    if action_type == "propose_alliance":
+        if status in ("war", "tributary", "overlord", "alliance"):
+            return {"score": -1.0, "invalid_reason": status}
+        score = (
+            rel_score * 0.04
+            + border_count * 0.35
+            + (0.4 if status == "non_aggression_pact" else 0.0)
+        )
+        return {
+            "score": score,
+            "action_type": action_type,
+            "target_faction": target_name,
+            "relationship_score": rel_score,
+            "status": status,
+            "border_count": border_count,
+        }
+
+    if action_type == "demand_tribute":
+        if status in ("war", "alliance", "non_aggression_pact", "tributary", "overlord"):
+            return {"score": -1.0, "invalid_reason": status}
+        if power_ratio < DIPLOMACY_TRIBUTARY_MIN_POWER_RATIO:
+            return {"score": -1.0, "invalid_reason": "not_dominant"}
+        score = power_ratio * 0.45 + border_count * 0.15 - rel_score * 0.015
+        return {
+            "score": score,
+            "action_type": action_type,
+            "target_faction": target_name,
+            "power_ratio": round(power_ratio, 2),
+            "status": status,
+            "border_count": border_count,
+        }
+
+    if action_type == "send_envoy":
+        if status == "war":
+            return {"score": -1.0, "invalid_reason": "at_war"}
+        score = border_count * 0.30 + max(0.0, 40.0 - rel_score) * 0.012
+        return {
+            "score": score,
+            "action_type": action_type,
+            "target_faction": target_name,
+            "relationship_score": rel_score,
+            "status": status,
+            "border_count": border_count,
+        }
+
+    return {"score": 0.0}
+
+
+def propose_alliance(faction_name: str, target_name: str, world: WorldState) -> bool:
+    """Start a 2-turn propose_alliance project on the diplomacy track."""
+    faction = world.factions.get(faction_name)
+    if faction is None or target_name not in world.factions:
+        return False
+    if "diplomacy" in faction.active_projects:
+        return False
+    components = get_diplomacy_target_score_components(
+        faction_name, target_name, "propose_alliance", world
+    )
+    if components.get("score", -1.0) < 0.0:
+        return False
+    faction.active_projects["diplomacy"] = ActionProject(
+        project_id=f"{faction_name}:diplomacy:{world.turn}",
+        track="diplomacy",
+        action_type="diplomacy",
+        target_region=None,
+        project_type="propose_alliance",
+        total_turns=PROJECT_DURATIONS["propose_alliance"],
+        turns_remaining=PROJECT_DURATIONS["propose_alliance"],
+        is_standing_order=False,
+        efficiency=1.0,
+        started_turn=world.turn,
+        score_snapshot=float(components.get("score", 0.0)),
+        details={"target_faction": target_name, "status": components.get("status")},
+    )
+    world.events.append(Event(
+        turn=world.turn,
+        type="diplomacy_action_started",
+        faction=faction_name,
+        details={"action_type": "propose_alliance", "target_faction": target_name},
+        tags=["diplomacy", "propose_alliance"],
+        significance=0.2,
+    ))
+    return True
+
+
+def send_envoy(faction_name: str, target_name: str, world: WorldState) -> bool:
+    """Start a 3-turn send_envoy project on the diplomacy track."""
+    faction = world.factions.get(faction_name)
+    if faction is None or target_name not in world.factions:
+        return False
+    if "diplomacy" in faction.active_projects:
+        return False
+    components = get_diplomacy_target_score_components(
+        faction_name, target_name, "send_envoy", world
+    )
+    if components.get("score", -1.0) < 0.0:
+        return False
+    faction.active_projects["diplomacy"] = ActionProject(
+        project_id=f"{faction_name}:diplomacy:{world.turn}",
+        track="diplomacy",
+        action_type="diplomacy",
+        target_region=None,
+        project_type="send_envoy",
+        total_turns=PROJECT_DURATIONS["send_envoy"],
+        turns_remaining=PROJECT_DURATIONS["send_envoy"],
+        is_standing_order=False,
+        efficiency=1.0,
+        started_turn=world.turn,
+        score_snapshot=float(components.get("score", 0.0)),
+        details={"target_faction": target_name, "status": components.get("status")},
+    )
+    world.events.append(Event(
+        turn=world.turn,
+        type="diplomacy_action_started",
+        faction=faction_name,
+        details={"action_type": "send_envoy", "target_faction": target_name},
+        tags=["diplomacy", "send_envoy"],
+        significance=0.2,
+    ))
+    return True
+
+
+def demand_tribute(faction_name: str, target_name: str, world: WorldState) -> bool:
+    """Instant demand — forces tributary if dominant enough, else applies grievance."""
+    faction = world.factions.get(faction_name)
+    if faction is None or target_name not in world.factions:
+        return False
+    components = get_diplomacy_target_score_components(
+        faction_name, target_name, "demand_tribute", world
+    )
+    if components.get("score", -1.0) < 0.0:
+        return False
+    relationship = get_relationship_state(world, faction_name, target_name)
+    power_ratio = float(components["power_ratio"])
+    if power_ratio >= DIPLOMACY_TRIBUTARY_MIN_POWER_RATIO * 1.25:
+        relationship.status = "tributary"
+        relationship.subordinate_faction = target_name
+        relationship.subordination_type = "tributary"
+        relationship.years_at_peace = 0
+        world.events.append(Event(
+            turn=world.turn,
+            type="diplomacy_tributary",
+            faction=faction_name,
+            details={
+                "target_faction": target_name,
+                "power_ratio": power_ratio,
+                "tribute_share": DIPLOMACY_TRIBUTARY_TRIBUTE_SHARE,
+                "method": "demand",
+            },
+            tags=["diplomacy", "tributary", "demand"],
+            significance=0.5,
+        ))
+        return True
+    relationship.score = max(-DIPLOMACY_SCORE_MAX, relationship.score - DIPLOMACY_DEMAND_TRIBUTE_GRIEVANCE)
+    world.events.append(Event(
+        turn=world.turn,
+        type="diplomacy_demand_refused",
+        faction=faction_name,
+        details={
+            "target_faction": target_name,
+            "power_ratio": power_ratio,
+            "relationship_score_change": -DIPLOMACY_DEMAND_TRIBUTE_GRIEVANCE,
+        },
+        tags=["diplomacy", "demand_refused"],
+        significance=0.2,
+    ))
+    return False
+
+
+def resolve_diplomacy_project(faction_name: str, project: ActionProject, world: WorldState) -> None:
+    """Apply the outcome of a completed diplomacy project."""
+    target_faction = project.details.get("target_faction")
+    if target_faction not in world.factions:
+        return
+
+    if project.project_type == "propose_alliance":
+        relationship = get_relationship_state(world, faction_name, target_faction)
+        boost = DIPLOMACY_PROPOSE_ALLIANCE_SCORE_BOOST * project.efficiency
+        relationship.score = min(DIPLOMACY_SCORE_MAX, relationship.score + boost)
+        world.events.append(Event(
+            turn=world.turn,
+            type="diplomacy_alliance_proposed",
+            faction=faction_name,
+            details={
+                "target_faction": target_faction,
+                "relationship_score": round(relationship.score, 2),
+                "score_boost": round(boost, 2),
+                "total_turns": project.total_turns,
+            },
+            tags=["diplomacy", "propose_alliance"],
+            significance=0.4,
+        ))
+
+    elif project.project_type == "send_envoy":
+        relationship = get_relationship_state(world, faction_name, target_faction)
+        rel_boost = DIPLOMACY_ENVOY_RELATIONSHIP_BOOST * project.efficiency
+        relationship.score = min(DIPLOMACY_SCORE_MAX, relationship.score + rel_boost)
+        target_faction_regions = [r for r in world.regions.values() if r.owner == target_faction]
+        faction_region_names = {r for r, reg in world.regions.items() if reg.owner == faction_name}
+        for region in target_faction_regions:
+            if any(n in faction_region_names for n in region.neighbors):
+                region.integration_score = min(
+                    10.0,
+                    float(region.integration_score or 0.0) + DIPLOMACY_ENVOY_INTEGRATION_BOOST,
+                )
+        world.events.append(Event(
+            turn=world.turn,
+            type="diplomacy_envoy_completed",
+            faction=faction_name,
+            details={
+                "target_faction": target_faction,
+                "relationship_score": round(relationship.score, 2),
+                "relationship_boost": round(rel_boost, 2),
+                "total_turns": project.total_turns,
+            },
+            tags=["diplomacy", "send_envoy"],
+            significance=0.3,
+        ))

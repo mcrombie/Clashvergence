@@ -13,8 +13,14 @@ from src.config import (
     SEAFARING_EXPANSION_THRESHOLD,
 )
 from src.models import Faction, Region, WorldState
+from src.simulation import _run_advance_projects_phase
 from src.technology import TECH_SEAFARING, apply_development_technology_experience
 from src.visibility import refresh_faction_visibility
+
+
+def _complete_projects(world, max_turns=4):
+    for _ in range(max_turns):
+        _run_advance_projects_phase(world)
 
 
 def _make_maritime_world() -> WorldState:
@@ -139,6 +145,7 @@ class MaritimeMovementTests(unittest.TestCase):
         world.factions["FactionA"].institutional_technologies[TECH_SEAFARING] = SEAFARING_EXPANSION_THRESHOLD
 
         self.assertTrue(expand("FactionA", "Island", world))
+        _complete_projects(world)
 
         event = next(event for event in world.events if event.type == "expand")
         self.assertIn("sea_expansion", event.tags)

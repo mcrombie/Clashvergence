@@ -13,6 +13,7 @@ from src.config import (
     ATTACK_SUCCESS_STRENGTH_FACTOR,
     DIPLOMACY_ETHNIC_CLAIM_ATTACK_BONUS,
     EXPANSION_COST,
+    HARSH_EXPANSION_CLIMATE_THRESHOLD,
     MARITIME_ATTACK_SCORE_PENALTY,
     MARITIME_ATTACK_STRENGTH_PENALTY,
     MARITIME_EXPANSION_POPULATION_TRANSFER_FACTOR,
@@ -22,12 +23,14 @@ from src.config import (
     POPULATION_ATTACK_SUCCESS_LOSS,
     POPULATION_EXPANSION_TRANSFER_MIN,
     POPULATION_EXPANSION_TRANSFER_RATIO,
+    PROJECT_DURATIONS,
     REGIME_CLAIMANT_ATTACK_SCORE_BONUS,
     REGIME_CLAIMANT_ATTACK_STRENGTH_BONUS,
     REGIME_SPLIT_ATTACK_SCORE_BONUS,
     REGIME_SPLIT_ATTACK_STRENGTH_BONUS,
     REBEL_PROTO_TREASURY_CONCENTRATION_FACTOR,
     REBEL_REABSORPTION_UNREST,
+    SIEGE_SUCCESS_BONUS,
     TREASURY_CONCENTRATION_REGION_FACTOR,
 )
 from src.climate import (
@@ -79,7 +82,7 @@ from src.population import (
 )
 from src.rebellion import get_rebel_reclaim_bonus
 from src.unrest import set_region_unrest
-from src.models import Event
+from src.models import ActionProject, Event
 from src.resources import (
     CAPACITY_CONSTRUCTION,
     CAPACITY_FOOD_SECURITY,
@@ -2102,6 +2105,11 @@ def expand(faction_name, target_region_name, world):
     maritime_expansion = bool(score_components.get("maritime_operation"))
     target_population_before = world.regions[target_region_name].population
     faction.treasury -= expansion_cost
+
+    # 2-turn project for harsh climate or maritime expansion (not band migration)
+    if not is_band_migration and _is_harsh_expansion(score_components):
+        return _start_harsh_expansion(faction_name, target_region_name, world, expansion_cost, score_components)
+
     handle_region_owner_change(world.regions[target_region_name], faction_name)
     transferred_population = 0
     if population_source is not None and population_source.population > 0:
@@ -2378,6 +2386,12 @@ def attack(faction_name, target_region_name, world):
     treasury_before = attacker.treasury
     population_before = target_region.population
     attacker.treasury -= effective_attack_cost
+
+    # Multi-turn siege for fortified towns and cities
+    is_siege, siege_duration = _is_siege_target(target_region)
+    if is_siege:
+        return _start_siege(faction_name, target_region_name, world, effective_attack_cost, siege_duration)
+
     supply_effect = apply_campaign_supply_draw(
         world,
         faction_name,
@@ -2689,28 +2703,8 @@ def get_investable_regions(faction_name, world):
     return get_developable_regions(faction_name, world)
 
 
-def develop(faction_name, target_region_name, world):
-    """Returns whether the Faction successfully developed the target Region."""
-
-    if target_region_name not in world.regions:
-        return False
-
-    if target_region_name not in get_developable_regions(faction_name, world):
-        return False
-
-    region = world.regions[target_region_name]
-    taxable_before = get_region_taxable_value(region, world)
-    resources_before = region.resources
-    score_components = get_development_target_score_components(
-        target_region_name,
-        faction_name,
-        world,
-    )
-    project_type = score_components["project_type"]
-    source_region_name = score_components.get("source_region") or None
-    if project_type == "none":
-        return False
-
+def _apply_develop_mutations(region, faction_name, project_type, resource_focus, world):
+    """Apply the field mutations for a completed development project. Returns project_amount."""
     project_amount = 0.0
     if project_type == "introduce_grain":
         region.resource_established[RESOURCE_GRAIN] = min(
@@ -2815,13 +2809,13 @@ def develop(faction_name, target_region_name, world):
             region.pasture_level = round(min(1.8, region.pasture_level + 0.06), 2)
         project_amount = 0.24
     elif project_type == "improve_extraction":
-        if score_components["resource_focus"] == RESOURCE_COPPER:
+        if resource_focus == RESOURCE_COPPER:
             region.copper_mine_level = round(min(1.8, region.copper_mine_level + 0.28), 2)
-        elif score_components["resource_focus"] == RESOURCE_IRON:
+        elif resource_focus == RESOURCE_IRON:
             region.iron_mine_level = round(min(1.8, region.iron_mine_level + 0.24), 2)
-        elif score_components["resource_focus"] == RESOURCE_GOLD:
+        elif resource_focus == RESOURCE_GOLD:
             region.gold_mine_level = round(min(1.8, region.gold_mine_level + 0.2), 2)
-        elif score_components["resource_focus"] == RESOURCE_STONE:
+        elif resource_focus == RESOURCE_STONE:
             region.stone_quarry_level = round(min(1.8, region.stone_quarry_level + 0.28), 2)
         region.extractive_level = round(min(1.8, region.extractive_level + 0.18), 2)
         project_amount = 0.28
@@ -2837,29 +2831,324 @@ def develop(faction_name, target_region_name, world):
         if region.road_level > 0:
             region.road_level = round(min(1.8, region.road_level + 0.05), 2)
         project_amount = 0.22
+    return project_amount
+
+
+def _is_siege_target(region):
+    """Return (is_siege, siege_duration) based on settlement and fortification.
+
+    Only cities and meaningfully fortified regions trigger multi-turn sieges.
+    Unfortified towns and rural regions resolve as instant field battles.
+    """
+    fort = float(region.fortification_level or 0.0)
+    settlement = region.settlement_level or "rural"
+    if settlement == "city" or fort >= 0.7:
+        duration = 4 if fort >= 0.9 else 3
+        return (True, duration)
+    if fort >= 0.5:
+        return (True, 2)
+    return (False, 0)
+
+
+def _start_siege(faction_name, target_region_name, world, effective_attack_cost, siege_duration):
+    """Register a siege as an in-progress military project. Treasury already deducted by caller."""
+    target_region = world.regions[target_region_name]
+    defender_name = target_region.owner
+    target_region.siege_faction = faction_name
+    target_region.siege_turns_remaining = siege_duration
+
+    project = ActionProject(
+        project_id=f"{faction_name}:military:{world.turn}",
+        track="military",
+        action_type="attack",
+        target_region=target_region_name,
+        project_type="siege",
+        total_turns=siege_duration,
+        turns_remaining=siege_duration,
+        efficiency=1.0,
+        started_turn=world.turn,
+        score_snapshot=0.0,
+        details={
+            "defender": defender_name,
+            "effective_attack_cost": effective_attack_cost,
+        },
+    )
+    world.factions[faction_name].active_projects["military"] = project
+
+    world.events.append(Event(
+        turn=world.turn,
+        type="siege_started",
+        faction=faction_name,
+        region=target_region_name,
+        details={
+            "defender": defender_name,
+            "total_turns": siege_duration,
+            "effective_attack_cost": effective_attack_cost,
+            "fortification_level": float(target_region.fortification_level or 0.0),
+            "settlement_level": target_region.settlement_level or "rural",
+            "region_display_name": target_region.display_name,
+            "region_reference": format_region_reference(target_region, include_code=True),
+        },
+        tags=["combat", "siege", "siege_started"],
+        significance=0.4,
+    ))
+    return True
+
+
+def complete_siege_project(faction_name, project, world):
+    """Resolve a completed siege: roll outcome and apply consequences."""
+    target_region_name = project.target_region
+    if target_region_name not in world.regions:
+        return
+    target_region = world.regions[target_region_name]
+
+    target_region.siege_faction = None
+    target_region.siege_turns_remaining = 0
+
+    defender_name = target_region.owner
+    if defender_name is None or defender_name == faction_name:
+        return
+
+    attacker = world.factions.get(faction_name)
+    if attacker is None:
+        return
+
+    score_components = get_attack_target_score_components(target_region_name, faction_name, world)
+    score_components["success_chance"] = max(
+        ATTACK_SUCCESS_MIN,
+        min(ATTACK_SUCCESS_MAX, float(score_components["success_chance"]) + SIEGE_SUCCESS_BONUS),
+    )
+
+    success_roll = random.random()
+    succeeded = success_roll < score_components["success_chance"]
+    population_before = target_region.population
+    actual_failure_penalty = 0
+
+    if succeeded:
+        apply_region_population_loss(target_region, POPULATION_ATTACK_SUCCESS_LOSS)
+        apply_region_resource_damage(
+            target_region,
+            {RESOURCE_GRAIN: 0.06, RESOURCE_LIVESTOCK: 0.05, RESOURCE_TIMBER: 0.04},
+        )
+        handle_region_owner_change(target_region, faction_name)
+        set_region_unrest(target_region, target_region.unrest + 0.35)
+    else:
+        apply_region_population_loss(target_region, POPULATION_ATTACK_FAILURE_LOSS)
+        apply_region_resource_damage(
+            target_region,
+            {RESOURCE_GRAIN: 0.03, RESOURCE_LIVESTOCK: 0.025, RESOURCE_TIMBER: 0.02},
+        )
+        actual_failure_penalty = min(ATTACK_FAILURE_PENALTY, attacker.treasury)
+        attacker.treasury -= actual_failure_penalty
+
+    world.events.append(Event(
+        turn=world.turn,
+        type="attack",
+        faction=faction_name,
+        region=target_region_name,
+        details={
+            "defender": defender_name,
+            "success": succeeded,
+            "siege_completion": True,
+            "total_siege_turns": project.total_turns,
+            "started_turn": project.started_turn,
+            "attack_cost": float(project.details.get("effective_attack_cost", 0.0)),
+            "failure_penalty": actual_failure_penalty,
+            "success_chance": round(float(score_components["success_chance"]), 3),
+            "attack_strength": score_components["attacker_strength"],
+            "defense_strength": score_components["defender_strength"],
+            "fortification_level": float(target_region.fortification_level or 0.0),
+            "settlement_level": target_region.settlement_level or "rural",
+            "population_before": population_before,
+            "population_after": target_region.population,
+            "region_display_name": target_region.display_name,
+            "region_reference": format_region_reference(target_region, include_code=True),
+        },
+        impact={
+            "owner_after": faction_name if succeeded else defender_name,
+            "success": succeeded,
+        },
+        tags=["combat", "attack", "siege", "success" if succeeded else "failure"],
+        significance=float(score_components["success_chance"]),
+    ))
+
+
+def _is_harsh_expansion(score_components):
+    """Return True if the expansion qualifies as harsh-terrain or maritime (takes 2 turns)."""
+    return (
+        float(score_components.get("climate_harshness", 0.0)) >= HARSH_EXPANSION_CLIMATE_THRESHOLD
+        or bool(score_components.get("maritime_operation", False))
+    )
+
+
+def _start_harsh_expansion(faction_name, target_region_name, world, expansion_cost, score_components):
+    """Register a 2-turn harsh/maritime expansion. Treasury already deducted by caller."""
+    target_region = world.regions[target_region_name]
+    target_region.settling_faction = faction_name
+
+    project = ActionProject(
+        project_id=f"{faction_name}:military:{world.turn}",
+        track="military",
+        action_type="expand",
+        target_region=target_region_name,
+        project_type="harsh_expansion",
+        total_turns=2,
+        turns_remaining=2,
+        efficiency=1.0,
+        started_turn=world.turn,
+        score_snapshot=float(score_components.get("score", 0.0)),
+        details={
+            "expansion_cost": expansion_cost,
+            "maritime": bool(score_components.get("maritime_operation", False)),
+            "climate_harshness": float(score_components.get("climate_harshness", 0.0)),
+        },
+    )
+    world.factions[faction_name].active_projects["military"] = project
+
+    world.events.append(Event(
+        turn=world.turn,
+        type="expansion_started",
+        faction=faction_name,
+        region=target_region_name,
+        details={
+            "expansion_type": "maritime" if project.details["maritime"] else "harsh_climate",
+            "total_turns": 2,
+            "climate_harshness": project.details["climate_harshness"],
+            "expansion_cost": expansion_cost,
+            "region_display_name": target_region.display_name,
+            "region_reference": format_region_reference(target_region, include_code=True),
+        },
+        tags=["expansion", "expansion_started"],
+        significance=0.2,
+    ))
+    return True
+
+
+def complete_expansion_project(faction_name, project, world):
+    """Resolve a completed harsh/maritime expansion."""
+    target_region_name = project.target_region
+    if target_region_name not in world.regions:
+        return
+    target_region = world.regions[target_region_name]
+
+    target_region.settling_faction = None
+
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return
+
+    # Check the region is still claimable (not taken by another faction during the wait)
+    current_owner = target_region.owner
+    if current_owner is not None and current_owner != faction_name:
+        refund = int(project.details.get("expansion_cost", 0))
+        faction.treasury += refund
+        world.events.append(Event(
+            turn=world.turn,
+            type="expansion_cancelled",
+            faction=faction_name,
+            region=target_region_name,
+            details={
+                "reason": "region_claimed",
+                "claimed_by": current_owner,
+                "refund": refund,
+                "region_display_name": target_region.display_name,
+            },
+            tags=["expansion", "expansion_cancelled"],
+            significance=0.15,
+        ))
+        return
+
+    # Run the standard expansion outcome
+    score_components = get_expand_target_score_components(target_region_name, world, faction_name=faction_name)
+    maritime_expansion = bool(score_components.get("maritime_operation"))
+    expand_tags = get_expand_event_tags(score_components)
+    population_source = _choose_expansion_population_source(faction_name, target_region_name, world)
+    source_region_name = population_source.name if population_source is not None else None
+    target_population_before = target_region.population
+
+    handle_region_owner_change(target_region, faction_name)
+
+    transferred_population = 0
+    if population_source is not None and population_source.population > 0:
+        is_band_migration = is_band_faction(faction)
+        if is_band_migration:
+            mobile_population = int(round(population_source.population * BAND_MIGRATION_POPULATION_SHARE))
+            if population_source.population > BAND_MIGRATION_MIN_REMAINDER:
+                mobile_population = min(
+                    mobile_population,
+                    population_source.population - BAND_MIGRATION_MIN_REMAINDER,
+                )
+            transferred_population = max(0, mobile_population)
+        else:
+            transfer_factor = MARITIME_EXPANSION_POPULATION_TRANSFER_FACTOR if maritime_expansion else 1.0
+            transferred_population = max(
+                max(8, int(round(POPULATION_EXPANSION_TRANSFER_MIN * transfer_factor))),
+                int(round(population_source.population * POPULATION_EXPANSION_TRANSFER_RATIO * transfer_factor)),
+            )
+            transferred_population = min(transferred_population, population_source.population)
+        transferred_population = transfer_region_population(
+            population_source, target_region, transferred_population
+        )
+
+    region_display_name = assign_region_founding_name(
+        world, target_region_name, faction_name, is_homeland=False
+    )
+
+    world.events.append(Event(
+        turn=world.turn,
+        type="expand",
+        faction=faction_name,
+        region=target_region_name,
+        details={
+            "cost": project.details.get("expansion_cost", 0),
+            "harsh_expansion_completion": True,
+            "expansion_type": "maritime" if project.details.get("maritime") else "harsh_climate",
+            "total_turns": project.total_turns,
+            "started_turn": project.started_turn,
+            "climate_harshness": project.details.get("climate_harshness", 0.0),
+            "maritime_operation": maritime_expansion,
+            "connection_mode": score_components.get("connection_mode", "land"),
+            "maritime_route_source": score_components.get("maritime_route_source"),
+            "resources": score_components["resources"],
+            "taxable_value": score_components["taxable_value"],
+            "terrain_tags": score_components["terrain_tags"],
+            "terrain_label": score_components["terrain_label"],
+            "population_source_region": source_region_name,
+            "population_before": target_population_before,
+            "population_after": target_region.population,
+            "population_transfer": transferred_population,
+            "region_display_name": region_display_name,
+            "region_reference": format_region_reference(target_region, include_code=True),
+        },
+        impact={
+            "owner_after": faction_name,
+            "treasury_change": -project.details.get("expansion_cost", 0),
+            "regions_gained": 1,
+        },
+        tags=expand_tags + ["harsh_expansion_completed"],
+        significance=0.35,
+    ))
+
+
+def complete_develop_project(faction_name, project, world):
+    """Apply the completion effects of a finished development ActionProject."""
+    target_region_name = project.target_region
+    if target_region_name not in world.regions:
+        return
+    region = world.regions[target_region_name]
+    project_type = project.project_type or "none"
+    resource_focus = project.details.get("resource_focus", "")
+    source_region_name = project.details.get("source_region") or None
+    taxable_before = get_region_taxable_value(region, world)
+    resources_before = region.resources
+
+    project_amount = _apply_develop_mutations(region, faction_name, project_type, resource_focus, world)
 
     region.last_resource_project_turn = world.turn
     if project_type in MILITARY_PROJECT_TYPES:
         region.last_military_project_turn = world.turn
-    if source_region_name is not None and source_region_name in world.regions:
-        source_region = world.regions[source_region_name]
-        source_region.last_resource_project_turn = world.turn
-        apply_region_resource_damage(
-            source_region,
-            {
-                score_components["resource_focus"]: 0.05
-                if project_type == "introduce_grain"
-                else 0.045
-                if project_type == "introduce_livestock"
-                else 0.04
-            },
-        )
 
-    apply_development_technology_experience(
-        region,
-        str(project_type),
-        str(score_components["resource_focus"]),
-    )
+    apply_development_technology_experience(region, project_type, resource_focus)
     update_faction_resource_economy(world)
     taxable_after = get_region_taxable_value(region, world)
 
@@ -2872,12 +3161,14 @@ def develop(faction_name, target_region_name, world):
             "development_amount": project_amount,
             "invest_amount": project_amount,
             "project_type": project_type,
-            "resource_focus": score_components["resource_focus"],
-            "economic_identity": world.factions[faction_name].economic_identity,
-            "economic_identity_bonus": score_components.get("economic_identity_bonus", 0.0),
+            "resource_focus": resource_focus,
+            "economic_identity": world.factions[faction_name].economic_identity if faction_name in world.factions else "",
+            "economic_identity_bonus": project.details.get("economic_identity_bonus", 0.0),
             "source_region": source_region_name,
             "region_display_name": region.display_name,
             "region_reference": format_region_reference(region, include_code=True),
+            "total_turns": project.total_turns,
+            "started_turn": project.started_turn,
         },
         context={
             "resources_before": resources_before,
@@ -2889,10 +3180,153 @@ def develop(faction_name, target_region_name, world):
             "new_taxable_value": taxable_after,
             "taxable_change": round(taxable_after - taxable_before, 2),
         },
-        tags=["development", "investment", str(project_type)],
+        tags=["development", "investment", project_type],
         significance=max(0.1, float(round(taxable_after - taxable_before, 2))),
     ))
 
+
+def develop(faction_name, target_region_name, world):
+    """Starts or advances development in the target region.
+
+    For instant projects (not in PROJECT_DURATIONS), applies effects immediately.
+    For multi-turn projects, registers an ActionProject on the admin track and
+    defers the effect to completion (handled by the advance-projects phase).
+    Returns False if the admin track is already occupied or the action is invalid.
+    """
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return False
+
+    if "admin" in faction.active_projects:
+        return False
+
+    if target_region_name not in world.regions:
+        return False
+
+    if target_region_name not in get_developable_regions(faction_name, world):
+        return False
+
+    region = world.regions[target_region_name]
+    taxable_before = get_region_taxable_value(region, world)
+    resources_before = region.resources
+    score_components = get_development_target_score_components(
+        target_region_name,
+        faction_name,
+        world,
+    )
+    project_type = score_components["project_type"]
+    resource_focus = score_components["resource_focus"]
+    source_region_name = score_components.get("source_region") or None
+    if project_type == "none":
+        return False
+
+    total_turns = PROJECT_DURATIONS.get(project_type, 1)
+
+    if total_turns <= 1:
+        # Instant resolution — apply immediately
+        project_amount = _apply_develop_mutations(region, faction_name, project_type, resource_focus, world)
+        region.last_resource_project_turn = world.turn
+        if project_type in MILITARY_PROJECT_TYPES:
+            region.last_military_project_turn = world.turn
+        if source_region_name is not None and source_region_name in world.regions:
+            source_region = world.regions[source_region_name]
+            source_region.last_resource_project_turn = world.turn
+            apply_region_resource_damage(
+                source_region,
+                {
+                    resource_focus: 0.05
+                    if project_type == "introduce_grain"
+                    else 0.045
+                    if project_type == "introduce_livestock"
+                    else 0.04
+                },
+            )
+        apply_development_technology_experience(region, project_type, resource_focus)
+        update_faction_resource_economy(world)
+        taxable_after = get_region_taxable_value(region, world)
+        world.events.append(Event(
+            turn=world.turn,
+            type="develop",
+            faction=faction_name,
+            region=target_region_name,
+            details={
+                "development_amount": project_amount,
+                "invest_amount": project_amount,
+                "project_type": project_type,
+                "resource_focus": resource_focus,
+                "economic_identity": faction.economic_identity,
+                "economic_identity_bonus": score_components.get("economic_identity_bonus", 0.0),
+                "source_region": source_region_name,
+                "region_display_name": region.display_name,
+                "region_reference": format_region_reference(region, include_code=True),
+            },
+            context={
+                "resources_before": resources_before,
+                "taxable_before": taxable_before,
+            },
+            impact={
+                "new_resources": region.resources,
+                "resource_change": region.resources - resources_before,
+                "new_taxable_value": taxable_after,
+                "taxable_change": round(taxable_after - taxable_before, 2),
+            },
+            tags=["development", "investment", str(project_type)],
+            significance=max(0.1, float(round(taxable_after - taxable_before, 2))),
+        ))
+        return True
+
+    # Multi-turn project — register on admin track
+    project = ActionProject(
+        project_id=f"{faction_name}:admin:{world.turn}",
+        track="admin",
+        action_type="develop",
+        target_region=target_region_name,
+        project_type=project_type,
+        total_turns=total_turns,
+        turns_remaining=total_turns,
+        efficiency=1.0,
+        started_turn=world.turn,
+        score_snapshot=float(score_components.get("score", 0.0)),
+        details={
+            "resource_focus": resource_focus,
+            "source_region": source_region_name,
+            "economic_identity": faction.economic_identity,
+            "economic_identity_bonus": score_components.get("economic_identity_bonus", 0.0),
+            "region_display_name": region.display_name,
+        },
+    )
+    faction.active_projects["admin"] = project
+    region.last_resource_project_turn = world.turn
+
+    if source_region_name is not None and source_region_name in world.regions:
+        source_region = world.regions[source_region_name]
+        source_region.last_resource_project_turn = world.turn
+        apply_region_resource_damage(
+            source_region,
+            {
+                resource_focus: 0.05
+                if project_type == "introduce_grain"
+                else 0.045
+                if project_type == "introduce_livestock"
+                else 0.04
+            },
+        )
+
+    world.events.append(Event(
+        turn=world.turn,
+        type="project_started",
+        faction=faction_name,
+        region=target_region_name,
+        details={
+            "project_type": project_type,
+            "total_turns": total_turns,
+            "resource_focus": resource_focus,
+            "region_display_name": region.display_name,
+            "region_reference": format_region_reference(region, include_code=True),
+        },
+        tags=["development", "project_started", str(project_type)],
+        significance=0.1,
+    ))
     return True
 
 

@@ -1,8 +1,22 @@
 import random
 
 from src.administration import refresh_administrative_state
-from src.agents import choose_action, choose_actions, evaluate_action_diagnostics
-from src.actions import attack, develop, expand, explore
+from src.agents import choose_action, choose_actions, choose_standing_orders, evaluate_action_diagnostics
+from src.actions import (
+    attack,
+    complete_develop_project,
+    complete_expansion_project,
+    complete_siege_project,
+    develop,
+    expand,
+    explore,
+)
+from src.diplomacy import (
+    demand_tribute,
+    propose_alliance,
+    resolve_diplomacy_project,
+    send_envoy,
+)
 from src.calendar import (
     SEASONAL_TIME_STEP_YEARS,
     format_turn_label,
@@ -50,6 +64,7 @@ from src.shocks import (
     update_shock_rollups,
 )
 from src.social_forms import is_band_faction, update_nomadic_social_forms
+from src.subfactions import run_subfaction_phase
 from src.visibility import refresh_all_faction_visibility, refresh_faction_visibility
 from src.metrics import record_turn_metrics
 from src.player_actions import ActionOption, apply_action_option
@@ -226,9 +241,61 @@ def _execute_single_action(world, faction_name, action_name, target_region_name,
             else:
                 print(f"{faction_name} failed to develop {target_region_name}")
 
+    elif action_name == "propose_alliance":
+        success = propose_alliance(faction_name, target_region_name, world)
+        if verbose:
+            status = "started" if success else "blocked"
+            print(f"{faction_name} proposed alliance to {target_region_name}: {status}")
+
+    elif action_name == "send_envoy":
+        success = send_envoy(faction_name, target_region_name, world)
+        if verbose:
+            status = "started" if success else "blocked"
+            print(f"{faction_name} sent envoy to {target_region_name}: {status}")
+
+    elif action_name == "demand_tribute":
+        success = demand_tribute(faction_name, target_region_name, world)
+        if verbose:
+            status = "accepted" if success else "refused"
+            print(f"{faction_name} demanded tribute from {target_region_name}: {status}")
+
     else:
         if verbose:
             print(f"{faction_name} skipped its turn")
+
+
+def _run_advance_projects_phase(world):
+    """Advance all in-progress faction projects by one turn and complete finished ones."""
+    for faction_name, faction in world.factions.items():
+        if not faction.active_projects:
+            continue
+        for track in list(faction.active_projects):
+            project = faction.active_projects[track]
+            project.turns_remaining -= 1
+
+            if track == "admin" and project.action_type == "develop":
+                if project.target_region in world.regions:
+                    world.regions[project.target_region].last_resource_project_turn = world.turn
+
+            elif track == "military" and project.action_type == "attack":
+                if project.target_region in world.regions:
+                    world.regions[project.target_region].siege_turns_remaining = max(
+                        0, project.turns_remaining
+                    )
+
+            elif track == "military" and project.action_type == "expand":
+                pass  # settling_faction already set; just count down
+
+            if project.turns_remaining <= 0:
+                if track == "admin" and project.action_type == "develop":
+                    complete_develop_project(faction_name, project, world)
+                elif track == "military" and project.action_type == "attack":
+                    complete_siege_project(faction_name, project, world)
+                elif track == "military" and project.action_type == "expand":
+                    complete_expansion_project(faction_name, project, world)
+                elif track == "diplomacy":
+                    resolve_diplomacy_project(faction_name, project, world)
+                del faction.active_projects[track]
 
 
 def _run_faction_action_phase(
@@ -321,6 +388,8 @@ def _run_year_end_phase(world):
     update_nomadic_social_forms(world)
     update_faction_polity_tiers(world)
     update_civilization_cycle(world)
+    for faction_name in get_active_faction_names(world):
+        choose_standing_orders(faction_name, world)
 
 
 def _run_diplomatic_update_phase(world, economy_snapshot):
@@ -366,6 +435,7 @@ def run_turn(
         print(f"\n{format_turn_label(current_turn)}")
 
     _run_turn_start_phase(world)
+    _run_advance_projects_phase(world)
     turn_order = _build_turn_order(
         world,
         faction_order=faction_order,
@@ -378,6 +448,7 @@ def run_turn(
         action_provider=action_provider,
         action_diagnostics_callback=action_diagnostics_callback,
     )
+    run_subfaction_phase(world)
     economy_snapshot = _run_post_action_phase(world)
     if is_year_end(current_turn):
         _run_year_end_phase(world)

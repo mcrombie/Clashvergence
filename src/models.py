@@ -360,10 +360,57 @@ class Region:
     secession_cooldown_turns: int = 0
     ownership_turns: int = 0
     conquest_count: int = 0
+    settling_faction: str | None = None
+    siege_faction: str | None = None
+    siege_turns_remaining: int = 0
 
     @property
     def ui_name(self) -> str:
         return self.display_name or self.name
+
+@dataclass
+class Subfaction:
+    """A semi-autonomous settler group that acts on behalf of a parent faction."""
+    subfaction_id: str
+    parent_faction: str
+    name: str
+    social_form: str = "settler_group"   # "band", "clan", "settler_group"
+    primary_ethnicity: str | None = None
+    autonomy: float = 0.0               # 0 = fully controlled, 1 = effectively independent
+    treasury_share: float = 0.04        # fraction of parent treasury they can spend
+    home_region: str | None = None      # peripheral base region within parent territory
+    agenda: str = "settle_frontier"     # "settle_frontier", "exploit_resources"
+    target_region: str | None = None    # current expansion target (may be harsh/remote)
+    turns_autonomous: int = 0           # turns spent at autonomy >= 0.6
+    settlement_count: int = 0           # regions independently settled
+    settled_regions: list = field(default_factory=list)
+    cooldown_turns: int = 0             # turns until next expansion attempt
+    treasury: float = 0.0              # own treasury funded at spawn; used for expansion costs
+
+
+@dataclass
+class ActionProject:
+    project_id: str
+    track: str           # "military", "admin", "diplomacy"
+    action_type: str     # "attack", "expand", "develop", "diplomacy"
+    target_region: str | None
+    project_type: str | None
+    total_turns: int
+    turns_remaining: int
+    is_standing_order: bool = False
+    efficiency: float = 1.0
+    started_turn: int = 0
+    score_snapshot: float = 0.0
+    details: dict = field(default_factory=dict)
+
+
+@dataclass
+class StandingOrder:
+    track: str
+    mode: str
+    target_region: str | None = None
+    efficiency_modifier: float = 0.8
+
 
 @dataclass
 class FactionIdentity:
@@ -574,6 +621,11 @@ class Faction:
     military_track_used: bool = False
     admin_track_used: bool = False
     agenda: FactionAgenda | None = None
+    active_projects: dict = field(default_factory=dict)
+    standing_orders: dict = field(default_factory=dict)
+    action_capacity: int = 2
+    subfactions: list = field(default_factory=list)
+    subfaction_autonomy_pressure: float = 0.0
 
     def __post_init__(self):
         if self.starting_treasury == 0:

@@ -4,6 +4,7 @@ from dataclasses import asdict, fields, is_dataclass
 from typing import Any, TypeVar
 
 from src.models import (
+    ActionProject,
     EliteBloc,
     Ethnicity,
     Event,
@@ -19,6 +20,8 @@ from src.models import (
     RelationshipState,
     Religion,
     ShockState,
+    StandingOrder,
+    Subfaction,
     WarState,
     WorldState,
 )
@@ -175,6 +178,21 @@ def _deserialize_faction(payload: dict[str, Any]) -> Faction:
     data["elite_blocs"] = [
         _build_dataclass(EliteBloc, bloc_payload)
         for bloc_payload in data.get("elite_blocs", [])
+    ]
+    data["active_projects"] = {
+        track: _build_dataclass(ActionProject, proj)
+        for track, proj in data.get("active_projects", {}).items()
+        if isinstance(proj, dict)
+    }
+    data["standing_orders"] = {
+        track: _build_dataclass(StandingOrder, order)
+        for track, order in data.get("standing_orders", {}).items()
+        if isinstance(order, dict)
+    }
+    data["subfactions"] = [
+        _build_dataclass(Subfaction, sf)
+        for sf in data.get("subfactions", [])
+        if isinstance(sf, dict)
     ]
     return _build_dataclass(Faction, data)
 

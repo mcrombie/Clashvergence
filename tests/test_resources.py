@@ -10,6 +10,12 @@ from src.actions import (
     get_invest_target_score_components,
     invest,
 )
+from src.simulation import _run_advance_projects_phase
+
+
+def _complete_projects(world, max_turns=4):
+    for _ in range(max_turns):
+        _run_advance_projects_phase(world)
 from src.resource_economy import (
     advance_long_run_economic_dynamics,
     advance_region_domesticable_resources,
@@ -190,6 +196,7 @@ class ResourceSystemTests(unittest.TestCase):
 
         self.assertEqual(components["project_type"], "introduce_grain")
         self.assertTrue(develop("FactionA", "B", world))
+        _complete_projects(world)
         self.assertGreater(world.regions["B"].resource_established[RESOURCE_GRAIN], 0.0)
         self.assertEqual(world.events[-1].details["project_type"], "introduce_grain")
 
@@ -414,6 +421,7 @@ class ResourceSystemTests(unittest.TestCase):
 
         self.assertEqual(components["project_type"], "build_granary")
         self.assertTrue(develop("FactionA", "A", world))
+        _complete_projects(world)
         self.assertGreater(world.regions["A"].granary_level, 0.0)
         self.assertEqual(world.events[-1].details["project_type"], "build_granary")
 
@@ -516,6 +524,7 @@ class ResourceSystemTests(unittest.TestCase):
 
         self.assertEqual(components["project_type"], "build_copper_mine")
         self.assertTrue(develop("FactionA", "A", world))
+        _complete_projects(world)
         self.assertGreater(world.regions["A"].copper_mine_level, 0.0)
         self.assertEqual(world.events[-1].details["project_type"], "build_copper_mine")
 
@@ -568,6 +577,7 @@ class ResourceSystemTests(unittest.TestCase):
 
         self.assertEqual(components["project_type"], "build_logging_camp")
         self.assertTrue(develop("FactionA", "A", world))
+        _complete_projects(world)
         self.assertGreater(world.regions["A"].logging_camp_level, 0.0)
 
     def test_irrigation_significantly_improves_grain_output(self):
@@ -2300,6 +2310,7 @@ class ResourceSystemTests(unittest.TestCase):
 
         self.assertEqual(components["project_type"], "build_storehouse")
         self.assertTrue(develop("FactionA", "A", world))
+        _complete_projects(world)
         self.assertGreater(world.regions["A"].storehouse_level, 0.0)
 
     def test_develop_can_build_market_in_connected_town(self):
@@ -2335,6 +2346,7 @@ class ResourceSystemTests(unittest.TestCase):
         self.assertEqual(components["project_type"], "build_market")
         taxable_before = get_region_taxable_value(world.regions["A"], world)
         self.assertTrue(develop("FactionA", "A", world))
+        _complete_projects(world)
         self.assertGreater(world.regions["A"].market_level, 0.0)
         self.assertGreater(get_region_taxable_value(world.regions["A"], world), taxable_before)
 

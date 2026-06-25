@@ -18,6 +18,14 @@ from src.actions import (
     get_explorable_regions,
 )
 from src.config import ATTACK_COST, EXPANSION_COST
+from src.diplomacy import (
+    demand_tribute,
+    get_diplomacy_candidates,
+    get_diplomacy_target_score_components,
+    propose_alliance,
+    send_envoy,
+)
+from src.models import StandingOrder
 from src.region_naming import format_region_reference
 
 
@@ -119,6 +127,12 @@ def apply_action_option(world, faction_name: str, action: ActionOption | str) ->
         return explore(faction_name, action_option.target_region, world)
     if action_option.action_type == "develop":
         return develop(faction_name, action_option.target_region, world)
+    if action_option.action_type == "propose_alliance":
+        return propose_alliance(faction_name, action_option.target_region, world)
+    if action_option.action_type == "send_envoy":
+        return send_envoy(faction_name, action_option.target_region, world)
+    if action_option.action_type == "demand_tribute":
+        return demand_tribute(faction_name, action_option.target_region, world)
 
     raise ValueError(f"Unsupported action type: {action_option.action_type}")
 
@@ -202,6 +216,105 @@ def _build_explore_option(world, faction_name: str, region_name: str) -> ActionO
             "frontier_component_size": components.get("frontier_component_size", 0),
         },
     )
+
+
+def get_active_projects(world, faction_name: str) -> list[dict]:
+    """Return the faction's in-progress ActionProjects as dicts."""
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return []
+    from dataclasses import asdict as _asdict
+    return [_asdict(project) for project in faction.active_projects.values()]
+
+
+def get_standing_orders(world, faction_name: str) -> dict[str, dict]:
+    """Return the faction's current standing orders keyed by track."""
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return {}
+    from dataclasses import asdict as _asdict
+    return {track: _asdict(order) for track, order in faction.standing_orders.items()}
+
+
+_VALID_MODES = {
+    "admin": ("develop_priority", "develop_food", "develop_trade"),
+    "military": ("expand_frontier", "consolidate", "patrol"),
+}
+
+
+def set_standing_order(
+    world,
+    faction_name: str,
+    track: str,
+    mode: str,
+    target_region: str | None = None,
+) -> bool:
+    """Set (or clear) a standing order for the given track. Returns True on success."""
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return False
+    valid_modes = _VALID_MODES.get(track)
+    if valid_modes is None or mode not in valid_modes:
+        return False
+    if target_region is not None and target_region not in world.regions:
+        return False
+    faction.standing_orders[track] = StandingOrder(
+        track=track,
+        mode=mode,
+        target_region=target_region,
+    )
+    return True
+
+
+def clear_standing_order(world, faction_name: str, track: str) -> bool:
+    """Remove the standing order for a track."""
+    faction = world.factions.get(faction_name)
+    if faction is None:
+        return False
+    faction.standing_orders.pop(track, None)
+    return True
+
+
+def get_diplomacy_actions(world, faction_name: str) -> list[ActionOption]:
+    """Return available diplomacy-track actions for player selection."""
+    faction = world.factions.get(faction_name)
+    if faction is None or faction.action_capacity < 3:
+        return []
+    if "diplomacy" in faction.active_projects:
+        return []
+
+    options: list[ActionOption] = []
+    for target_name in get_diplomacy_candidates(faction_name, world):
+        for action_type in ("propose_alliance", "demand_tribute", "send_envoy"):
+            components = get_diplomacy_target_score_components(
+                faction_name, target_name, action_type, world
+            )
+            score = float(components.get("score", -1.0))
+            if score < 0.0:
+                continue
+            label_map = {
+                "propose_alliance": f"Propose alliance to {target_name}",
+                "demand_tribute": f"Demand tribute from {target_name}",
+                "send_envoy": f"Send envoy to {target_name}",
+            }
+            reason_map = {
+                "propose_alliance": f"2-turn project; boosts relationship score by {14:.0f} pts on completion.",
+                "demand_tribute": f"Instant demand; requires power ratio {float(components.get('power_ratio', 0.0)):.1f}x.",
+                "send_envoy": f"3-turn project; improves relations and border-region integration.",
+            }
+            options.append(ActionOption(
+                action_id=f"{action_type}:{target_name}",
+                action_type=action_type,
+                target_region=target_name,
+                label=label_map[action_type],
+                visible_reason=reason_map[action_type],
+                known_cost=0.0,
+                score=round(score, 3),
+                details={k: v for k, v in components.items() if k != "score"},
+            ))
+
+    options.sort(key=lambda o: (-o.score, o.action_type, o.target_region or ""))
+    return options
 
 
 def _build_develop_option(world, faction_name: str, region_name: str) -> ActionOption:

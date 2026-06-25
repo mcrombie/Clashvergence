@@ -29,8 +29,11 @@ from src.config import (
     ADMIN_SUPPORT_ROAD_FACTOR,
     ADMIN_SUPPORT_SETTLEMENT_BONUSES,
     ADMIN_SUPPORT_STOREHOUSE_FACTOR,
+    ACTION_CAPACITY_LARGE_EFFICIENCY,
+    ACTION_CAPACITY_LARGE_THRESHOLD,
     ADMIN_TAXABLE_CAPACITY_FACTOR,
     ADMIN_UNREST_BURDEN_FACTOR,
+    DUAL_TRACK_OVEREXTENSION_MAX,
 )
 from src.diplomacy import get_relationship_status
 from src.governance import (
@@ -495,3 +498,19 @@ def refresh_administrative_state(world: WorldState) -> None:
                 tax_capture -= 0.04
             region.administrative_autonomy = round(min(2.5, autonomy), 3)
             region.administrative_tax_capture = round(max(0.42, min(1.05, tax_capture)), 3)
+
+    # Compute action_capacity: 3 = diplomacy track available, 2 = default, 1 = proto-state
+    for faction_name, faction in world.factions.items():
+        region_count = per_faction_regions.get(faction_name, 0)
+        admin_eff = float(faction.administrative_efficiency or 1.0)
+        overextension = float(faction.administrative_overextension_penalty or 0.0)
+        if faction.proto_state:
+            faction.action_capacity = 1
+        elif (
+            region_count >= ACTION_CAPACITY_LARGE_THRESHOLD
+            and admin_eff >= ACTION_CAPACITY_LARGE_EFFICIENCY
+            and overextension < DUAL_TRACK_OVEREXTENSION_MAX
+        ):
+            faction.action_capacity = 3
+        else:
+            faction.action_capacity = 2

@@ -2,6 +2,12 @@ import unittest
 from unittest.mock import patch
 
 from src.actions import attack, develop, get_attack_target_score_components, get_development_target_score_components
+from src.simulation import _run_advance_projects_phase
+
+
+def _complete_projects(world, max_turns=4):
+    for _ in range(max_turns):
+        _run_advance_projects_phase(world)
 from src.heartland import build_region_snapshot
 from src.metrics import build_turn_metrics
 from src.military import (
@@ -210,6 +216,7 @@ class MilitaryInstitutionTests(unittest.TestCase):
             },
         )
         self.assertTrue(develop("FactionA", "A", world))
+        _complete_projects(world)
         self.assertTrue(
             region.fortification_level > 0.0
             or region.garrison_strength > 0.0

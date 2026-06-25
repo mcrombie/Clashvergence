@@ -18,6 +18,78 @@ DUAL_TRACK_ADMIN_EFFICIENCY_THRESHOLD = 0.55
 DUAL_TRACK_OVEREXTENSION_MAX = 8.0
 DUAL_TRACK_MILITARY_MIN_UTILITY = 0.10
 
+# Multi-turn project system
+PROJECT_DURATIONS: dict[str, int] = {
+    # 2-turn projects
+    "introduce_grain": 2,
+    "introduce_livestock": 2,
+    "introduce_horses": 2,
+    "raise_garrison": 2,
+    "build_road_station": 2,
+    # 3-turn projects
+    "build_irrigation": 3,
+    "expand_irrigation": 3,
+    "build_logging_camp": 3,
+    "expand_logging_camp": 3,
+    "build_copper_mine": 3,
+    "expand_copper_mine": 3,
+    "build_stone_quarry": 3,
+    "expand_stone_quarry": 3,
+    "build_market": 3,
+    "expand_market": 3,
+    "build_storehouse": 3,
+    "expand_storehouse": 3,
+    "build_granary": 3,
+    "build_logistics_node": 3,
+    # 4-turn projects
+    "improve_agriculture": 4,
+    "improve_pastoralism": 4,
+    "establish_pasture": 4,
+    "expand_pasture": 4,
+    "build_iron_mine": 4,
+    "expand_iron_mine": 4,
+    "build_gold_mine": 4,
+    "expand_gold_mine": 4,
+    "build_fortifications": 4,
+    "improve_infrastructure": 4,
+    "improve_road": 4,
+    "military_reform": 4,
+    "build_naval_base": 4,
+    # Diplomacy track
+    "propose_alliance": 2,
+    "send_envoy": 3,
+}
+STANDING_ORDER_EFFICIENCY = 0.8
+ACTION_CAPACITY_LARGE_THRESHOLD = 8
+ACTION_CAPACITY_LARGE_EFFICIENCY = 0.65
+SIEGE_SUCCESS_BONUS = 0.15       # added to success_chance when siege completes
+HARSH_EXPANSION_CLIMATE_THRESHOLD = 0.65  # climate_harshness above which expansion takes 2 turns
+
+# Subfaction system
+SUBFACTION_SPAWN_MIN_REGIONS = 5          # parent must own at least this many regions
+SUBFACTION_SPAWN_OVEREXTENSION_THRESHOLD = 2.0  # admin overextension penalty required
+SUBFACTION_SPAWN_INTEGRATION_THRESHOLD = 3.5    # home_region integration_score must be below this
+SUBFACTION_MAX_PER_FACTION = 2            # max concurrent subfactions per parent
+SUBFACTION_AUTONOMY_GROWTH_BASE = 0.04   # autonomy gained per turn
+SUBFACTION_AUTONOMY_OVEREXTENSION_BONUS = 0.008  # per overextension point
+SUBFACTION_AUTONOMY_UNREST_BONUS = 0.006         # per unrest point on home_region
+SUBFACTION_AUTONOMY_SETTLEMENT_BONUS = 0.08      # per settled region
+SUBFACTION_AUTONOMY_PROMOTION_THRESHOLD = 0.80   # autonomy at which promotion becomes eligible
+SUBFACTION_AUTONOMY_TURNS_REQUIRED = 6   # turns at high autonomy before promotion
+SUBFACTION_SETTLEMENT_REQUIRED = 1       # settled regions needed before promotion
+SUBFACTION_HARSH_CLIMATE_BIAS = 2.5      # score bonus subfactions get for harsh-climate targets
+SUBFACTION_REMOTE_BIAS = 0.4             # score bonus per route-depth beyond 2
+SUBFACTION_TREASURY_SHARE = 0.05         # fraction of parent treasury the subfaction can spend
+SUBFACTION_PROMOTION_TREASURY_SHARE = 0.12  # fraction of parent treasury transferred on promotion
+SUBFACTION_SPAWN_COOLDOWN = 12           # min turns between spawns per parent
+SUBFACTION_SEED_TREASURY = 15            # treasury given to subfaction at spawn (own pool)
+
+# Diplomacy track actions
+DIPLOMACY_PROPOSE_ALLIANCE_SCORE_BOOST = 14.0   # relationship score added when proposal completes
+DIPLOMACY_ENVOY_RELATIONSHIP_BOOST = 8.0         # relationship score boost from completed envoy mission
+DIPLOMACY_ENVOY_INTEGRATION_BOOST = 0.8          # integration_score added to border regions of target
+DIPLOMACY_DEMAND_TRIBUTE_GRIEVANCE = 5.0         # relationship score penalty when demand is refused
+
 # Overextension pressure on attack
 ATTACK_OVEREXTENSION_PENALTY_FACTOR = 0.06
 ATTACK_OVEREXTENSION_MAX_PENALTY = 0.45

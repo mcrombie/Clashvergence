@@ -1,6 +1,7 @@
 import random
 
 from src.actions import (
+    develop,
     get_attack_target_score_components,
     get_attackable_regions,
     get_developable_regions,
@@ -25,7 +26,17 @@ from src.config import (
     EXPANSION_COST,
     REBEL_PROTO_ATTACK_UTILITY_PENALTY,
     REBEL_PROTO_INVEST_UTILITY_BONUS,
+    STANDING_ORDER_EFFICIENCY,
 )
+from src.diplomacy import (
+    demand_tribute,
+    get_diplomacy_candidates,
+    get_diplomacy_target_score_components,
+    get_relationship_status,
+    propose_alliance,
+    send_envoy,
+)
+from src.models import StandingOrder
 from src.doctrine import OPEN_TERRAIN_TAGS, ROUGH_TERRAIN_TAGS
 
 CHAOS_PIONEER_FRONTIER_PRESSURE_CAP = 0.82   # vs normal 0.52
@@ -712,6 +723,48 @@ def choose_action(faction_name, world):
     return _select_single_action(evaluation)
 
 
+def _get_diplomacy_track_available(faction_name, world):
+    """Return True when the faction qualifies for the diplomacy track this turn."""
+    faction = world.factions[faction_name]
+    if "diplomacy" in faction.active_projects:
+        return False
+    return faction.action_capacity >= 3
+
+
+def _choose_diplomacy_action(faction_name, world, mode=None):
+    """Return (action_type, target_faction_name) for the best diplomacy action.
+
+    mode: None = best overall; 'build_alliances'; 'extract_tribute'
+    """
+    candidates = get_diplomacy_candidates(faction_name, world)
+    if not candidates:
+        return (None, None)
+
+    if mode == "extract_tribute":
+        action_priority = ["demand_tribute", "send_envoy", "propose_alliance"]
+    elif mode == "build_alliances":
+        action_priority = ["propose_alliance", "send_envoy"]
+    else:
+        action_priority = ["propose_alliance", "demand_tribute", "send_envoy"]
+
+    best_score = 0.0
+    best_target = None
+    best_action = None
+
+    for action_type in action_priority:
+        for target in candidates:
+            components = get_diplomacy_target_score_components(
+                faction_name, target, action_type, world
+            )
+            score = float(components.get("score", -1.0))
+            if score > best_score:
+                best_score = score
+                best_target = target
+                best_action = action_type
+
+    return (best_action, best_target)
+
+
 def get_available_tracks(faction_name, world):
     """Return (military_available, admin_available) for the faction this turn."""
     faction = world.factions[faction_name]
@@ -757,11 +810,157 @@ def _choose_admin_action(faction_name, world, bloc_biases=None, *, minimum_utili
     return ("develop", evaluation["targets"]["develop"])
 
 
+_FOOD_PROJECT_TYPES = frozenset({
+    "introduce_grain", "build_irrigation", "expand_irrigation",
+    "improve_agriculture", "build_granary",
+})
+
+_TRADE_PROJECT_TYPES = frozenset({
+    "build_market", "expand_market", "build_logistics_node",
+    "build_storehouse", "expand_storehouse", "build_road_station", "improve_road",
+})
+
+
+def _pick_standing_order_develop_target(faction_name, mode, world):
+    """Return the best develop target given standing order mode, or None if nothing available."""
+    developable = get_developable_regions(faction_name, world)
+    if not developable:
+        return None
+
+    if mode in ("develop_food", "develop_trade"):
+        allowed = _FOOD_PROJECT_TYPES if mode == "develop_food" else _TRADE_PROJECT_TYPES
+        category_candidates = []
+        for region_name in developable:
+            components = get_development_target_score_components(region_name, faction_name, world)
+            if components and components.get("project_type") in allowed:
+                category_candidates.append((float(components["score"]), region_name))
+        if category_candidates:
+            return max(category_candidates)[1]
+
+    return max(
+        developable,
+        key=lambda r: (get_development_target_score_components(r, faction_name, world)["score"], r),
+    )
+
+
+def _auto_start_standing_order(faction_name, track, world):
+    """Fire a standing order for the given track. Returns True if an action was started."""
+    faction = world.factions[faction_name]
+    order = faction.standing_orders.get(track)
+    if order is None:
+        return False
+
+    if track == "admin":
+        target = _pick_standing_order_develop_target(faction_name, order.mode, world)
+        if target is None:
+            return False
+        success = develop(faction_name, target, world)
+        if success and "admin" in faction.active_projects:
+            project = faction.active_projects["admin"]
+            project.is_standing_order = True
+            project.efficiency = order.efficiency_modifier
+        return success
+
+    return False
+
+
+def _get_standing_order_military_action(faction_name, world, bloc_biases=None):
+    """Return (action_name, target) for the military standing order."""
+    faction = world.factions[faction_name]
+    order = faction.standing_orders.get("military")
+    if order is None or order.mode not in ("expand_frontier",):
+        return _choose_military_action(faction_name, world, bloc_biases)
+
+    if order.mode == "expand_frontier":
+        expandable = get_expandable_regions(faction_name, world)
+        if expandable:
+            best = max(
+                expandable,
+                key=lambda r: (
+                    get_expand_target_score_components(r, world, faction_name=faction_name)["score"],
+                    r,
+                ),
+            )
+            return ("expand", best)
+
+    return _choose_military_action(faction_name, world, bloc_biases)
+
+
+def choose_standing_orders(faction_name, world):
+    """Set faction.standing_orders for each available track at year-end."""
+    faction = world.factions[faction_name]
+    military_available, admin_available = get_available_tracks(faction_name, world)
+    new_orders = {}
+
+    if admin_available:
+        food_deficit = float(faction.food_deficit or 0.0) if hasattr(faction, "food_deficit") else 0.0
+        economic_identity = str(faction.economic_identity or "")
+        if food_deficit > 0.0:
+            new_orders["admin"] = StandingOrder(track="admin", mode="develop_food")
+        elif economic_identity in ("commercial", "trade", "mercantile"):
+            new_orders["admin"] = StandingOrder(track="admin", mode="develop_trade")
+        else:
+            new_orders["admin"] = StandingOrder(track="admin", mode="develop_priority")
+
+    if military_available:
+        expandable = get_expandable_regions(faction_name, world)
+        overextension = float(faction.administrative_overextension_penalty or 0.0)
+        if overextension > DUAL_TRACK_OVEREXTENSION_MAX * 0.75:
+            new_orders["military"] = StandingOrder(track="military", mode="consolidate")
+        elif expandable:
+            new_orders["military"] = StandingOrder(track="military", mode="expand_frontier")
+        else:
+            new_orders["military"] = StandingOrder(track="military", mode="patrol")
+
+    # Diplomacy track: available to large empires (capacity 3)
+    if _get_diplomacy_track_available(faction_name, world):
+        at_war_count = sum(
+            1 for name in world.factions
+            if name != faction_name
+            and get_relationship_status(world, faction_name, name) == "war"
+        )
+        faction_region_names = {r for r, reg in world.regions.items() if reg.owner == faction_name}
+        rival_neighbor_factions = {
+            world.regions[n].owner
+            for r in faction_region_names
+            for n in world.regions[r].neighbors
+            if world.regions.get(n) and world.regions[n].owner not in (None, faction_name)
+            and get_relationship_status(world, faction_name, world.regions[n].owner) in ("rival", "neutral")
+        }
+        if at_war_count > 0 or len(rival_neighbor_factions) >= 2:
+            new_orders["diplomacy"] = StandingOrder(track="diplomacy", mode="build_alliances")
+        else:
+            new_orders["diplomacy"] = StandingOrder(track="diplomacy", mode="extract_tribute")
+
+    faction.standing_orders = new_orders
+
+
 def choose_actions(faction_name, world):
-    """Return up to one military-track and one admin-track action."""
+    """Return up to one action per track (military, admin, diplomacy).
+
+    Skips any track that already has an active project in progress.
+    Standing orders auto-fire develop on the admin track before deliberate choices.
+    Diplomacy track is independent and only available to large empires (capacity >= 3).
+    """
     faction = world.factions[faction_name]
     owned_count = _get_owned_region_count(faction_name, world)
     military_available, admin_available = get_available_tracks(faction_name, world)
+    diplomacy_available = _get_diplomacy_track_available(faction_name, world)
+
+    admin_track_occupied = "admin" in faction.active_projects
+    military_track_occupied = "military" in faction.active_projects
+
+    if admin_track_occupied:
+        admin_available = False
+    if military_track_occupied:
+        military_available = False
+
+    # Auto-fire admin standing order if track is free
+    if admin_available and "admin" in faction.standing_orders:
+        if _auto_start_standing_order(faction_name, "admin", world):
+            admin_available = False
+            admin_track_occupied = True
+
     is_dual = (
         military_available
         and admin_available
@@ -769,26 +968,46 @@ def choose_actions(faction_name, world):
         and owned_count >= DUAL_TRACK_MIN_REGIONS
     )
 
-    if not is_dual:
-        evaluation = _evaluate_action_utilities(
-            faction_name,
-            world,
-            bloc_biases=get_bloc_action_biases(faction),
-        )
-        action_name, target_region_name = _select_single_action(evaluation)
-        return (
-            [(action_name, target_region_name)]
-            if action_name is not None and action_name != "skip"
-            else []
-        )
+    mil_admin_actions = []
 
-    bloc_biases = get_bloc_action_biases(faction)
-    evaluation = _evaluate_action_utilities(
-        faction_name,
-        world,
-        bloc_biases=bloc_biases,
-    )
-    return _select_dual_track_actions(evaluation)
+    if not is_dual:
+        if military_available or admin_available:
+            bloc_biases = get_bloc_action_biases(faction)
+            if admin_track_occupied:
+                if "military" in faction.standing_orders:
+                    action_name, target_region_name = _get_standing_order_military_action(
+                        faction_name, world, bloc_biases
+                    )
+                else:
+                    action_name, target_region_name = _choose_military_action(faction_name, world, bloc_biases)
+                if action_name is not None:
+                    mil_admin_actions = [(action_name, target_region_name)]
+            else:
+                evaluation = _evaluate_action_utilities(faction_name, world, bloc_biases=bloc_biases)
+                action_name, target_region_name = _select_single_action(evaluation)
+                if action_name is not None and action_name != "skip":
+                    mil_admin_actions = [(action_name, target_region_name)]
+    else:
+        bloc_biases = get_bloc_action_biases(faction)
+        evaluation = _evaluate_action_utilities(faction_name, world, bloc_biases=bloc_biases)
+        mil_admin_actions = _select_dual_track_actions(evaluation)
+
+        if military_available and "military" in faction.standing_orders:
+            standing_military = _get_standing_order_military_action(faction_name, world, bloc_biases)
+            if standing_military[0] is not None:
+                mil_admin_actions = [a for a in mil_admin_actions if a[0] not in ("attack", "expand", "explore")]
+                mil_admin_actions.append(standing_military)
+
+    # Diplomacy track: independent of military/admin, only for large empires
+    diplomacy_actions = []
+    if diplomacy_available:
+        order = faction.standing_orders.get("diplomacy")
+        mode = order.mode if isinstance(order, StandingOrder) else None
+        diplo_action, diplo_target = _choose_diplomacy_action(faction_name, world, mode=mode)
+        if diplo_action is not None:
+            diplomacy_actions.append((diplo_action, diplo_target))
+
+    return mil_admin_actions + diplomacy_actions
 
 
 def evaluate_action_diagnostics(faction_name, world):
@@ -796,6 +1015,7 @@ def evaluate_action_diagnostics(faction_name, world):
     faction = world.factions[faction_name]
     owned_count = _get_owned_region_count(faction_name, world)
     military_available, admin_available = get_available_tracks(faction_name, world)
+    diplomacy_available = _get_diplomacy_track_available(faction_name, world)
     is_dual = (
         military_available
         and admin_available
@@ -819,6 +1039,13 @@ def evaluate_action_diagnostics(faction_name, world):
             else []
         )
 
+    if diplomacy_available:
+        order = faction.standing_orders.get("diplomacy")
+        mode = order.mode if isinstance(order, StandingOrder) else None
+        diplo_action, diplo_target = _choose_diplomacy_action(faction_name, world, mode=mode)
+        if diplo_action is not None:
+            selected_actions = list(selected_actions) + [(diplo_action, diplo_target)]
+
     dominant_admin_agenda = _get_dominant_admin_agenda(faction)
     return {
         "turn": world.turn + 1,
@@ -827,6 +1054,7 @@ def evaluate_action_diagnostics(faction_name, world):
         "dual_track_qualified": bool(is_dual),
         "military_track_available": bool(military_available),
         "admin_track_available": bool(admin_available),
+        "diplomacy_track_available": bool(diplomacy_available),
         "selected_actions": [
             {
                 "action": action_name,
