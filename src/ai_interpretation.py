@@ -40,7 +40,7 @@ def load_local_env_file(filename=".env.local"):
 load_local_env_file()
 
 
-AI_INTERPRETATION_MODEL = os.getenv("CLASHVERGENCE_AI_MODEL", "gpt-5.4-mini")
+AI_INTERPRETATION_MODEL = os.getenv("CLASHVERGENCE_AI_MODEL", "gpt-5.5")
 AI_INTERPRETATION_TEMPERATURE = float(
     os.getenv("CLASHVERGENCE_AI_TEMPERATURE", "0.45")
 )

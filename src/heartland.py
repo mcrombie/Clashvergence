@@ -3223,9 +3223,29 @@ def _split_successor_ethnicity_in_regions(
     return successor_total, parent_total
 
 
-def _build_rebel_faction_name(world: WorldState, region: Region) -> str:
-    region_name = _get_rebel_region_name_root(region)
-    base_name = _normalize_rebel_name_seed(f"{region_name} Rebels")
+# Language group keys for which rebel/breakaway factions should carry the culture name
+# rather than the region name. Covers all 16 Azhoran scenario language groups so that,
+# e.g., a seceding province of a Mittoli empire is named "Mittoli Rebels" not "East Plains Rebels."
+_NAMED_LANGUAGE_GROUP_KEYS: frozenset[str] = frozenset([
+    "boueni", "mittoli", "pyrosi", "moreshi", "grassic",
+    "ibnael", "elodi", "elagosi", "kellith", "crefs",
+    "tennoca", "disht", "groga", "lothi", "mujahal", "rov",
+])
+
+
+def _get_faction_named_language_key(faction: Faction) -> str | None:
+    """Return the named language group key if the faction belongs to one of the 16 known groups."""
+    if faction.identity is None:
+        return None
+    for tradition in (faction.identity.source_traditions or []):
+        if tradition in _NAMED_LANGUAGE_GROUP_KEYS:
+            return tradition
+    return None
+
+
+def _build_rebel_faction_name(world: WorldState, region: Region, culture_root: str | None = None) -> str:
+    root = culture_root if culture_root else _get_rebel_region_name_root(region)
+    base_name = _normalize_rebel_name_seed(f"{root} Rebels")
     candidate = base_name
     suffix = 2
     while candidate in world.factions:
@@ -3469,8 +3489,10 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         update_ideologies(world, emit_events=False)
         return restored_faction_name, True
 
-    rebel_name = _build_rebel_faction_name(world, region)
     former_faction = world.factions[former_owner]
+    named_language_key = _get_faction_named_language_key(former_faction)
+    culture_root_for_name = former_faction.culture_name if named_language_key else None
+    rebel_name = _build_rebel_faction_name(world, region, culture_root=culture_root_for_name)
     conflict_type = _determine_rebel_conflict_type(world, region, former_owner)
     inherited_ethnicity = former_faction.primary_ethnicity
     parent_language_profile = (
@@ -3487,7 +3509,7 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         generation_method = "civil_war_claimant"
     else:
         polity_tier, government_form = "state", "council"
-        culture_name = _get_rebel_region_name_root(region)
+        culture_name = former_faction.culture_name if named_language_key else _get_rebel_region_name_root(region)
         generation_method = "rebel_secession"
     rebel_identity = FactionIdentity(
         internal_id=_next_dynamic_internal_id(world),

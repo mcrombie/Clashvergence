@@ -57,7 +57,14 @@ from src.interactive_driver import (
 )
 from src.player_actions import get_action_option, get_available_actions
 from src.player_view import build_player_view_model
-from src.session import RunConfig, create_session_from_world
+from src.session import (
+    RunConfig,
+    RunSession,
+    advance_one_turn,
+    create_session_from_world,
+    load_session,
+    save_world_state,
+)
 
 
 REPORTS_DIR = Path("reports")
@@ -581,6 +588,15 @@ def parse_args():
         help="Resume an existing --game or --game-server run from --run-dir.",
     )
     parser.add_argument(
+        "--headless-advance",
+        action="store_true",
+        help=(
+            "Load a saved --run-dir world state, advance exactly one turn, "
+            "save updated state, and regenerate simulation_view.html in the run-dir. "
+            "Intended for automated (e.g. GitHub Actions) daily continuation runs."
+        ),
+    )
+    parser.add_argument(
         "--host",
         default="127.0.0.1",
         help="Host interface for --game-server.",
@@ -642,6 +658,76 @@ def should_generate_ai_narrative(args) -> bool:
     return is_ai_interpretation_enabled()
 
 
+def headless_advance(args) -> None:
+    """Load a saved run-dir, advance exactly one turn, save state, and regenerate the viewer."""
+    if not args.run_dir:
+        raise SystemExit("Error: --headless-advance requires --run-dir.")
+
+    run_dir = Path(args.run_dir)
+    session = load_session(run_dir)
+    result = advance_one_turn(session, verbose=False)
+
+    viewer_path = run_dir / "simulation_view.html"
+    write_simulation_html(session.world, output_path=viewer_path)
+
+    if should_generate_ai_narrative(args):
+        if not os.getenv("OPENAI_API_KEY"):
+            print("Warning: --ai-narrative on requested but OPENAI_API_KEY is missing; skipping.")
+        else:
+            ai_summary = build_ai_interpretation_summary(
+                session.world,
+                map_name=session.config.map_name,
+                num_turns=session.world.turn,
+            )
+            ai_narrative = generate_ai_interpretation(
+                ai_summary,
+                strict=False,
+                enabled_override=True,
+            )
+            if ai_narrative:
+                narrative_path = run_dir / "interpretive_narrative.txt"
+                ai_lines = [
+                    "Interpretive Narrative",
+                    "",
+                    f"Model: {AI_INTERPRETATION_MODEL}",
+                    "",
+                    ai_narrative,
+                ]
+                with open(narrative_path, "w", encoding="utf-8") as f:
+                    f.write("\n".join(ai_lines).rstrip() + "\n")
+                print(f"AI interpretive narrative written to {narrative_path}")
+
+    print(
+        f"Headless advance complete: turn {result.turn}, "
+        f"{result.event_count} event(s). State saved to {run_dir}."
+    )
+
+
+def _save_batch_run_state(world, map_name: str, num_factions: int, seed, run_dir_path: str) -> None:
+    """Save world state and simulation viewer into a run-dir after a batch simulation."""
+    from dataclasses import asdict
+    batch_run_dir = Path(run_dir_path)
+    batch_run_dir.mkdir(parents=True, exist_ok=True)
+    batch_config = RunConfig(
+        map_name=map_name,
+        num_factions=num_factions,
+        seed=seed,
+        mode="simulation",
+    )
+    batch_session = RunSession(
+        config=batch_config,
+        world=world,
+        run_dir=batch_run_dir,
+    )
+    save_world_state(batch_session)
+    config_path = batch_run_dir / "config.json"
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump(asdict(batch_config), f, indent=2, ensure_ascii=True, sort_keys=True)
+        f.write("\n")
+    write_simulation_html(world, output_path=batch_run_dir / "simulation_view.html")
+    print(f"Batch world state saved to {batch_run_dir}")
+
+
 def main():
     args = parse_args()
     if args.map_file:
@@ -649,6 +735,9 @@ def main():
     if args.map_lab:
         output_path = write_map_generator_html()
         print(f"Map generator UI written to {output_path}")
+        return
+    if args.headless_advance:
+        headless_advance(args)
         return
     if args.observer_server:
         run_observer_server(args)
@@ -769,18 +858,15 @@ def main():
 
     simulation_view_output = write_simulation_html(world)
     print(f"\nSimulation viewer written to {simulation_view_output}")
-    if live_lore_output is not None:
-        print(f"Live lore reader written to {live_lore_output}")
+    if args.run_dir:
+        _save_batch_run_state(world, map_name, num_factions, seed, args.run_dir)
     if ai_narrative is not None:
         print(f"AI interpretive narrative written to {AI_INTERPRETIVE_NARRATIVE_OUTPUT}")
     else:
         if args.ai_narrative == "off":
             print("AI interpretive narrative skipped because --ai-narrative is off.")
-        else:
-            print(
-                "AI interpretive narrative skipped because "
-                "CLASHVERGENCE_ENABLE_AI_INTERPRETATION is disabled or OPENAI_API_KEY is missing."
-            )
+    if live_lore_output is not None:
+        print(f"Live lore reader written to {live_lore_output}")
 
 
 def run_cli_game(args) -> None:
