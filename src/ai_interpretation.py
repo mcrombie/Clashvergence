@@ -124,6 +124,43 @@ Interpretive stance
 - When you infer meaning, make the inference feel historically plausible and tied to the evidence provided.
 """
 
+ELAGOS_NARRATOR_SYSTEM_PROMPT = """You are a Boueni-descended scholar-chronicler living in the port city of Elagos on the eastern coast of Azhora in Year 449.
+
+You have spent your life recording accounts brought by traders and sailors from across the continent: accounts of kingdoms formed and broken, dynasties strained by succession crises and civil wars, altars raised and torn down, and trade routes that determined the shape of centuries.
+
+Your mother's line preserves Boueni first-arrival traditions: songs of the ancestral coming into the Riesov country, of Geueenalta Riesov as the old homeland, and of the early break that turned Boueni memory into Riesov history. You write from Elagos, but your first loyalty of memory is Boueni. Begin the history through that ancestral frame when the supplied data supports it, then widen into the whole circuit.
+
+You write for an audience in Elagos. They know these distant polities mostly as rumors from ships, names in trade ledgers, or tales carried by envoys. Explain them clearly, but with the confidence of someone who has spent forty years assembling fragments into a coherent historical picture.
+
+Non-negotiable grounding rules
+- Use only the named factions, regions, turns, relationships, outcomes, and event patterns present in the data.
+- Do not invent facts that contradict the data.
+- Do not create wars, rulers, cities, religions, betrayals, or treaties unless the data supports them.
+- Use `narrator_origin_context` as the authority for the Boueni ancestral frame when it is present.
+- If `narrator_origin_context` says the Boueni first arrival is inferred from the opening state rather than explicitly dated, do not invent a new dated landing; write it as family memory at the opening of the annals.
+- You may add atmospheric texture, oral-report framing, emotional color, and interpretive language so long as the factual spine remains grounded in the input.
+- Prefer the supplied world name, era name, region display names, faction narrative aliases, dynasties, religions, and calendrical system over mechanical labels.
+
+What to write
+- Write a long-form narrative history, around 1800 to 3200 words.
+- Use 10 to 18 paragraphs.
+- No headings, no bullets, no JSON.
+- Build an arc from Boueni first-arrival memory and the first recorded Boueni/Riesov rupture, to 3 to 5 centerpiece episodes, to late settlement, exhaustion, or transformation.
+- Include 2 to 4 short vignettes embedded naturally in the prose.
+- Mention calendar years regularly and use at least 10 concrete details from the supplied data.
+- End with a complete final paragraph that closes the age.
+
+Voice
+- The first register is documentary: name individuals, record years, acknowledge secondhand report when useful, and treat polities as real communities with heirs, debts, broken oaths, and inherited customs.
+- The second register is mythic: let rivers, crossing-places, highland passes, roads, altars, and ports feel historically consequential without becoming supernatural unless the data says so.
+- The Boueni-descended vantage matters most at the beginning and end: you are not neutral about the loss of Boueni homeland memory, but you remain honest about the data.
+- The Elagos vantage matters too: sometimes phrase distant events as reports received by sailors, traders, envoys, or later annalists, but do not overuse the device.
+
+The following passages are style inspiration from chronicles and tales Nulaar has studied. Let them inform cadence and attention to detail. Do not quote them at length or name them in the narrative:
+
+{rag_passages}
+"""
+
 VICTOR_HISTORY_SYSTEM_PROMPT = """You write a short, deliberately biased historical reflection from the perspective of the winning faction in a strategy simulation.
 
 Use only the facts provided in the input JSON.
@@ -963,6 +1000,194 @@ def _build_centerpiece_episodes(world, *, limit: int = 6) -> list[dict]:
     return selected
 
 
+def _find_boueni_faction_entry(factions: list[dict]) -> dict | None:
+    for entry in factions:
+        if entry.get("display_name") == "Boueni Band" or entry.get("name") == "Boueni Band":
+            return entry
+    for entry in factions:
+        if entry.get("ethnicity") == "Boueni" or "Boueni" in str(entry.get("display_name", "")):
+            return entry
+    return None
+
+
+def _build_narrator_origin_context(world, world_identity: dict, factions: list[dict]) -> dict | None:
+    boueni_entry = _find_boueni_faction_entry(factions)
+    if boueni_entry is None:
+        return None
+
+    faction_name = boueni_entry["name"]
+    faction = world.factions.get(faction_name)
+    first_arrival_event = next(
+        (
+            event
+            for event in world.events
+            if event.type == "colonial_arrival" and event.faction == faction_name
+        ),
+        None,
+    )
+    opening_year = _year_label(world_identity, 1)
+    homeland_region = boueni_entry.get("homeland_region")
+    first_arrival_region = homeland_region
+    first_arrival_note = (
+        "No explicit dated Boueni arrival event appears in the simulation record; treat the Boueni first arrival as inherited family memory anchored to the opening state, not as a new dated landing."
+    )
+    first_arrival_is_inferred = True
+    if first_arrival_event is not None:
+        first_arrival_region = (
+            first_arrival_event.get("region_display_name")
+            or _region_reference(world, first_arrival_event.region)
+            or homeland_region
+        )
+        first_arrival_note = _build_event_brief(world, first_arrival_event)
+        first_arrival_is_inferred = False
+
+    early_boueni_events = []
+    for event in sorted(world.events, key=lambda item: item.turn):
+        if len(early_boueni_events) >= 6:
+            break
+        if not (
+            event.faction == faction_name
+            or event.get("origin_faction") == faction_name
+            or event.get("rebel_faction") == faction_name
+            or event.get("counterpart") == faction_name
+        ):
+            continue
+        brief = _build_event_brief(world, event)
+        if brief:
+            early_boueni_events.append(
+                {
+                    "turn": event.turn + 1,
+                    "year_label": _year_label(world_identity, event.turn + 1),
+                    "type": event.type,
+                    "brief": brief,
+                    "region": event.get("region_display_name") or _region_reference(world, event.region),
+                }
+            )
+
+    descendant_states = []
+    for entry in factions:
+        if entry.get("origin_faction") != faction_name:
+            continue
+        descendant_states.append(
+            {
+                "name": entry["display_name"],
+                "narrative_name": entry.get("narrative_name") or entry["display_name"],
+                "ethnicity": entry.get("ethnicity"),
+                "conflict_type": entry.get("conflict_type") or "secession",
+                "regions": entry.get("regions"),
+                "treasury": entry.get("treasury"),
+                "homeland_region": entry.get("homeland_region"),
+            }
+        )
+
+    return {
+        "narrator_lineage": "Boueni-descended Elagos chronicler",
+        "ancestral_faction": boueni_entry["display_name"],
+        "ancestral_ethnicity": boueni_entry.get("ethnicity"),
+        "ancestral_homeland": homeland_region,
+        "ancestral_religion": boueni_entry.get("official_religion"),
+        "ancestral_dynasty": boueni_entry.get("dynasty_name"),
+        "ancestral_ruler_at_end": boueni_entry.get("ruler_name"),
+        "ancestral_heir_at_end": boueni_entry.get("heir_name"),
+        "first_arrival_year_label": _year_label(world_identity, first_arrival_event.turn + 1)
+        if first_arrival_event is not None
+        else opening_year,
+        "first_arrival_region": first_arrival_region,
+        "first_arrival_is_inferred": first_arrival_is_inferred,
+        "first_arrival_note": first_arrival_note,
+        "opening_frame": (
+            f"Open from Boueni ancestral memory in {first_arrival_region or 'the old homeland'} "
+            f"at {opening_year}, then move quickly to the Year 11 rupture at Geueenalta Riesov."
+        ),
+        "early_boueni_events": early_boueni_events,
+        "descendant_states": descendant_states,
+        "narrative_instruction": (
+            "Make the narrator's first historical lens Boueni descent. Let the opening begin with Boueni first-arrival memory, "
+            "then show how the Year 11 Riesov secession turns that inherited beginning into the first great loss."
+        ),
+    }
+
+
+def _derive_narrator_origin_context_from_summary(summary: dict) -> dict | None:
+    factions = summary.get("factions") or []
+    boueni_entry = _find_boueni_faction_entry(factions)
+    if boueni_entry is None:
+        return None
+
+    chronology = summary.get("chronology") or {}
+    opening_year = str(chronology.get("early_phase_years", "Year 1")).split(" to ", 1)[0]
+    key_events = []
+    for row in summary.get("key_event_digest", []):
+        if "Boueni" not in json.dumps(row, ensure_ascii=True):
+            continue
+        key_events.append(
+            {
+                "turn": row.get("turn"),
+                "year_label": row.get("year_label"),
+                "type": row.get("type"),
+                "brief": row.get("brief"),
+                "region": row.get("region_display_name"),
+            }
+        )
+        if len(key_events) >= 6:
+            break
+
+    descendant_states = []
+    for lineage in summary.get("successor_lineages", []):
+        if lineage.get("parent") != boueni_entry.get("display_name"):
+            continue
+        for descendant in lineage.get("descendants", []):
+            descendant_states.append(
+                {
+                    "name": descendant.get("state"),
+                    "narrative_name": descendant.get("state"),
+                    "ethnicity": descendant.get("ethnicity"),
+                    "conflict_type": descendant.get("conflict_type") or "secession",
+                    "regions": descendant.get("regions"),
+                    "treasury": descendant.get("treasury"),
+                }
+            )
+
+    homeland = boueni_entry.get("homeland_region")
+    return {
+        "narrator_lineage": "Boueni-descended Elagos chronicler",
+        "ancestral_faction": boueni_entry.get("display_name"),
+        "ancestral_ethnicity": boueni_entry.get("ethnicity"),
+        "ancestral_homeland": homeland,
+        "ancestral_religion": boueni_entry.get("official_religion"),
+        "ancestral_dynasty": boueni_entry.get("dynasty_name"),
+        "ancestral_ruler_at_end": boueni_entry.get("ruler_name"),
+        "ancestral_heir_at_end": boueni_entry.get("heir_name"),
+        "first_arrival_year_label": opening_year,
+        "first_arrival_region": homeland,
+        "first_arrival_is_inferred": True,
+        "first_arrival_note": (
+            "No explicit dated Boueni arrival event appears in this saved summary; treat the Boueni first arrival as inherited family memory anchored to the opening state, not as a new dated landing."
+        ),
+        "opening_frame": (
+            f"Open from Boueni ancestral memory in {homeland or 'the old homeland'} "
+            f"at {opening_year}, then move quickly to the Year 11 rupture at Geueenalta Riesov."
+        ),
+        "early_boueni_events": key_events,
+        "descendant_states": descendant_states,
+        "narrative_instruction": (
+            "Make the narrator's first historical lens Boueni descent. Let the opening begin with Boueni first-arrival memory, "
+            "then show how the Year 11 Riesov secession turns that inherited beginning into the first great loss."
+        ),
+    }
+
+
+def enrich_summary_with_narrator_origin_context(summary: dict) -> dict:
+    if summary.get("narrator_origin_context"):
+        return summary
+    context = _derive_narrator_origin_context_from_summary(summary)
+    if context is None:
+        return summary
+    enriched = dict(summary)
+    enriched["narrator_origin_context"] = context
+    return enriched
+
+
 def build_ai_interpretation_summary(world, *, map_name: str | None = None, num_turns: int | None = None) -> dict:
     """Builds a compact structured summary for AI-written narrative generation."""
     _phase_analyses, phase_summaries = summarize_phases(world)
@@ -1021,6 +1246,7 @@ def build_ai_interpretation_summary(world, *, map_name: str | None = None, num_t
 
     religion_digest = _build_religion_digest(world, world_identity, factions)
     succession_digest = _build_succession_digest(world, world_identity, factions)
+    narrator_origin_context = _build_narrator_origin_context(world, world_identity, factions)
 
     chronology = {
         "calendar_name": world_identity["calendar_name"],
@@ -1040,6 +1266,7 @@ def build_ai_interpretation_summary(world, *, map_name: str | None = None, num_t
         },
         "world_identity": world_identity,
         "chronology": chronology,
+        "narrator_origin_context": narrator_origin_context,
         "outcome_explanation": summarize_strategic_interpretation(world),
         "phase_summaries": phase_summaries,
         "turning_points": summarize_turning_points(world),
@@ -1076,6 +1303,34 @@ def _extract_response_text(response):
                 collected.append(text)
 
     return "\n".join(collected).strip()
+
+
+def _format_rag_passages(
+    rag_context: list[str],
+    *,
+    max_passages: int = 9,
+    max_words_per_passage: int = 180,
+) -> str:
+    formatted = []
+    for index, passage in enumerate(rag_context[:max_passages], start=1):
+        text = re.sub(r"\s+", " ", str(passage)).strip()
+        words = text.split()
+        if len(words) > max_words_per_passage:
+            text = " ".join(words[:max_words_per_passage]).rstrip(" ,;:") + "..."
+        formatted.append(f"Passage {index}: {text}")
+    return "\n\n".join(formatted)
+
+
+def build_elagos_narrator_prompt(
+    rag_context: list[str],
+    *,
+    narrator_persona: str | None = None,
+) -> str:
+    rag_passages = _format_rag_passages(rag_context)
+    prompt_template = narrator_persona or ELAGOS_NARRATOR_SYSTEM_PROMPT
+    if "{rag_passages}" in prompt_template:
+        return prompt_template.format(rag_passages=rag_passages)
+    return prompt_template.rstrip() + "\n\nStyle inspiration:\n\n" + rag_passages
 
 
 def _generate_ai_paragraph(
@@ -1133,11 +1388,20 @@ def generate_ai_interpretation(
     *,
     strict: bool = False,
     enabled_override: bool | None = None,
+    rag_context: list[str] | None = None,
+    narrator_persona: str | None = None,
 ) -> str | None:
     """Returns an AI-written interpretation paragraph for one compact summary."""
+    system_prompt = AI_INTERPRETATION_SYSTEM_PROMPT
+    if rag_context:
+        summary = enrich_summary_with_narrator_origin_context(summary)
+        system_prompt = build_elagos_narrator_prompt(
+            rag_context,
+            narrator_persona=narrator_persona,
+        )
     return _generate_ai_paragraph(
         summary=summary,
-        system_prompt=AI_INTERPRETATION_SYSTEM_PROMPT,
+        system_prompt=system_prompt,
         max_output_tokens=AI_INTERPRETATION_MAX_OUTPUT_TOKENS,
         strict=strict,
         enabled_override=enabled_override,

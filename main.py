@@ -38,6 +38,7 @@ from src.ai_interpretation import (
     generate_ai_interpretation,
     is_ai_interpretation_enabled,
 )
+from src.narrative_rag import DEFAULT_CORPUS_DIR, build_style_context_for_summary
 from src.world import create_world
 from src.simulation import run_simulation
 from src.narrative import build_chronicle
@@ -541,6 +542,21 @@ def parse_args():
         help="Whether to use the OpenAI API for interpretive narrative generation.",
     )
     parser.add_argument(
+        "--ai-narrative-rag",
+        action="store_true",
+        help="Use the corpus-backed Elagos narrator style context for AI narrative generation.",
+    )
+    parser.add_argument(
+        "--ai-narrative-rag-rebuild-index",
+        action="store_true",
+        help="Force rebuilding the AI narrative RAG embedding index.",
+    )
+    parser.add_argument(
+        "--ai-narrative-corpus-dir",
+        default=str(DEFAULT_CORPUS_DIR),
+        help="Directory containing source texts for --ai-narrative-rag.",
+    )
+    parser.add_argument(
         "--live-lore",
         action="store_true",
         help="Write an auto-refreshing lore reader while the simulation runs.",
@@ -658,6 +674,18 @@ def should_generate_ai_narrative(args) -> bool:
     return is_ai_interpretation_enabled()
 
 
+def build_ai_narrative_rag_context(args, ai_summary):
+    if not getattr(args, "ai_narrative_rag", False):
+        return None
+    corpus_dir = Path(getattr(args, "ai_narrative_corpus_dir", DEFAULT_CORPUS_DIR))
+    print(f"Building AI narrative RAG context from {corpus_dir} ...")
+    return build_style_context_for_summary(
+        ai_summary,
+        corpus_dir=corpus_dir,
+        force_rebuild=getattr(args, "ai_narrative_rag_rebuild_index", False),
+    )
+
+
 def headless_advance(args) -> None:
     """Load a saved run-dir, advance exactly one turn, save state, and regenerate the viewer."""
     if not args.run_dir:
@@ -679,10 +707,12 @@ def headless_advance(args) -> None:
                 map_name=session.config.map_name,
                 num_turns=session.world.turn,
             )
+            rag_context = build_ai_narrative_rag_context(args, ai_summary)
             ai_narrative = generate_ai_interpretation(
                 ai_summary,
                 strict=False,
                 enabled_override=True,
+                rag_context=rag_context,
             )
             if ai_narrative:
                 narrative_path = run_dir / "interpretive_narrative.txt"
@@ -690,9 +720,10 @@ def headless_advance(args) -> None:
                     "Interpretive Narrative",
                     "",
                     f"Model: {AI_INTERPRETATION_MODEL}",
-                    "",
-                    ai_narrative,
                 ]
+                if rag_context:
+                    ai_lines.extend(["", f"Narrative RAG: Boueni-descended Elagos narrator, {len(rag_context)} style passages"])
+                ai_lines.extend(["", ai_narrative])
                 with open(narrative_path, "w", encoding="utf-8") as f:
                     f.write("\n".join(ai_lines).rstrip() + "\n")
                 print(f"AI interpretive narrative written to {narrative_path}")
@@ -841,20 +872,28 @@ def main():
             raise SystemExit(
                 "Error: AI narrative generation requires OPENAI_API_KEY when --ai-narrative is on."
             )
+        rag_context = build_ai_narrative_rag_context(args, ai_summary)
         ai_narrative = generate_ai_interpretation(
             ai_summary,
             strict=True,
             enabled_override=True,
+            rag_context=rag_context,
         )
         ai_lines = [
             "Interpretive Narrative",
             "",
             f"Model: {AI_INTERPRETATION_MODEL}",
-            "",
-            ai_narrative,
         ]
+        if rag_context:
+            ai_lines.extend(["", f"Narrative RAG: Boueni-descended Elagos narrator, {len(rag_context)} style passages"])
+        ai_lines.extend(["", ai_narrative])
         with open(AI_INTERPRETIVE_NARRATIVE_OUTPUT, "w", encoding="utf-8") as file:
             file.write("\n".join(ai_lines).rstrip() + "\n")
+        if args.run_dir:
+            run_narrative_path = Path(args.run_dir) / "interpretive_narrative.txt"
+            run_narrative_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(run_narrative_path, "w", encoding="utf-8") as file:
+                file.write("\n".join(ai_lines).rstrip() + "\n")
 
     simulation_view_output = write_simulation_html(world)
     print(f"\nSimulation viewer written to {simulation_view_output}")
