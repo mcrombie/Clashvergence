@@ -132,7 +132,9 @@ def build_generation_queries(ai_summary: dict) -> list[str]:
             "ancestral first arrival family memory homeland old people founding "
             f"{narrator_context.get('ancestral_faction', '')} "
             f"{narrator_context.get('ancestral_homeland', '')} "
-            f"{narrator_context.get('ancestral_religion', '')}"
+            f"{narrator_context.get('ancestral_religion', '')} "
+            f"{narrator_context.get('narrator_residence_region', '')} "
+            f"{narrator_context.get('narrator_speech_community', '')}"
         )
         for event in narrator_context.get("early_boueni_events", [])[:3]:
             brief = event.get("brief")
@@ -141,6 +143,14 @@ def build_generation_queries(ai_summary: dict) -> list[str]:
                     "first loss secession ancestral homeland descendants "
                     + str(brief)
                 )
+
+    for seed in ai_summary.get("story_seed_digest", [])[:6]:
+        if not isinstance(seed, dict):
+            continue
+        queries.append(
+            "causal historical episode ambition revolt overextension sacred legitimacy "
+            f"{seed.get('seed_type', '')} {seed.get('title', '')} {seed.get('interpretive_frame', '')}"
+        )
 
     event_type_counts = ai_summary.get("event_type_counts", {})
     for event_type, query in EVENT_QUERY_ROUTES.items():

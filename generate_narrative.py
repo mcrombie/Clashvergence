@@ -14,7 +14,7 @@ from pathlib import Path
 
 from src.ai_interpretation import (
     AI_INTERPRETATION_MODEL,
-    enrich_summary_with_narrator_origin_context,
+    enrich_summary_for_narrative_rag,
     generate_ai_interpretation,
 )
 from src.narrative_rag import (
@@ -49,7 +49,7 @@ def parse_args():
     parser.add_argument(
         "--use-rag",
         action="store_true",
-        help="Retrieve style passages from corpus/ and use the Elagos narrator persona.",
+        help="Retrieve style passages from corpus/ and use the Boueni-remnant narrator persona.",
     )
     parser.add_argument(
         "--rebuild-index",
@@ -84,7 +84,7 @@ def main():
 
     with open(input_path, encoding="utf-8") as f:
         ai_summary = json.load(f)
-    ai_summary = enrich_summary_with_narrator_origin_context(ai_summary)
+    ai_summary = enrich_summary_for_narrative_rag(ai_summary)
 
     rag_context = None
     rag_note = None
@@ -98,7 +98,7 @@ def main():
             max_passages=max(1, args.rag_passages),
         )
         rag_note = (
-            f"Narrative RAG: Boueni-descended Elagos narrator, {len(rag_context)} style passages, "
+            f"Narrative RAG: Boueni-descended remnant narrator, {len(rag_context)} style passages, "
             f"{index.embedding_provider} embeddings"
         )
         print(rag_note)

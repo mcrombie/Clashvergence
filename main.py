@@ -544,7 +544,7 @@ def parse_args():
     parser.add_argument(
         "--ai-narrative-rag",
         action="store_true",
-        help="Use the corpus-backed Elagos narrator style context for AI narrative generation.",
+        help="Use the corpus-backed Boueni-remnant narrator style context for AI narrative generation.",
     )
     parser.add_argument(
         "--ai-narrative-rag-rebuild-index",
@@ -722,7 +722,7 @@ def headless_advance(args) -> None:
                     f"Model: {AI_INTERPRETATION_MODEL}",
                 ]
                 if rag_context:
-                    ai_lines.extend(["", f"Narrative RAG: Boueni-descended Elagos narrator, {len(rag_context)} style passages"])
+                    ai_lines.extend(["", f"Narrative RAG: Boueni-descended remnant narrator, {len(rag_context)} style passages"])
                 ai_lines.extend(["", ai_narrative])
                 with open(narrative_path, "w", encoding="utf-8") as f:
                     f.write("\n".join(ai_lines).rstrip() + "\n")
@@ -885,7 +885,7 @@ def main():
             f"Model: {AI_INTERPRETATION_MODEL}",
         ]
         if rag_context:
-            ai_lines.extend(["", f"Narrative RAG: Boueni-descended Elagos narrator, {len(rag_context)} style passages"])
+            ai_lines.extend(["", f"Narrative RAG: Boueni-descended remnant narrator, {len(rag_context)} style passages"])
         ai_lines.extend(["", ai_narrative])
         with open(AI_INTERPRETIVE_NARRATIVE_OUTPUT, "w", encoding="utf-8") as file:
             file.write("\n".join(ai_lines).rstrip() + "\n")

@@ -27,11 +27,22 @@ class NarrativeRagTests(unittest.TestCase):
                     "name": "Boueni Band",
                     "display_name": "Boueni Band",
                     "ethnicity": "Boueni",
+                    "regions": 0,
                     "homeland_region": "Geueenalta Riesov",
                     "official_religion": "Mesuonrite",
                     "dynasty_name": "House Srelaem",
                     "ruler_name": "Brenoni",
                     "heir_name": "Kuvuun",
+                },
+                {
+                    "name": "Boueni Rebels",
+                    "display_name": "Riesov",
+                    "ethnicity": "Boueanem",
+                    "language_family": "Boueni",
+                    "origin_faction": "Boueni Band",
+                    "regions": 4,
+                    "homeland_region": "Geueenalta Riesov",
+                    "capital_region": "East Lond",
                 },
             ],
             "key_event_digest": [
@@ -65,8 +76,78 @@ class NarrativeRagTests(unittest.TestCase):
         self.assertEqual(context["ancestral_faction"], "Boueni Band")
         self.assertEqual(context["first_arrival_region"], "Geueenalta Riesov")
         self.assertTrue(context["first_arrival_is_inferred"])
+        self.assertEqual(context["narrator_residence_region"], "East Lond")
+        self.assertEqual(context["narrator_residence_faction"], "Riesov")
+        self.assertIn("Boueni-speaking Riesov", context["narrator_speech_community"])
         self.assertIn("Year 11", context["early_boueni_events"][0]["brief"])
         self.assertEqual(context["descendant_states"][0]["name"], "Riesov")
+
+    def test_narrative_rag_enrichment_adds_causal_story_seeds(self):
+        summary = {
+            "chronology": {
+                "early_phase_years": "Year 1 in the Grassic Annals to Year 149 in the Grassic Annals",
+            },
+            "factions": [
+                {
+                    "name": "Boueni Band",
+                    "display_name": "Boueni Band",
+                    "ethnicity": "Boueni",
+                    "homeland_region": "Geueenalta Riesov",
+                    "official_religion": "Mesuonrite",
+                    "dynasty_name": "House Srelaem",
+                    "ruler_name": "Brenoni",
+                    "heir_name": "Kuvuun",
+                    "regions": 0,
+                    "treasury": -6,
+                },
+                {
+                    "name": "Ibenal Rebels",
+                    "display_name": "Ibenal",
+                    "regions": 12,
+                    "treasury": -176,
+                    "homeland_region": "South Ibenwood",
+                    "official_religion": "Thelaageilrite",
+                    "government": "Council Realm",
+                },
+            ],
+            "key_event_digest": [
+                {
+                    "turn": 11,
+                    "year_label": "Year 11 in the Grassic Annals",
+                    "type": "unrest_secession",
+                    "actor": "Boueni Band",
+                    "brief": "On Year 11 in the Grassic Annals, Geueenalta Riesov broke away from Boueni Band.",
+                    "region_display_name": "Geueenalta Riesov",
+                },
+                {
+                    "turn": 190,
+                    "year_label": "Year 190 in the Grassic Annals",
+                    "type": "attack",
+                    "actor": "Ibenal",
+                    "brief": "On Year 190, Ibenal captured Grasako Highlands.",
+                    "region_display_name": "Grasako Highlands",
+                },
+                {
+                    "turn": 218,
+                    "year_label": "Year 218 in the Grassic Annals",
+                    "type": "diplomacy_rivalry",
+                    "actor": "Ibenal",
+                    "counterpart": "Dinelv Highlands",
+                    "brief": "On Year 218, Ibenal and Dinelv Highlands hardened into rivalry.",
+                    "region_display_name": "Grasako Highlands",
+                },
+            ],
+            "successor_lineages": [],
+        }
+
+        enriched = ai_interpretation.enrich_summary_for_narrative_rag(summary)
+        seeds = enriched["story_seed_digest"]
+        seed_text = " ".join(seed["interpretive_frame"] for seed in seeds)
+
+        self.assertTrue(seeds)
+        self.assertIn("Year 11", str(seeds[0]["anchoring_events"]))
+        self.assertIn("forcing new people into obedience", seed_text)
+        self.assertIn("overextension", seed_text)
 
     def test_generation_queries_route_simulation_event_types_and_places(self):
         summary = {
@@ -159,7 +240,7 @@ class NarrativeRagTests(unittest.TestCase):
         finally:
             shutil.rmtree(corpus_dir, ignore_errors=True)
 
-    def test_rag_context_switches_ai_interpretation_to_elagos_prompt(self):
+    def test_rag_context_switches_ai_interpretation_to_boueni_remnant_prompt(self):
         with patch.object(ai_interpretation, "_generate_ai_paragraph", return_value="ok") as mocked:
             result = ai_interpretation.generate_ai_interpretation(
                 {"simulation": {"turns": 450}},
@@ -171,6 +252,10 @@ class NarrativeRagTests(unittest.TestCase):
         prompt = mocked.call_args.kwargs["system_prompt"]
         self.assertIn("Boueni-descended", prompt)
         self.assertIn("first-arrival traditions", prompt)
+        self.assertIn("surviving Boueni-speaking", prompt)
+        self.assertIn("Do not place the narrator in Elagos", prompt)
+        self.assertIn("Do not state raw game measures", prompt)
+        self.assertIn("story_seed_digest", prompt)
         self.assertIn("tribute envoys and broken oaths", prompt)
         self.assertNotIn("eccentric historian from a different world", prompt)
 
