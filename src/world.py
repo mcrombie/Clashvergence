@@ -14,6 +14,7 @@ from src.population import (
     estimate_region_population_from_resource_profile,
     update_region_settlement_levels,
 )
+from src.polity_naming import refresh_culture_roots
 from src.religion import initialize_religious_legitimacy
 from src.succession import initialize_dynastic_politics
 from src.models import FactionAgenda, Region, WorldState
@@ -277,5 +278,6 @@ def create_world(
     initialize_ideologies(world)
     apply_language_contact_borrowing(world)
     initialize_region_history(world)
+    refresh_culture_roots(world)
 
     return world

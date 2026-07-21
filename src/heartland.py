@@ -201,6 +201,12 @@ from src.models import (
     WorldState,
     get_default_government_form,
 )
+from src.polity_naming import (
+    choose_unique_culture_name,
+    ensure_unique_faction_display_name,
+    refresh_culture_roots,
+    register_culture_name,
+)
 from src.region_state import (
     CORE_INTEGRATION_SCORE,
     HOMELAND_INTEGRATION_SCORE,
@@ -2406,6 +2412,10 @@ def update_faction_polity_tiers(world: WorldState) -> None:
             next_form,
             update_display_name=refresh_display_name,
         )
+        if refresh_display_name:
+            ensure_unique_faction_display_name(world, faction_name)
+        else:
+            refresh_culture_roots(world)
         evolve_faction_succession_politics(
             faction,
             previous_tier=current_tier,
@@ -3245,13 +3255,15 @@ def _get_faction_named_language_key(faction: Faction) -> str | None:
 
 def _build_rebel_faction_name(world: WorldState, region: Region, culture_root: str | None = None) -> str:
     root = culture_root if culture_root else _get_rebel_region_name_root(region)
-    base_name = _normalize_rebel_name_seed(f"{root} Rebels")
-    candidate = base_name
-    suffix = 2
-    while candidate in world.factions:
-        candidate = f"{base_name} {suffix}"
-        suffix += 1
-    return candidate
+    unique_root = choose_unique_culture_name(
+        world,
+        root,
+        region=region,
+        display_name_builder=lambda candidate: _normalize_rebel_name_seed(
+            f"{candidate} Rebels"
+        ),
+    )
+    return _normalize_rebel_name_seed(f"{unique_root} Rebels")
 
 
 def _get_rebel_region_name_root(region: Region) -> str:
@@ -3276,7 +3288,14 @@ def _get_rebel_regional_successor_name(world: WorldState, faction: Faction) -> s
     homeland_region = faction.doctrine_state.homeland_region
     if not homeland_region or homeland_region not in world.regions:
         return None
-    return _get_authored_region_name(world.regions[homeland_region])
+    authored_name = _get_authored_region_name(world.regions[homeland_region])
+    if (
+        authored_name is not None
+        and faction.identity is not None
+        and faction.identity.generation_method == "rebel_secession"
+    ):
+        return faction.culture_name
+    return authored_name
 
 
 def _next_dynamic_internal_id(world: WorldState) -> str:
@@ -3485,14 +3504,33 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
             former_owner=former_owner,
             region_name=region.name,
         )
+        restored_faction = world.factions[restored_faction_name]
+        if restored_faction.identity is not None:
+            current_culture = restored_faction.culture_name
+            current_display = restored_faction.display_name
+            display_suffix = (
+                current_display[len(current_culture):]
+                if current_display.lower().startswith(current_culture.lower())
+                else f" {restored_faction.government_type}"
+            )
+            ensure_unique_faction_display_name(
+                world,
+                restored_faction_name,
+                region=region,
+                display_name_builder=lambda candidate: (
+                    f"{candidate}{display_suffix}".strip()
+                ),
+            )
         update_elite_blocs(world, emit_events=False)
         update_ideologies(world, emit_events=False)
+        register_culture_name(
+            world,
+            world.factions[restored_faction_name].culture_name,
+        )
         return restored_faction_name, True
 
     former_faction = world.factions[former_owner]
     named_language_key = _get_faction_named_language_key(former_faction)
-    culture_root_for_name = former_faction.culture_name if named_language_key else None
-    rebel_name = _build_rebel_faction_name(world, region, culture_root=culture_root_for_name)
     conflict_type = _determine_rebel_conflict_type(world, region, former_owner)
     inherited_ethnicity = former_faction.primary_ethnicity
     parent_language_profile = (
@@ -3500,16 +3538,33 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         if former_faction.identity is not None
         else LanguageProfile(family_name=inherited_ethnicity or former_owner)
     )
+    desired_culture_name = (
+        former_faction.culture_name
+        if named_language_key or conflict_type == REBEL_CONFLICT_CIVIL_WAR
+        else _get_rebel_region_name_root(region)
+    )
+    culture_name = choose_unique_culture_name(
+        world,
+        desired_culture_name,
+        region=region,
+        language_profile=parent_language_profile,
+        naming_seed=(
+            f"{getattr(world, 'random_seed', None)}:{world.turn}:"
+            f"{former_owner}:{region.name}:rebel"
+        ),
+        display_name_builder=lambda candidate: _normalize_rebel_name_seed(
+            f"{candidate} Rebels"
+        ),
+    )
+    rebel_name = _normalize_rebel_name_seed(f"{culture_name} Rebels")
     if conflict_type == REBEL_CONFLICT_CIVIL_WAR:
         polity_tier, government_form = _choose_civil_war_successor_structure(
             world,
             former_owner,
         )
-        culture_name = former_faction.culture_name
         generation_method = "civil_war_claimant"
     else:
         polity_tier, government_form = "state", "council"
-        culture_name = former_faction.culture_name if named_language_key else _get_rebel_region_name_root(region)
         generation_method = "rebel_secession"
     rebel_identity = FactionIdentity(
         internal_id=_next_dynamic_internal_id(world),
@@ -3535,6 +3590,7 @@ def create_rebel_faction(world: WorldState, region: Region, former_owner: str) -
         independence_score=0.0,
         proto_state=True,
     )
+    register_culture_name(world, culture_name)
     initialize_rebel_civilization_cycle(world.factions[rebel_name])
     initialize_faction_succession_state(
         world.factions[rebel_name],
@@ -3733,17 +3789,38 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
     if faction.identity is not None:
         if conflict_type == REBEL_CONFLICT_CIVIL_WAR:
             if successor_ethnicity is not None:
-                faction.identity.culture_name = successor_ethnicity
                 faction.identity.language_profile = deepcopy(successor_language_profile)
+                desired_culture_name = successor_ethnicity
             elif origin_faction in world.factions:
-                faction.identity.culture_name = world.factions[origin_faction].culture_name
+                desired_culture_name = world.factions[origin_faction].culture_name
                 if world.factions[origin_faction].identity is not None:
                     faction.identity.language_profile = deepcopy(
                         world.factions[origin_faction].identity.language_profile
                     )
+            else:
+                desired_culture_name = faction.identity.culture_name
             faction.identity.set_government_structure(
                 faction.identity.polity_tier,
                 faction.identity.government_form,
+            )
+            naming_region = (
+                world.regions.get(faction.doctrine_state.homeland_region)
+                if faction.doctrine_state.homeland_region
+                else None
+            )
+            faction.identity.culture_name = choose_unique_culture_name(
+                world,
+                desired_culture_name,
+                region=naming_region,
+                faction_name=faction_name,
+                language_profile=faction.identity.language_profile,
+                naming_seed=f"{faction_name}:{world.turn}:civil-war-maturity",
+                display_name_builder=lambda candidate: _get_civil_war_display_name(
+                    candidate,
+                    faction.identity.polity_tier,
+                    faction.identity.government_form,
+                    faction.identity.government_type,
+                ),
             )
             faction.identity.display_name = _get_civil_war_display_name(
                 faction.identity.culture_name,
@@ -3753,18 +3830,36 @@ def mature_rebel_faction(world: WorldState, faction_name: str) -> None:
             )
         else:
             if regional_successor_name is not None:
-                faction.identity.culture_name = regional_successor_name
+                desired_culture_name = regional_successor_name
                 if successor_language_profile is not None:
                     faction.identity.language_profile = deepcopy(successor_language_profile)
             elif successor_ethnicity is not None:
-                faction.identity.culture_name = successor_ethnicity
+                desired_culture_name = successor_ethnicity
                 faction.identity.language_profile = deepcopy(successor_language_profile)
+            else:
+                desired_culture_name = faction.identity.culture_name
             faction.identity.set_government_structure(
                 "state",
                 "council",
                 government_type=REBEL_MATURE_GOVERNMENT_TYPE,
             )
-            faction.identity.display_name = regional_successor_name or faction.identity.culture_name
+            naming_region = (
+                world.regions.get(faction.doctrine_state.homeland_region)
+                if faction.doctrine_state.homeland_region
+                else None
+            )
+            faction.identity.culture_name = choose_unique_culture_name(
+                world,
+                desired_culture_name,
+                region=naming_region,
+                faction_name=faction_name,
+                language_profile=faction.identity.language_profile,
+                naming_seed=f"{faction_name}:{world.turn}:secession-maturity",
+                display_name_builder=lambda candidate: candidate,
+            )
+            faction.identity.display_name = faction.identity.culture_name
+
+    refresh_culture_roots(world)
 
     world.events.append(Event(
         turn=world.turn,
@@ -4195,9 +4290,15 @@ def initialize_heartlands(world: WorldState) -> None:
         reset_region_crisis_streak(region)
 
 
-def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
+def handle_region_owner_change(
+    region: Region,
+    new_owner: str | None,
+    world: WorldState | None = None,
+) -> None:
     previous_owner = region.owner
     if previous_owner == new_owner:
+        if world is not None:
+            refresh_culture_roots(world)
         return
 
     region.owner = new_owner
@@ -4216,6 +4317,8 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
         clear_region_unrest_event(region)
         reset_region_crisis_streak(region)
         set_region_secession_cooldown(region, REBEL_SECESSION_COOLDOWN_TURNS)
+        if world is not None:
+            refresh_culture_roots(world)
         return
 
     base_score = HOMELAND_INTEGRATION_SCORE if region.homeland_faction_id == new_owner else CONQUEST_INTEGRATION_SCORE
@@ -4241,6 +4344,8 @@ def handle_region_owner_change(region: Region, new_owner: str | None) -> None:
         clear_region_unrest_event(region)
         reset_region_crisis_streak(region)
         set_region_secession_cooldown(region, REBEL_SECESSION_COOLDOWN_TURNS)
+    if world is not None:
+        refresh_culture_roots(world)
 
 
 def get_region_unrest_pressure(region: Region, world: WorldState) -> float:
@@ -4468,6 +4573,7 @@ def apply_unrest_secession(world: WorldState, region: Region) -> None:
         ],
         significance=UNREST_SECESSION_THRESHOLD,
     ))
+    refresh_culture_roots(world)
 
 
 def update_region_integration(world: WorldState, *, time_step_years: float = 1.0) -> None:
@@ -4488,7 +4594,7 @@ def update_region_integration(world: WorldState, *, time_step_years: float = 1.0
             region.secession_cooldown_turns -= 1
 
         if region.integrated_owner != region.owner:
-            handle_region_owner_change(region, region.owner)
+            handle_region_owner_change(region, region.owner, world)
             continue
 
         if region.homeland_faction_id == region.owner:

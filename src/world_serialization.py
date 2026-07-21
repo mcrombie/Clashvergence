@@ -34,6 +34,9 @@ T = TypeVar("T")
 
 def serialize_world(world: WorldState) -> dict[str, Any]:
     """Convert a world into a JSON-safe save payload."""
+    from src.polity_naming import refresh_culture_roots
+
+    refresh_culture_roots(world)
     return {
         "schema_version": WORLD_SAVE_SCHEMA_VERSION,
         "map_name": world.map_name,
@@ -47,6 +50,7 @@ def serialize_world(world: WorldState) -> dict[str, Any]:
             name: _serialize_faction(faction)
             for name, faction in world.factions.items()
         },
+        "culture_roots": sorted(getattr(world, "culture_roots", set())),
         "ethnicities": {
             name: asdict(ethnicity)
             for name, ethnicity in world.ethnicities.items()
@@ -104,6 +108,11 @@ def deserialize_world(payload: dict[str, Any]) -> WorldState:
             name: _deserialize_faction(faction_payload)
             for name, faction_payload in payload.get("factions", {}).items()
         },
+        culture_roots={
+            str(root)
+            for root in payload.get("culture_roots", [])
+            if str(root).strip()
+        },
         ethnicities={
             name: _deserialize_ethnicity(ethnicity_payload)
             for name, ethnicity_payload in payload.get("ethnicities", {}).items()
@@ -145,6 +154,9 @@ def deserialize_world(payload: dict[str, Any]) -> WorldState:
         ],
     )
     world.random_seed = payload.get("random_seed")
+    from src.polity_naming import refresh_culture_roots
+
+    refresh_culture_roots(world)
     return world
 
 

@@ -44,6 +44,7 @@ from src.population import (
     update_region_populations,
     update_region_settlement_levels,
 )
+from src.polity_naming import refresh_culture_roots
 from src.rebellion import update_rebel_faction_status
 from src.religion import update_religious_legitimacy
 from src.region_state import get_region_core_status
@@ -415,6 +416,7 @@ def _print_economy_summaries(world, turn_order, economy_snapshot):
 
 
 def _record_turn_observations(world, economy_snapshot):
+    refresh_culture_roots(world)
     record_turn_metrics(world, economy_snapshot=economy_snapshot)
     record_region_history(world)
     world.turn += 1

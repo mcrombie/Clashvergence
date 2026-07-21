@@ -2110,7 +2110,7 @@ def expand(faction_name, target_region_name, world):
     if not is_band_migration and _is_harsh_expansion(score_components):
         return _start_harsh_expansion(faction_name, target_region_name, world, expansion_cost, score_components)
 
-    handle_region_owner_change(world.regions[target_region_name], faction_name)
+    handle_region_owner_change(world.regions[target_region_name], faction_name, world)
     transferred_population = 0
     if population_source is not None and population_source.population > 0:
         if is_band_migration:
@@ -2479,7 +2479,7 @@ def attack(faction_name, target_region_name, world):
             naval_power=float(score_components.get("attacker_naval_power", 0.0) or 0.0),
         )
         set_region_unrest(target_region, target_region.unrest + 0.45 + (trade_warfare_effect["trade_warfare_pressure_added"] * 1.1))
-        handle_region_owner_change(target_region, faction_name)
+        handle_region_owner_change(target_region, faction_name, world)
         if is_proto_reintegration_attempt:
             set_region_unrest(
                 target_region,
@@ -2930,7 +2930,7 @@ def complete_siege_project(faction_name, project, world):
             target_region,
             {RESOURCE_GRAIN: 0.06, RESOURCE_LIVESTOCK: 0.05, RESOURCE_TIMBER: 0.04},
         )
-        handle_region_owner_change(target_region, faction_name)
+        handle_region_owner_change(target_region, faction_name, world)
         set_region_unrest(target_region, target_region.unrest + 0.35)
     else:
         apply_region_population_loss(target_region, POPULATION_ATTACK_FAILURE_LOSS)
@@ -3066,7 +3066,7 @@ def complete_expansion_project(faction_name, project, world):
     source_region_name = population_source.name if population_source is not None else None
     target_population_before = target_region.population
 
-    handle_region_owner_change(target_region, faction_name)
+    handle_region_owner_change(target_region, faction_name, world)
 
     transferred_population = 0
     if population_source is not None and population_source.population > 0:

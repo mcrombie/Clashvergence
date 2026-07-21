@@ -18,6 +18,12 @@ from src.heartland import (
     set_region_unrest,
 )
 from src.models import Event, Faction, FactionIdentity, LanguageProfile, Region, WorldState
+from src.polity_naming import (
+    choose_unique_culture_name,
+    ensure_unique_faction_display_name,
+    refresh_culture_roots,
+    register_culture_name,
+)
 from src.population import transfer_region_population
 from src.region_naming import assign_region_founding_name, format_region_reference
 from src.region_state import get_region_core_status
@@ -165,7 +171,7 @@ def enforce_band_region_limit(
         if region.name == camp_region.name:
             continue
         abandoned_regions.append(region.name)
-        handle_region_owner_change(region, None)
+        handle_region_owner_change(region, None, world)
 
     faction.last_migration_reason = reason
     if abandoned_regions and emit_event:
@@ -334,7 +340,7 @@ def migrate_band_to_region(
         ],
     ]
 
-    handle_region_owner_change(target_region, faction_name)
+    handle_region_owner_change(target_region, faction_name, world)
     transferred_population = 0
     if source_region.population > 0:
         mobile_population = int(round(source_region.population * BAND_MIGRATION_POPULATION_SHARE))
@@ -755,11 +761,28 @@ def _region_identity_root(region: Region) -> str:
     return root
 
 
-def _set_identity_culture_name(faction: Faction, culture_name: str) -> None:
+def _set_identity_culture_name(
+    world: WorldState,
+    faction_name: str,
+    culture_name: str,
+    *,
+    region: Region | None = None,
+) -> None:
+    faction = world.factions[faction_name]
     if faction.identity is None:
         return
-    faction.identity.culture_name = culture_name
+    faction.identity.culture_name = choose_unique_culture_name(
+        world,
+        culture_name,
+        region=region,
+        faction_name=faction_name,
+        language_profile=faction.identity.language_profile,
+        display_name_builder=lambda candidate: (
+            f"{candidate} {faction.government_type}".strip()
+        ),
+    )
     faction.identity.display_name = faction.identity.default_display_name()
+    refresh_culture_roots(world)
 
 
 def _choose_band_homeland(
@@ -804,7 +827,12 @@ def _choose_band_homeland(
         faction_name,
         is_homeland=True,
     )
-    _set_identity_culture_name(faction, root_name)
+    _set_identity_culture_name(
+        world,
+        faction_name,
+        root_name,
+        region=camp_region,
+    )
 
     event = Event(
         turn=world.turn,
@@ -845,12 +873,23 @@ def _promote_band_to_nomadic_tribe(
     old_government_type = faction.government_type
     identity_name = _derive_nomadic_identity_name(faction)
     if faction.identity is not None:
-        faction.identity.culture_name = identity_name
         faction.identity.set_government_structure(
             "tribe",
             "council",
-            update_display_name=True,
+            update_display_name=False,
         )
+        faction.identity.culture_name = choose_unique_culture_name(
+            world,
+            identity_name,
+            region=camp_region,
+            faction_name=faction_name,
+            language_profile=faction.identity.language_profile,
+            display_name_builder=lambda candidate: (
+                f"{candidate} {faction.government_type}".strip()
+            ),
+        )
+        faction.identity.display_name = faction.identity.default_display_name()
+        refresh_culture_roots(world)
     evolve_faction_succession_politics(
         faction,
         previous_tier=previous_tier,
@@ -950,6 +989,14 @@ def _promote_band_to_tribe(
             "council",
             update_display_name=refresh_display_name or faction.social_form == "sedentary_band",
         )
+        if refresh_display_name or faction.social_form == "sedentary_band":
+            ensure_unique_faction_display_name(
+                world,
+                faction_name,
+                region=camp_region,
+            )
+        else:
+            refresh_culture_roots(world)
     evolve_faction_succession_politics(
         faction,
         previous_tier=previous_tier,
@@ -1055,16 +1102,23 @@ def _split_nomadic_tribe(
         ),
     )
     root_name = _region_identity_root(split_region)
-    display_name = _unique_nomadic_splinter_band_name(world, root_name)
     internal_id = f"{faction.internal_id}_split_{world.turn}_{len(world.factions) + 1}"
     language_profile = (
         deepcopy(faction.identity.language_profile)
         if faction.identity is not None
         else None
     )
+    culture_name = choose_unique_culture_name(
+        world,
+        root_name,
+        region=split_region,
+        language_profile=language_profile,
+        naming_seed=f"{faction_name}:{world.turn}:{split_region.name}:nomadic-splinter",
+    )
+    display_name = _unique_nomadic_splinter_band_name(world, culture_name)
     identity = FactionIdentity(
         internal_id=internal_id,
-        culture_name=root_name,
+        culture_name=culture_name,
         polity_tier="band",
         government_form="leader",
         display_name=display_name,
@@ -1087,8 +1141,10 @@ def _split_nomadic_tribe(
         best_homeland_appeal=_score_homeland_appeal(world, faction, split_region),
     )
     world.factions[display_name] = splinter
+    register_culture_name(world, culture_name)
     faction.treasury = max(0, faction.treasury - splinter.treasury)
-    handle_region_owner_change(split_region, display_name)
+    handle_region_owner_change(split_region, display_name, world)
+    refresh_culture_roots(world)
     splinter.known_regions = [split_region.name, *split_region.neighbors]
     splinter.visible_regions = [split_region.name, *split_region.neighbors]
     faction.nomadic_fragmentation_cooldown_turns = NOMADIC_TRIBE_FRAGMENTATION_COOLDOWN

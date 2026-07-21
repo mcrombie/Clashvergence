@@ -30,6 +30,11 @@ from src.config import (
 )
 from src.heartland import handle_region_owner_change
 from src.models import Event, Faction, FactionIdentity, LanguageProfile, Subfaction, WorldState
+from src.polity_naming import (
+    choose_unique_culture_name,
+    refresh_culture_roots,
+    register_culture_name,
+)
 from src.region_naming import assign_region_founding_name
 
 
@@ -114,12 +119,23 @@ def _pick_subfaction_target(
 
 def _build_subfaction_name(parent_faction: str, world: WorldState) -> str:
     """Generate a unique subfaction name."""
+    blocked_names = {
+        faction_name
+        for faction_name in world.factions
+    } | {
+        faction.display_name
+        for faction in world.factions.values()
+    } | {
+        sf.name
+        for faction in world.factions.values()
+        for sf in faction.subfactions
+    }
     base = f"{parent_faction} Settlers"
-    if base not in {sf.name for faction in world.factions.values() for sf in faction.subfactions}:
+    if base not in blocked_names:
         return base
     for i in range(2, 20):
         candidate = f"{parent_faction} Settlers {i}"
-        if candidate not in {sf.name for faction in world.factions.values() for sf in faction.subfactions}:
+        if candidate not in blocked_names:
             return candidate
     return f"{parent_faction} Settlers {world.turn}"
 
@@ -216,7 +232,7 @@ def _promote_subfaction(
 
     # Build identity for new faction
     internal_id = f"{parent.internal_id}_sf_{world.turn}_{len(world.factions) + 1}"
-    culture_name = (
+    desired_culture_name = (
         world.regions[transfer_regions[0]].display_name
         or world.regions[transfer_regions[0]].founding_name
         or transfer_regions[0]
@@ -224,7 +240,17 @@ def _promote_subfaction(
     language_profile = (
         deepcopy(parent.identity.language_profile)
         if parent.identity is not None
-        else LanguageProfile(family_name=culture_name)
+        else LanguageProfile(family_name=desired_culture_name)
+    )
+    culture_name = choose_unique_culture_name(
+        world,
+        desired_culture_name,
+        region=world.regions[transfer_regions[0]],
+        language_profile=language_profile,
+        naming_seed=(
+            f"{parent_faction_name}:{world.turn}:{subfaction.subfaction_id}:"
+            "subfaction-promotion"
+        ),
     )
     new_name = subfaction.name
     identity = FactionIdentity(
@@ -248,13 +274,15 @@ def _promote_subfaction(
         social_form="nomadic_band",
     )
     world.factions[new_name] = new_faction
+    register_culture_name(world, culture_name)
     parent.treasury = max(0, parent.treasury - starting_treasury)
 
     # Transfer regions
     for r_name in transfer_regions:
         region = world.regions[r_name]
-        handle_region_owner_change(region, new_name)
+        handle_region_owner_change(region, new_name, world)
         assign_region_founding_name(world, r_name, new_name, is_homeland=(r_name == transfer_regions[0]))
+    refresh_culture_roots(world)
 
     new_faction.known_regions = list(transfer_regions)
     new_faction.visible_regions = list(transfer_regions)

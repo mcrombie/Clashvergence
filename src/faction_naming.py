@@ -8,12 +8,29 @@ import re
 from copy import deepcopy
 from dataclasses import asdict
 from difflib import SequenceMatcher
+from pathlib import Path
 
-from src.ai_interpretation import _extract_response_text, load_local_env_file
 from src.models import FactionIdentity, LanguageProfile
 
 
-load_local_env_file()
+def _load_local_env_file(filename: str = ".env.local") -> None:
+    env_path = Path(__file__).resolve().parents[1] / filename
+    if not env_path.exists():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if key:
+            os.environ.setdefault(
+                key,
+                value.strip().strip('"').strip("'"),
+            )
+
+
+_load_local_env_file()
 
 
 AI_FACTION_NAMING_MODEL = os.getenv("CLASHVERGENCE_FACTION_NAME_MODEL", "gpt-5.4-mini")
@@ -31,6 +48,51 @@ AI_FACTION_NAMING_ENABLED = os.getenv(
 
 DEFAULT_POLITY_TIER = "band"
 DEFAULT_GOVERNMENT_FORM = "leader"
+
+CULTURE_DIRECTIONAL_PREFIXES = frozenset({
+    "east",
+    "eastern",
+    "greater",
+    "inner",
+    "lesser",
+    "lower",
+    "new",
+    "north",
+    "northeast",
+    "northeastern",
+    "northwest",
+    "northwestern",
+    "old",
+    "outer",
+    "south",
+    "southeast",
+    "southeastern",
+    "southwest",
+    "southwestern",
+    "upper",
+    "west",
+    "western",
+})
+
+CULTURE_GOVERNMENT_SUFFIXES = frozenset({
+    "assembly",
+    "band",
+    "chiefdom",
+    "commonwealth",
+    "confederacy",
+    "council",
+    "empire",
+    "kingdom",
+    "league",
+    "oligarchy",
+    "realm",
+    "rebel",
+    "rebels",
+    "republic",
+    "rising",
+    "state",
+    "tribe",
+})
 
 SOURCE_TRADITIONS = {
     "roman": {
@@ -191,6 +253,34 @@ def _normalize_name(value: str) -> str:
     return re.sub(r"[^a-z]", "", value.lower())
 
 
+def _culture_name_tokens(value: str) -> list[str]:
+    return re.findall(r"[a-z]+", str(value or "").lower())
+
+
+def get_culture_name_signature(name: str) -> str:
+    """Return a normalized culture label while preserving meaningful qualifiers."""
+    tokens = _culture_name_tokens(name)
+    while tokens and tokens[-1] in CULTURE_GOVERNMENT_SUFFIXES:
+        tokens.pop()
+    return " ".join(tokens)
+
+
+def extract_culture_root(name: str) -> str:
+    """Return the unqualified base of a culture or polity name.
+
+    Directional descriptors are deliberately removed here so callers can detect
+    that names such as ``East Lond`` and ``Lond Kingdom`` share the same base.
+    ``get_culture_name_signature`` retains those descriptors for the separate
+    exact-qualified-name check.
+    """
+    tokens = _culture_name_tokens(name)
+    while tokens and tokens[-1] in CULTURE_GOVERNMENT_SUFFIXES:
+        tokens.pop()
+    while len(tokens) > 1 and tokens[0] in CULTURE_DIRECTIONAL_PREFIXES:
+        tokens.pop(0)
+    return " ".join(tokens)
+
+
 def _stable_random(seed_text: str) -> random.Random:
     digest = hashlib.sha256(seed_text.encode("utf-8")).hexdigest()
     return random.Random(int(digest[:16], 16))
@@ -283,6 +373,15 @@ def _is_too_similar(candidate: str, blocked_names: list[str], threshold: float =
             if ratio >= threshold:
                 return True
     return False
+
+
+def is_culture_name_too_similar(
+    candidate: str,
+    blocked_names: list[str],
+    *,
+    threshold: float = 0.8,
+) -> bool:
+    return _is_too_similar(candidate, blocked_names, threshold=threshold)
 
 
 def _generate_source_fused_candidate(index: int, naming_seed: str, attempt: int = 0) -> tuple[str, list[str], list[str]]:
@@ -593,7 +692,18 @@ def _generate_family_candidate(
     attempt: int = 0,
 ) -> tuple[str, list[str], list[str]]:
     rng = _stable_random(f"{naming_seed}:family_candidate:{family['family_name']}:{index}:{attempt}")
-    family_fragments = family["seed_fragments"] or _extract_seed_fragments(family["family_name"])
+    raw_family_fragments = (
+        family["seed_fragments"]
+        or _extract_seed_fragments(family["family_name"])
+    )
+    family_fragments = [
+        fragment if len(fragment) >= 2 else f"{fragment}an"
+        for fragment in (
+            _normalize_name(value)
+            for value in raw_family_fragments
+        )
+        if fragment
+    ] or ["alan"]
     onset = rng.choice(family["onsets"])
     middle = rng.choice(family["middles"])
     suffix = rng.choice(family["suffixes"])
@@ -794,6 +904,38 @@ def _generate_family_scoped_culture_name(
     return fallback, list(family["traditions"]), list(family["inspirations"]), [fallback]
 
 
+def generate_family_scoped_culture_name(
+    language_profile: LanguageProfile,
+    *,
+    naming_seed: str,
+    existing_names: list[str] | None = None,
+    index: int = 1,
+) -> str:
+    """Generate a deterministic culture name from an existing language profile."""
+    family_name = (language_profile.family_name or "Custom").strip() or "Custom"
+    family = _normalize_language_family_override({
+        "family_name": family_name,
+        "traditions": ["custom"],
+        "inspirations": [family_name],
+        "candidate_pool": list(language_profile.seed_fragments or [family_name]),
+        "onsets": list(language_profile.onsets),
+        "middles": list(language_profile.middles),
+        "suffixes": list(language_profile.suffixes),
+        "seed_fragments": list(language_profile.seed_fragments),
+        "lexical_roots": dict(language_profile.lexical_roots),
+        "style_notes": list(language_profile.style_notes),
+    })
+    culture_name, _traditions, _inspirations, _candidate_pool = (
+        _generate_family_scoped_culture_name(
+            index=max(1, int(index)),
+            naming_seed=naming_seed,
+            family=family,
+            existing_names=list(existing_names or []),
+        )
+    )
+    return culture_name
+
+
 def _validate_ai_candidate(candidate: str, blocked_names: list[str]) -> str | None:
     cleaned = re.sub(r"[^A-Za-z]", "", candidate or "")
     if not cleaned:
@@ -868,6 +1010,8 @@ def _generate_ai_culture_name(
                     {"role": "user", "content": json.dumps(prompt_payload, sort_keys=True)},
                 ],
             )
+            from src.ai_interpretation import _extract_response_text
+
             proposed = _extract_response_text(response)
             validated = _validate_ai_candidate(proposed, blocked_names + rejected_candidates)
             if validated is None:
@@ -897,7 +1041,11 @@ def generate_faction_identity(
         naming_seed,
     )
     default_culture_name = _get_family_default_culture_name(assigned_family)
-    if default_culture_name is not None:
+    use_default_culture_name = (
+        default_culture_name is not None
+        and not _is_too_similar(default_culture_name, existing_culture_names)
+    )
+    if use_default_culture_name:
         culture_name = default_culture_name
         traditions = list(assigned_family["traditions"])
         inspirations = list(assigned_family["inspirations"])
@@ -934,13 +1082,19 @@ def generate_faction_identity(
         culture_name=final_culture_name,
         polity_tier=DEFAULT_POLITY_TIER,
         government_form=DEFAULT_GOVERNMENT_FORM,
-        display_name=str(assigned_family.get("default_display_name") or ""),
+        display_name=(
+            str(assigned_family.get("default_display_name") or "")
+            if use_default_culture_name
+            else ""
+        ),
         language_profile=language_profile,
         source_traditions=list(assigned_family["traditions"]),
         generation_method=(
             "ai_fused_sources"
             if ai_candidate
             else "map_language_family_override"
+            if use_default_culture_name
+            else "map_language_family_collision_fallback"
             if default_culture_name is not None
             else "curated_source_fusion"
         ),
@@ -957,6 +1111,7 @@ def generate_faction_identities(
 ) -> list[FactionIdentity]:
     identities = []
     existing_culture_names: list[str] = []
+    existing_display_names: set[str] = set()
     language_families = _generate_world_language_families(num_factions, naming_seed)
 
     for index in range(1, num_factions + 1):
@@ -971,8 +1126,44 @@ def generate_faction_identities(
             language_families=language_families,
             language_family_override=language_family_override,
         )
+        display_key = " ".join(identity.display_name.lower().split())
+        if display_key in existing_display_names:
+            identity.display_name = identity.default_display_name()
+            display_key = " ".join(identity.display_name.lower().split())
+        if display_key in existing_display_names:
+            assigned_family = language_family_override or _get_assigned_language_family(
+                index,
+                language_families,
+                naming_seed,
+            )
+            culture_name, traditions, inspirations, candidate_pool = (
+                _generate_family_scoped_culture_name(
+                    index=index,
+                    naming_seed=f"{naming_seed}:display_collision",
+                    family=assigned_family,
+                    existing_names=existing_culture_names,
+                )
+            )
+            identity.culture_name = culture_name
+            identity.display_name = identity.default_display_name()
+            identity.language_profile = _build_language_profile(
+                culture_name,
+                assigned_family,
+                candidate_pool,
+            )
+            identity.source_traditions = traditions
+            identity.inspirations = inspirations
+            identity.candidate_pool = candidate_pool[:8]
+            identity.generation_method = "display_name_collision_fallback"
+            identity.ai_generated = False
+            display_key = " ".join(identity.display_name.lower().split())
+        if display_key in existing_display_names:
+            raise ValueError(
+                f"Unable to generate a unique faction display name for {identity.internal_id}."
+            )
         identities.append(identity)
         existing_culture_names.append(identity.culture_name)
+        existing_display_names.add(display_key)
 
     return identities
 

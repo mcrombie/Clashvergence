@@ -33,6 +33,7 @@ from src.heartland import (
     REBEL_CONFLICT_SECESSION,
     apply_language_contact_borrowing,
     apply_unrest_secession,
+    create_rebel_faction,
     estimate_region_population,
     evolve_faction_succession_politics,
     faction_has_ethnic_claim,
@@ -69,6 +70,7 @@ from src.heartland import (
     update_faction_polity_tiers,
     update_region_integration,
 )
+from src.faction_naming import extract_culture_root, get_culture_name_signature
 from src.metrics import build_turn_metrics
 from src.models import Faction, FactionIdentity, LanguageProfile, Region, RelationshipState, WorldState
 from src.simulation_ui import build_simulation_snapshots, build_simulation_view_model
@@ -131,6 +133,39 @@ class HeartlandSystemTests(unittest.TestCase):
 
         apply_unrest_secession(world, region)
         return region.owner, region
+
+    def _prepare_authored_secession_region(
+        self,
+        world,
+        faction_name,
+        region_name,
+        authored_name,
+        *,
+        terrain_tags=None,
+    ):
+        region = world.regions[region_name]
+        region.owner = faction_name
+        region.integrated_owner = faction_name
+        region.core_status = "frontier"
+        region.integration_score = 1.0
+        region.homeland_faction_id = None
+        region.display_name = authored_name
+        region.founding_name = authored_name
+        region.name_metadata = {
+            "source": "map_definition",
+            "authored_name": authored_name,
+        }
+        if terrain_tags is not None:
+            region.terrain_tags = list(terrain_tags)
+        if region.population <= 0:
+            region.population = estimate_region_population(
+                region.resources,
+                len(region.neighbors),
+                owner=faction_name,
+            )
+        parent_ethnicity = world.factions[faction_name].primary_ethnicity
+        region.ethnic_composition = {parent_ethnicity: region.population}
+        return region
 
     def test_population_scale_starts_with_growth_headroom(self):
         self.assertEqual(estimate_region_population(3, 4, owner="FactionA"), 12350)
@@ -784,6 +819,62 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertEqual(faction.government_type, "Council Realm")
         self.assertEqual(faction.display_name, f"{faction.culture_name} Council Realm")
         self.assertNotIn(" State", faction.display_name)
+
+    def test_polity_advancement_resolves_display_collision_without_rekeying_factions(self):
+        world = create_world(
+            map_name="thirteen_region_ring",
+            num_factions=4,
+            seed="polity-display-collision",
+        )
+        target_name, blocker_name = list(world.factions)[:2]
+        target = world.factions[target_name]
+        blocker = world.factions[blocker_name]
+        target.identity.culture_name = "Lond"
+        target.identity.set_government_structure(
+            "chiefdom",
+            "council",
+            update_display_name=True,
+        )
+        blocker.identity.culture_name = "Lond"
+        blocker.identity.set_government_structure(
+            "state",
+            "council",
+            update_display_name=True,
+        )
+        faction_keys_before = list(world.factions)
+        target_object = world.factions[target_name]
+
+        qualifying_profile = {
+            "owned_regions": 5,
+            "population": 260000,
+            "total_surplus": 10.5,
+            "town_regions": 2,
+            "city_regions": 1,
+            "core_regions": 2,
+            "mature_regions": 2,
+            "average_infrastructure": 0.3,
+            "average_road": 0.18,
+            "average_administrative_support": 0.2,
+        }
+
+        def settlement_profile(_world, faction_name):
+            if faction_name == target_name:
+                return qualifying_profile
+            return {"owned_regions": 0, "population": 0}
+
+        with patch(
+            "src.heartland.get_faction_settlement_profile",
+            side_effect=settlement_profile,
+        ):
+            update_faction_polity_tiers(world)
+
+        self.assertEqual(target.polity_tier, "state")
+        self.assertNotEqual(target.culture_name, blocker.culture_name)
+        self.assertNotEqual(target.display_name, blocker.display_name)
+        self.assertEqual(list(world.factions), faction_keys_before)
+        self.assertIs(world.factions[target_name], target_object)
+        self.assertEqual(target.name, target_name)
+        self.assertNotIn(target.display_name, world.factions)
 
     def test_republic_succession_avoids_regency_and_can_rotate_line(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)
@@ -1977,7 +2068,13 @@ class HeartlandSystemTests(unittest.TestCase):
         self.assertEqual(region.owner, rebel_name)
         self.assertEqual(world.factions[rebel_name].rebel_conflict_type, REBEL_CONFLICT_CIVIL_WAR)
         self.assertEqual(world.factions[rebel_name].primary_ethnicity, parent_faction.primary_ethnicity)
-        self.assertEqual(world.factions[rebel_name].culture_name, parent_faction.culture_name)
+        self.assertNotEqual(world.factions[rebel_name].culture_name, parent_faction.culture_name)
+        self.assertNotEqual(world.factions[rebel_name].display_name, parent_faction.display_name)
+        self.assertTrue(
+            world.factions[rebel_name].culture_name.lower().endswith(
+                parent_faction.culture_name.lower()
+            )
+        )
         self.assertTrue(world.events[-1].details["civil_war"])
         self.assertEqual(world.events[-1].details["conflict_type"], REBEL_CONFLICT_CIVIL_WAR)
         self.assertIn("civil_war", world.events[-1].tags)
@@ -2281,6 +2378,90 @@ class HeartlandSystemTests(unittest.TestCase):
                 self.assertEqual(world.events[-1].details["regional_successor_name"], "Lond")
                 self.assertEqual(rebel_faction.display_name, "Lond")
                 self.assertEqual(rebel_faction.culture_name, "Lond")
+
+    def test_sibling_directional_authored_secessions_get_distinct_non_numeric_names(self):
+        world = create_world(
+            map_name="thirteen_region_ring",
+            num_factions=4,
+            seed="directional-sibling-secessions",
+        )
+        parent_name = next(iter(world.factions))
+        east_region = self._prepare_authored_secession_region(
+            world,
+            parent_name,
+            "M",
+            "East Lond",
+        )
+        west_region = self._prepare_authored_secession_region(
+            world,
+            parent_name,
+            "C",
+            "West Lond",
+        )
+
+        east_rebel_name, east_restored = create_rebel_faction(
+            world,
+            east_region,
+            parent_name,
+        )
+        self.assertFalse(east_restored)
+        east_region.owner = east_rebel_name
+        east_rebel = world.factions[east_rebel_name]
+
+        west_rebel_name, west_restored = create_rebel_faction(
+            world,
+            west_region,
+            parent_name,
+        )
+        self.assertFalse(west_restored)
+        west_region.owner = west_rebel_name
+        west_rebel = world.factions[west_rebel_name]
+
+        self.assertNotEqual(east_rebel.culture_name, west_rebel.culture_name)
+        self.assertNotEqual(east_rebel.display_name, west_rebel.display_name)
+        self.assertEqual(extract_culture_root(east_rebel.culture_name), "lond")
+        self.assertEqual(extract_culture_root(west_rebel.culture_name), "lond")
+        self.assertNotEqual(
+            get_culture_name_signature(east_rebel.culture_name),
+            get_culture_name_signature(west_rebel.culture_name),
+        )
+        for rebel in (east_rebel, west_rebel):
+            self.assertTrue(rebel.culture_name.endswith("Lond"))
+            self.assertEqual(rebel.display_name, f"{rebel.culture_name} Rebels")
+            self.assertNotRegex(rebel.display_name, r"\s\d+$")
+
+    def test_named_language_rebel_gets_geographic_qualifier(self):
+        world = create_world(
+            map_name="thirteen_region_ring",
+            num_factions=4,
+            seed="named-language-geographic-qualifier",
+        )
+        parent_name = next(iter(world.factions))
+        parent = world.factions[parent_name]
+        parent.identity.culture_name = "Grassic"
+        parent.identity.display_name = "Grassic Band"
+        parent.identity.source_traditions = [
+            *parent.identity.source_traditions,
+            "grassic",
+        ]
+        region = self._prepare_authored_secession_region(
+            world,
+            parent_name,
+            "M",
+            "Frontier March",
+            terrain_tags=["highland"],
+        )
+
+        rebel_name, restored = create_rebel_faction(world, region, parent_name)
+        rebel = world.factions[rebel_name]
+
+        self.assertFalse(restored)
+        self.assertNotEqual(rebel.culture_name, parent.culture_name)
+        self.assertNotEqual(rebel.display_name, parent.display_name)
+        self.assertGreater(len(rebel.culture_name.split()), 1)
+        self.assertTrue(rebel.culture_name.lower().endswith(parent.culture_name.lower()))
+        self.assertEqual(rebel.display_name, f"{rebel.culture_name} Rebels")
+        self.assertNotRegex(rebel.display_name, r"\s\d+$")
 
     def test_proto_civil_war_matures_into_rival_regime_with_successor_ethnicity(self):
         world = create_world(map_name="thirteen_region_ring", num_factions=4)

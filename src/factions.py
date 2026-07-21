@@ -32,6 +32,10 @@ def create_factions(
 
     factions = {}
     for index, identity in enumerate(identities, start=1):
+        if identity.display_name in factions:
+            raise ValueError(
+                f"Duplicate faction display name generated: {identity.display_name}"
+            )
         faction = Faction(
             name=identity.display_name,
             treasury=starting_treasury,

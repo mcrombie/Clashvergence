@@ -10,6 +10,10 @@ from src.ethnicity import seed_region_ethnicity
 from src.integration import handle_region_owner_change
 from src.models import Event, WorldState
 from src.population import estimate_region_population_from_resource_profile
+from src.polity_naming import (
+    ensure_unique_faction_display_name,
+    refresh_culture_roots,
+)
 from src.region_naming import assign_region_founding_name
 from src.religion import seed_region_religion
 from src.terrain import normalize_terrain_tags
@@ -76,7 +80,7 @@ def _activate_faction_arrival(
     previous_owner = region.owner
     settler_population = _add_colonial_population(world, faction_name, region_name)
 
-    handle_region_owner_change(region, faction_name)
+    handle_region_owner_change(region, faction_name, world)
     if not region.founding_name:
         assign_region_founding_name(
             world,
@@ -90,6 +94,12 @@ def _activate_faction_arrival(
 
     if faction_name in world.inactive_factions:
         world.inactive_factions.remove(faction_name)
+    ensure_unique_faction_display_name(
+        world,
+        faction_name,
+        region=region,
+    )
+    refresh_culture_roots(world)
 
     event = Event(
         turn=world.turn,

@@ -815,3 +815,5 @@ class WorldState:
     shock_history: list[ShockState] = field(default_factory=list)
     faction_arrivals: dict[str, dict[str, Any]] = field(default_factory=dict)
     inactive_factions: list[str] = field(default_factory=list)
+    # Derived collision index containing bare roots and qualified culture signatures.
+    culture_roots: set[str] = field(default_factory=set)

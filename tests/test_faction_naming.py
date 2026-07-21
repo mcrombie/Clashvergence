@@ -1,14 +1,23 @@
+import json
 import os
 import sys
 import types
 import unittest
 from unittest.mock import patch
 
-from src.faction_naming import REAL_NAME_BLOCKLIST, generate_faction_identities
+from src.faction_naming import (
+    REAL_NAME_BLOCKLIST,
+    extract_culture_root,
+    generate_faction_identities,
+    get_culture_name_signature,
+)
+from src.factions import create_factions
 from src.maps import MAPS
 from src.models import FactionIdentity
+from src.polity_naming import culture_roots_for_names
 from src.simulation import run_simulation
 from src.world import create_world
+from src.world_serialization import deserialize_world, serialize_world
 
 
 def _build_test_language_overrides():
@@ -57,6 +66,90 @@ class _FakeOpenAIClient:
 
 
 class FactionNamingTests(unittest.TestCase):
+    def test_culture_root_strips_directional_and_government_tokens(self):
+        cases = {
+            "East Lond Kingdom": "lond",
+            "Greater Grassic Council Realm": "grassic",
+            "Old Grassic Kin Tribe": "grassic kin",
+            "South-Western Lond Republic": "lond",
+        }
+
+        for name, expected_root in cases.items():
+            with self.subTest(name=name):
+                self.assertEqual(extract_culture_root(name), expected_root)
+
+    def test_culture_name_signature_preserves_qualifiers(self):
+        cases = {
+            "East Lond Kingdom": "east lond",
+            "Greater Grassic Council Realm": "greater grassic",
+            "Old Grassic Kin Tribe": "old grassic kin",
+            "South-Western Lond Republic": "south western lond",
+        }
+
+        for name, expected_signature in cases.items():
+            with self.subTest(name=name):
+                self.assertEqual(get_culture_name_signature(name), expected_signature)
+
+    def test_world_creation_initializes_active_culture_roots(self):
+        world = create_world(
+            map_name="thirteen_region_ring",
+            num_factions=4,
+            seed="culture-root-registry",
+        )
+        active_faction_names = {
+            region.owner
+            for region in world.regions.values()
+            if region.owner in world.factions
+        }
+        expected_roots = culture_roots_for_names(
+            world.factions[name].culture_name
+            for name in active_faction_names
+        )
+
+        self.assertIsInstance(world.culture_roots, set)
+        self.assertTrue(world.culture_roots)
+        self.assertEqual(world.culture_roots, expected_roots)
+
+    def test_culture_roots_serialize_as_json_safe_list_and_restore_as_set(self):
+        world = create_world(
+            map_name="thirteen_region_ring",
+            num_factions=4,
+            seed="culture-root-round-trip",
+        )
+
+        payload = serialize_world(world)
+        json.dumps(payload)
+        restored = deserialize_world(payload)
+
+        self.assertIsInstance(payload["culture_roots"], list)
+        self.assertEqual(payload["culture_roots"], sorted(world.culture_roots))
+        self.assertIsInstance(restored.culture_roots, set)
+        self.assertEqual(restored.culture_roots, world.culture_roots)
+
+    def test_legacy_save_without_culture_roots_rebuilds_registry(self):
+        world = create_world(
+            map_name="thirteen_region_ring",
+            num_factions=4,
+            seed="legacy-culture-root-save",
+        )
+        payload = serialize_world(world)
+        payload.pop("culture_roots")
+
+        restored = deserialize_world(payload)
+        active_faction_names = {
+            region.owner
+            for region in restored.regions.values()
+            if region.owner in restored.factions
+        }
+        expected_roots = culture_roots_for_names(
+            restored.factions[name].culture_name
+            for name in active_faction_names
+        )
+
+        self.assertIsInstance(restored.culture_roots, set)
+        self.assertTrue(restored.culture_roots)
+        self.assertEqual(restored.culture_roots, expected_roots)
+
     def test_generation_is_deterministic_for_same_seed(self):
         first = [identity.display_name for identity in generate_faction_identities(4, naming_seed="multi_ring_symmetry")]
         second = [identity.display_name for identity in generate_faction_identities(4, naming_seed="multi_ring_symmetry")]
@@ -164,6 +257,86 @@ class FactionNamingTests(unittest.TestCase):
         self.assertEqual(identity.language_profile.family_name, "Boueni")
         self.assertEqual(identity.generation_method, "map_language_family_override")
         self.assertFalse(identity.ai_generated)
+
+    def test_duplicate_pinned_culture_names_fall_back_without_overwriting_factions(self):
+        family = {
+            **_build_test_language_overrides()["Faction1"],
+            "default_culture_name": "Lond",
+            "default_display_name": "Lond Band",
+        }
+        identities = generate_faction_identities(
+            2,
+            naming_seed="duplicate-pinned-cultures",
+            language_family_overrides={
+                "Faction1": family,
+                "Faction2": family,
+            },
+        )
+
+        self.assertEqual(identities[0].culture_name, "Lond")
+        self.assertNotEqual(identities[1].culture_name, "Lond")
+        self.assertEqual(len({identity.culture_name for identity in identities}), 2)
+        self.assertEqual(len({identity.display_name for identity in identities}), 2)
+        self.assertEqual(
+            identities[1].generation_method,
+            "map_language_family_collision_fallback",
+        )
+        factions = create_factions(
+            2,
+            naming_seed="duplicate-pinned-cultures",
+            language_family_overrides={
+                "Faction1": family,
+                "Faction2": family,
+            },
+        )
+        self.assertEqual(len(factions), 2)
+
+    def test_duplicate_pinned_display_names_do_not_overwrite_factions(self):
+        base_family = _build_test_language_overrides()["Faction1"]
+        factions = create_factions(
+            2,
+            naming_seed="duplicate-pinned-displays",
+            language_family_overrides={
+                "Faction1": {
+                    **base_family,
+                    "default_culture_name": "Alori",
+                    "default_display_name": "The Realm",
+                },
+                "Faction2": {
+                    **base_family,
+                    "default_culture_name": "Belori",
+                    "default_display_name": "The Realm",
+                },
+            },
+        )
+
+        self.assertEqual(len(factions), 2)
+        self.assertEqual(len({faction.display_name for faction in factions.values()}), 2)
+
+    def test_duplicate_pinned_name_fallback_handles_short_family_fragments(self):
+        short_family = {
+            "family_name": "A",
+            "default_culture_name": "Lond",
+            "traditions": ["custom"],
+            "inspirations": ["A"],
+            "candidate_pool": ["A"],
+            "onsets": ["a"],
+            "middles": ["a"],
+            "suffixes": ["a"],
+            "seed_fragments": ["a"],
+            "lexical_roots": {},
+        }
+
+        identities = generate_faction_identities(
+            2,
+            naming_seed="short-duplicate-pinned-cultures",
+            language_family_overrides={
+                "Faction1": short_family,
+                "Faction2": short_family,
+            },
+        )
+
+        self.assertEqual(len({identity.display_name for identity in identities}), 2)
 
     def test_world_creation_uses_map_language_family_overrides(self):
         map_name = "language_override_test_map"
